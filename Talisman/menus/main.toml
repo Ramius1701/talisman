@@ -1,5 +1,10 @@
 [menu]
-gfile = "main"
+gfile = "mainmenu"
+
+[[menuitem]]
+command = "SUBMENU"
+hotkey = "M"
+data = "message"
 
 [[menuitem]]
 command = "SUBMENU"

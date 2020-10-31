@@ -178,6 +178,18 @@ char Node::getch() {
 			if (len == 0) {
 				disconnected();
 			}
+			else if (len == -1) {
+#ifdef _MSC_VER
+				int err = WSAGetLastError();
+				if (err == WSAENOTCONN) {
+					disconnected();
+				}
+				else {
+					closesocket(socket);
+					disconnected();
+				}
+#endif
+			}
 			if (stage == 0) {
 				if ((unsigned char)ch == IAC) {
 					stage = 1;
@@ -516,7 +528,7 @@ int Node::run() {
 	// we are logged in!
 
 	cls();
-	print_f("Welcome %s!\r\n", u.get_username().c_str());
+	print_f("Welcome to node %d,  %s!\r\n", node, u.get_username().c_str());
 
 
 	Menu m(this);

@@ -18,7 +18,7 @@ bool Menu::load(std::string filename)
 		auto data = toml::parse_file(filename);
 
 
-		auto _gfile = data["menu"]["gfiles"].as_string();
+		auto _gfile = data["menu"]["gfile"].as_string();
 
 		if (_gfile == nullptr) {
 			gfile = "";
@@ -83,6 +83,7 @@ bool Menu::run() {
 		return false;
 	}
 	while (true) {
+		n->cls();
 		if (gfile != "") {
 			n->send_gfile(gfile);
 		}

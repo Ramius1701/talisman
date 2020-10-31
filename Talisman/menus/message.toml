@@ -1,0 +1,11 @@
+[menu]
+gfile = "messagemenu"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "Q"
