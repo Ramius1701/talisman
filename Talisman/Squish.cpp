@@ -4,6 +4,9 @@
 #include <io.h>
 #else
 #include <unistd.h>
+#include <fcntl.h>
+#include <limits.h>
+#define MAX_PATH PATH_MAX
 #endif
 #include <cctype>
 #include <cstdlib>
