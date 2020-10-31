@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <cstring>
 #endif
+#include <iostream>
 #include "Config.h"
 #include "Node.h"
 
@@ -39,6 +40,9 @@ int main(int argc, char** argv) {
 			telnet = true;
 		}
 	}
+
+	std::cerr << "Socket : " << socket << " Telnet : " << telnet << std::endl;
+
 	Node n(node, socket, telnet);
 	ret = n.run();
 #ifdef _MSC_VER
