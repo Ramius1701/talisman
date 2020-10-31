@@ -7,6 +7,9 @@
 
 #define strcasecmp _stricmp
 
+#else
+#include <unistd.h>
+#include <cstring>
 #endif
 #include <filesystem>
 #include <sstream>

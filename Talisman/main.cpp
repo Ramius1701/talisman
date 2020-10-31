@@ -2,7 +2,9 @@
 #include <Windows.h>
 
 #define strcasecmp _stricmp
-
+#else
+#include <unistd.h>
+#include <cstring>
 #endif
 #include "Config.h"
 #include "Node.h"

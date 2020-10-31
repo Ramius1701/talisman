@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Debug
+/Servo/Debug
+/Servo/packages.config
+/Servo/Servo.vcxproj.filters
+/Servo/Servo.vcxproj.user
+/Talisman/data/users.sqlite3
+/Talisman/Debug/Talisman.tlog
+/Talisman/Debug
+/Talisman/sqlite3.dll
+/Talisman/Talisman.vcxproj.filters
+/Talisman/Talisman.vcxproj.user
