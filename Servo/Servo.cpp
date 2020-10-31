@@ -119,12 +119,12 @@ int main()
 		closesocket(csockfd);
 #else
 		pid_t pid = fork();
-		std::string sockstr = std::to_string(csockfd);
-
-		std::cout << "./talisman -S " << sockstr << " -T" << std::endl;
 		
 		if (pid > 0) {
 			close(telnetfd);
+			std::string sockstr = std::to_string(csockfd);
+			std::cout << "./talisman -S " << sockstr << " -T" << std::endl;
+
 			if (execlp("./talisman", "-S", sockstr.c_str(), "-T", NULL) == -1) {
 				perror("Execlp: ");
 				exit(-1);
