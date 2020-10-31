@@ -1,0 +1,17 @@
+cmake_minimum_required (VERSION 2.6)
+project (talisman)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_MODULE_PATH ${talisman_SOURCE_DIR}/../cmake/)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -ggdb -std=c++17")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -std=c++17")
+find_package(SQLite3 REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+add_executable(talisman main.cpp Node.cpp Config.cpp User.cpp Menu.cpp)
+include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	target_link_libraries (talisman ${SQLITE3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} c++fs util)
+else()
+	target_link_libraries (talisman ${SQLITE3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} stdc++fs util)
+endif()
+
