@@ -8,7 +8,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstdio>
-
+#include <cstring>
 #include <sys/stat.h>
 
 int lock(int handle, long ofs, long length)
