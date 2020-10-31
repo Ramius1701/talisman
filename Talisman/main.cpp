@@ -32,8 +32,6 @@ int main(int argc, char** argv) {
 			continue;
 		}
 		else if (strcasecmp(argv[i], "-S") == 0) {
-			std::cerr << "SOCKET \"" << argv[i + 1]; << "\"" << std::endl;
-
 			socket = (int)strtoul(argv[i + 1], NULL, 10);
 			i++;
 			continue;
