@@ -283,7 +283,9 @@ std::string Node::get_string(int maxlen, bool masked) {
 }
 
 void Node::cls() {
-	print_f("\x1b[2J\x1b[1;1H");
+	if (hasANSI) {
+		print_f("\x1b[2J\x1b[1;1H");
+	}
 }
 
 void Node::send_str(const char* str) {
@@ -400,7 +402,7 @@ int Node::run() {
 	print_f("Talisman v%d.%d-%s; Copyright (c) 2020; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
 	/* Load configuration */
-	if (!config.load("talisman.ini")) {
+	if (!config.load(this, "talisman.ini")) {
 		print_f("Unable to load config! (Exiting)\r\n");
 		return -1;
 	}

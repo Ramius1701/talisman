@@ -20,19 +20,19 @@ public:
 	void cls();
 	std::string get_string(int maxlen, bool masked);
 
-	Config get_config() {
-		return config;
+	Config *get_config() {
+		return &config;
 	}
 
 	User get_user() {
 		return u;
 	}
-
+	bool hasANSI;
 private:
 	int node;
 	int socket;
 	bool telnet;
-	bool hasANSI;
+
 	Config config;
 	User u;
 	void send_str(const char* str);

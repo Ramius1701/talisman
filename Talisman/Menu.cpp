@@ -119,7 +119,7 @@ bool Menu::run() {
 					return false;
 				} else if (strcasecmp(items[i].command.c_str(), "submenu") == 0) {
 					Menu m(n);
-					if (m.load(n->get_config().menu_path() + "/" + items[i].data + ".toml")) {
+					if (m.load(n->get_config()->menu_path() + "/" + items[i].data + ".toml")) {
 						if (m.run() == true) {
 							return true;
 						}
@@ -128,13 +128,13 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "listconfs") == 0) {
 					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
-					for (size_t mc = 0; mc < n->get_config().msgconfs.size();mc++) {
-						if (n->get_config().msgconfs.at(mc).get_sec_level() > n->get_user().get_sec_level()) continue;
+					for (size_t mc = 0; mc < n->get_config()->msgconfs.size();mc++) {
+						if (n->get_config()->msgconfs.at(mc).get_sec_level() > n->get_user().get_sec_level()) continue;
 						if (count == newconf) {
 							n->get_user().set_attribute("cur_msg_conf", std::to_string(mc));
 							n->get_user().set_attribute("cur_msg_area", "-1");
-							for (size_t ma = 0; ma < n->get_config().msgconfs.at(mc).areas.size(); ma++) {
-								if (n->get_config().msgconfs.at(mc).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+							for (size_t ma = 0; ma < n->get_config()->msgconfs.at(mc).areas.size(); ma++) {
+								if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
 									n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
 									break;
 								}
@@ -149,14 +149,51 @@ bool Menu::run() {
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07");
 					} else {
-						int newarea = n->get_config().msgconfs.at(msgconf).list_areas(n, n->get_user().get_sec_level());
+						int newarea = n->get_config()->msgconfs.at(msgconf).list_areas(n, n->get_user().get_sec_level());
 						int count = 1;
-						for (size_t ma = 0; ma < n->get_config().msgconfs.at(msgconf).areas.size(); ma++) {
+						for (size_t ma = 0; ma < n->get_config()->msgconfs.at(msgconf).areas.size(); ma++) {
 							if (count == newarea) {
 								n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
 								break;
 							}
 							count++;
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "listmsgs") == 0) {
+					n->print_f("\r\n\r\n");
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf == -1) {
+						n->print_f("|14Select a message conference first!|07");
+					}
+					else {
+						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+						if (msgarea == -1) {
+							n->print_f("|14Select a message area first!|07");
+						}
+						else {
+							n->print_f("|13Start at F=First, L=Last Read or [1-%d]: |07", n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs());
+							std::string start = n->get_string(6, false);
+							int msgno;
+							if (tolower(start[0]) == 'f') {
+								msgno = 1;
+							}
+							else if (tolower(start[0] == 'l')) {
+								msgno = 1;
+							}
+							else {
+								try {
+									msgno = stoi(start);
+									if (msgno == 0) msgno++;
+								}
+								catch (std::invalid_argument) {
+									msgno = 1;
+								}
+							}
+							msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).list_messages(msgno);
+							if (msgno > 0 && msgno < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+								n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(msgno);
+							}
 						}
 					}
 				}

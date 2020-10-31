@@ -4,11 +4,13 @@
 
 #include "MsgConf.h"
 
+class Node;
+
 class Config
 {
 public:
 	Config();
-	bool load(std::string filename);
+	bool load(Node *n, std::string filename);
 	std::string gfile_path() {
 		return _gfilepath;
 	}
@@ -17,6 +19,9 @@ public:
 	}
 	std::string menu_path() {
 		return _menupath;
+	}
+	std::string msg_path() {
+		return _msgpath;
 	}
 
 	std::string main_menu() {
@@ -29,6 +34,6 @@ private:
 	std::string _menupath;
 	std::string _gfilepath;
 	std::string _datapath;
-	
+	std::string _msgpath;
 };
 

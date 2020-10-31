@@ -10,6 +10,10 @@ command = "LISTAREAS"
 hotkey = "A"
 
 [[menuitem]]
+command = "LISTMSGS"
+hotkey = "L"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 

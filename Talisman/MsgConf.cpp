@@ -11,7 +11,8 @@ MsgConf::MsgConf(std::string name, int sec_level)
 	this->sec_level = sec_level;
 }
 
-bool MsgConf::load(Config *c, std::string filename) {
+bool MsgConf::load(Node *n, std::string filename) {
+	Config* c = n->get_config();
 	auto data = toml::parse_file(c->data_path() + "/" + filename + ".toml");
 
 	auto areaitems = data.get_as<toml::array>("messagearea");
@@ -56,7 +57,7 @@ bool MsgConf::load(Config *c, std::string filename) {
 		}
 
 		if (myfile != "") {
-			MsgArea a(myname, myfile, my_r_sec_level, my_w_sec_level);
+			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level);
 			areas.push_back(a);
 		}
 	}
@@ -66,7 +67,7 @@ bool MsgConf::load(Config *c, std::string filename) {
 
 int MsgConf::list_areas(Node* n, int sec)
 {
-	Config c = n->get_config();
+	Config *c = n->get_config();
 	int cur_area = 1;
 	int lines = 0;
 
@@ -128,22 +129,22 @@ int MsgConf::list_areas(Node* n, int sec)
 
 int MsgConf::list(Node* n, int sec)
 {
-	Config c = n->get_config();
+	Config *c = n->get_config();
 	int lines = 0;
 	int cur_conf = 1;
 	while (true) {
 		n->cls();
 
-		for (size_t i = 0; i < c.msgconfs.size(); i++) {
-			if (c.msgconfs.at(i).get_sec_level() > sec) continue;
+		for (size_t i = 0; i < c->msgconfs.size(); i++) {
+			if (c->msgconfs.at(i).get_sec_level() > sec) continue;
 			if (i == stoi(n->get_user().get_attribute("cur_msg_conf", "-1"))) {
-				n->print_f("|08[|14%3d|08] |07%s |11<-|07\r\n", cur_conf++, c.msgconfs.at(i).get_name().c_str());
+				n->print_f("|08[|14%3d|08] |07%s |11<-|07\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
 			}
 			else {
-				n->print_f("|08[|14%3d|08] |07%s\r\n", cur_conf++, c.msgconfs.at(i).get_name().c_str());
+				n->print_f("|08[|14%3d|08] |07%s\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
 			}
 			lines++;
-			if (lines == 24 && i != c.msgconfs.size() - 1) {
+			if (lines == 24 && i != c->msgconfs.size() - 1) {
 				n->print_f("|14Select |08[|151|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", cur_conf - 1);
 				std::string res = n->get_string(3, false);
 

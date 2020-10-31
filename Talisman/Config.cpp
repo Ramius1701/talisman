@@ -7,7 +7,7 @@ Config::Config() {
 
 }
 
-bool Config::load(std::string filename) {
+bool Config::load(Node *n, std::string filename) {
 	INIReader inir(filename);
 
 	if (inir.ParseError() != 0) {
@@ -18,6 +18,7 @@ bool Config::load(std::string filename) {
 	_datapath = inir.Get("Paths", "Data Path", "data");
 	_menupath = inir.Get("Paths", "Menu Path", "menus");
 	_mainmenu = inir.Get("Main", "Root Menu", "main");
+	_msgpath = inir.Get("Paths", "Message Path", "msgs");
 
 	auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
@@ -55,7 +56,7 @@ bool Config::load(std::string filename) {
 
 		MsgConf c(myname, mysec_level);
 
-		if (c.load(this, myconfig)) {
+		if (c.load(n, myconfig)) {
 			msgconfs.push_back(c);
 		}
 	}
