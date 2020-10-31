@@ -191,7 +191,7 @@ bool Menu::run() {
 								}
 							}
 							msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).list_messages(msgno);
-							if (msgno > 0 && msgno < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+							if (msgno > 0 && msgno <= n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
 								n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(msgno);
 							}
 						}
