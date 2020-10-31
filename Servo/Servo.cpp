@@ -4,6 +4,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
+#include <sys/wait.h>
 #include <sys/socket.h>
 #include <signal.h>
 #include <unistd.h>
@@ -51,7 +52,6 @@ int main()
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 		perror("sigaction - sigchld");
-		remove(conf.pid_file);
 		exit(1);
 	}
 
