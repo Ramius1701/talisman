@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <limits.h>
 #endif
 #include <iostream>
 #include <fstream>
