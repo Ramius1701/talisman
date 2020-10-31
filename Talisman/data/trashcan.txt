@@ -1,0 +1,4 @@
+sysop
+admin
+unknown
+anonymous

@@ -1,0 +1,97 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "INIReader.h"
+
+int main()
+{
+	int port;
+	WSADATA wsaData;
+	struct sockaddr_in serv_addr, client_addr;
+	int csockfd;
+	int clen = sizeof(struct sockaddr_in);
+	int on = 1;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+		std::cerr << "Error initializing winsock!" << std::endl;
+		return -1;
+	}
+
+	INIReader inir("talisman.ini");
+	if (inir.ParseError() != 0) {
+		return -1;
+	}
+
+	port = inir.GetInteger("main", "telnet port", 2323);
+
+	int telnetfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(port);
+	if (setsockopt(telnetfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+		std::cerr << "Error setting SO_REUSEADDR (Telnet)" << std::endl;
+		return -1;
+	}
+	if (setsockopt(telnetfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+		std::cerr << "Error setting TCP_NODELAY (Telnet)" << std::endl;
+		return -1;
+	}
+	if (bind(telnetfd, (struct sockaddr*) & serv_addr, sizeof(struct sockaddr_in)) < 0) {
+		std::cerr << "Error binding. (Telnet)" << std::endl;
+		return -1;
+	}
+
+	listen(telnetfd, 5);
+	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
+
+	while (1) {
+		csockfd = accept(telnetfd, (struct sockaddr*) & client_addr, (socklen_t*)&clen);
+		std::stringstream ss;
+#ifdef _MSC_VER
+		ss.str("");
+		ss << "\"talisman.exe\"" << " -S " << csockfd << " -T";
+		char* cmd = strdup(ss.str().c_str());
+
+		STARTUPINFOA si;
+		PROCESS_INFORMATION pi;
+
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		//	si.dwFlags = STARTF_USESTDHANDLES;
+		//	si.hStdInput = INVALID_HANDLE_VALUE;
+		//	si.hStdError = INVALID_HANDLE_VALUE;
+		//	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+		ZeroMemory(&pi, sizeof(pi));
+
+		if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+			std::cerr << "Failed to create process!" << std::endl;
+			free(cmd);
+			closesocket(csockfd);
+			continue;
+		}
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		free(cmd);
+		closesocket(csockfd);
+#endif
+	}
+	return 0;
+}
+
+// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
+// Debug program: F5 or Debug > Start Debugging menu
+
+// Tips for Getting Started: 
+//   1. Use the Solution Explorer window to add/manage files
+//   2. Use the Team Explorer window to connect to source control
+//   3. Use the Output window to see build output and other messages
+//   4. Use the Error List window to view errors
+//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
+//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file

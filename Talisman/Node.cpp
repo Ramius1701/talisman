@@ -1,0 +1,527 @@
+
+#ifdef _MSC_VER
+#define _WIN32_LEAN_AND_MEAN 1
+#include <WinSock2.h>
+#include <Windows.h>
+#include <conio.h>
+
+#define strcasecmp _stricmp
+
+#endif
+#include <filesystem>
+#include <sstream>
+#include <iostream>
+#include <ctime>
+#include <fstream>
+
+#include "GenDefs.h"
+#include "Node.h"
+#include "Config.h"
+#include "User.h"
+#include "Menu.h"
+
+Node::Node(int node, int socket, bool telnet) {
+	this->node = node;
+	this->socket = socket;
+	this->telnet = telnet;
+	hasANSI = false;
+}
+
+bool Node::detectANSI() {
+	print_f("\x1b[6n");
+	char buffer[1024];
+	timeval t;
+	time_t then = time(NULL);
+	t.tv_sec = 1;
+	t.tv_usec = 0;
+	time_t now;
+	int len;
+	int gotnum = 0;
+	int gotnum1 = 0;
+	do {
+		fd_set fds;
+		FD_ZERO(&fds);
+		FD_SET(socket, &fds);
+
+		if (select(socket + 1, &fds, NULL, NULL, &t) < 0) {
+			return false;
+		}
+
+		if (FD_ISSET(socket, &fds)) {
+			len = recv(socket, buffer, 1024, 0);
+			if (len == 0) {
+				disconnected();
+			}
+			for (int i = 0; i < len; i++) {
+				if (buffer[i] == '\x1b' && buffer[i + 1] == '[') {
+					for (int j = i + 2; j < len; j++) {
+						switch (buffer[j]) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+							gotnum = 1;
+							break;
+						case ';':
+							gotnum1 = 1;
+							gotnum = 0;
+							break;
+						case 'R':
+							if (gotnum && gotnum1) {
+								return true;
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		now = time(NULL);
+	} while (now - then < 5);
+
+	return false;
+}
+
+void Node::send_gfile(std::string filename) {
+	char lastc = 'x';
+	std::filesystem::path p(config.gfile_path());
+	if (hasANSI) {
+		p.append(filename + ".ans");
+		if (std::filesystem::exists(p)) {
+			// send ansi file
+			std::ifstream in(p);
+			char c;
+			if (in.is_open()) {
+				while (in.good()) {
+					in.get(c);
+					if (c == 0x1a) break;
+					if (socket) {
+						if (c == '\n' && lastc != '\r') {
+							send(socket, "\r", 1, 0);
+						}
+						lastc = c;
+						send(socket, &c, 1, 0);
+					}
+					else {
+						putchar(c);
+					}
+				}
+				in.close();
+				print_f("\x1b[0m");
+				return;
+			}
+		}
+	}
+
+	p.clear();
+	p.assign(config.gfile_path());
+	p.append(filename + ".asc");
+	if (std::filesystem::exists(p)) {
+		// send ascii file
+		std::ifstream in(p);
+		char c;
+		if (in.is_open()) {
+			while (in.good()) {
+				in.get(c);
+				if (c == 0x1a) break;
+				if (socket) {
+					send(socket, &c, 1, 0);
+				}
+				else {
+					putchar(c);
+				}
+			}
+			in.close();
+			print_f("\x1b[0m");
+			return;
+		}
+	}
+}
+
+void Node::putch(const char c) {
+	if (socket) {
+		send(socket, &c, 1, 0);
+	}
+#ifdef _MSC_VER
+	std::cout << c;
+#endif
+}
+
+char Node::getche() {
+	char c = getch();
+	putch(c);
+	return c;
+}
+
+char Node::getch() {
+	char ch;
+	int len;
+	int stage = 0;
+	char order = 0;
+	char buffer[2048];
+	int i = 0;
+
+	if (socket != 0) {
+		while (true) {
+			len = recv(socket, &ch, 1, 0);
+			if (len == 0) {
+				disconnected();
+			}
+			if (stage == 0) {
+				if ((unsigned char)ch == IAC) {
+					stage = 1;
+				}
+				else if (ch != '\n' && ch != '\0') {
+					return ch;
+				}
+			}
+			else if (stage == 1) {
+				if ((unsigned char)ch == IAC) {
+					return ch;
+				}
+				else if ((unsigned char)ch == 240){
+					stage = 3;
+				}
+				else {
+					order = ch;
+					stage = 2;
+				}
+			}
+			else if (stage == 2) {
+				// handle iac
+				stage = 0;
+			}
+			else if (stage == 3) {
+				if ((unsigned char)ch == 250) {
+					stage = 0;
+				}
+				else {
+					if (i < 2047) {
+						buffer[i++] = ch;
+						buffer[i] = '\0';
+					}
+				}
+			}
+		}
+	}
+	else {
+		do {
+#ifdef _MSC_VER
+			ch = _getch();
+#else
+			ch = getchar();
+#endif
+		} while (ch == '\n');
+	}
+
+	return ch;
+}
+
+std::string Node::get_string(int maxlen, bool masked) {
+	std::stringstream ss;
+	if (hasANSI) {
+		print_f("\x1b[s\x1b[1;37;41m");
+		for (int i = 0; i < maxlen; i++) {
+			print_f(" ");
+		}
+		print_f("\x1b[u");
+	}
+	
+	do {
+		char ch = getch();
+		if (ch == '\r') {
+			break;
+		}
+		else if (ch == 127 || ch == '\b') {
+			if (ss.str().size() > 0) {
+				std::string tempstr = ss.str().substr(0, ss.str().size() - 1);
+				print_f("\x1b[D \x1b[D");
+				ss.str("");
+				ss << tempstr;
+			}
+		}
+		else {
+			if (masked) {
+				putch('*');
+			}
+			else {
+				putch(ch);
+			}
+			ss << ch;
+		}
+
+	} while (ss.str().length() < maxlen);
+
+	if (hasANSI) {
+		print_f("\x1b[0m");
+	}
+
+	return ss.str();
+}
+
+void Node::cls() {
+	print_f("\x1b[2J\x1b[1;1H");
+}
+
+void Node::send_str(const char* str) {
+	if (socket != 0) {
+		send(socket, str, strlen(str), 0);
+	}
+#ifdef _MSC_VER
+	std::cout << str;
+#endif
+}
+
+void Node::print_f(const char* fmt, ...)
+{
+	char buffer[2048];
+	va_list args;
+	va_start(args, fmt);
+
+	vsnprintf(buffer, sizeof buffer, fmt, args);
+
+	for (size_t i = 0; i < strlen(buffer); i++) {
+		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
+			int pipecolor = (buffer[i + 1] - '0') * 10 + (buffer[i + 2] - '0');
+			
+			switch (pipecolor) {
+			case 0:
+				send_str("\x1b[0;30m");
+				break;
+			case 1:
+				send_str("\x1b[0;34m");
+				break;
+			case 2:
+				send_str("\x1b[0;32m");
+				break;
+			case 3:
+				send_str("\x1b[0;36m");
+				break;
+			case 4:
+				send_str("\x1b[0;31m");
+				break;
+			case 5:
+				send_str("\x1b[0;35m");
+				break;
+			case 6:
+				send_str("\x1b[0;33m");
+				break;
+			case 7:
+				send_str("\x1b[0;37m");
+				break;
+			case 8:
+				send_str("\x1b[1;30m");
+				break;
+			case 9:
+				send_str("\x1b[1;34m");
+				break;
+			case 10:
+				send_str("\x1b[1;32m");
+				break;
+			case 11:
+				send_str("\x1b[1;36m");
+				break;
+			case 12:
+				send_str("\x1b[1;31m");
+				break;
+			case 13:
+				send_str("\x1b[1;35m");
+				break;
+			case 14:
+				send_str("\x1b[1;33m");
+				break;
+			case 15:
+				send_str("\x1b[1;37m");
+				break;
+			}
+			
+			
+			i += 2;
+			continue;
+		}
+		else {
+			if (socket != 0) {
+				send(socket, &buffer[i], 1, 0);
+			}
+#ifdef _MSC_VER
+			std::cout << buffer[i];
+#endif
+		}
+	}
+
+	va_end(args);
+}
+
+int Node::run() {
+	char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
+	char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
+	bool logged_in = false;
+
+	
+
+	if (socket != 0) {
+#ifdef _MSC_VER
+		WSADATA wsaData;
+
+		if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+			std::cerr << "Error initializing winsock!" << std::endl;
+			return -1;
+		}
+#endif
+		if (telnet) {
+			send(socket, iac_echo, 3, 0);
+			send(socket, iac_sga, 3, 0);
+		}
+	}
+
+	print_f("Talisman v%d.%d-%s; Copyright (c) 2020; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+
+	if (!config.load("talisman.ini")) {
+		print_f("Unable to load config! (Exiting)\r\n");
+		return -1;
+	}
+
+	u.set_config(config);
+
+	if (socket) {
+		print_f("Detecting ANSI Graphics... ");
+		hasANSI = detectANSI();
+		if (hasANSI) {
+			print_f("DETECTED\r\n");
+		}
+		else {
+			print_f("NOT DETECTED\r\n");
+		}
+	}
+	else {
+		hasANSI = true;
+	}
+
+	send_gfile("welcome");
+
+	int tries = 0;
+
+	while (!logged_in) {
+		print_f("\r\nEnter USERNAME or NEW\r\n");
+		print_f("LOGIN: ");
+		std::string login = get_string(16, false);
+		if (strcasecmp(login.c_str(), "NEW") == 0) {
+			cls();
+			send_gfile("newuser");
+			print_f("Create a new account? (Y/N): ");
+			char ch = tolower(getche());
+			if (ch == 'y') {
+				std::string newusername = "";
+				while(true) {
+					print_f("\r\n       Desired username: ");
+					newusername = get_string(16, false);
+					if (User::username_allowed(config, newusername)) {
+						break;
+					}
+					print_f("\r\n|12Sorry, username not allowed (Too short, inappropriate or already in use.)|07\r\n");
+				}
+				std::string password = "";
+				while(true) {
+					print_f("\r\n       Desired password: ");
+					password = get_string(16, true);
+					if (password.size() < 6) {
+						print_f("\r\n|12Password too short..|07\r\n");
+						continue;
+					}
+					print_f("\r\n        Repeat password: ");
+					std::string password_r = get_string(16, true);
+
+					if (password != password_r) {
+						print_f("\r\n|12Passwords don't match..|07\r\n");
+						continue;
+					}
+					break;
+				}
+
+				std::string firstname = "";
+				std::string lastname = "";
+
+				while (true) {
+					print_f("\r\n        Your first name: ");
+					firstname = get_string(26, false);
+					print_f("\r\n         Your last name: ");
+					lastname = get_string(26, false);
+
+					if (firstname.size() < 2 || lastname.size() < 2) {
+						print_f("\r\n|12First name and last name must both be at least 2 characters long.\r\n|07");
+						continue;
+					}
+
+					if (!User::check_fullname(config, firstname + " " + lastname)) {
+						print_f("\r\n|12Someone with that name is already registered, sorry.\r\n|07");
+						continue;
+					}
+					break;
+				}
+				std::string location;
+				while (true) {
+					print_f("\r\n   Approximate location: ");
+					location = get_string(26, false);
+					if (location.size() < 2) {
+						print_f("\r\n|12Too short. Come on, don't be shy!\r\n|07");
+						continue;
+					}
+
+					break;
+				}
+				std::string email;
+				print_f("\r\n Contact E-Mail address: ");
+				email = get_string(32, false);
+
+				print_f("\r\nThankyou. Have you entered everything correctly? (Y/N): ");
+				if (tolower(getche() == 'y')) {
+					print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
+					if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
+						logged_in = true;
+					}
+					else {
+						print_f("\r\n|12Sorry, an error occured!|07\r\n");
+						return 0;
+					}
+				}
+			}
+		}
+		else {
+			print_f("\r\nPASSW: ");
+			std::string password = get_string(16, true);
+
+			if (u.load_user(login, password)) {
+				logged_in = true;
+			}
+			else {
+				tries++;
+			}
+		}
+		if (tries == 3) {
+			return 0;
+		}
+	}
+
+	// we are logged in!
+
+	cls();
+	print_f("Welcome %s!\r\n", u.get_username().c_str());
+
+
+	Menu m(this);
+
+	m.load(config.menu_path() + "/" + config.main_menu() + ".toml");
+	m.run();
+	return 0;
+}
+
+void Node::disconnected() {
+	exit(-1);
+}

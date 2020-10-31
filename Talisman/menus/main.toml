@@ -1,0 +1,7 @@
+[menu]
+gfile = "main"
+
+[[menuitem]]
+command = "SUBMENU"
+hotkey = "G"
+data = "logoff"

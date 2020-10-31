@@ -1,0 +1,10 @@
+[main]
+gfile = "logoff"
+
+[[menuitem]]
+command = "GOODBYE"
+hotkey = "Y"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "N"
