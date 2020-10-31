@@ -168,7 +168,7 @@ int main()
 		for (i = 0; i < max_nodes; i++) {
 			if (nodes.at(i) != 0) {
 				char buffer[PATH_MAX];
-				snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", node.at(i));
+				snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i));
 				FILE* fptr = fopen(buffer, "r");
 
 				if (fptr) {
