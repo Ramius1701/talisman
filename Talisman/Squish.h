@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <cstdio>
-#include <Windows.h>
 
 typedef uint8_t sq_char;
 typedef uint16_t sq_word;
