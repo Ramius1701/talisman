@@ -55,7 +55,7 @@ int main()
 
 	struct sigaction sa;
 	char sockstr[10];
-
+	char nodestr[10];
 	sa.sa_handler = sigchld_handler; // reap all dead processes
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;
@@ -197,8 +197,8 @@ int main()
 					close(telnetfd);
 
 					snprintf(sockstr, 10, "%d", csockfd);
-
-					if (execlp("./talisman", "./talisman", "-S", sockstr, "-T", NULL) == -1) {
+					snprintf(nodestr, 10, "%d", i + 1);
+					if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
 						perror("Execlp: ");
 						exit(-1);
 					}
