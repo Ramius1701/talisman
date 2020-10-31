@@ -88,11 +88,9 @@ int main()
 
 	while (1) {
 		csockfd = accept(telnetfd, (struct sockaddr*) & client_addr, (socklen_t*)&clen);
-		std::stringstream ss;
-
-
 
 #ifdef _MSC_VER
+		std::stringstream ss;
 		ss.str("");
 		ss << "\"talisman.exe\"" << " -S " << csockfd << " -T";
 		char* cmd = strdup(ss.str().c_str());
@@ -127,7 +125,10 @@ int main()
 		
 		if (pid > 0) {
 			close(telnetfd);
-			execlp("./talisman", "-S", sockstr.c_str(), "-T", NULL);
+			if (execlp("./talisman", "-S", sockstr.c_str(), "-T", NULL) == -1) {
+				perror("Execlp: ");
+				exit(-1);
+			}
 		}
 		else if (pid == 0) {
 			close(csockfd);
