@@ -4,7 +4,6 @@
 #include <io.h>
 #else
 #include <unistd.h>
-#include <fcntl.h>
 #include <limits.h>
 #define MAX_PATH PATH_MAX
 #endif
@@ -13,6 +12,13 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
+
+#ifndef _MSC_VER
+off_t tell(int fd)
+{
+	return lseek(fd, 0, SEEK_CUR);
+}
+#endif
 
 int lock(int handle, long ofs, long length)
 {
@@ -84,7 +90,11 @@ int waitlock2(int handle, long ofs, long length, long t)
 	t *= 10;
 	while ((rc = lock(handle, ofs, length)) == -1 && (t > 0 || forever))
 	{
+#ifdef _MSC_VER
 		Sleep(1);
+#else
+		usleep(100);
+#endif
 		t--;
 	}
 
