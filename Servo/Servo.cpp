@@ -190,7 +190,7 @@ int main()
 				pid_t pid = fork();
 
 				if (pid > 0) {
-					nodes.at = pid;
+					nodes.at(i) = pid;
 					close(csockfd);
 				}
 				else if (pid == 0) {
