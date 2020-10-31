@@ -8,6 +8,7 @@
 #define strcasecmp _stricmp
 
 #else
+#include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
 #endif
