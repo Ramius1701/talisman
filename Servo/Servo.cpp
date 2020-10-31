@@ -122,10 +122,12 @@ int main()
 		
 		if (pid > 0) {
 			close(telnetfd);
-			std::string sockstr = std::to_string(csockfd);
+			char sockstr[10];
+
+			snprintf(sockstr, 10, "%d", csockfd);
 			std::cout << "./talisman -S " << sockstr << " -T" << std::endl;
 
-			if (execlp("./talisman", "-S", sockstr.c_str(), "-T", NULL) == -1) {
+			if (execlp("./talisman", "-S", sockstr, "-T", NULL) == -1) {
 				perror("Execlp: ");
 				exit(-1);
 			}
