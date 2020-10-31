@@ -1,25 +1,61 @@
+#ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <signal.h>
+#include <unistd.h>
+#include <errno.h>
+#include <arpa/inet.h>
+#include <netinet/tcp.h>
+#endif
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "INIReader.h"
 
+#ifndef _MSC_VER
+void sigchld_handler(int s) {
+	// waitpid() might overwrite errno, so we save and restore it:
+	int saved_errno = errno;
+
+	while (waitpid(-1, NULL, WNOHANG) > 0)
+		;
+
+	errno = saved_errno;
+}
+#endif
+
 int main()
 {
 	int port;
-	WSADATA wsaData;
 	struct sockaddr_in serv_addr, client_addr;
 	int csockfd;
 	int clen = sizeof(struct sockaddr_in);
 	int on = 1;
+
+#ifdef _MSC_VER
+	WSADATA wsaData;
+
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		std::cerr << "Error initializing winsock!" << std::endl;
 		return -1;
 	}
+#else 
+	struct sigaction sa;
 
+	sa.sa_handler = sigchld_handler; // reap all dead processes
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART | SA_SIGINFO;
+	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+		perror("sigaction - sigchld");
+		remove(conf.pid_file);
+		exit(1);
+	}
+
+#endif
 	INIReader inir("talisman.ini");
 	if (inir.ParseError() != 0) {
 		return -1;
@@ -53,6 +89,9 @@ int main()
 	while (1) {
 		csockfd = accept(telnetfd, (struct sockaddr*) & client_addr, (socklen_t*)&clen);
 		std::stringstream ss;
+
+
+
 #ifdef _MSC_VER
 		ss.str("");
 		ss << "\"talisman.exe\"" << " -S " << csockfd << " -T";
@@ -80,6 +119,20 @@ int main()
 		CloseHandle(pi.hThread);
 		free(cmd);
 		closesocket(csockfd);
+#else
+		pid_t pid = fork();
+		std::string sockstr = std::to_string(csockfd);
+		if (pid > 0) {
+			close(telnetfd);
+			execlp("./talisman", "-S", sockstr.c_str(), "-T", NULL);
+		}
+		else if (pid == 0) {
+			close(csockfd);
+		}
+		else {
+			std::cerr << "Failed to create process!" << std::endl;
+			close(csockfd);
+		}
 #endif
 	}
 	return 0;
