@@ -364,8 +364,8 @@ void Node::print_f(const char* fmt, ...)
 }
 
 int Node::run() {
-	char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
-	char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
+	unsigned char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
+	unsigned char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
 	bool logged_in = false;
 
 	
@@ -380,8 +380,8 @@ int Node::run() {
 		}
 #endif
 		if (telnet) {
-			send(socket, iac_echo, 3, 0);
-			send(socket, iac_sga, 3, 0);
+			send(socket, (char *)iac_echo, 3, 0);
+			send(socket, (char *)iac_sga, 3, 0);
 		}
 	}
 
