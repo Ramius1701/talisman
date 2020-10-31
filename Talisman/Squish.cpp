@@ -1,11 +1,14 @@
 #include "Squish.h"
 #ifdef _MSC_VER
 #include <Windows.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
 #include <cctype>
 #include <cstdlib>
 #include <cstdio>
-#include <io.h>
+
 #include <sys/stat.h>
 
 int lock(int handle, long ofs, long length)
