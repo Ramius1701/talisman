@@ -389,7 +389,6 @@ sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {
 	char* data;
 
 	if (msgno > mb->basehdr.num_msg || msgno < 1) {
-		printf("\n\n\nhere1 %d, %d\n\n\n", msgno, mb->basehdr.num_msg);
 		return NULL;
 	}
 
