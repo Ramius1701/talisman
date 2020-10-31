@@ -46,6 +46,7 @@ int main()
 	}
 #else 
 	struct sigaction sa;
+	char sockstr[10];
 
 	sa.sa_handler = sigchld_handler; // reap all dead processes
 	sigemptyset(&sa.sa_mask);
@@ -118,11 +119,12 @@ int main()
 		free(cmd);
 		closesocket(csockfd);
 #else
+
 		pid_t pid = fork();
 		
 		if (pid > 0) {
 			close(telnetfd);
-			char sockstr[10];
+
 
 			snprintf(sockstr, 10, "%d", csockfd);
 			std::cout << "./talisman -S " << sockstr << " -T" << std::endl;
