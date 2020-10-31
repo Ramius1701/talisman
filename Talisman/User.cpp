@@ -15,6 +15,7 @@
 #endif
 
 User::User() {
+	sec_level = 0;
 }
 
 void User::set_config(Config c) {
@@ -53,6 +54,44 @@ bool User::load_user(std::string username, std::string password)
 		sqlite3_close(db);
 	}
 	return false;
+}
+
+int User::get_sec_level() {
+	if (sec_level <= 0) {
+		sec_level = stoi(get_attribute("sec_level", "10"));
+	}
+	return sec_level;
+}
+
+std::string User::get_attribute(std::string attrib, std::string def) {
+	sqlite3* db;
+	sqlite3_stmt* res;
+	std::string ret;
+
+	int rc = 0;
+	static const char* sql = "SELECT value FROM details WHERE uid = ? and attrib = ?";
+
+	if(!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return def;
+	}
+	rc = sqlite3_prepare_v2(db, sql, strlen(sql), &res, 0);
+	if (rc != SQLITE_OK) {
+		sqlite3_close(db);
+		return def;
+	}
+	sqlite3_bind_int(res, 1, uid);
+	sqlite3_bind_text(res, 2, attrib.c_str(), -1, 0);
+	rc = sqlite3_step(res);
+	if (rc == SQLITE_ROW) {
+		ret = std::string((const char*)sqlite3_column_text(res, 0));
+	}
+	else {
+		ret = def;
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(db);
+	return ret;
 }
 
 void User::set_attribute(std::string attrib, std::string value) {

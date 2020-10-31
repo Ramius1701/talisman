@@ -23,6 +23,11 @@ public:
 	Config get_config() {
 		return config;
 	}
+
+	User get_user() {
+		return u;
+	}
+
 private:
 	int node;
 	int socket;

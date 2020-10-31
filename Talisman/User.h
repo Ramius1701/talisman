@@ -16,11 +16,14 @@ public:
 		return username;
 	}
 
+	int get_sec_level();
+	std::string get_attribute(std::string attrib, std::string def);
 
 	static bool open_database(std::string filename, sqlite3 **db);
 	static bool username_allowed(Config config, std::string username);
 	static bool check_fullname(Config c, std::string fullname);
 private:
+	int sec_level;
 	int uid;
 	Config c;
 	std::string hash_sha256(std::string pass, std::string salt);

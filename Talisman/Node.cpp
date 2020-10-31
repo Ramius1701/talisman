@@ -399,10 +399,12 @@ int Node::run() {
 
 	print_f("Talisman v%d.%d-%s; Copyright (c) 2020; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
+	/* Load configuration */
 	if (!config.load("talisman.ini")) {
 		print_f("Unable to load config! (Exiting)\r\n");
 		return -1;
 	}
+
 
 	u.set_config(config);
 

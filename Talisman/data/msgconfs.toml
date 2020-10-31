@@ -1,0 +1,9 @@
+[[messageconf]]
+name = "Local"
+config = "mb_local"
+sec_level = 10
+
+[[messageconf]]
+name = "FSXnet"
+config = "mb_fsxnet"
+sec_level = 10

@@ -1,5 +1,9 @@
 #pragma once
+#include <vector>
 #include <string>
+
+#include "MsgConf.h"
+
 class Config
 {
 public:
@@ -18,10 +22,13 @@ public:
 	std::string main_menu() {
 		return _mainmenu;
 	}
+	std::vector<MsgConf> msgconfs;
+
 private:
 	std::string _mainmenu;
 	std::string _menupath;
 	std::string _gfilepath;
 	std::string _datapath;
+	
 };
 

@@ -2,10 +2,18 @@
 gfile = "messagemenu"
 
 [[menuitem]]
-command = "SUBMENU"
-data = "logoff"
-hotkey = "G"
+command = "LISTCONFS"
+hotkey = "J"
+
+[[menuitem]]
+command = "LISTAREAS"
+hotkey = "A"
 
 [[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"

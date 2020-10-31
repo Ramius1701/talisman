@@ -125,6 +125,41 @@ bool Menu::run() {
 						}
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "listconfs") == 0) {
+					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
+					int count = 1;
+					for (size_t mc = 0; mc < n->get_config().msgconfs.size();mc++) {
+						if (n->get_config().msgconfs.at(mc).get_sec_level() > n->get_user().get_sec_level()) continue;
+						if (count == newconf) {
+							n->get_user().set_attribute("cur_msg_conf", std::to_string(mc));
+							n->get_user().set_attribute("cur_msg_area", "-1");
+							for (size_t ma = 0; ma < n->get_config().msgconfs.at(mc).areas.size(); ma++) {
+								if (n->get_config().msgconfs.at(mc).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+									n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
+									break;
+								}
+							}
+							break;
+						}
+						count++;
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "listareas") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf == -1) {
+						n->print_f("|14Select a message conference first!|07");
+					} else {
+						int newarea = n->get_config().msgconfs.at(msgconf).list_areas(n, n->get_user().get_sec_level());
+						int count = 1;
+						for (size_t ma = 0; ma < n->get_config().msgconfs.at(msgconf).areas.size(); ma++) {
+							if (count == newarea) {
+								n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
+								break;
+							}
+							count++;
+						}
+					}
+				}
 			}
 		}
 	}

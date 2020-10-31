@@ -1,0 +1,33 @@
+#pragma once
+
+#include <vector>
+#include <string>
+#include "MsgArea.h"
+
+class Config;
+class Node;
+
+class MsgConf
+{
+public:
+	MsgConf(std::string name, int sec_level);
+	bool load(Config *c, std::string filename);
+	int list_areas(Node* n, int sec);
+
+	static int list(Node* n, int sec);
+
+	std::string get_name() {
+		return name;
+	}
+
+	int get_sec_level() {
+		return sec_level;
+	}
+	std::vector<MsgArea> areas;
+private:
+	bool isloaded;
+	std::string name;
+	int sec_level;
+
+};
+
