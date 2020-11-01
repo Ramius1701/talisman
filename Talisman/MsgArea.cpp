@@ -396,7 +396,6 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 		}
 		memcpy(newmsg.msg, msg, strlen(msg));
 	}
-	memset(&newmsg.xmsg, 0, sizeof(XMSG));
 
 	strncpy(newmsg.xmsg.subject, subject.c_str(), 72);
 	strncpy(newmsg.xmsg.from, n->get_user().get_username().c_str(), 36);
