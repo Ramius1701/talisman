@@ -208,7 +208,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	if (orig_addr != "") {
 		originline << "\r--- Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << "\r * Origin: ";
 		if (tagline != "") {
-			originline << tagline << "(" << orig_addr << ")\r";
+			originline << tagline << " (" << orig_addr << ")\r";
 		}
 		else {
 			originline << "A Mysterious BBS (" << orig_addr << ")\r";
@@ -302,6 +302,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 			free(orig);
 		}
 		else {
+			fprintf(stderr, "Failed to parse \"%s\"\r\n", orig_addr.c_str());
 			newmsg.xmsg.orig.zone = 0;
 			newmsg.xmsg.orig.net = 0;
 			newmsg.xmsg.orig.node = 0;
