@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ctime>
+#include <cstring>
 #include "CallLog.h"
 #include "Node.h"
 #include "Config.h"
