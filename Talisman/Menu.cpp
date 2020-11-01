@@ -246,6 +246,8 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "last10") == 0) {
 					n->cls();
 					CallLog::last10_callers(n);
+					n->print_f("|14Press any key...|07");
+					n->getch();
 				}
 			}
 		}

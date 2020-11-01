@@ -107,10 +107,10 @@ int MsgConf::list_areas(Node* n, int sec)
 			}
 			else {
 				if (areas.at(i).get_total_msgs() - lr > 0) {
-					n->print_f("|08[|14%3d|08] |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
+					n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
 				}
 				else {
-					n->print_f("|08[|14%3d|08] |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+					n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
 				}
 			}
 			lines++;
