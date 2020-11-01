@@ -21,7 +21,7 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 	this->write_sec_level = w;
 	this->n = n;
 	this->orig_addr = oaddr;
-	this->is_netmail = netmail;
+	this->_is_netmail = netmail;
 	this->tagline = tagline;
 }
 
@@ -68,7 +68,7 @@ std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
 	return strvec;
 }
 
-void MsgArea::enter_message(std::string to, std::string subject, std::vector<std::string> *quotebuffer)
+void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string> *quotebuffer)
 {
 	std::vector<std::string> lines;
 	bool done = false;
@@ -83,7 +83,7 @@ void MsgArea::enter_message(std::string to, std::string subject, std::vector<std
 		if (cur_line == "/S" || cur_line == "/s") {
 			if (lines.size() > 0) {
 				// save message
-				if (!save_message(to, subject, lines, "", 0)) {
+				if (!save_message(to, subject, lines, netaddr, inreplyto)) {
 					n->print_f("\r\n|14Failed to save message!!|07\r\n");
 				}
 				return;
@@ -606,7 +606,16 @@ void MsgArea::read_message(int start) {
 		else {
 			switch (tolower(res[0])) {
 			case 'r':
-				enter_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), &quotebuffer);
+				if (_is_netmail) {
+					std::stringstream netaddr;
+
+					netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+
+					enter_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), netaddr.str(), msg->xmsg.umsgid, &quotebuffer);
+				}
+				else {
+					enter_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), "", msg->xmsg.umsgid, &quotebuffer);
+				}
 				break;
 			case 'n':
 				direction = 1;

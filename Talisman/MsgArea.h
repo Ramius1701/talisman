@@ -16,18 +16,22 @@ public:
 	std::string get_name() {
 		return name;
 	}
+	bool is_netmail() {
+		return _is_netmail;
+	}
+
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);
 	std::vector<std::string> word_wrap(std::string str, int len);
-	void enter_message(std::string to, std::string subject, std::vector<std::string> *quotebuffer);
+	void enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreply_to, std::vector<std::string> *quotebuffer);
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 private:
 	std::string name;
 	std::string file;
 	int read_sec_level;
 	int write_sec_level;
-	bool is_netmail;
+	bool _is_netmail;
 	std::string orig_addr;
 	std::string tagline;
 	Node* n;

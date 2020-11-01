@@ -216,6 +216,14 @@ bool Menu::run() {
 								std::string to = n->get_string(35, false);
 								n->print_f("\r\nSubject: ");
 								std::string subject = n->get_string(60, false);
+								std::string netaddr;
+								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail()) {
+									n->print_f("\r\n Address: ");
+									netaddr = n->get_string(16, false);
+								}
+								else {
+									netaddr = "";
+								}
 
 								if (to.size() == 0) {
 									to = "All";
@@ -224,7 +232,7 @@ bool Menu::run() {
 									n->print_f("\r\n|14Aborted!\r\n");
 								}
 								else {
-									n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).enter_message(to, subject, nullptr);
+									n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).enter_message(to, subject, netaddr, 0, nullptr);
 								}
 							}
 						}
