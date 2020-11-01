@@ -310,6 +310,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 		}
 	}
 	else {
+		fprintf(stderr, "Orig_addr =  \"%s\"\r\n", orig_addr.c_str());
 		newmsg.xmsg.orig.zone = 0;
 		newmsg.xmsg.orig.net = 0;
 		newmsg.xmsg.orig.node = 0;
