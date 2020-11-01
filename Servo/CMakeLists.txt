@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -std=c++17")
 find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_executable(servo Servo.cpp)
+add_executable(servo Servo.cpp IPBlockItem.cpp)
 #include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 #if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #	target_link_libraries (servo)

@@ -21,6 +21,7 @@
 #include <vector>
 #include <cstring>
 #include "INIReader.h"
+#include "IPBlockItem.h"
 
 #ifndef _MSC_VER
 void sigchld_handler(int s) {
@@ -34,6 +35,25 @@ void sigchld_handler(int s) {
 }
 #endif
 
+struct node_t {
+	unsigned long pid;
+	std::string ip;
+};
+
+std::vector<IPBlockItem*>* blocklist;
+
+bool should_pass(std::string ip) {
+	for (size_t i = 0; i < blocklist->size(); i++) {
+		if (ip == blocklist->at(i)->getip()) {
+			return blocklist->at(i)->should_pass();
+		}
+	}
+
+	IPBlockItem* blockitem = new IPBlockItem(ip, false, false);
+	blocklist->push_back(blockitem);
+	return true;
+}
+
 int main()
 {
 	int port;
@@ -43,16 +63,17 @@ int main()
 	int on = 1;
 	int max_nodes = 4;
 	int i;
+
+	char str[INET6_ADDRSTRLEN];
+	std::vector<struct node_t> nodes;
 #ifdef _MSC_VER
 	WSADATA wsaData;
-	std::vector<DWORD> nodes;
+	
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		std::cerr << "Error initializing winsock!" << std::endl;
 		return -1;
 	}
 #else 
-	std::vector<pid_t> nodes;
-
 	struct sigaction sa;
 	char sockstr[10];
 	char nodestr[10];
@@ -72,9 +93,32 @@ int main()
 
 	port = inir.GetInteger("main", "telnet port", 2323);
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
+	std::string data_path = inir.Get("paths", "data path", "data");
+
+	blocklist = new std::vector<IPBlockItem*>();
+
+	std::ifstream passlistf(data_path + "/passlist.ip");
+	std::string line;
+
+	while (std::getline(passlistf, line)) {
+		IPBlockItem* item = new IPBlockItem(line, false, true);
+		blocklist->push_back(item);
+	}
+	passlistf.close();
+
+	std::ifstream blocklistf(data_path + "/blocklist.ip");
+	while (std::getline(blocklistf, line)) {
+		IPBlockItem* item = new IPBlockItem(line, true, false);
+		blocklist->push_back(item);
+	}
+	blocklistf.close();
 
 	for (i = 0; i < max_nodes; i++) {
-		nodes.push_back(0);
+		struct node_t n;
+		n.pid = 0;
+		n.ip = "";
+
+		nodes.push_back(n);
 	}
 
 	int telnetfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -102,14 +146,42 @@ int main()
 
 	while (1) {
 		csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+		std::string ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
+		if (!should_pass(ipaddr)) {
+			std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
+#ifdef _MSC_VER
+			closesocket(csockfd);
+#else
+			close(csockfd);
+#endif
+			continue;
+		}
+		bool alreadyloggedin = false;
+		for (size_t i = 0; i < nodes.size(); i++) {
+			if (nodes.at(i).ip == ipaddr) {
+				alreadyloggedin = true;
+				break;
+			}
+		}
+
+		if (alreadyloggedin) {
+			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+#ifdef _MSC_VER
+			closesocket(csockfd);
+#else
+			close(csockfd);
+#endif
+			continue;
+		}
+
 #ifdef _MSC_VER
 
 		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i) != 0) {
+			if (nodes.at(i).pid != 0) {
 				HANDLE Handle = OpenProcess(
 					PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
 					FALSE,
-					nodes.at(i)
+					nodes.at(i).pid
 				);
 
 				if (Handle) {
@@ -123,12 +195,13 @@ int main()
 					}
 					CloseHandle(Handle);
 				}
-				nodes.at(i) = 0;
+				nodes.at(i).pid = 0;
+				nodes.at(i).ip = "";
 			}
 		}
 
 		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i) == 0) {
+			if (nodes.at(i).pid == 0) {
 				std::stringstream ss;
 				ss.str("");
 				ss << "\"talisman.exe\"" << " -S " << csockfd << " -N " << std::to_string(i + 1) << " -T";
@@ -152,8 +225,8 @@ int main()
 					closesocket(csockfd);
 					continue;
 				}
-				nodes.at(i) = pi.dwProcessId;
-
+				nodes.at(i).pid = pi.dwProcessId;
+				nodes.at(i).ip = ipaddr;
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
 				free(cmd);
@@ -167,9 +240,9 @@ int main()
 #else
 
 		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i) != 0) {
+			if (nodes.at(i).pid != 0) {
 				char buffer[PATH_MAX];
-				snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i));
+				snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i).pid);
 				FILE* fptr = fopen(buffer, "r");
 
 				if (fptr) {
@@ -180,17 +253,19 @@ int main()
 						continue;
 					}
 				}
-				nodes.at(i) = 0;
+				nodes.at(i).pid = 0;
+				nodes.at(i).ip = "";
 			}
 		}
 
 		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i) == 0) {
+			if (nodes.at(i).pid == 0) {
 
 				pid_t pid = fork();
 
 				if (pid > 0) {
-					nodes.at(i) = pid;
+					nodes.at(i).pid = pid;
+					nodes.at(i).ip = ipaddr;
 					close(csockfd);
 				}
 				else if (pid == 0) {
