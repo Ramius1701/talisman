@@ -96,11 +96,22 @@ int MsgConf::list_areas(Node* n, int sec)
 
 		for (size_t i = 0; i < areas.size(); i++) {
 			if (areas.at(i).get_r_sec_level() > sec) continue;
+			int lr = n->get_user().user_get_lastread(areas.at(i).get_file());
 			if (i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
-				n->print_f("|08[|14%3d|08]|11->|07%-32.32s |13%6d |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs() - n->get_user().user_get_lastread(areas.at(i).get_file()), areas.at(i).get_total_msgs());
+				if (areas.at(i).get_total_msgs() - lr > 0) {
+					n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
+				}
+				else {
+					n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+				}
 			}
 			else {
-				n->print_f("|08[|14%3d|08]  |07%-32.32s |13%6d |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs() - n->get_user().user_get_lastread(areas.at(i).get_file()), areas.at(i).get_total_msgs());
+				if (areas.at(i).get_total_msgs() - lr > 0) {
+					n->print_f("|08[|14%3d|08] |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
+				}
+				else {
+					n->print_f("|08[|14%3d|08] |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+				}
 			}
 			lines++;
 			if (lines == 24 && i != areas.size() - 1) {

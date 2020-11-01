@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-
+#include <filesystem>
 #include "Config.h"
 #include "User.h"
 
@@ -16,6 +16,7 @@ public:
 	int run();
 	bool detectANSI();
 	void disconnected();
+	
 	void send_gfile(std::string filename);
 	void cls();
 	std::string get_string(int maxlen, bool masked);
@@ -36,5 +37,6 @@ private:
 	Config config;
 	User u;
 	void send_str(const char* str);
+	void send_file(std::filesystem::path p);
 };
 

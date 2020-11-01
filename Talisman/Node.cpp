@@ -93,34 +93,122 @@ bool Node::detectANSI() {
 	return false;
 }
 
-void Node::send_gfile(std::string filename) {
+
+void Node::send_file(std::filesystem::path p) {
 	char lastc = 'x';
+	bool gottag = false;
+	std::stringstream ss;
+	std::ifstream in(p);
+	char c;
+	if (in.is_open()) {
+		while (in.good()) {
+			in.get(c);
+			if (c == 0x1a) break;
+			if (c == '@' && gottag == false) {
+				gottag = true;
+				continue;
+			}
+			if (c == '@' && gottag == true) {
+				//deal with tag
+				if (ss.str() == "MAILCONF") {
+					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
+					if (socket) {
+						if (mailconf != -1) {
+							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
+						}
+						else {
+							send(socket, "None.", 5, 0);
+						}
+					}
+					else {
+						if (mailconf != -1) {
+							std::cout << config.msgconfs.at(mailconf).get_name();
+						}
+						else {
+							std::cout << "None.";
+						}
+					}
+				}
+				else if (ss.str() == "MAILAREA") {
+					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
+					int mailarea = stoi(u.get_attribute("cur_msg_area", "-1"));
+
+					if (socket) {
+						if (mailconf != -1 && mailarea != -1) {
+							send(socket, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().size(), 0);
+						}
+						else {
+							send(socket, "None.", 5, 0);
+						}
+					}
+					else {
+						if (mailconf != 1 && mailarea != -1) {
+							std::cout << config.msgconfs.at(mailconf).areas.at(mailarea).get_name();
+						}
+						else {
+							std::cout << "None.";
+						}
+					}
+				}
+				else {
+					if (socket) {
+						send(socket, "@", 1, 0);
+						send(socket, ss.str().c_str(), ss.str().size(), 0);
+						send(socket, "@", 1, 0);
+					}
+					else {
+						printf("@%s@", ss.str().c_str());
+					}
+				}
+				ss.str("");
+				gottag = false;
+				continue;
+			}
+			if (gottag == true) {
+				if (c == '\r' || c == '\n') {
+					if (socket) {
+						send(socket, "@", 1, 0);
+						send(socket, ss.str().c_str(), ss.str().size(), 0);
+					}
+					else {
+						printf("@%s", ss.str().c_str());
+					}
+					lastc = ss.str().at(ss.str().size() - 1);
+					ss.str("");
+					gottag = false;
+				}
+				else {
+					ss << c;
+					continue;
+				}
+			}
+
+			if (socket) {
+
+				if (c == '\n' && lastc != '\r') {
+					send(socket, "\r", 1, 0);
+				}
+
+				lastc = c;
+				send(socket, &c, 1, 0);
+			}
+			else {
+				putchar(c);
+			}
+		}
+		in.close();
+	}
+}
+
+void Node::send_gfile(std::string filename) {
+
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
 		p.append(filename + ".ans");
 		if (std::filesystem::exists(p)) {
-			// send ansi file
-			std::ifstream in(p);
-			char c;
-			if (in.is_open()) {
-				while (in.good()) {
-					in.get(c);
-					if (c == 0x1a) break;
-					if (socket) {
-						if (c == '\n' && lastc != '\r') {
-							send(socket, "\r", 1, 0);
-						}
-						lastc = c;
-						send(socket, &c, 1, 0);
-					}
-					else {
-						putchar(c);
-					}
-				}
-				in.close();
-				print_f("\x1b[0m");
-				return;
-			}
+			send_file(p);
+			print_f("\x1b[0m");
+			return;
 		}
 	}
 
@@ -128,24 +216,7 @@ void Node::send_gfile(std::string filename) {
 	p.assign(config.gfile_path());
 	p.append(filename + ".asc");
 	if (std::filesystem::exists(p)) {
-		// send ascii file
-		std::ifstream in(p);
-		char c;
-		if (in.is_open()) {
-			while (in.good()) {
-				in.get(c);
-				if (c == 0x1a) break;
-				if (socket) {
-					send(socket, &c, 1, 0);
-				}
-				else {
-					putchar(c);
-				}
-			}
-			in.close();
-			print_f("\x1b[0m");
-			return;
-		}
+		send_file(p);
 	}
 }
 
