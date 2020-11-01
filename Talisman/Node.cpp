@@ -23,12 +23,20 @@
 #include "Config.h"
 #include "User.h"
 #include "Menu.h"
+#include "CallLog.h"
 
 Node::Node(int node, int socket, bool telnet) {
 	this->node = node;
 	this->socket = socket;
 	this->telnet = telnet;
 	hasANSI = false;
+	clog = nullptr;
+}
+
+Node::~Node() {
+	if (clog != nullptr) {
+		delete clog;
+	}
 }
 
 bool Node::detectANSI() {
@@ -608,10 +616,20 @@ int Node::run() {
 		}
 	}
 
+	clog = new CallLog(&config);
+	clog->log_on(u.get_username(), node);
 	// we are logged in!
 
+	//cls();
+	//print_f("|14Welcome to node |15%d|08,  |15%s|08!|07\r\n", node, u.get_username().c_str());
+
 	cls();
-	print_f("|14Welcome to node |15%d|08,  |15%s|08!|07\r\n", node, u.get_username().c_str());
+	CallLog::last10_callers(this);
+
+	print_f("|14Press any key...|07");
+	getch();
+
+	cls();
 	print_f("|14Scan for new messages? (Y/N) : |07");
 	if (tolower(getche()) != 'n') {
 		MsgConf::scan(this);
@@ -621,9 +639,13 @@ int Node::run() {
 
 	m.load(config.menu_path() + "/" + config.main_menu() + ".toml");
 	m.run();
+	clog->log_off();
 	return 0;
 }
 
 void Node::disconnected() {
+	if (clog != nullptr) {
+		clog->log_off();
+	}
 	exit(-1);
 }

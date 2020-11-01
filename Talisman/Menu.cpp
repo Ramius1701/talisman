@@ -5,6 +5,7 @@
 #include <sstream>
 #include "Node.h"
 #include "Menu.h"
+#include "CallLog.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -241,6 +242,10 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "mailscan") == 0) {
 					n->cls();
 					MsgConf::scan(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "last10") == 0) {
+					n->cls();
+					CallLog::last10_callers(n);
 				}
 			}
 		}

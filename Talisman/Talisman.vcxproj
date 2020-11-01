@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CallLog.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CallLog.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="INIReader.h" />

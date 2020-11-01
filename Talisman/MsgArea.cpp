@@ -12,7 +12,7 @@
 #include "MsgArea.h"
 #include "Squish.h"
 #include "Node.h"
-
+#include "CallLog.h"
 MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline)
 {
 	this->name = name;
@@ -189,6 +189,8 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	uint32_t repmsgid = 0;
 	sq_msg_t* rep_msg = NULL;
 	std::stringstream ss;
+
+	n->clog->post_msg();
 
 	thetime = time(NULL);
 

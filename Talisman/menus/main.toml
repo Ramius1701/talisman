@@ -7,6 +7,10 @@ hotkey = "M"
 data = "message"
 
 [[menuitem]]
+command = "LAST10"
+hotkey = "1"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

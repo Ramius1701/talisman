@@ -5,10 +5,13 @@
 #include "Config.h"
 #include "User.h"
 
+class CallLog;
+
 class Node
 {
 public:
 	Node(int node, int socket, bool telnet);
+	~Node();
 	void print_f(const char* fmt, ...);
 	char getch();
 	char getche();
@@ -29,6 +32,7 @@ public:
 		return u;
 	}
 	bool hasANSI;
+	CallLog *clog;
 private:
 	int node;
 	int socket;
