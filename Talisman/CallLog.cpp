@@ -242,9 +242,11 @@ void CallLog::last10_callers(Node* n) {
 		if (sqlite3_column_int(stmt, 8) > 0) {
 			mgpost = 'M';
 		}
-
+#ifdef _MSC_VER
 		localtime_s(&tm_on, &timeon);
-		
+#else
+		localtime_r(&timeon, &tm_on);
+#endif
 		if (timeoff == 0) {
 			n->print_f(" |14%5d.   |13%2d   |15%-28.28s |10%02d:%02d |08- |12UNKWN     |09%c |11%c |13%c |10%c\r\n", callno, node, username, tm_on.tm_hour, tm_on.tm_min, rundoor, upload, download, mgpost);
 		}
