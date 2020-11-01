@@ -237,12 +237,12 @@ void MsgConf::scan(Node* n) {
 			if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).areas.at(area).get_r_sec_level()) {
 				continue;
 			}
-
-			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()) == 0) {
-				n->print_f("|12%-32.32s |13%6d |14%6d\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+			int lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file());
+			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr  == 0) {
+				n->print_f("|12%-32.32s |08%6d\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
 			}
 			else {
-				n->print_f("|12%-32.32s |13%6d |14%6d |11NEW!\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+				n->print_f("|12%-32.32s |08%6d |11%6d NEW!\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
 			}
 			lines++;
 			if (lines >= 23) {
