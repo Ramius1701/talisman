@@ -231,7 +231,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	gmt = mktime(ptm);
 
 	int bias = (int)difftime(rawtime, gmt);
-	
+	bias /= 60;
 #endif
 
 	if (bias > 0) {
@@ -295,6 +295,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	if (orig_addr != "") {
 		NETADDR* orig = parse_fido_addr(orig_addr.c_str());
 		if (orig != NULL) {
+			fprintf(stderr, "%d:%d/%d.%d from %s\n", orig->zone, orig->net, orig->node, orig->point, orig_addr.c_str());
 			newmsg.xmsg.orig.zone = orig->zone;
 			newmsg.xmsg.orig.net = orig->net;
 			newmsg.xmsg.orig.node = orig->node;
