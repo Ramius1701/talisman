@@ -214,7 +214,7 @@ void MsgConf::scan(Node* n) {
 			continue;
 		}
 		if (lines >= 20) {
-			n->print_f("Continue? (Y/N) : ");
+			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
 			}
@@ -226,7 +226,7 @@ void MsgConf::scan(Node* n) {
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
 		lines += 3;
 		if (lines >= 23) {
-			n->print_f("Continue? (Y/N) : ");
+			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
 			}
@@ -239,14 +239,14 @@ void MsgConf::scan(Node* n) {
 			}
 			int lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file());
 			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr  == 0) {
-				n->print_f("|12%-32.32s |08%6d\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+				n->print_f("|12%-32.32s |08%6d TOTAL |07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
 			}
 			else {
-				n->print_f("|12%-32.32s |08%6d |11%6d NEW!\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
+				n->print_f("|12%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
 			}
 			lines++;
 			if (lines >= 23) {
-				n->print_f("Continue? (Y/N) : ");
+				n->print_f("|14Continue? (Y/N) : |07");
 				if (tolower(n->getche()) == 'n') {
 					return;
 				}
@@ -256,7 +256,7 @@ void MsgConf::scan(Node* n) {
 		}
 	}
 
-	n->print_f("|14Press any key...");
+	n->print_f("|14Press any key...|07");
 	n->getch();
 	n->print_f("\r\n");
 }
