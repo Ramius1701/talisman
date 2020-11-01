@@ -409,6 +409,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	}
 	if (newmsg.xmsg.dest.zone != 0) {
 		newmsg.xmsg.attr |= MSGCRASH;
+		newmsg.xmsg.attr |= MSGHOLD;
 	}
 #if _MSC_VER
 	localtime_s(&lt, &thetime);
