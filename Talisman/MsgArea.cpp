@@ -278,7 +278,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 			}
 		}
 
-		fptr = fopen("msgserial.dat", "wb");
+		fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "wb");
 		if (fptr) {
 			fwrite(&msgid, sizeof(uint32_t), 1, fptr);
 			fclose(fptr);
