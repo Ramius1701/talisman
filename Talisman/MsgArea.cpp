@@ -234,7 +234,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	bias /= 60;
 #endif
 
-	if (bias > 0) {
+	if (bias < 0) {
 		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
 	}
 	else {
