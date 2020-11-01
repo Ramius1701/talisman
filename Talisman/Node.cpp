@@ -540,8 +540,8 @@ int Node::run() {
 	// we are logged in!
 
 	cls();
-	print_f("Welcome to node %d,  %s!\r\n", node, u.get_username().c_str());
-	print_f("Scan for new messages? (Y/N) : ");
+	print_f("|14Welcome to node |15%d|08,  |15%s|08!|07\r\n", node, u.get_username().c_str());
+	print_f("|14Scan for new messages? (Y/N) : |07");
 	if (tolower(getche()) != 'n') {
 		MsgConf::scan(this);
 	}

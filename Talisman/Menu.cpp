@@ -238,6 +238,10 @@ bool Menu::run() {
 						}
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "mailscan") == 0) {
+					n->cls();
+					MsgConf::scan(n);
+				}
 			}
 		}
 	}

@@ -18,6 +18,10 @@ command = "POSTMSG"
 hotkey = "P"
 
 [[menuitem]]
+command = "MAILSCAN"
+hotkey = "N"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 
