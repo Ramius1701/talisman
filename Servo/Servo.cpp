@@ -41,6 +41,7 @@ struct node_t {
 };
 
 std::vector<IPBlockItem*>* blocklist;
+std::string datapath;
 
 bool should_pass(std::string ip) {
 	for (size_t i = 0; i < blocklist->size(); i++) {
@@ -49,7 +50,7 @@ bool should_pass(std::string ip) {
 		}
 	}
 
-	IPBlockItem* blockitem = new IPBlockItem(ip, false, false);
+	IPBlockItem* blockitem = new IPBlockItem(ip, datapath, false, false);
 	blocklist->push_back(blockitem);
 	return true;
 }
@@ -93,22 +94,22 @@ int main()
 
 	port = inir.GetInteger("main", "telnet port", 2323);
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
-	std::string data_path = inir.Get("paths", "data path", "data");
+	datapath = inir.Get("paths", "data path", "data");
 
 	blocklist = new std::vector<IPBlockItem*>();
 
-	std::ifstream passlistf(data_path + "/passlist.ip");
+	std::ifstream passlistf(datapath + "/passlist.ip");
 	std::string line;
 
 	while (std::getline(passlistf, line)) {
-		IPBlockItem* item = new IPBlockItem(line, false, true);
+		IPBlockItem* item = new IPBlockItem(line, datapath, false, true);
 		blocklist->push_back(item);
 	}
 	passlistf.close();
 
-	std::ifstream blocklistf(data_path + "/blocklist.ip");
+	std::ifstream blocklistf(datapath + "/blocklist.ip");
 	while (std::getline(blocklistf, line)) {
-		IPBlockItem* item = new IPBlockItem(line, true, false);
+		IPBlockItem* item = new IPBlockItem(line, datapath, true, false);
 		blocklist->push_back(item);
 	}
 	blocklistf.close();
@@ -156,23 +157,7 @@ int main()
 #endif
 			continue;
 		}
-		bool alreadyloggedin = false;
-		for (size_t i = 0; i < nodes.size(); i++) {
-			if (nodes.at(i).ip == ipaddr) {
-				alreadyloggedin = true;
-				break;
-			}
-		}
 
-		if (alreadyloggedin) {
-			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
-#ifdef _MSC_VER
-			closesocket(csockfd);
-#else
-			close(csockfd);
-#endif
-			continue;
-		}
 
 #ifdef _MSC_VER
 
@@ -198,6 +183,20 @@ int main()
 				nodes.at(i).pid = 0;
 				nodes.at(i).ip = "";
 			}
+		}
+		
+		bool alreadyloggedin = false;
+		for (size_t i = 0; i < nodes.size(); i++) {
+			if (nodes.at(i).ip == ipaddr) {
+				alreadyloggedin = true;
+				break;
+			}
+		}
+
+		if (alreadyloggedin) {
+			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+			closesocket(csockfd);
+			continue;
 		}
 
 		for (i = 0; i < max_nodes; i++) {
@@ -257,7 +256,19 @@ int main()
 				nodes.at(i).ip = "";
 			}
 		}
+		bool alreadyloggedin = false;
+		for (size_t i = 0; i < nodes.size(); i++) {
+			if (nodes.at(i).ip == ipaddr) {
+				alreadyloggedin = true;
+				break;
+			}
+		}
 
+		if (alreadyloggedin) {
+			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+			close(csockfd);
+			continue;
+		}
 		for (i = 0; i < max_nodes; i++) {
 			if (nodes.at(i).pid == 0) {
 

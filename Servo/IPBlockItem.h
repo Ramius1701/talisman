@@ -5,11 +5,12 @@
 
 class IPBlockItem {
 	public:
-		IPBlockItem(std::string ipaddress, bool block, bool pass);
+		IPBlockItem(std::string ipaddress, std::string data_path, bool block, bool pass);
 		~IPBlockItem();
 		bool should_pass();
 		std::string getip();
 	private:
+		std::string data_path;
 		std::string ipaddr;
 		bool passlist;
 		bool blocklist;
