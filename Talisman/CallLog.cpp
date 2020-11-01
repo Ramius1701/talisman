@@ -251,7 +251,11 @@ void CallLog::last10_callers(Node* n) {
 			n->print_f(" |14%5d.   |13%2d   |15%-28.28s |10%02d:%02d |08- |12UNKWN     |09%c |11%c |13%c |10%c\r\n", callno, node, username, tm_on.tm_hour, tm_on.tm_min, rundoor, upload, download, mgpost);
 		}
 		else {
+#ifdef _MSC_VER
 			localtime_s(&tm_off, &timeoff);
+#else
+			localtime_r(&timeoff, &tm_off);
+#endif
 			n->print_f(" |14%5d.   |13%2d   |15%-28.28s |10%02d:%02d |08- |12%02d:%02d     |09%c |11%c |13%c |10%c\r\n", callno, node, username, tm_on.tm_hour, tm_on.tm_min, tm_off.tm_hour, tm_off.tm_min, rundoor, upload, download, mgpost);
 		}
 		free(username);
