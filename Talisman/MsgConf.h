@@ -10,7 +10,7 @@ class Node;
 class MsgConf
 {
 public:
-	MsgConf(std::string name, int sec_level);
+	MsgConf(std::string name, int sec_level, std::string mytagline);
 	bool load(Node *n, std::string filename);
 	int list_areas(Node* n, int sec);
 
@@ -28,6 +28,6 @@ private:
 	bool isloaded;
 	std::string name;
 	int sec_level;
-
+	std::string tagline;
 };
 

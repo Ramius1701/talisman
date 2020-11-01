@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	std::cerr << "Socket : " << socket << " Telnet : " << telnet << "Node : " << node << std::endl;
+	std::cerr << "Socket : " << socket << " Telnet : " << telnet << " Node : " << node << std::endl;
 
 	Node n(node, socket, telnet);
 	ret = n.run();

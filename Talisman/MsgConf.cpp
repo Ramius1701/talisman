@@ -4,11 +4,12 @@
 #include "toml.hpp"
 #include "Config.h"
 
-MsgConf::MsgConf(std::string name, int sec_level)
+MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline)
 {
 	isloaded = false;
 	this->name = name;
 	this->sec_level = sec_level;
+	tagline = mytagline;
 }
 
 bool MsgConf::load(Node *n, std::string filename) {
@@ -24,6 +25,8 @@ bool MsgConf::load(Node *n, std::string filename) {
 		std::string myfile;
 		int my_r_sec_level;
 		int my_w_sec_level;
+		std::string myoaddr;
+		bool mynetmail;
 
 		auto name = itemtable->get("name");
 		if (name != nullptr) {
@@ -56,8 +59,25 @@ bool MsgConf::load(Node *n, std::string filename) {
 			my_w_sec_level = 10;
 		}
 
+		auto o_addr = itemtable->get("aka");
+		if (o_addr != nullptr) {
+			myoaddr = o_addr->as_string()->value_or("");
+		}
+		else {
+			myoaddr = "";
+		}
+
+		auto netmail = itemtable->get("netmail");
+		if (netmail != nullptr) {
+			mynetmail = netmail->as_boolean()->value_or(false);
+		}
+		else {
+			mynetmail = false;
+		}
+
+
 		if (myfile != "") {
-			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level);
+			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline);
 			areas.push_back(a);
 		}
 	}

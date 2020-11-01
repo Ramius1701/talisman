@@ -14,6 +14,10 @@ command = "LISTMSGS"
 hotkey = "L"
 
 [[menuitem]]
+command = "POSTMSG"
+hotkey = "P"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 

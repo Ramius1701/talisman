@@ -92,23 +92,23 @@ bool Menu::run() {
 
 		ss.str("");
 
-		ss << "|15[";
+		ss << "|08[";
 
 		int longest_hotkey = 0;
 
 		for (size_t i = 0; i < items.size(); i++) {
-			ss << "|11" << items[i].hotkey;
+			ss << "|15" << items[i].hotkey;
 			if (items[i].hotkey.size() > longest_hotkey) {
 				longest_hotkey = items[i].hotkey.size();
 			}
 			if (i < items.size() - 1) {
-				ss << "|15, ";
+				ss << "|08,";
 			}
 		}
 
-		ss << "|15]";
+		ss << "|08]";
 
-		n->print_f("\r\n|15Command %s|16: ", ss.str().c_str());
+		n->print_f("\r\n|14Command %s|08: ", ss.str().c_str());
 		std::string cmd = n->get_string(longest_hotkey, false);
 
 		for (size_t i = 0; i < items.size(); i++) {
@@ -172,7 +172,7 @@ bool Menu::run() {
 							n->print_f("|14Select a message area first!|07");
 						}
 						else {
-							n->print_f("|13Start at F=First, L=Last Read or [1-%d]: |07", n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs());
+							n->print_f("|14Start at |15F|08=|14First|08, |15L|08=|14Last Read or |08[|151|08-|15%d|08]: |07", n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs());
 							std::string start = n->get_string(6, false);
 							int msgno;
 							if (tolower(start[0]) == 'f') {
@@ -193,6 +193,39 @@ bool Menu::run() {
 							msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).list_messages(msgno);
 							if (msgno > 0 && msgno <= n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
 								n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(msgno);
+							}
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf == -1) {
+						n->print_f("|14Select a message conference first!|07\r\n");
+					}
+					else {
+						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+						if (msgarea == -1) {
+							n->print_f("|14Select a message area first!|07\r\n");
+						}
+						else {
+							if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_w_sec_level()) {
+								n->print_f("|14Sorry, you do not have permission to post in this area!|07\r\n");
+							}
+							else {
+								n->print_f("\r\n     To: ");
+								std::string to = n->get_string(35, false);
+								n->print_f("\r\nSubject: ");
+								std::string subject = n->get_string(60, false);
+
+								if (to.size() == 0) {
+									to = "All";
+								}
+								if (subject.size() == 0) {
+									n->print_f("\r\n|14Aborted!\r\n");
+								}
+								else {
+									n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).enter_message(to, subject, nullptr);
+								}
 							}
 						}
 					}

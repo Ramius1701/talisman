@@ -19,7 +19,7 @@ public:
 	void send_gfile(std::string filename);
 	void cls();
 	std::string get_string(int maxlen, bool masked);
-
+	std::string get_string(int maxlen, bool masked, bool clear);
 	Config *get_config() {
 		return &config;
 	}

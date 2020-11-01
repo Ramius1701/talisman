@@ -240,9 +240,9 @@ char Node::getch() {
 	return ch;
 }
 
-std::string Node::get_string(int maxlen, bool masked) {
+std::string Node::get_string(int maxlen, bool masked, bool clear) {
 	std::stringstream ss;
-	if (hasANSI) {
+	if (hasANSI && !clear) {
 		print_f("\x1b[s\x1b[1;37;41m");
 		for (int i = 0; i < maxlen; i++) {
 			print_f(" ");
@@ -275,16 +275,24 @@ std::string Node::get_string(int maxlen, bool masked) {
 
 	} while (ss.str().length() < maxlen);
 
-	if (hasANSI) {
+	if (hasANSI && !clear) {
 		print_f("\x1b[0m");
 	}
 
 	return ss.str();
 }
 
+std::string Node::get_string(int maxlen, bool masked)
+{
+	return get_string(maxlen, masked, false);
+}
+
 void Node::cls() {
 	if (hasANSI) {
 		print_f("\x1b[2J\x1b[1;1H");
+	}
+	else {
+		print_f("\r\n");
 	}
 }
 

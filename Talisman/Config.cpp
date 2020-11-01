@@ -30,6 +30,7 @@ bool Config::load(Node *n, std::string filename) {
 		std::string myname;
 		std::string myconfig;
 		int mysec_level;
+		std::string mytagline;
 
 		auto name = itemtable->get("name");
 		if (name != nullptr) {
@@ -46,6 +47,15 @@ bool Config::load(Node *n, std::string filename) {
 			myconfig = "";
 		}
 
+		auto tagline = itemtable->get("tagline");
+		if (tagline != nullptr) {
+			mytagline = tagline->as_string()->value_or("");
+		}
+		else {
+			mytagline = "";
+		}
+
+
 		auto sec_level = itemtable->get("sec_level");
 		if (sec_level != nullptr) {
 			mysec_level = sec_level->as_integer()->value_or(10);
@@ -54,7 +64,7 @@ bool Config::load(Node *n, std::string filename) {
 			mysec_level = 10;
 		}
 
-		MsgConf c(myname, mysec_level);
+		MsgConf c(myname, mysec_level, mytagline);
 
 		if (c.load(n, myconfig)) {
 			msgconfs.push_back(c);
