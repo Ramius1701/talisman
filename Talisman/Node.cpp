@@ -541,7 +541,10 @@ int Node::run() {
 
 	cls();
 	print_f("Welcome to node %d,  %s!\r\n", node, u.get_username().c_str());
-
+	print_f("Scan for new messages? (Y/N) : ");
+	if (tolower(getche()) != 'n') {
+		MsgConf::scan(this);
+	}
 
 	Menu m(this);
 

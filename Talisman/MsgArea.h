@@ -20,6 +20,10 @@ public:
 		return _is_netmail;
 	}
 
+	std::string get_file() {
+		return file;
+	}
+
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);

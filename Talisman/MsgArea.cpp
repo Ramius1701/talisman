@@ -407,12 +407,6 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	if (netaddr != "") {
 		newmsg.xmsg.attr |= MSGPRIVATE;
 	}
-	/*
-	if (newmsg.xmsg.dest.zone != 0) {
-		newmsg.xmsg.attr |= MSGCRASH;
-		newmsg.xmsg.attr |= MSGHOLD;
-	}
-	*/
 #if _MSC_VER
 	localtime_s(&lt, &thetime);
 #else
@@ -494,6 +488,10 @@ void MsgArea::read_message(int start) {
 				msg_to_read--;
 			}
 			continue;
+		}
+
+		if (n->get_user().user_get_lastread(file) < msg_to_read) {
+			n->get_user().user_set_lastread(file, msg_to_read);
 		}
 
 		std::stringstream ss;
@@ -638,7 +636,7 @@ void MsgArea::read_message(int start) {
 
 int MsgArea::list_messages(int start) {
 	sq_msg_base_t* mb;
-	int lr = 0; // TODO set last read
+	int lr = n->get_user().user_get_lastread(file); 
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		n->print_f("|14Unable to open message base!|07\r\n");
@@ -659,7 +657,7 @@ int MsgArea::list_messages(int start) {
 			continue;
 		}
 		else {
-			if (i > lr) {
+			if (i <= lr) {
 				n->print_f("|08[|15%6d|08] |14%-32.32s |13%-16.16s |11%-16.16s\r\n", i, msg->xmsg.subject, msg->xmsg.from, msg->xmsg.to);
 			}
 			else {

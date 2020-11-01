@@ -248,6 +248,7 @@ bool User::open_database(std::string filename, sqlite3** db)
 {
 	static const char* create_users_sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
 	static const char* create_details_sql = "CREATE TABLE IF NOT EXISTS details(uid INTEGER, attrib TEXT COLLATE NOCASE, value TEXT COLLATE NOCASE);";
+	static const char* create_lastread_sql = "CREATE TABLE IF NOT EXISTS lastr(uid INTEGER, msgbase TEXT, mid INTEGER);";
 	int rc;
 	char* err_msg = NULL;
 
@@ -265,6 +266,13 @@ bool User::open_database(std::string filename, sqlite3** db)
 		return false;
 	}
 	rc = sqlite3_exec(*db, create_details_sql, 0, 0, &err_msg);
+	if (rc != SQLITE_OK) {
+		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
+		free(err_msg);
+		sqlite3_close(*db);
+		return false;
+	}
+	rc = sqlite3_exec(*db, create_lastread_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
 		free(err_msg);
@@ -301,6 +309,76 @@ bool User::check_fullname(Config c, std::string fullname) {
 		sqlite3_close(db);
 		return true;
 	}
+}
+
+void User::user_set_lastread(std::string msgbase, int mid) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+
+	static const char* sql = "UPDATE lastr SET mid=? WHERE uid = ? and msgbase = ?";
+	static const char* sql2 = "INSERT INTO lastr (mid, uid, msgbase) VALUES(?, ?, ?)";
+	static const char* sql3 = "SELECT mid FROM lastr WHERE uid = ? and msgbase = ?";
+
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return;
+	}
+	if (sqlite3_prepare_v2(db, sql3, strlen(sql3), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return;
+	}
+	sqlite3_bind_int(stmt, 1, uid);
+	sqlite3_bind_text(stmt, 2, msgbase.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		sqlite3_finalize(stmt);
+		if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
+	}
+	else {
+		sqlite3_finalize(stmt);
+		if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
+	}
+
+	sqlite3_bind_int(stmt, 1, mid);
+	sqlite3_bind_int(stmt, 2, uid);
+	sqlite3_bind_text(stmt, 3, msgbase.c_str(), -1, NULL);
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+}
+
+
+int User::user_get_lastread(std::string msgbase) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+	static const char* sql = "SELECT mid FROM lastr WHERE uid = ? and msgbase = ?";
+
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return 0;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return 0;
+	}
+	sqlite3_bind_int(stmt, 1, uid);
+	sqlite3_bind_text(stmt, 2, msgbase.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		int ret = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return ret;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return 0;
 }
 
 bool User::username_allowed(Config config, std::string username) {

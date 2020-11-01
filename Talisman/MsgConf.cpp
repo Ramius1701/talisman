@@ -97,10 +97,10 @@ int MsgConf::list_areas(Node* n, int sec)
 		for (size_t i = 0; i < areas.size(); i++) {
 			if (areas.at(i).get_r_sec_level() > sec) continue;
 			if (i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
-				n->print_f("|08[|14%3d|08]|11->|07%-32.32s |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+				n->print_f("|08[|14%3d|08]|11->|07%-32.32s |13%6d |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs() - n->get_user().user_get_lastread(areas.at(i).get_file()), areas.at(i).get_total_msgs());
 			}
 			else {
-				n->print_f("|08[|14%3d|08]  |07%-32.32s |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+				n->print_f("|08[|14%3d|08]  |07%-32.32s |13%6d |12%6d|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs() - n->get_user().user_get_lastread(areas.at(i).get_file()), areas.at(i).get_total_msgs());
 			}
 			lines++;
 			if (lines == 24 && i != areas.size() - 1) {
@@ -204,4 +204,59 @@ int MsgConf::list(Node* n, int sec)
 			}
 		}
 	}
+}
+
+void MsgConf::scan(Node* n) {
+	int lines = 0;
+	n->print_f("\r\n");
+	for (size_t conf = 0; conf < n->get_config()->msgconfs.size(); conf++) {
+		if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).get_sec_level()) {
+			continue;
+		}
+		if (lines >= 20) {
+			n->print_f("Continue? (Y/N) : ");
+			if (tolower(n->getche()) == 'n') {
+				return;
+			}
+			n->print_f("\r\n");
+			lines = 0;
+		}
+		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
+		n->print_f("|14CONFERENCE: |15%s\r\n", n->get_config()->msgconfs.at(conf).get_name().c_str());
+		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
+		lines += 3;
+		if (lines >= 23) {
+			n->print_f("Continue? (Y/N) : ");
+			if (tolower(n->getche()) == 'n') {
+				return;
+			}
+			n->print_f("\r\n");
+			lines = 0;
+		}
+		for (size_t area = 0; area < n->get_config()->msgconfs.at(conf).areas.size(); area++) {
+			if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).areas.at(area).get_r_sec_level()) {
+				continue;
+			}
+
+			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()) == 0) {
+				n->print_f("|12%-32.32s |13%6d |14%6d\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+			}
+			else {
+				n->print_f("|12%-32.32s |13%6d |14%6d |11NEW!\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file()), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+			}
+			lines++;
+			if (lines >= 23) {
+				n->print_f("Continue? (Y/N) : ");
+				if (tolower(n->getche()) == 'n') {
+					return;
+				}
+				n->print_f("\r\n");
+				lines = 0;
+			}
+		}
+	}
+
+	n->print_f("|14Press any key...");
+	n->getch();
+	n->print_f("\r\n");
 }

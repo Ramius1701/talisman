@@ -15,7 +15,7 @@ public:
 	int list_areas(Node* n, int sec);
 
 	static int list(Node* n, int sec);
-
+	static void scan(Node* n);
 	std::string get_name() {
 		return name;
 	}
