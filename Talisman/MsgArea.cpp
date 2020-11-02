@@ -100,7 +100,6 @@ void MsgArea::enter_message_ex(std::string to, std::string subject, std::string 
 
 		std::vector<std::string> args;
 
-		args.push_back(n->get_config()->external_editor());
 		args.push_back(std::to_string(n->getnodenum()));
 #ifdef _MSC_VER
 		args.push_back(std::to_string(n->get_socket()));
