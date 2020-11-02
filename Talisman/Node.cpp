@@ -613,7 +613,7 @@ int Node::run() {
 		if (strcasecmp(login.c_str(), "NEW") == 0) {
 			cls();
 			send_gfile("newuser");
-			print_f("Create a new account? (Y/N): ");
+			print_f("|14Create a new account? (Y/N): |07");
 			char ch = tolower(getche());
 			if (ch == 'y') {
 				std::string newusername = "";
@@ -678,7 +678,7 @@ int Node::run() {
 				print_f("\r\n Contact E-Mail address: ");
 				email = get_string(32, false);
 
-				print_f("\r\nThankyou. Have you entered everything correctly? (Y/N): ");
+				print_f("\r\n|12Thankyou. Have you entered everything correctly? (Y/N): |07");
 				if (tolower(getche() == 'y')) {
 					print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
 					if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
