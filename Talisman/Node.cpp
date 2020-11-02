@@ -617,7 +617,7 @@ void Node::system_info() {
 
 	print_f("|15System Name: |14%s\r\n", config.sys_name().c_str());
 	print_f("|15 Sysop Name: |14%s\r\n", config.op_name().c_str());
-	print_f("|15         OS: |14%s\r\n", operating_system());
+	print_f("|15         OS: |14%s\r\n", operating_system().c_str());
 	print_f("|15       Node: |14%d\r\n\r\n", node);
 
 	print_f("|14Press any key...|07");
