@@ -197,6 +197,7 @@ bool telnet_bin_mode;
 
 void Door::runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw) {
 	createDropfiles(n);
+	n->stop_timeout = true;
 #ifdef _MSC_VER
 	std::stringstream ss;
 	u_long mode = 0;
@@ -223,6 +224,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
 		n->print_f("\r\nFailed to run door\r\n");
 		free(cmd);
+		n->stop_timeout = false;
 		return;
 	}
 
@@ -267,6 +269,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 
 	argv = (char **)malloc(sizeof(char *) * (args.size() + 2));
 	if (!argv) {
+		n->stop_timeout = false;
 		return;
 	}
 
@@ -286,6 +289,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		sa.sa_flags = SA_RESTART | SA_SIGINFO;
 		if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 			perror("sigaction");
+			n->stop_timeout = false;
 			return;
 		}
 		
@@ -296,6 +300,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 
 		if (pid < 0) {
 			n->print_f("\r\nFailed to run door\r\n");
+			n->stop_timeout = false;
 			return;
 		} else if (pid == 0) {
 			close(master);
@@ -434,7 +439,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	}
 	free(argv);
 #endif
-
+	n->stop_timeout = false;
 }
 
 Door::Door()

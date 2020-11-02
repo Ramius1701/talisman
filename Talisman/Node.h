@@ -40,6 +40,7 @@ public:
 	}
 	bool hasANSI;
 	CallLog *clog;
+	bool stop_timeout;
 private:
 	int node;
 	int socket;
@@ -49,5 +50,13 @@ private:
 	User u;
 	void send_str(const char* str);
 	void send_file(std::filesystem::path p);
+	
+	time_t last_time_check;
+	bool time_check();
+
+	int timeleft;
+	int timeout;
+
+	int timeoutmax;
 };
 

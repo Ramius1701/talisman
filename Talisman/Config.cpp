@@ -74,6 +74,65 @@ bool Config::load(Node *n, std::string filename) {
 		}
 	}
 
+	auto data2 = toml::parse_file(_datapath + "/seclevels.toml");
 
+	auto secitems = data2.get_as<toml::array>("seclevel");
+
+	for (size_t i = 0; i < secitems->size(); i++) {
+		auto itemtable = secitems->get(i)->as_table();
+
+		std::string myname;
+		int mysec_level;
+		int mytimeonline;
+		int mytimeout;
+
+		auto name = itemtable->get("name");
+		if (name != nullptr) {
+			myname = name->as_string()->value_or("Invalid Name");
+		}
+		else {
+			myname = "Unknown Name";
+		}
+		auto seclvl = itemtable->get("sec_level");
+		if (seclvl != nullptr) {
+			mysec_level = seclvl->as_integer()->value_or(0);
+		}
+		else {
+			mysec_level = 0;
+		}
+
+		auto timeon = itemtable->get("mins_per_day");
+		if (timeon != nullptr) {
+			mytimeonline = timeon->as_integer()->value_or(0);
+		}
+		else {
+			mytimeonline = 0;
+		}
+		auto timeout = itemtable->get("timeout_mins");
+		if (timeout != nullptr) {
+			mytimeout = timeout->as_integer()->value_or(0);
+		}
+		else {
+			mytimeout = 0;
+		}
+
+		if (mysec_level != 0) {
+			struct sec_level_t slvl;
+			slvl.level = mysec_level;
+			slvl.name = myname;
+			slvl.timeout = mytimeout;
+			slvl.time_online = mytimeonline;
+			seclevels.push_back(slvl);
+		}
+	}
 	return true;
+}
+
+struct sec_level_t* Config::get_sec_level_info(int seclvl) {
+	for (size_t i = 0; i < seclevels.size(); i++) {
+		if (seclevels.at(i).level == seclvl) {
+			return &seclevels.at(i);
+		}
+	}
+	return NULL;
 }

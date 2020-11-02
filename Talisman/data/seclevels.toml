@@ -1,0 +1,5 @@
+[[seclevel]]
+name = "Standard User"
+sec_level = 10
+mins_per_day = 120
+timeout_mins = 10

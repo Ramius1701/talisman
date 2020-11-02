@@ -31,6 +31,10 @@ Node::Node(int node, int socket, bool telnet) {
 	this->telnet = telnet;
 	hasANSI = false;
 	clog = nullptr;
+	timeout = 0;
+	stop_timeout = false;
+	last_time_check = 0;
+	timeleft = 120;
 }
 
 Node::~Node() {
@@ -161,6 +165,9 @@ void Node::send_file(std::filesystem::path p) {
 				else if (ss.str() == "VERSION") {
 					print_f("%d.%d-%s", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 				}
+				else if (ss.str() == "TIMELEFT") {
+					print_f("%d mins", timeleft / 60);
+				}
 				else {
 					if (socket) {
 						send(socket, "@", 1, 0);
@@ -246,6 +253,28 @@ char Node::getche() {
 	return c;
 }
 
+bool Node::time_check() {
+	time_t now = time(NULL);
+
+	if (last_time_check == 0) {
+		last_time_check = now;
+	}
+
+
+	if (now - last_time_check >= 60) {
+		timeleft -= (now - last_time_check);
+		if (u.get_uid() != 0) {
+			u.set_attribute("time_left", std::to_string((int)(timeleft / 60)));
+		}
+		last_time_check = now;
+	}
+
+	if (timeleft <= 0) {
+		return false;
+	}
+	return true;
+}
+
 char Node::getch() {
 	char ch;
 	int len;
@@ -253,57 +282,108 @@ char Node::getch() {
 	char order = 0;
 	char buffer[2048];
 	int i = 0;
+	struct timeval tv;
+	struct sec_level_t* sl;
 
 	if (socket != 0) {
 		while (true) {
-			len = recv(socket, &ch, 1, 0);
-			if (len == 0) {
+			fd_set rfd;
+			FD_ZERO(&rfd);
+			FD_SET(socket, &rfd);
+
+			tv.tv_sec = 60;
+			tv.tv_usec = 0;
+
+			int rs = select(socket + 1, &rfd, NULL, NULL, &tv);
+			if (rs == 0) {
+				// one minute has elapsed
+				if (!stop_timeout) {
+					timeout++;
+					if (timeout == timeoutmax - 1) {
+						print_f("|14You are about to time out!\r\n");
+					}
+					else if (timeout == timeoutmax) {
+						print_f("|12You have timed out, call back when you're there!\r\n");
+#ifdef _MSC_VER
+						closesocket(socket);
+#else
+						close(socket);
+#endif
+						disconnected();
+					}
+				}
+				if (!time_check()) {
+					print_f("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+					closesocket(socket);
+#else
+					close(socket);
+#endif
+					disconnected();
+				}
+			}
+			else if (rs == -1 && errno != EINTR) {
 				disconnected();
 			}
-			else if (len == -1) {
+			else if (FD_ISSET(socket, &rfd)) {
+				len = recv(socket, &ch, 1, 0);
+				if (len == 0) {
+					disconnected();
+				}
+				else if (len == -1) {
 #ifdef _MSC_VER
-				int err = WSAGetLastError();
-				if (err == WSAENOTCONN) {
-					disconnected();
-				}
-				else {
-					closesocket(socket);
-					disconnected();
-				}
+					int err = WSAGetLastError();
+					if (err == WSAENOTCONN) {
+						disconnected();
+					}
+					else {
+						closesocket(socket);
+						disconnected();
+					}
 #endif
-			}
-			if (stage == 0) {
-				if ((unsigned char)ch == IAC) {
-					stage = 1;
 				}
-				else if (ch != '\n' && ch != '\0') {
-					return ch;
+				if (stage == 0) {
+					if ((unsigned char)ch == IAC) {
+						stage = 1;
+					}
+					else if (ch != '\n' && ch != '\0') {
+						if (!time_check()) {
+							print_f("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+							closesocket(socket);
+#else
+							close(socket);
+#endif
+							disconnected();
+						}
+						return ch;
+					}
 				}
-			}
-			else if (stage == 1) {
-				if ((unsigned char)ch == IAC) {
-					return ch;
+				else if (stage == 1) {
+					if ((unsigned char)ch == IAC) {
+						return ch;
+					}
+					else if ((unsigned char)ch == 240) {
+						stage = 3;
+					}
+					else {
+						order = ch;
+						stage = 2;
+					}
 				}
-				else if ((unsigned char)ch == 240){
-					stage = 3;
-				}
-				else {
-					order = ch;
-					stage = 2;
-				}
-			}
-			else if (stage == 2) {
-				// handle iac
-				stage = 0;
-			}
-			else if (stage == 3) {
-				if ((unsigned char)ch == 250) {
+				else if (stage == 2) {
+					// handle iac
 					stage = 0;
 				}
-				else {
-					if (i < 2047) {
-						buffer[i++] = ch;
-						buffer[i] = '\0';
+				else if (stage == 3) {
+					if ((unsigned char)ch == 250) {
+						stage = 0;
+					}
+					else {
+						if (i < 2047) {
+							buffer[i++] = ch;
+							buffer[i] = '\0';
+						}
 					}
 				}
 			}
@@ -318,7 +398,15 @@ char Node::getch() {
 #endif
 		} while (ch == '\n');
 	}
-
+	if (!time_check()) {
+		print_f("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+		closesocket(socket);
+#else
+		close(socket);
+#endif
+		disconnected();
+	}
 	return ch;
 }
 
@@ -621,10 +709,51 @@ int Node::run() {
 
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
-	// we are logged in!
 
-	//cls();
-	//print_f("|14Welcome to node |15%d|08,  |15%s|08!|07\r\n", node, u.get_username().c_str());
+
+	struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
+
+	time_t last_on = stoi(u.get_attribute("last_on", "0"));
+	time_t now = time(NULL);
+	struct tm last_on_tm;
+	struct tm now_tm;
+#ifdef _MSC_VER
+	localtime_s(&last_on_tm, &last_on);
+	localtime_s(&now_tm, &now);
+#else
+	localtime_r(&last_on, &last_on_tm);
+	localtime_r(&now, &now_tm);
+#endif
+
+	if (last_on_tm.tm_year != now_tm.tm_year || last_on_tm.tm_yday != now_tm.tm_yday) {
+		if (sl != NULL) {
+			timeleft = sl->time_online;
+		}
+		else {
+			timeleft = 20;
+		}
+		u.set_attribute("time_left", std::to_string(timeleft));
+	}
+	else {
+		if (sl != NULL) {
+			timeleft = stoi(u.get_attribute("time_left", std::to_string(sl->time_online)));
+		}
+		else {
+			timeleft = stoi(u.get_attribute("time_left", "20"));
+		}
+	}
+
+	timeleft *= 60;
+
+	if (sl != NULL) {
+		timeoutmax = sl->timeout;
+	}
+	else {
+		timeoutmax = 10;
+	}
+
+	u.set_attribute("last_on", std::to_string(time(NULL)));
+
 	cls();
 	
 	send_gfile("login");

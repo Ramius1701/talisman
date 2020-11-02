@@ -16,6 +16,7 @@
 
 User::User() {
 	sec_level = 0;
+	uid = 0;
 }
 
 void User::set_config(Config c) {

@@ -6,11 +6,21 @@
 
 class Node;
 
+struct sec_level_t {
+	std::string name;
+	int level;
+	int time_online;
+	int timeout;
+};
+
 class Config
 {
 public:
 	Config();
 	bool load(Node *n, std::string filename);
+
+	struct sec_level_t* get_sec_level_info(int seclvl);
+
 	std::string gfile_path() {
 		return _gfilepath;
 	}
@@ -48,5 +58,6 @@ private:
 	std::string _tmppath;
 	std::string _sysname;
 	std::string _opname;
+	std::vector<struct sec_level_t> seclevels;
 };
 

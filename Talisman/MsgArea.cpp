@@ -675,7 +675,7 @@ int MsgArea::list_messages(int start) {
 			if (res.size() == 0) {
 				lines = 1;
 				n->cls();
-				n->print_f("|09[|14Msg#  |09] |14Subject                          |14From             |14To              |07\r\n");
+				n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
 				continue;
 			}
 			else if (tolower(res[0]) == 'q') {
