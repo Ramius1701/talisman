@@ -208,7 +208,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	std::stringstream originline;
 
 	if (orig_addr != "") {
-		originline << "\r--- Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << "\r * Origin: ";
+		originline << "\r--- Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << " (" << n->operating_system() << ")\r * Origin: ";
 		if (tagline != "") {
 			originline << tagline << " (" << orig_addr << ")\r";
 		}
