@@ -15,6 +15,7 @@ public:
 	void up_bytes(int bytes);
 	void down_bytes(int bytes);
 	void post_msg();
+	int total_calls(std::string username);
 	static void last10_callers(Node* n);
 private:
 	static bool open_database(std::string filename, sqlite3** db);

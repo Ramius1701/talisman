@@ -6,6 +6,7 @@
 #include "Node.h"
 #include "Menu.h"
 #include "CallLog.h"
+#include "Door.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -257,6 +258,16 @@ bool Menu::run() {
 					CallLog::last10_callers(n);
 					n->print_f("|14Press any key...|07");
 					n->getch();
+				}
+				else if (strcasecmp(items[i].command.c_str(), "rundoor") == 0) {
+					std::vector<std::string> arguments;
+					arguments.push_back(std::to_string(n->getnodenum()));
+#ifdef _MSC_VER
+					arguments.push_back(std::to_string(n->get_socket()));
+#endif
+					Door::createDropfiles(n);
+					Door::runExternal(n, items[i].data, arguments, false);
+					n->clog->ran_door();
 				}
 			}
 		}

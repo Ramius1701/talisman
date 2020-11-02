@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="CallLog.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Door.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MsgArea.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="CallLog.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Door.h" />
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Menu.h" />

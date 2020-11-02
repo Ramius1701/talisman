@@ -17,6 +17,9 @@ public:
 	}
 
 	int get_sec_level();
+	int get_uid() {
+		return uid;
+	}
 	std::string get_attribute(std::string attrib, std::string def);
 
 	static bool open_database(std::string filename, sqlite3 **db);

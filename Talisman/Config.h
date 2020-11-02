@@ -23,6 +23,16 @@ public:
 	std::string msg_path() {
 		return _msgpath;
 	}
+	std::string tmp_path() {
+		return _tmppath;
+	}
+	std::string sys_name() {
+		return _sysname;
+	}
+
+	std::string op_name() {
+		return _opname;
+	}
 
 	std::string main_menu() {
 		return _mainmenu;
@@ -35,5 +45,8 @@ private:
 	std::string _gfilepath;
 	std::string _datapath;
 	std::string _msgpath;
+	std::string _tmppath;
+	std::string _sysname;
+	std::string _opname;
 };
 

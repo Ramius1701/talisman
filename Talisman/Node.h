@@ -31,6 +31,13 @@ public:
 	User get_user() {
 		return u;
 	}
+	int getnodenum() {
+		return node;
+	}
+
+	int get_socket() {
+		return socket;
+	}
 	bool hasANSI;
 	CallLog *clog;
 private:

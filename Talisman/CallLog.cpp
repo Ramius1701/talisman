@@ -90,7 +90,7 @@ void CallLog::log_off() {
 void CallLog::ran_door() {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
-	time_t thetime = time(NULL);
+
 	const char* sql = "UPDATE calllog SET rundoor = ? WHERE id = ?";
 	
 	doorsrun++;
@@ -118,7 +118,7 @@ void CallLog::ran_door() {
 void CallLog::up_bytes(int bytes) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
-	time_t thetime = time(NULL);
+
 	const char* sql = "UPDATE calllog SET upload = ? WHERE id = ?";
 
 	bytesup += bytes;
@@ -146,7 +146,7 @@ void CallLog::up_bytes(int bytes) {
 void CallLog::down_bytes(int bytes) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
-	time_t thetime = time(NULL);
+
 	const char* sql = "UPDATE calllog SET download = ? WHERE id = ?";
 
 	bytesdown += bytes;
@@ -174,7 +174,7 @@ void CallLog::down_bytes(int bytes) {
 void CallLog::post_msg() {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
-	time_t thetime = time(NULL);
+
 	const char* sql = "UPDATE calllog SET msgpost = ? WHERE id = ?";
 
 	msgsposted++;
@@ -197,6 +197,30 @@ void CallLog::post_msg() {
 
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
+}
+
+int CallLog::total_calls(std::string username) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	int ret = 0;
+	const char* sql = "SELECT COUNT(*) FROM calllog WHERE username = ?";
+	if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
+		return 0;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return 0;
+	}
+
+	sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		ret = sqlite3_column_int(stmt, 0);
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
 }
 
 void CallLog::last10_callers(Node* n) {
