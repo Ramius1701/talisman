@@ -19,7 +19,7 @@ bool Config::load(Node *n, std::string filename) {
 	_menupath = inir.Get("Paths", "Menu Path", "menus");
 	_mainmenu = inir.Get("Main", "Root Menu", "main");
 	_msgpath = inir.Get("Paths", "Message Path", "msgs");
-	_msgpath = inir.Get("Paths", "Temp Path", "temp");
+	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 	_opname = inir.Get("Main", "Sysop Name", "Sysop");
 	_sysname = inir.Get("Main", "System Name", "Talisman");
 
