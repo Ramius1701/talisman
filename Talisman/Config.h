@@ -56,6 +56,10 @@ public:
 		return _echomailsem;
 	}
 
+	std::string external_editor() {
+		return _externaleditor;
+	}
+
 	std::vector<MsgConf> msgconfs;
 
 private:
@@ -69,6 +73,7 @@ private:
 	std::string _opname;
 	std::string _netmailsem;
 	std::string _echomailsem;
+	std::string _externaleditor;
 	std::vector<struct sec_level_t> seclevels;
 };
 

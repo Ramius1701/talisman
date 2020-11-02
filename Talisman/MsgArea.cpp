@@ -13,6 +13,7 @@
 #include "Squish.h"
 #include "Node.h"
 #include "CallLog.h"
+#include "Door.h"
 MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline)
 {
 	this->name = name;
@@ -68,7 +69,80 @@ std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
 	return strvec;
 }
 
-void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string> *quotebuffer)
+void MsgArea::enter_message_ex(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer)
+{
+	if (quotebuffer != nullptr) {
+		FILE* q_fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP").c_str(), "wb");
+		if (q_fptr) {
+			for (size_t i = 0; i < quotebuffer->size(); i++) {
+				fprintf(q_fptr, "%s\r\n", quotebuffer->at(i).c_str());
+			}
+			
+			fclose(q_fptr);
+		}
+	}
+
+	FILE *fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGINF").c_str(), "wb");
+	if (fptr) {
+		fprintf(fptr, "%s\r\n", n->get_user().get_username().c_str());
+		fprintf(fptr, "%s\r\n", to.c_str());
+		fprintf(fptr, "%s\r\n", subject.c_str());
+		fprintf(fptr, "0\r\n");
+		fprintf(fptr, "%s\r\n", name.c_str());
+		if (_is_netmail) {
+			fprintf(fptr, "YES\r\n");
+		}
+		else {
+			fprintf(fptr, "NO\r\n");
+		}
+
+		fclose(fptr);
+
+		std::vector<std::string> args;
+
+		args.push_back(n->get_config()->external_editor());
+		args.push_back(std::to_string(n->getnodenum()));
+#ifdef _MSC_VER
+		args.push_back(std::to_string(n->get_socket()));
+#endif
+		Door::runExternal(n, n->get_config()->external_editor(), args, false);
+		std::vector<std::string> msg;
+		std::string line;
+		std::ifstream infile(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP"));
+		while (std::getline(infile, line))
+		{
+			std::istringstream iss(line);
+			
+			if (line.at(line.size() - 1) == '\r') {
+				line = line.substr(0, line.size() - 1);
+			}
+
+			msg.push_back(line);
+		}
+		infile.close();
+		if (msg.size() > 0) {
+			save_message(to, subject, msg, netaddr, inreplyto);
+		}
+
+	}
+}
+
+void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer) {
+	if (n->get_config()->external_editor() != "") {
+		n->print_f("|14Use external editor (Y/N) : |07");
+		if (tolower(n->getch()) == 'n') {
+			enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
+		}
+		else {
+			enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
+		}
+	}
+	else {
+		enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
+	}
+}
+
+void MsgArea::enter_message_in(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string> *quotebuffer)
 {
 	std::vector<std::string> lines;
 	bool done = false;

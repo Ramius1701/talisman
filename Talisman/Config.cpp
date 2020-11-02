@@ -24,7 +24,7 @@ bool Config::load(Node *n, std::string filename) {
 	_sysname = inir.Get("Main", "System Name", "Talisman");
 	_netmailsem = inir.Get("Paths", "Netmail Semaphore", "netmail.sem");
 	_echomailsem = inir.Get("Paths", "Echomail Semaphore", "echomail.sem");
-
+	_externaleditor = inir.Get("Paths", "External Editor", "");
 	auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
 	auto confitems = data.get_as<toml::array>("messageconf");
