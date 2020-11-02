@@ -229,7 +229,7 @@ bool Menu::run() {
 								std::string subject = n->get_string(60, false);
 								std::string netaddr;
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail()) {
-									n->print_f("\r\n Address: ");
+									n->print_f("\r\nAddress: ");
 									netaddr = n->get_string(16, false);
 								}
 								else {
