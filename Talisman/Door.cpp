@@ -93,7 +93,7 @@ void Door::createDropfiles(Node *n) {
 	f3 << "0" << "\r\n";
 	f3 << "1" << "\r\n";
 	f3 << "1" << "\r\n";
-	f3 << (999 * 60) << "\r\n";
+	f3 << n->get_timeleft() << "\r\n";
 	f3 << n->get_config()->gfile_path() << "\r\n";
 	f3 << n->get_config()->tmp_path() << "\r\n";
 	f3 << "NOLOG" << "\r\n";
@@ -126,7 +126,7 @@ void Door::createDropfiles(Node *n) {
 	f << n->get_user().get_attribute("fullname", "UNKNOWN") << "\r\n";
 	f << n->get_user().get_username() << "\r\n";
 	f << n->get_user().get_sec_level() << "\r\n";
-	f << "999" << "\r\n"; // TODO: Time left
+	f << (n->get_timeleft() / 60) << "\r\n"; // TODO: Time left
 	f << (n->hasANSI ? 1 : 0) << "\r\n";
 	f << n->getnodenum() << "\r\n";
 
@@ -151,10 +151,10 @@ void Door::createDropfiles(Node *n) {
 	f2 << "00-0000-0000" << "\r\n";
 	f2 << "00-0000-0000" << "\r\n";
 	f2 << "SECRET" << "\r\n";
-	f2 << "10" << "\r\n"; // TODO: Security Level
+	f2 << n->get_user().get_sec_level() << "\r\n"; // TODO: Security Level
 	f2 << n->clog->total_calls(n->get_user().get_username()) << "\r\n";
 	f2 << "01-01-1971" << "\r\n";
-	f2 << (999 * 60) << "\r\n";
+	f2 << n->get_timeleft() << "\r\n";
 	f2 << "999" << "\r\n";
 	f2 << "GR" << "\r\n";
 	f2 << "25" << "\r\n";

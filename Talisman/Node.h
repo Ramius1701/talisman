@@ -39,6 +39,10 @@ public:
 		return socket;
 	}
 
+	int get_timeleft() {
+		return timeleft;
+	}
+
 	void system_info();
 	std::string operating_system();
 	bool hasANSI;
