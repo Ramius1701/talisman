@@ -334,7 +334,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 								free(argv[i]);
 							}
 							free(argv);
-							close(n->get_socket())
+							close(n->get_socket());
 							n->disconnected();
 						}
 						g = 0;
