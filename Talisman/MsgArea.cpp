@@ -649,7 +649,7 @@ int MsgArea::list_messages(int start) {
 		SquishCloseMsgBase(mb);
 		return 0;
 	}
-	int lines = 0;
+	int lines = 1;
 	n->cls();
 	n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
 	for (size_t i = start; i <= mb->basehdr.num_msg; i++) {
@@ -666,6 +666,7 @@ int MsgArea::list_messages(int start) {
 				n->print_f("|08[|15%6d|08]|12*|14%-32.32s |13%-16.16s |11%-16.16s\r\n", i, msg->xmsg.subject, msg->xmsg.from, msg->xmsg.to);
 			}
 		}
+		lines++;
 		if (lines == 23) {
 			n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", start, mb->basehdr.num_msg);
 

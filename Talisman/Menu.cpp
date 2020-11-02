@@ -180,7 +180,13 @@ bool Menu::run() {
 								msgno = 1;
 							}
 							else if (tolower(start[0] == 'l')) {
-								msgno = 1;
+								int lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
+								if (lr == 0) {
+									msgno = 1;
+								}
+								else {
+									msgno = lr;
+								}
 							}
 							else {
 								try {
