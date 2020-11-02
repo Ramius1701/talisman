@@ -129,7 +129,7 @@ void MsgArea::enter_message_ex(std::string to, std::string subject, std::string 
 
 void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer) {
 	if (n->get_config()->external_editor() != "") {
-		n->print_f("|14Use external editor (Y/N) : |07");
+		n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
 		if (tolower(n->getch()) == 'n') {
 			enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
 		}
