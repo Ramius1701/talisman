@@ -17,7 +17,7 @@
 #include <iostream>
 #include <ctime>
 #include <fstream>
-
+#include <algorithm>
 #include "GenDefs.h"
 #include "Node.h"
 #include "Config.h"
