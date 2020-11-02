@@ -269,6 +269,11 @@ bool Menu::run() {
 					Door::runExternal(n, items[i].data, arguments, false);
 					n->clog->ran_door();
 				}
+				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
+					n->system_info();
+					n->print_f("|14Press any key...|07");
+					n->getch();
+				}
 			}
 		}
 	}

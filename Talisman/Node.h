@@ -38,6 +38,9 @@ public:
 	int get_socket() {
 		return socket;
 	}
+
+	void system_info();
+	std::string operating_system();
 	bool hasANSI;
 	CallLog *clog;
 	bool stop_timeout;

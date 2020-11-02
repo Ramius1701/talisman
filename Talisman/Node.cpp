@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
+#include <sys/utsname.h>
 #endif
 #include <filesystem>
 #include <sstream>
@@ -572,6 +573,63 @@ void Node::print_f(const char* fmt, ...)
 	}
 
 	va_end(args);
+}
+
+std::string Node::operating_system() {
+#ifdef _MSC_VER
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+
+	switch (si.wProcessorArchitecture) {
+	case PROCESSOR_ARCHITECTURE_AMD64:
+		return std::string("Windows/x64");
+	case PROCESSOR_ARCHITECTURE_INTEL:
+		return std::string("Windows/x86");
+	case PROCESSOR_ARCHITECTURE_ARM:
+		return std::string("Windows/ARM");
+	case PROCESSOR_ARCHITECTURE_ARM64:
+		return std::string("Windows/ARM64");
+	case PROCESSOR_ARCHITECTURE_IA64:
+		return std::string("Windows/Itanium");
+	case PROCESSOR_ARCHITECTURE_UNKNOWN:
+		return std::string("Windows/Unknown");
+	}
+#else
+	struct utsname sys;
+	std::stringstream ss;
+	ss.str("");
+	uname(&sys);
+
+	ss << sys.sysname << "/" << sys.machine;
+
+	return ss.str();
+#endif
+
+	return std::string("Unknown");
+}
+
+void Node::system_info() {
+	cls();
+	send_gfile("sysinfo");
+	print_f("|15Talisman BBS v%d.%d.%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+	print_f("Copyright (C) 2020, Andrew Pamment\r\n");
+	print_f("All rights reserved.\r\n\r\n");
+
+	print_f("|15System Name: |14%s\r\n", config.sys_name().c_str());
+	print_f("|15 Sysop Name: |14%s\r\n", config.op_name().c_str());
+	print_f("|15         OS: |14%s\r\n", operating_system());
+	print_f("|15       Node: |14%d\r\n\r\n", node);
+
+	print_f("|14Press any key...|07");
+	getch();
+
+	cls();
+	send_gfile("system");
+	print_f("|14Press any key...|07");
+	getch();
+
+	cls();
+	send_gfile("login");
 }
 
 int Node::run() {

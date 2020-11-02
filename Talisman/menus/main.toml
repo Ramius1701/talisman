@@ -16,6 +16,10 @@ command = "LAST10"
 hotkey = "1"
 
 [[menuitem]]
+command = "SYSINFO"
+hotkey = "S"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"
