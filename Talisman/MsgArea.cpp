@@ -105,6 +105,7 @@ void MsgArea::enter_message_ex(std::string to, std::string subject, std::string 
 #ifdef _MSC_VER
 		args.push_back(std::to_string(n->get_socket()));
 #endif
+		Door::createDropfiles(n);
 		Door::runExternal(n, n->get_config()->external_editor(), args, false);
 		std::vector<std::string> msg;
 		std::string line;
