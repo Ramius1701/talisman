@@ -777,6 +777,9 @@ int Node::run() {
 
 	m.load(config.menu_path() + "/" + config.main_menu() + ".toml");
 	m.run();
+
+	send_gfile("goodbye");
+
 	clog->log_off();
 	return 0;
 }
