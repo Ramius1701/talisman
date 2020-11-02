@@ -2,3 +2,4 @@ sysop
 admin
 unknown
 anonymous
+new

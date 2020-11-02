@@ -670,7 +670,7 @@ int Node::run() {
 					print_f("\r\n        Your first name: ");
 					firstname = get_string(26, false);
 					if (firstname.find(' ') != std::string::npos) {
-						print_f("\r\n|12First can not contain a space!.\r\n|07");
+						print_f("\r\n|12First name can not contain a space!.\r\n|07");
 						continue;
 					}
 					print_f("\r\n         Your last name: ");
