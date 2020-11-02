@@ -185,7 +185,7 @@ bool Menu::run() {
 									msgno = 1;
 								}
 								else {
-									msgno = lr;
+									msgno = lr + 1;
 								}
 							}
 							else {
@@ -194,6 +194,9 @@ bool Menu::run() {
 									if (msgno == 0) msgno++;
 								}
 								catch (std::invalid_argument) {
+									msgno = 1;
+								}
+								catch (std::out_of_range) {
 									msgno = 1;
 								}
 							}
