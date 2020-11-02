@@ -23,7 +23,7 @@ public:
 	std::string get_file() {
 		return file;
 	}
-
+	void do_semaphore(std::string sem);
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);

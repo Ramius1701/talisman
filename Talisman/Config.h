@@ -47,6 +47,15 @@ public:
 	std::string main_menu() {
 		return _mainmenu;
 	}
+
+	std::string netmail_sem() {
+		return _netmailsem;
+	}
+
+	std::string echomail_sem() {
+		return _echomailsem;
+	}
+
 	std::vector<MsgConf> msgconfs;
 
 private:
@@ -58,6 +67,8 @@ private:
 	std::string _tmppath;
 	std::string _sysname;
 	std::string _opname;
+	std::string _netmailsem;
+	std::string _echomailsem;
 	std::vector<struct sec_level_t> seclevels;
 };
 

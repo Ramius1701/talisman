@@ -448,7 +448,25 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	free(newmsg.msg);
 	free(newmsg.ctrl);
 
+	if (netaddr != "") {
+		do_semaphore(n->get_config()->netmail_sem());
+	}
+	else if (orig_addr != "") {
+		do_semaphore(n->get_config()->echomail_sem());
+	}
+
 	return (ret == 1);
+}
+
+void MsgArea::do_semaphore(std::string sem)
+{
+	time_t thetime = time(NULL);
+
+	FILE* fptr = fopen(sem.c_str(), "w");
+	if (fptr) {
+		fwrite(&thetime, sizeof(time_t), 1, fptr);
+		fclose(fptr);
+	}
 }
 
 struct line_t {

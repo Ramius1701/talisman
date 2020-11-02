@@ -22,6 +22,8 @@ bool Config::load(Node *n, std::string filename) {
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 	_opname = inir.Get("Main", "Sysop Name", "Sysop");
 	_sysname = inir.Get("Main", "System Name", "Talisman");
+	_netmailsem = inir.Get("Paths", "Netmail Semaphore", "netmail.sem");
+	_echomailsem = inir.Get("Paths", "Echomail Semaphore", "echomail.sem");
 
 	auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
