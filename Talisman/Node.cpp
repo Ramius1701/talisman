@@ -25,6 +25,25 @@
 #include "Menu.h"
 #include "CallLog.h"
 
+static inline void ltrim(std::string& s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string& s) {
+	ltrim(s);
+	rtrim(s);
+}
+
 Node::Node(int node, int socket, bool telnet) {
 	this->node = node;
 	this->socket = socket;
@@ -620,6 +639,7 @@ int Node::run() {
 				while(true) {
 					print_f("\r\n       Desired username: ");
 					newusername = get_string(16, false);
+					trim(newusername);
 					if (User::username_allowed(config, newusername)) {
 						break;
 					}
@@ -649,9 +669,13 @@ int Node::run() {
 				while (true) {
 					print_f("\r\n        Your first name: ");
 					firstname = get_string(26, false);
+					if (firstname.find(' ') != std::string::npos) {
+						print_f("\r\n|12First can not contain a space!.\r\n|07");
+						continue;
+					}
 					print_f("\r\n         Your last name: ");
 					lastname = get_string(26, false);
-
+					trim(lastname);
 					if (firstname.size() < 2 || lastname.size() < 2) {
 						print_f("\r\n|12First name and last name must both be at least 2 characters long.\r\n|07");
 						continue;
@@ -667,6 +691,7 @@ int Node::run() {
 				while (true) {
 					print_f("\r\n   Approximate location: ");
 					location = get_string(26, false);
+					trim(location);
 					if (location.size() < 2) {
 						print_f("\r\n|12Too short. Come on, don't be shy!\r\n|07");
 						continue;
@@ -677,7 +702,7 @@ int Node::run() {
 				std::string email;
 				print_f("\r\n Contact E-Mail address: ");
 				email = get_string(32, false);
-
+				trim(email);
 				print_f("\r\n|14Thankyou. Have you entered everything correctly? (Y/N): |07");
 				if (tolower(getche() == 'y')) {
 					print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
