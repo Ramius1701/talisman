@@ -7,6 +7,11 @@ hotkey = "M"
 data = "message"
 
 [[menuitem]]
+command = "SUBMENU"
+hotkey = "D"
+data = "doors"
+
+[[menuitem]]
 command = "LAST10"
 hotkey = "1"
 

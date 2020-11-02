@@ -1,0 +1,11 @@
+[menu]
+gfile = "doors"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "Q"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"
