@@ -158,6 +158,9 @@ void Node::send_file(std::filesystem::path p) {
 						}
 					}
 				}
+				else if (ss.str() == "VERSION") {
+					print_f("%d.%d-%s", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+				}
 				else {
 					if (socket) {
 						send(socket, "@", 1, 0);
@@ -622,6 +625,12 @@ int Node::run() {
 
 	//cls();
 	//print_f("|14Welcome to node |15%d|08,  |15%s|08!|07\r\n", node, u.get_username().c_str());
+	cls();
+	
+	send_gfile("login");
+
+	print_f("|14Press any key...|07");
+	getch();
 
 	cls();
 	CallLog::last10_callers(this);
