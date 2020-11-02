@@ -678,7 +678,7 @@ int Node::run() {
 				print_f("\r\n Contact E-Mail address: ");
 				email = get_string(32, false);
 
-				print_f("\r\n|12Thankyou. Have you entered everything correctly? (Y/N): |07");
+				print_f("\r\n|14Thankyou. Have you entered everything correctly? (Y/N): |07");
 				if (tolower(getche() == 'y')) {
 					print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
 					if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
