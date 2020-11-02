@@ -193,7 +193,7 @@ void Door::createDropfiles(Node *n) {
 	f2.close();
 }
 
-extern bool telnet_bin_mode;
+bool telnet_bin_mode;
 
 void Door::runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw) {
 	createDropfiles(n);
