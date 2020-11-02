@@ -17,6 +17,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <cstring>
 #include "GenDefs.h"
 #include "Door.h"
 #include "Config.h"
@@ -348,7 +349,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 								continue;
 							}
 
-							if (c == 255 && n->protocol == PROTOCOL_TELNET) {
+							if (c == 255) {
 								if (gotiac == 1) {
 									outbuf[g++] = c;
 									gotiac = 0;
@@ -412,7 +413,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 						g = 0;
 						for (h = 0; h < len; h++) {
 							c = inbuf[h];
-							if (c == 255 && n->protocol == PROTOCOL_TELNET) {
+							if (c == 255) {
 								outbuf[g++] = c;
 							}
 							outbuf[g++] = c;
