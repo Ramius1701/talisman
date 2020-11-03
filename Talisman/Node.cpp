@@ -362,7 +362,13 @@ char Node::getch() {
 						closesocket(socket);
 						disconnected();
 					}
+#else
+					if (errno != EINTR) {
+						close(socket);
+						disconnected();
+					}
 #endif
+					continue;
 				}
 				if (stage == 0) {
 					if ((unsigned char)ch == IAC) {
@@ -879,5 +885,5 @@ void Node::disconnected() {
 		clog->log_off();
 	}
 	log->log(1, "Node %d logged off (disconnected)", node);
-	exit(-1);
+ 	exit(-1);
 }

@@ -290,7 +290,6 @@ bool Menu::run() {
 					Settings::do_settings(n);
 				}
 			}
-
 		}
 	}
 }
