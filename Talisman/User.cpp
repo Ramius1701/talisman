@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <iomanip>
 #include <sqlite3.h>
 #ifdef _MSC_VER
 #include <Windows.h>
