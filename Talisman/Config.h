@@ -60,6 +60,10 @@ public:
 		return _externaleditor;
 	}
 
+	std::string get_logpath() {
+		return _logpath;
+	}
+
 	std::vector<MsgConf> msgconfs;
 
 private:
@@ -74,6 +78,7 @@ private:
 	std::string _netmailsem;
 	std::string _echomailsem;
 	std::string _externaleditor;
+	std::string _logpath;
 	std::vector<struct sec_level_t> seclevels;
 };
 

@@ -25,6 +25,7 @@
 #include "User.h"
 #include "Menu.h"
 #include "CallLog.h"
+#include "Logger.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -55,6 +56,7 @@ Node::Node(int node, int socket, bool telnet) {
 	stop_timeout = false;
 	last_time_check = 0;
 	timeleft = 120;
+	log = new Logger();
 }
 
 Node::~Node() {
@@ -611,7 +613,7 @@ std::string Node::operating_system() {
 void Node::system_info() {
 	cls();
 	send_gfile("sysinfo");
-	print_f("|15Talisman BBS v%d.%d.%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+	print_f("|15Talisman BBS v%d.%d-%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 	print_f("Copyright (C) 2020, Andrew Pamment\r\n");
 	print_f("All rights reserved.\r\n\r\n");
 
@@ -633,11 +635,10 @@ void Node::system_info() {
 }
 
 int Node::run() {
+
 	unsigned char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
 	unsigned char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
 	bool logged_in = false;
-
-	
 
 	if (socket != 0) {
 #ifdef _MSC_VER
@@ -662,6 +663,7 @@ int Node::run() {
 		return -1;
 	}
 
+	log->load(config.get_logpath() + "/talisman.log");
 
 	u.set_config(config);
 
@@ -688,6 +690,7 @@ int Node::run() {
 		print_f("LOGIN: ");
 		std::string login = get_string(16, false);
 		if (strcasecmp(login.c_str(), "NEW") == 0) {
+			log->log(1, "New user signing up on node %d", node);
 			cls();
 			send_gfile("newuser");
 			print_f("|14Create a new account? (Y/N): |07");
@@ -782,6 +785,7 @@ int Node::run() {
 				logged_in = true;
 			}
 			else {
+				log->log(1, "%s failed to login on node %d (wrong password)", login.c_str(), node);
 				tries++;
 			}
 		}
@@ -789,6 +793,8 @@ int Node::run() {
 			return 0;
 		}
 	}
+
+	log->log(1, "%s logged in on node %d", u.get_username().c_str(), node);
 
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
@@ -863,7 +869,7 @@ int Node::run() {
 
 	cls();
 	send_gfile("goodbye");
-
+	log->log(1, "Node %d logged off (graceful)", node);
 	clog->log_off();
 	return 0;
 }
@@ -872,5 +878,6 @@ void Node::disconnected() {
 	if (clog != nullptr) {
 		clog->log_off();
 	}
+	log->log(1, "Node %d logged off (disconnected)", node);
 	exit(-1);
 }

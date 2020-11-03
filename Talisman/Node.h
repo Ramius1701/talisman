@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "User.h"
 
+class Logger;
 class CallLog;
 
 class Node
@@ -48,6 +49,7 @@ public:
 	bool hasANSI;
 	CallLog *clog;
 	bool stop_timeout;
+	Logger* log;
 private:
 	int node;
 	int socket;

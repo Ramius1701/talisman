@@ -8,6 +8,7 @@
 #include "CallLog.h"
 #include "Door.h"
 #include "Settings.h"
+#include "Logger.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -20,6 +21,7 @@ bool Menu::load(std::string filename)
 	try {
 		auto data = toml::parse_file(filename);
 
+		n->log->log(1, "%s loading menu %s on node %d", n->get_user().get_username().c_str(), filename.c_str(), n->getnodenum());
 
 		auto _gfile = data["menu"]["gfile"].as_string();
 
@@ -129,6 +131,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listconfs") == 0) {
+					n->log->log(1, "%s listing conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
 					for (size_t mc = 0; mc < n->get_config()->msgconfs.size();mc++) {
@@ -148,6 +151,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listareas") == 0) {
+					n->log->log(1, "%s listing areas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07");
@@ -164,6 +168,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listmsgs") == 0) {
+					n->log->log(1, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n\r\n");
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
@@ -210,6 +215,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
+					n->log->log(1, "%s listing posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07\r\n");
@@ -251,16 +257,19 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "mailscan") == 0) {
+					n->log->log(1, "%s running mailscan on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					MsgConf::scan(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "last10") == 0) {
+					n->log->log(1, "%s listing last 10 callers on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					CallLog::last10_callers(n);
 					n->print_f("|14Press any key...|07");
 					n->getch();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "rundoor") == 0) {
+					n->log->log(1, "%s running door %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
 					std::vector<std::string> arguments;
 					arguments.push_back(std::to_string(n->getnodenum()));
 #ifdef _MSC_VER
@@ -271,11 +280,13 @@ bool Menu::run() {
 					n->clog->ran_door();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
+					n->log->log(1, "%s looking at system info on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->system_info();
 					n->print_f("|14Press any key...|07");
 					n->getch();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "settings") == 0) {
+					n->log->log(1, "%s modifying settings on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					Settings::do_settings(n);
 				}
 			}
