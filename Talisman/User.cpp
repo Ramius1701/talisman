@@ -23,6 +23,37 @@ void User::set_config(Config c) {
 	this->c = c;
 }
 
+bool User::check_password(std::string password) {
+	sqlite3* db;
+	static const char* sql = "SELECT password, salt FROM users WHERE username = ?";
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return false;
+	}
+	sqlite3_stmt* stmt;
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return false;
+	}
+
+	sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		std::string pass = std::string((const char*)sqlite3_column_text(stmt, 0));
+		std::string salt = std::string((const char*)sqlite3_column_text(stmt, 1));
+		std::string hash = hash_sha256(password, salt);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		if (hash == pass) {
+			return true;
+		}
+	}
+	else {
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+	}
+	return false;
+}
+
 bool User::load_user(std::string username, std::string password)
 {
 	sqlite3* db;
@@ -170,7 +201,7 @@ std::string User::hash_sha256(std::string pass, std::string salt) {
 			if (EVP_DigestUpdate(context, ss.str().c_str(), strlen(ss.str().c_str()))) {
 				if (EVP_DigestFinal_ex(context, hash, &length_of_hash)) {
 					for (i = 0; i < length_of_hash; i++)
-						sh << hash[i];
+						sh << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)hash[i];
 					EVP_MD_CTX_free(context);
 					return sh.str();
 				}
@@ -185,16 +216,14 @@ std::string User::hash_sha256(std::string pass, std::string salt) {
 	return "";
 }
 
-bool User::inst_user(std::string username, std::string password, std::string firstname, std::string lastname, std::string location, std::string email)
-{
+bool User::update_password(std::string password) {
 	sqlite3* db;
 
 	unsigned char salt[11];
 	std::string hash;
+	std::stringstream ssalt;
 
-	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
-		return false;
-	}
+
 	memset(salt, 0, 11);
 #ifdef _MSC_VER		
 	BCRYPT_ALG_HANDLE hCrypt;
@@ -203,7 +232,6 @@ bool User::inst_user(std::string username, std::string password, std::string fir
 #else
 	FILE* fptr = fopen("/dev/urandom", "r");
 	if (!fptr) {
-		sqlite3_close(db);
 		return false;
 	}
 
@@ -212,12 +240,71 @@ bool User::inst_user(std::string username, std::string password, std::string fir
 	fclose(fptr);
 #endif
 
-	hash = hash_sha256(password, std::string((char *)salt));
+	for (int i = 0; i < 10; i++) {
+		ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
+	}
+
+	hash = hash_sha256(password, ssalt.str());
 	if (hash.size() == 0) {
+		return false;
+	}
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return false;
+	}
+	static const char* ins_sql = "UPDATE users SET password=?, salt=? WHERE id=?";
+	sqlite3_stmt* stmt;
+
+	if (sqlite3_prepare_v2(db, ins_sql, strlen(ins_sql), &stmt, NULL) != SQLITE_OK) {
 		sqlite3_close(db);
 		return false;
 	}
+	std::string sssalt = ssalt.str();
+	sqlite3_bind_text(stmt, 1, hash.c_str(), -1, NULL);
+	sqlite3_bind_text(stmt, 2, sssalt.c_str(), -1, NULL);
+	sqlite3_bind_int(stmt, 3, uid);
 
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return true;
+}
+
+bool User::inst_user(std::string username, std::string password, std::string firstname, std::string lastname, std::string location, std::string email)
+{
+	sqlite3* db;
+
+	unsigned char salt[11];
+	std::string hash;
+	std::stringstream ssalt;
+	memset(salt, 0, 11);
+#ifdef _MSC_VER		
+	BCRYPT_ALG_HANDLE hCrypt;
+	BCryptOpenAlgorithmProvider(&hCrypt, L"RNG", NULL, 0);
+	BCryptGenRandom(hCrypt, salt, 10, 0);
+#else
+	FILE* fptr = fopen("/dev/urandom", "r");
+	if (!fptr) {
+		return false;
+	}
+
+	fread(salt, 1, 10, fptr);
+
+	fclose(fptr);
+#endif
+	for (int i = 0; i < 10; i++) {
+		ssalt << std::uppercase << std::setfill('0') << std::setw(2) << std::hex << (int)salt[i];
+	}
+
+
+	hash = hash_sha256(password, ssalt.str());
+	if (hash.size() == 0) {
+		return false;
+	}
+
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return false;
+	}
 	static const char* ins_sql = "INSERT INTO users (username, password, salt) VALUES(?, ?, ?)";
 	sqlite3_stmt* stmt;
 
@@ -226,9 +313,11 @@ bool User::inst_user(std::string username, std::string password, std::string fir
 		return false;
 	}
 
+	std::string sssalt = ssalt.str();
+
 	sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
 	sqlite3_bind_text(stmt, 2, hash.c_str(), -1, NULL);
-	sqlite3_bind_text(stmt, 3, (char *)salt, -1, NULL);
+	sqlite3_bind_text(stmt, 3, sssalt.c_str(), -1, NULL);
 
 	sqlite3_step(stmt);
 	sqlite3_finalize(stmt);

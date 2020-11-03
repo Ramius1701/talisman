@@ -128,14 +128,24 @@ void MsgArea::enter_message_ex(std::string to, std::string subject, std::string 
 }
 
 void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer) {
-	if (n->get_config()->external_editor() != "") {
-		n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
-		if (tolower(n->getch()) == 'n') {
-			enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
+	int fse = stoi(n->get_user().get_attribute("fullscreeneditor", "0"));
+	
+	if (fse == 0) {
+		if (n->get_config()->external_editor() != "" && n->hasANSI) {
+			n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
+			if (tolower(n->getch()) == 'n') {
+				enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
+			}
+			else {
+				enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
+			}
 		}
 		else {
-			enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
+			enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
 		}
+	}
+	else if (fse == 1 && n->get_config()->external_editor() != "" && n->hasANSI) {
+		enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
 	}
 	else {
 		enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);

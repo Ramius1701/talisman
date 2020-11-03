@@ -17,6 +17,10 @@ hotkey = "1"
 
 [[menuitem]]
 command = "SYSINFO"
+hotkey = "I"
+
+[[menuitem]]
+command = "SETTINGS"
 hotkey = "S"
 
 [[menuitem]]

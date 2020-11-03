@@ -151,6 +151,7 @@
     <ClCompile Include="MsgArea.cpp" />
     <ClCompile Include="MsgConf.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Squish.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="MsgArea.h" />
     <ClInclude Include="MsgConf.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="Squish.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />

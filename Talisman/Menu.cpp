@@ -7,6 +7,7 @@
 #include "Menu.h"
 #include "CallLog.h"
 #include "Door.h"
+#include "Settings.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -274,7 +275,11 @@ bool Menu::run() {
 					n->print_f("|14Press any key...|07");
 					n->getch();
 				}
+				else if (strcasecmp(items[i].command.c_str(), "settings") == 0) {
+					Settings::do_settings(n);
+				}
 			}
+
 		}
 	}
 }

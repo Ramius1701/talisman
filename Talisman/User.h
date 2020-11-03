@@ -9,6 +9,8 @@ class User
 public:
 	User();
 	void set_config(Config c);
+	bool update_password(std::string password);
+	bool check_password(std::string password);
 	bool load_user(std::string username, std::string password);
 	bool inst_user(std::string username, std::string password, std::string firstname, std::string lastname, std::string location, std::string email);
 	void set_attribute(std::string attrib, std::string value);
