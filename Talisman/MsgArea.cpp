@@ -601,6 +601,40 @@ void MsgArea::read_message(int start) {
 		std::stringstream ss;
 		std::vector<struct line_t> linesv;
 		ss.str("");
+		for (int i = 0; i < msg->ctrl_len; i++) {
+			if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
+				if (ss.str().size() > 79) {
+					int type = 2;
+					std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), 79);
+
+					for (size_t z = 0; z < newvec.size(); z++) {
+						struct line_t nline;
+						nline.line = newvec.at(z);
+						nline.type = type;
+						linesv.push_back(nline);
+					}
+				}
+				else if (ss.str().size() > 0) {
+					int type = 2;
+					struct line_t nline;
+					nline.line = "\x01" + ss.str();
+					nline.type = type;
+					linesv.push_back(nline);
+				}
+				ss.str("");
+			}
+			else if (msg->ctrl[i] != '\x01') {
+				ss << msg->ctrl[i];
+			}
+		}
+		if (ss.str().size() > 0) {
+			int type = 2;
+			struct line_t nline;
+			nline.line = "\x01" + ss.str();
+			nline.type = type;
+			linesv.push_back(nline);
+		}
+		ss.str("");
 		for (int i = 0; i < msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
 				if (ss.str().size() > 79) {
@@ -608,7 +642,7 @@ void MsgArea::read_message(int start) {
 					if (ss.str().find('>') < 5) {
 						type = 1;
 					}
-					else if (ss.str().at(0) == '\x01') {
+					else if (ss.str().at(0) == '\x01' || ss.str().find("SEEN-BY: ") == 0) {
 						type = 2;
 					}
 					
@@ -641,23 +675,55 @@ void MsgArea::read_message(int start) {
 			}
 		}
 		quotebuffer.clear();
+		ss.str("");
+
+		if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+			for (int i = 0; i < msg->ctrl_len; i++) {
+				if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
+					if (ss.str().size() > 79) {
+						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 79);
+
+						for (size_t z = 0; z < newvec.size(); z++) {
+							quotebuffer.push_back(" > " + newvec.at(z));
+						}
+					}
+					else {
+						quotebuffer.push_back(" > @" + ss.str());
+					}
+					ss.str("");
+				}
+				else if (msg->ctrl[i] != '\x01') {
+					ss << msg->ctrl[i];
+				}
+			}
+			if (ss.str().size() > 0) {
+				quotebuffer.push_back(" > @" + ss.str());
+			}
+		}
+		ss.str("");
 		for (int i = 0; i < msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
-				if (ss.str().size() > 75) {
-					std::vector<std::string> newvec = word_wrap(ss.str(), 75);
-
-					for (size_t z = 0; z < newvec.size(); z++) {
-						std::stringstream ss2;
-						ss2 << " > " << newvec.at(z);
-						quotebuffer.push_back(ss2.str());
-					}
+				
+				if (ss.str().size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (ss.str().at(0) == '\x01' || ss.str().find("SEEN-BY: ") == 0)) {
+					ss.str("");
 				}
 				else {
-					std::stringstream ss2;
-					ss2 << " > " << ss.str();
-					quotebuffer.push_back(ss2.str());
+					if (ss.str().size() > 75) {
+						std::vector<std::string> newvec = word_wrap(ss.str(), 75);
+
+						for (size_t z = 0; z < newvec.size(); z++) {
+							std::stringstream ss2;
+							ss2 << " > " << newvec.at(z);
+							quotebuffer.push_back(ss2.str());
+						}
+					}
+					else {
+						std::stringstream ss2;
+						ss2 << " > " << ss.str();
+						quotebuffer.push_back(ss2.str());
+					}
+					ss.str("");
 				}
-				ss.str("");
 			}
 			else {
 				ss << msg->msg[i];
@@ -682,13 +748,15 @@ void MsgArea::read_message(int start) {
 				lines++;
 			}
 			else if (linesv.at(lno).type == 2) {
-				if (linesv.at(lno).line[0] == '\x01') {
-					n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
+				if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+					if (linesv.at(lno).line[0] == '\x01') {
+						n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
+					}
+					else {
+						n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
+					}
+					lines++;
 				}
-				else {
-					n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
-				}
-				lines++;
 			}
 
 			if (lines == 23) {

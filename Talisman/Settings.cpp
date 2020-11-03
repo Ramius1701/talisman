@@ -12,6 +12,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15E |14Change your email |08(|15%s|08)\r\n", n->get_user().get_attribute("email", "").c_str());
 		n->print_f(" |15P |14Change your password |08(|15NOT SHOWN|08)\r\n");
 		n->print_f(" |15F |14Use full screen editor |08(|15%s|08)\r\n", yesnoask[stoi(n->get_user().get_attribute("fullscreeneditor", "0"))]);
+		n->print_f(" |15K |14Show Message Kludge Lines |08(|15%s|08)\r\n", (n->get_user().get_attribute("viewkludges", "false") == "false" ? "NO" : "YES"));
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
@@ -74,6 +75,12 @@ void Settings::do_settings(Node* n) {
 				if (cur == 3) cur = 0;
 				n->get_user().set_attribute("fullscreeneditor", std::to_string(cur));
 
+			}
+				break;
+			case 'k':
+			{
+				bool viewkludges = n->get_user().get_attribute("viewkludges", "false") == "false";
+				n->get_user().set_attribute("viewkludges", (viewkludges ? "true" : "false"));
 			}
 				break;
 			case 'q':
