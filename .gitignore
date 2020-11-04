@@ -18,3 +18,6 @@
 /Talisman/data/call_log.sqlite3
 /Talisman/logs
 /Talisman/data/email.sqlite3
+/Toolbelt/Debug
+/Toolbelt/Toolbelt.vcxproj.filters
+/Toolbelt/Toolbelt.vcxproj.user

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Talisman", "Talisman\Talism
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Servo", "Servo\Servo.vcxproj", "{07FF0024-1841-4225-824C-D38A846C0197}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Toolbelt", "Toolbelt\Toolbelt.vcxproj", "{5B76A24D-744A-492B-91E3-75E7F355C1A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{07FF0024-1841-4225-824C-D38A846C0197}.Release|x64.Build.0 = Release|x64
 		{07FF0024-1841-4225-824C-D38A846C0197}.Release|x86.ActiveCfg = Release|Win32
 		{07FF0024-1841-4225-824C-D38A846C0197}.Release|x86.Build.0 = Release|Win32
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Debug|x64.ActiveCfg = Debug|x64
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Debug|x64.Build.0 = Debug|x64
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Debug|x86.ActiveCfg = Debug|Win32
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Debug|x86.Build.0 = Debug|Win32
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Release|x64.ActiveCfg = Release|x64
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Release|x64.Build.0 = Release|x64
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Release|x86.ActiveCfg = Release|Win32
+		{5B76A24D-744A-492B-91E3-75E7F355C1A8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
