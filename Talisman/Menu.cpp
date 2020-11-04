@@ -334,6 +334,10 @@ bool Menu::run() {
 						}
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "listusers") == 0) {
+					n->cls();
+					User::user_list(n);
+				}
 			}
 		}
 	}

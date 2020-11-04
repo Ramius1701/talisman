@@ -28,6 +28,10 @@ command = "FEEDBACK"
 hotkey = "F"
 
 [[menuitem]]
+command = "LISTUSERS"
+hotkey = "L"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

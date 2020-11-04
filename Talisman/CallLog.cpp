@@ -199,6 +199,30 @@ void CallLog::post_msg() {
 	sqlite3_close(db);
 }
 
+time_t CallLog::last_call(std::string username) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	time_t ret = 0;
+	const char* sql = "SELECT timeon FROM calllog WHERE username = ? ORDER BY timeon DESC LIMIT 1";
+	if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
+		return 0;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return 0;
+	}
+
+	sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		ret = sqlite3_column_int64(stmt, 0);
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
+}
+
 int CallLog::total_calls(std::string username) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;

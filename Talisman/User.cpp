@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cstring>
 #include <iomanip>
+#include <ctime>
 #include <sqlite3.h>
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -10,7 +11,8 @@
 #endif
 #include <openssl/evp.h>
 #include "User.h"
-
+#include "Node.h"
+#include "CallLog.h"
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
@@ -97,6 +99,10 @@ int User::get_sec_level() {
 }
 
 std::string User::get_attribute(std::string attrib, std::string def) {
+	return User::get_attribute_s(&c, uid, attrib, def);
+}
+
+std::string User::get_attribute_s(Config *c, int id, std::string attrib, std::string def) {
 	sqlite3* db;
 	sqlite3_stmt* res;
 	std::string ret;
@@ -104,7 +110,7 @@ std::string User::get_attribute(std::string attrib, std::string def) {
 	int rc = 0;
 	static const char* sql = "SELECT value FROM details WHERE uid = ? and attrib = ?";
 
-	if(!open_database(c.data_path() + "/users.sqlite3", &db)) {
+	if(!open_database(c->data_path() + "/users.sqlite3", &db)) {
 		return def;
 	}
 	rc = sqlite3_prepare_v2(db, sql, strlen(sql), &res, 0);
@@ -112,7 +118,7 @@ std::string User::get_attribute(std::string attrib, std::string def) {
 		sqlite3_close(db);
 		return def;
 	}
-	sqlite3_bind_int(res, 1, uid);
+	sqlite3_bind_int(res, 1, id);
 	sqlite3_bind_text(res, 2, attrib.c_str(), -1, 0);
 	rc = sqlite3_step(res);
 	if (rc == SQLITE_ROW) {
@@ -568,4 +574,62 @@ std::string User::user_exists(Config *c, std::string usern) {
 		sqlite3_close(db);
 		return "";
 	}
+}
+
+void User::user_list(Node* n) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	int lines = 0;
+	static const char* sql = "SELECT id, username FROM users";
+
+	if (!open_database(n->get_config()->data_path() + "/users.sqlite3", &db)) {
+		return;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return;
+	}
+	n->print_f("|14Username         Location                         Calls  Last Call\r\n");
+	lines++;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		std::string username = std::string((const char *)sqlite3_column_text(stmt, 1));
+		int uid = sqlite3_column_int(stmt, 0);
+		int total_calls = n->clog->total_calls(username);
+		std::string location = get_attribute_s(n->get_config(), uid, "location", "Somewhere, The World");
+		time_t lastcall = n->clog->last_call(username);
+		struct tm thetm;
+		time_t now = time(NULL);
+		struct tm nowtm;
+
+#ifdef _MSC_VER
+		localtime_s(&thetm, &lastcall);
+		localtime_s(&nowtm, &now);
+#else
+		localtime_r(&lastcall, &thetm);
+		localtime_r(&now, &nowtm);
+#endif
+		if (thetm.tm_year == nowtm.tm_year && thetm.tm_yday == nowtm.tm_yday) {
+			n->print_f("|15%-16.16s |13%-32.32s |11%6d |10Today\r\n", username.c_str(), location.c_str(), total_calls);
+		}
+		else if (thetm.tm_year == nowtm.tm_year && thetm.tm_yday == nowtm.tm_yday - 1) {
+			n->print_f("|15%-16.16s |13%-32.32s |11%6d |10Yesterday\r\n", username.c_str(), location.c_str(), total_calls);
+		}
+		else {
+			n->print_f("|15%-16.16s |13%-32.32s |11%6d |10%04d/%02d/%02d\r\n", username.c_str(), location.c_str(), total_calls, thetm.tm_year + 1900, thetm.tm_mon + 1, thetm.tm_mday);
+		}
+		lines++;
+		if (lines == 23) {
+			n->print_f("|14Continue? (Y/N) : ");
+			if (tolower(n->getche()) == 'n') {
+				break;
+			}
+			n->cls();
+			n->print_f("|14Username         Location                         Calls  Last Call\r\n");
+			lines = 1;
+		}
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	n->print_f("|14Press any key...|07");
+	n->getch();
 }
