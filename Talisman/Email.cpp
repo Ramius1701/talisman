@@ -229,7 +229,7 @@ int Email::view_email(Node* n, Email e) {
 #ifdef _MSC_VER
 	localtime_s(&time_tm, &e.date);
 #else
-	localtime_r(&emails.at(i).date, &time_tm);
+	localtime_r(&e.date, &time_tm);
 #endif
 
 	n->cls();
