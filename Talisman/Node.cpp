@@ -26,6 +26,7 @@
 #include "Menu.h"
 #include "CallLog.h"
 #include "Logger.h"
+#include "Email.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -856,17 +857,40 @@ int Node::run() {
 	print_f("|14Press any key...|07");
 	getch();
 
+
+	cls();
+	int email_tot = Email::count_email(this);
+	int email_unr = Email::unread_email(this);
+	if (email_tot > 0) {
+		if (email_unr > 0) {
+			print_f("|14You have %d new, and %d old private email(s).\r\n", email_unr, email_tot);
+			print_f("|14Read them now? (Y/N) : ");
+			if (tolower(getche()) == 'y') {
+				Email::list_email(this);
+				cls();
+			}
+			else {
+				print_f("\r\n\r\n\r\n");
+			}
+		}
+		else {
+			print_f("|14You have %d old private email(s).\r\n\r\n", email_tot);
+		}
+	}
+	else {
+		print_f("|14You have no private email.\r\n\r\n");
+	}
+	print_f("|14Scan for new messages? (Y/N) : |07");
+	if (tolower(getche()) != 'n') {
+		MsgConf::scan(this);
+	}
+
 	cls();
 	CallLog::last10_callers(this);
 
 	print_f("|14Press any key...|07");
 	getch();
 
-	cls();
-	print_f("|14Scan for new messages? (Y/N) : |07");
-	if (tolower(getche()) != 'n') {
-		MsgConf::scan(this);
-	}
 
 	Menu m(this);
 

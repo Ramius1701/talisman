@@ -12,6 +12,8 @@ public:
 	bool seen;
 	time_t date;
 	int id;
+	static int count_email(Node* n);
+	static int unread_email(Node* n);
 	static int view_email(Node* n, Email e);
 	static void list_email(Node* n);
 	static bool save_message(Node* n, std::string to, std::string from, std::string subject, std::vector< std::string> msg);

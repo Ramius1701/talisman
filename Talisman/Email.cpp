@@ -30,6 +30,66 @@ bool Email::open_database(std::string filename, sqlite3** db) {
 	return true;
 }
 
+int Email::unread_email(Node* n) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	static const char sql[] = "SELECT COUNT(*) FROM email WHERE recipient=? AND seen=\"0\"";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return 0;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to prepare save_message (email) sql");
+		sqlite3_close(db);
+		return 0;
+	}
+	std::string uname = n->get_user().get_username();
+
+	sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		int result = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return result;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return 0;
+}
+
+int Email::count_email(Node* n) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	static const char sql[] = "SELECT COUNT(*) FROM email WHERE recipient=?";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return 0;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to prepare save_message (email) sql");
+		sqlite3_close(db);
+		return 0;
+	}
+	std::string uname = n->get_user().get_username();
+
+	sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		int result = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return result;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return 0;
+}
+
 bool Email::save_message(Node *n, std::string to, std::string from, std::string subject, std::vector<std::string> msg)
 {
 	sqlite3* db;
