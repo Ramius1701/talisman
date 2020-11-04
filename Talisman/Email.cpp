@@ -1,6 +1,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 #include <sqlite3.h>
 #include "Node.h"
 #include "Logger.h"

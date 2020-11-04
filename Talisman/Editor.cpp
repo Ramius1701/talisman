@@ -8,6 +8,7 @@
 
 std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::string subject, bool priv, std::vector<std::string>* quotebuffer)
 {
+	std::vector<std::string> msg;
 	if (quotebuffer != nullptr) {
 		FILE* q_fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP").c_str(), "wb");
 		if (q_fptr) {
@@ -43,7 +44,7 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 #endif
 		Door::createDropfiles(n);
 		Door::runExternal(n, n->get_config()->external_editor(), args, false);
-		std::vector<std::string> msg;
+		
 		std::string line;
 		std::ifstream infile(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP"));
 		while (std::getline(infile, line))
@@ -60,8 +61,8 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 		if (msg.size() > 0) {
 			return msg;
 		}
-
 	}
+	return msg;
 }
 std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::string subject, bool priv, std::vector<std::string>* quotebuffer) {
 	int fse = stoi(n->get_user().get_attribute("fullscreeneditor", "0"));
@@ -93,7 +94,7 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 	std::vector<std::string> lines;
 	bool done = false;
 	std::string cur_line;
-
+	std::vector<std::string> msg;
 	n->print_f("\r\n|08---------------------------------------------------------------------");
 	n->print_f("\r\n|14 Commands on a new line: /? for HELP /S to SAVE, /A to ABORT");
 	n->print_f("\r\n|08---------------------------------------------------------------------");
@@ -177,4 +178,5 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 			lines.push_back(cur_line);
 		}
 	}
+	return msg;
 }
