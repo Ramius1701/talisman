@@ -21,7 +21,7 @@ bool CallLog::open_database(std::string filename, sqlite3** db) {
 	char* err_msg = NULL;
 
 	if (sqlite3_open(filename.c_str(), db) != SQLITE_OK) {
-		std::cerr << "Unable to open database: call_log.db" << std::endl;
+		std::cerr << "Unable to open database: " << filename << std::endl;
 		return false;
 	}
 	sqlite3_busy_timeout(*db, 5000);

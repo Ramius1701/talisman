@@ -24,6 +24,10 @@ command = "SETTINGS"
 hotkey = "S"
 
 [[menuitem]]
+command = "FEEDBACK"
+hotkey = "F"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

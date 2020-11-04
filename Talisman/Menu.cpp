@@ -9,6 +9,8 @@
 #include "Door.h"
 #include "Settings.h"
 #include "Logger.h"
+#include "Editor.h"
+#include "Email.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -21,7 +23,7 @@ bool Menu::load(std::string filename)
 	try {
 		auto data = toml::parse_file(filename);
 
-		n->log->log(1, "%s loading menu %s on node %d", n->get_user().get_username().c_str(), filename.c_str(), n->getnodenum());
+		n->log->log(LOG_INFO, "%s loading menu %s on node %d", n->get_user().get_username().c_str(), filename.c_str(), n->getnodenum());
 
 		auto _gfile = data["menu"]["gfile"].as_string();
 
@@ -131,7 +133,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listconfs") == 0) {
-					n->log->log(1, "%s listing conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s listing conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
 					for (size_t mc = 0; mc < n->get_config()->msgconfs.size();mc++) {
@@ -151,7 +153,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listareas") == 0) {
-					n->log->log(1, "%s listing areas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s listing areas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07");
@@ -168,7 +170,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listmsgs") == 0) {
-					n->log->log(1, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n\r\n");
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
@@ -215,7 +217,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
-					n->log->log(1, "%s listing posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s listing posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07\r\n");
@@ -250,26 +252,29 @@ bool Menu::run() {
 									n->print_f("\r\n|14Aborted!\r\n");
 								}
 								else {
-									n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).enter_message(to, subject, netaddr, 0, nullptr);
+									std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail(), nullptr);
+									if (nmsg.size() > 0) {
+										n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, subject, nmsg, netaddr, 0);
+									}
 								}
 							}
 						}
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "mailscan") == 0) {
-					n->log->log(1, "%s running mailscan on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s running mailscan on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					MsgConf::scan(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "last10") == 0) {
-					n->log->log(1, "%s listing last 10 callers on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s listing last 10 callers on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					CallLog::last10_callers(n);
 					n->print_f("|14Press any key...|07");
 					n->getch();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "rundoor") == 0) {
-					n->log->log(1, "%s running door %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s running door %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
 					std::vector<std::string> arguments;
 					arguments.push_back(std::to_string(n->getnodenum()));
 #ifdef _MSC_VER
@@ -280,14 +285,54 @@ bool Menu::run() {
 					n->clog->ran_door();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
-					n->log->log(1, "%s looking at system info on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s looking at system info on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->system_info();
 					n->print_f("|14Press any key...|07");
 					n->getch();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "settings") == 0) {
-					n->log->log(1, "%s modifying settings on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s modifying settings on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					Settings::do_settings(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "postemail") == 0) {
+					n->log->log(LOG_INFO, "%s posting an email on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->print_f("\r\n     To: ");
+					std::string to = n->get_string(30, false);
+
+					to = User::user_exists(n->get_config(), to);
+
+					if (to.size() == 0) {
+						n->print_f("|12No such user!|07\r\n");
+					}
+					else {
+						n->print_f("\r\n|14Sending mail to |15%s\r\n", to.c_str());
+						n->print_f("\r\nSubject: ");
+						std::string subject = n->get_string(60, false);
+
+						std::vector<std::string> newemail = Editor::enter_message(n, to, subject, true, nullptr);
+						if (newemail.size() > 0) {
+							Email::save_message(n, to, n->get_user().get_username(), subject, newemail);
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "listemail") == 0) {
+					n->log->log(LOG_INFO, "%s listing email on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					Email::list_email(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "feedback") == 0) {
+					n->log->log(LOG_INFO, "%s sending feedback on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					std::string to = User::user_exists(n->get_config(), n->get_config()->op_name());
+
+					if (to.size() == 0) {
+						n->print_f("|12No such user!|07\r\n");
+					}
+					else {
+						n->print_f("\r\n|14Sending mail to |15%s\r\n", to.c_str());
+						std::vector<std::string> newemail = Editor::enter_message(n, to, "Feedback", true, nullptr);
+						if (newemail.size() > 0) {
+							Email::save_message(n, to, n->get_user().get_username(), "Feedback", newemail);
+						}
+					}
 				}
 			}
 		}

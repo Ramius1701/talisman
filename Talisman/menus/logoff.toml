@@ -8,3 +8,7 @@ hotkey = "Y"
 [[menuitem]]
 command = "PREVMENU"
 hotkey = "N"
+
+[[menuitem]]
+command = "FEEDBACK"
+hotkey = "F"

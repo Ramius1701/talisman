@@ -514,3 +514,58 @@ bool User::username_allowed(Config config, std::string username) {
 	sqlite3_close(db);
 	return ret;
 }
+
+std::string User::user_exists(Config *c, std::string usern) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	static const char* sql = "SELECT username FROM users WHERE username = ?";
+	static const char* sql2 = "SELECT uid FROM details WHERE attrib = \"fullname\" AND value=?";
+	static const char* sql3 = "SELECT username FROM users WHERE id = ?";
+
+	if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
+		return "";
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return "";
+	}
+	sqlite3_bind_text(stmt, 1, usern.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return usern;
+	}
+	
+	if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return "";
+	}
+
+	sqlite3_bind_text(stmt, 1, usern.c_str(), -1, NULL);
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		int id = sqlite3_column_int(stmt, 0);
+		sqlite3_finalize(stmt);
+		if (sqlite3_prepare_v2(db, sql3, strlen(sql3), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return "";
+		}
+		sqlite3_bind_int(stmt, 1, id);
+		if (sqlite3_step(stmt) == SQLITE_ROW) {
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			std::string ret = std::string((const char*)sqlite3_column_text(stmt, 0));
+			return ret;
+		}
+		else {
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			return "";
+		}
+	}
+	else {
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return "";
+	}
+}

@@ -14,6 +14,8 @@
 #include "Node.h"
 #include "CallLog.h"
 #include "Door.h"
+#include "Editor.h"
+
 MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline)
 {
 	this->name = name;
@@ -67,188 +69,6 @@ std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
 		strvec.push_back(str.substr(line_start));
 	}
 	return strvec;
-}
-
-void MsgArea::enter_message_ex(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer)
-{
-	if (quotebuffer != nullptr) {
-		FILE* q_fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP").c_str(), "wb");
-		if (q_fptr) {
-			for (size_t i = 0; i < quotebuffer->size(); i++) {
-				fprintf(q_fptr, "%s\r\n", quotebuffer->at(i).c_str());
-			}
-			
-			fclose(q_fptr);
-		}
-	}
-
-	FILE *fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGINF").c_str(), "wb");
-	if (fptr) {
-		fprintf(fptr, "%s\r\n", n->get_user().get_username().c_str());
-		fprintf(fptr, "%s\r\n", to.c_str());
-		fprintf(fptr, "%s\r\n", subject.c_str());
-		fprintf(fptr, "0\r\n");
-		fprintf(fptr, "%s\r\n", name.c_str());
-		if (_is_netmail) {
-			fprintf(fptr, "YES\r\n");
-		}
-		else {
-			fprintf(fptr, "NO\r\n");
-		}
-
-		fclose(fptr);
-
-		std::vector<std::string> args;
-
-		args.push_back(std::to_string(n->getnodenum()));
-#ifdef _MSC_VER
-		args.push_back(std::to_string(n->get_socket()));
-#endif
-		Door::createDropfiles(n);
-		Door::runExternal(n, n->get_config()->external_editor(), args, false);
-		std::vector<std::string> msg;
-		std::string line;
-		std::ifstream infile(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP"));
-		while (std::getline(infile, line))
-		{
-			std::istringstream iss(line);
-			
-			if (line.at(line.size() - 1) == '\r') {
-				line = line.substr(0, line.size() - 1);
-			}
-
-			msg.push_back(line);
-		}
-		infile.close();
-		if (msg.size() > 0) {
-			save_message(to, subject, msg, netaddr, inreplyto);
-		}
-
-	}
-}
-
-void MsgArea::enter_message(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string>* quotebuffer) {
-	int fse = stoi(n->get_user().get_attribute("fullscreeneditor", "0"));
-	
-	if (fse == 0) {
-		if (n->get_config()->external_editor() != "" && n->hasANSI) {
-			n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
-			if (tolower(n->getch()) == 'n') {
-				enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
-			}
-			else {
-				enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
-			}
-		}
-		else {
-			enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
-		}
-	}
-	else if (fse == 1 && n->get_config()->external_editor() != "" && n->hasANSI) {
-		enter_message_ex(to, subject, netaddr, inreplyto, quotebuffer);
-	}
-	else {
-		enter_message_in(to, subject, netaddr, inreplyto, quotebuffer);
-	}
-}
-
-void MsgArea::enter_message_in(std::string to, std::string subject, std::string netaddr, unsigned int inreplyto, std::vector<std::string> *quotebuffer)
-{
-	std::vector<std::string> lines;
-	bool done = false;
-	std::string cur_line;
-
-	n->print_f("\r\n|08---------------------------------------------------------------------");
-	n->print_f("\r\n|14 Commands on a new line: /? for HELP /S to SAVE, /A to ABORT");
-	n->print_f("\r\n|08---------------------------------------------------------------------");
-	while (!done) {
-		n->print_f("\r\n|08[|15%.4d|08]: |07", lines.size());
-		cur_line = n->get_string(70, false, true);
-		if (cur_line == "/S" || cur_line == "/s") {
-			if (lines.size() > 0) {
-				// save message
-				if (!save_message(to, subject, lines, netaddr, inreplyto)) {
-					n->print_f("\r\n|14Failed to save message!!|07\r\n");
-				}
-				return;
-			}
-			else {
-				return;
-			}
-		}
-		else if (cur_line == "/A" || cur_line == "/a") {
-			return;
-		}
-		else if ((cur_line == "/Q" || cur_line == "/q") && quotebuffer != nullptr) {
-			n->print_f("\r\n\r\n");
-			int qlinec = 0;
-			for (int i = 0; i < quotebuffer->size(); i++) {
-				n->print_f("[%.4d]: %s\r\n", i, quotebuffer->at(i).c_str());
-				qlinec++;
-				if (qlinec == 23) {
-					n->print_f("|14Continue (Y/N) : |07");
-					if (tolower(n->getche()) == 'n') {
-						break;
-					}
-					qlinec = 0;
-				}
-			}
-
-			try {
-				n->print_f("\r\n|15Quote From Line: |07");
-				int qfrom = std::stoi(n->get_string(5, false));
-				n->print_f("\r\n  |15Quote To Line: |07");
-				int qto = std::stoi(n->get_string(5, false));
-				if (!(qfrom > qto || qfrom < 0 || qto >= quotebuffer->size())) {
-					for (int i = qfrom; i <= qto; i++) {
-						lines.push_back(quotebuffer->at(i));
-					}
-				}
-			}
-			catch (std::out_of_range&) {
-				n->print_f("\r\n|14Value out of range!|07\r\n");
-			}
-			catch (std::invalid_argument&) {
-				n->print_f("\r\n|14Invalid Argument!|07\r\n");
-			}
-		}
-		else if ((cur_line == "/D" || cur_line == "/d") && lines.size() > 0) {
-			try {
-				n->print_f("\r\n|14Delete From Line: |07");
-				int dfrom = std::stoi(n->get_string(5, false));
-				n->print_f("\r\n  |14Delete To Line: |07");
-				int dto = std::stoi(n->get_string(5, false));
-				if (!(dfrom > dto || dfrom < 0 || dto >= lines.size())) {
-					for (int i = dto; i >= dfrom; i--) {
-						lines.erase(lines.begin() + i);
-					}
-				}
-			}
-			catch (std::out_of_range&) {
-				n->print_f("\r\n|14Value out of range!|07\r\n");
-			}
-			catch (std::invalid_argument&) {
-				n->print_f("\r\n|14Invalid Argument!|07\r\n");
-			}
-		}
-		else if (cur_line == "/L" || cur_line == "/l") {
-			for (int i = 0; i < lines.size(); i++) {
-				n->print_f("\r\n|08[|14%.4d|08]: |07%s", i, lines.at(i).c_str());
-			}
-			n->print_f("\r\n");
-		}
-		else if (cur_line == "/?") {
-			n->print_f("\r\n|12>>>> |15HELP |12<<<<|07\r\n");
-			n->print_f("/S Save Message\r\n");
-			n->print_f("/A Abort Message\r\n");
-			n->print_f("/Q Quote Message\r\n");
-			n->print_f("/L List Message\r\n");
-			n->print_f("/D Delete Lines\r\n\00170");
-		}
-		else {
-			lines.push_back(cur_line);
-		}
-	}
 }
 
 bool MsgArea::save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to)
@@ -381,7 +201,6 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	if (orig_addr != "") {
 		NETADDR* orig = parse_fido_addr(orig_addr.c_str());
 		if (orig != NULL) {
-			fprintf(stderr, "%d:%d/%d.%d from %s\n", orig->zone, orig->net, orig->node, orig->point, orig_addr.c_str());
 			newmsg.xmsg.orig.zone = orig->zone;
 			newmsg.xmsg.orig.net = orig->net;
 			newmsg.xmsg.orig.node = orig->node;
@@ -389,7 +208,6 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 			free(orig);
 		}
 		else {
-			fprintf(stderr, "Failed to parse \"%s\"\r\n", orig_addr.c_str());
 			newmsg.xmsg.orig.zone = 0;
 			newmsg.xmsg.orig.net = 0;
 			newmsg.xmsg.orig.node = 0;
@@ -397,7 +215,6 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 		}
 	}
 	else {
-		fprintf(stderr, "Orig_addr =  \"%s\"\r\n", orig_addr.c_str());
 		newmsg.xmsg.orig.zone = 0;
 		newmsg.xmsg.orig.net = 0;
 		newmsg.xmsg.orig.node = 0;
@@ -784,10 +601,16 @@ void MsgArea::read_message(int start) {
 
 					netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
 
-					enter_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), netaddr.str(), msg->xmsg.umsgid, &quotebuffer);
+					std::vector<std::string> nmsg = Editor::enter_message(n, std::string(msg->xmsg.from), std::string(msg->xmsg.subject), true, &quotebuffer);
+					if (nmsg.size() > 0) {
+						save_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), nmsg, netaddr.str(), msg->xmsg.umsgid);
+					}
 				}
 				else {
-					enter_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), "", msg->xmsg.umsgid, &quotebuffer);
+					std::vector<std::string> nmsg = Editor::enter_message(n, std::string(msg->xmsg.from), std::string(msg->xmsg.subject), false, &quotebuffer);
+					if (nmsg.size() > 0) {
+						save_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), nmsg, "", msg->xmsg.umsgid);
+					}
 				}
 				break;
 			case 'n':

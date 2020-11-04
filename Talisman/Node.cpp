@@ -696,7 +696,7 @@ int Node::run() {
 		print_f("LOGIN: ");
 		std::string login = get_string(16, false);
 		if (strcasecmp(login.c_str(), "NEW") == 0) {
-			log->log(1, "New user signing up on node %d", node);
+			log->log(LOG_INFO, "New user signing up on node %d", node);
 			cls();
 			send_gfile("newuser");
 			print_f("|14Create a new account? (Y/N): |07");
@@ -791,7 +791,7 @@ int Node::run() {
 				logged_in = true;
 			}
 			else {
-				log->log(1, "%s failed to login on node %d (wrong password)", login.c_str(), node);
+				log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", login.c_str(), node);
 				tries++;
 			}
 		}
@@ -800,7 +800,7 @@ int Node::run() {
 		}
 	}
 
-	log->log(1, "%s logged in on node %d", u.get_username().c_str(), node);
+	log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
 
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
@@ -875,7 +875,7 @@ int Node::run() {
 
 	cls();
 	send_gfile("goodbye");
-	log->log(1, "Node %d logged off (graceful)", node);
+	log->log(LOG_INFO, "Node %d logged off (graceful)", node);
 	clog->log_off();
 	return 0;
 }
@@ -884,6 +884,6 @@ void Node::disconnected() {
 	if (clog != nullptr) {
 		clog->log_off();
 	}
-	log->log(1, "Node %d logged off (disconnected)", node);
+	log->log(LOG_INFO, "Node %d logged off (disconnected)", node);
  	exit(-1);
 }

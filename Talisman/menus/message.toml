@@ -22,6 +22,14 @@ command = "MAILSCAN"
 hotkey = "N"
 
 [[menuitem]]
+command = "LISTEMAIL"
+hotkey = "M"
+
+[[menuitem]]
+command = "POSTEMAIL"
+hotkey = "E"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 
