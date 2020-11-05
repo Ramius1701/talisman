@@ -11,5 +11,6 @@ public:
 	static void set_attribute(std::string datapath, std::string username, std::string attrib, std::string value);
 private:
 	static bool open_database(std::string filename, sqlite3** db);
+	static int get_uid(std::string datapath, std::string username);
 };
 

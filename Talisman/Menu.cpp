@@ -161,11 +161,13 @@ bool Menu::run() {
 						int newarea = n->get_config()->msgconfs.at(msgconf).list_areas(n, n->get_user().get_sec_level());
 						int count = 1;
 						for (size_t ma = 0; ma < n->get_config()->msgconfs.at(msgconf).areas.size(); ma++) {
-							if (count == newarea) {
-								n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
-								break;
+							if (n->get_config()->msgconfs.at(msgconf).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+								if (count == newarea) {
+									n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
+									break;
+								}
+								count++;
 							}
-							count++;
 						}
 					}
 				}

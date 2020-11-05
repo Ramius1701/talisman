@@ -96,13 +96,39 @@ bool User::update_password(std::string datapath, std::string username, std::stri
 	return true;
 }
 
+int User::get_uid(std::string datapath, std::string username) {
+	sqlite3* db;
+	sqlite3_stmt* res;
+	int uid = -1;
+	static const char* sql = "SELECT id FROM users WHERE username = ?";
+	if (!open_database(datapath + "/users.sqlite3", &db)) {
+		return -1;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &res, 0) != SQLITE_OK) {
+		sqlite3_close(db);
+		return -1;
+	}
+
+	sqlite3_bind_text(res, 1, username.c_str(), -1, NULL);
+
+	if (sqlite3_step(res) == SQLITE_ROW) {
+		uid = sqlite3_column_int(res, 0);
+	}
+	sqlite3_finalize(res);
+	sqlite3_close(db);
+	return uid;
+}
+
 void User::set_attribute(std::string datapath, std::string username, std::string attrib, std::string value) {
 	sqlite3* db;
 	sqlite3_stmt* res;
 	int rc = 0;
-	static const char* chk_sql = "SELECT value FROM details WHERE attrib = ? and username = ?";
-	static const char* ins_sql = "INSERT INTO details (username, attrib, value) VALUES(?, ?, ?)";
-	static const char* upd_sql = "UPDATE details SET value = ? WHERE username = ? and attrib = ?";
+	static const char* chk_sql = "SELECT value FROM details WHERE attrib = ? and uid = ?";
+	static const char* ins_sql = "INSERT INTO details (uid, attrib, value) VALUES(?, ?, ?)";
+	static const char* upd_sql = "UPDATE details SET value = ? WHERE uid = ? and attrib = ?";
+	int uid = get_uid(datapath, username);
+
+	if (uid == -1) return;
 
 	//assert(uid != -1);
 
@@ -116,7 +142,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 		return;
 	}
 	sqlite3_bind_text(res, 1, attrib.c_str(), -1, 0);
-	sqlite3_bind_text(res, 2, username.c_str(), -1, 0);
+	sqlite3_bind_int(res, 2, uid);
 	if (sqlite3_step(res) != SQLITE_ROW) {
 		sqlite3_finalize(res);
 		rc = sqlite3_prepare_v2(db, ins_sql, strlen(ins_sql), &res, 0);
@@ -124,7 +150,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 			sqlite3_close(db);
 			return;
 		}
-		sqlite3_bind_text(res, 1, username.c_str(), -1, 0);
+		sqlite3_bind_int(res, 1, uid);
 		sqlite3_bind_text(res, 2, attrib.c_str(), -1, 0);
 		sqlite3_bind_text(res, 3, value.c_str(), -1, 0);
 		if (sqlite3_step(res) != SQLITE_DONE) {
@@ -141,7 +167,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 			return;
 		}
 		sqlite3_bind_text(res, 1, value.c_str(), -1, 0);
-		sqlite3_bind_text(res, 2, username.c_str(), -1, 0);
+		sqlite3_bind_int(res, 2, uid);
 		sqlite3_bind_text(res, 3, attrib.c_str(), -1, 0);
 		if (sqlite3_step(res) != SQLITE_DONE) {
 			sqlite3_finalize(res);
