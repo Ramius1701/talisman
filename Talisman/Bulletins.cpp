@@ -53,13 +53,25 @@ void Bulletins::display(Node* n) {
 			if (found) {
 				total++;
 				time_t t = s.st_mtime;
+				time_t now = time(NULL);
+				struct tm nowtm;
 
 #ifdef _MSC_VER
 				localtime_s(&ftm, &t);
+				localtime_s(&nowtm, &now);
 #else
 				localtime_r(&t, &ftm);
+				localtime_r(&now, &nowtm);
 #endif
-				n->print_f(" |15%*s |14%-48.48s |08Updated: |10%04d-%02d-%02d %02d:%02d\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str(), ftm.tm_year + 1900, ftm.tm_mon + 1, ftm.tm_mday, ftm.tm_hour, ftm.tm_min);
+				if (ftm.tm_year == nowtm.tm_year && ftm.tm_yday == nowtm.tm_yday) {
+					n->print_f(" |15%*s |14%-48.48s |08Updated: |10Today\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str());
+				}
+				else if (ftm.tm_year == nowtm.tm_year && ftm.tm_yday == nowtm.tm_yday - 1) {
+					n->print_f(" |15%*s |14%-48.48s |08Updated: |10Yesterday\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str());
+				}
+				else {
+					n->print_f(" |15%*s |14%-48.48s |08Updated: |10%04d-%02d-%02d %02d:%02d\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str(), ftm.tm_year + 1900, ftm.tm_mon + 1, ftm.tm_mday, ftm.tm_hour, ftm.tm_min);
+				}
 				ss << "|15" << bullets.at(i).hotkey;
 
 				if (i < bullets.size() - 1) {
