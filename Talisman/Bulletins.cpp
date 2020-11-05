@@ -33,7 +33,7 @@ void Bulletins::display(Node* n) {
 		n->cls();
 		n->send_gfile("bulletins");
 		ss.str("");
-		ss << "|14View Bulletin |08[";
+		ss << "\r\n|14View Bulletin |08[";
 
 		for (size_t i = 0; i < bullets.size(); i++) {
 			found = false;
@@ -59,7 +59,7 @@ void Bulletins::display(Node* n) {
 #else
 				localtime_r(&t, &ftm);
 #endif
-				n->print_f(" |15%*s |14%-32.32s |08Updated: |10%04d-%02d-%02d %02d:%02d\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str(), ftm.tm_year + 1900, ftm.tm_mon + 1, ftm.tm_mday, ftm.tm_hour, ftm.tm_min);
+				n->print_f(" |15%*s |14%-48.48s |08Updated: |10%04d-%02d-%02d %02d:%02d\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str(), ftm.tm_year + 1900, ftm.tm_mon + 1, ftm.tm_mday, ftm.tm_hour, ftm.tm_min);
 				ss << "|15" << bullets.at(i).hotkey;
 
 				if (i < bullets.size() - 1) {
@@ -72,7 +72,7 @@ void Bulletins::display(Node* n) {
 			return;
 		}
 
-		ss << "|08] : |07";
+		ss << "|08] |15ENTER|08=|14Quit: |07";
 
 		n->print_f("%s", ss.str().c_str());
 		std::string cmd = n->get_string(hotkeylen, false);
