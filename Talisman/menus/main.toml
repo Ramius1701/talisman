@@ -32,6 +32,10 @@ command = "LISTUSERS"
 hotkey = "L"
 
 [[menuitem]]
+command = "BULLETINS"
+hotkey = "B"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

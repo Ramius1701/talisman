@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bulletins.cpp" />
     <ClCompile Include="CallLog.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Door.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bulletins.h" />
     <ClInclude Include="CallLog.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Door.h" />

@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "User.h"
 
+class Bulletins;
 class Logger;
 class CallLog;
 
@@ -20,7 +21,7 @@ public:
 	int run();
 	bool detectANSI();
 	void disconnected();
-	
+	void send_gfile(std::string filename, bool pause);
 	void send_gfile(std::string filename);
 	void cls();
 	std::string get_string(int maxlen, bool masked);
@@ -48,6 +49,7 @@ public:
 	std::string operating_system();
 	bool hasANSI;
 	CallLog *clog;
+	Bulletins* bulletins;
 	bool stop_timeout;
 	Logger* log;
 private:
@@ -58,7 +60,7 @@ private:
 	Config config;
 	User u;
 	void send_str(const char* str);
-	void send_file(std::filesystem::path p);
+	void send_file(std::filesystem::path p, bool pause);
 	
 	time_t last_time_check;
 	bool time_check();
@@ -67,5 +69,6 @@ private:
 	int timeout;
 
 	int timeoutmax;
+
 };
 

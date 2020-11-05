@@ -27,6 +27,7 @@
 #include "CallLog.h"
 #include "Logger.h"
 #include "Email.h"
+#include "Bulletins.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -53,6 +54,7 @@ Node::Node(int node, int socket, bool telnet) {
 	this->telnet = telnet;
 	hasANSI = false;
 	clog = nullptr;
+	bulletins = nullptr;
 	timeout = 0;
 	stop_timeout = false;
 	last_time_check = 0;
@@ -63,6 +65,9 @@ Node::Node(int node, int socket, bool telnet) {
 Node::~Node() {
 	if (clog != nullptr) {
 		delete clog;
+	}
+	if (bulletins != nullptr) {
+		delete bulletins;
 	}
 }
 
@@ -129,14 +134,16 @@ bool Node::detectANSI() {
 }
 
 
-void Node::send_file(std::filesystem::path p) {
+void Node::send_file(std::filesystem::path p, bool pause) {
 	char lastc = 'x';
 	bool gottag = false;
 	std::stringstream ss;
 	std::ifstream in(p);
+	int lines = 1;
+	bool stop = false;
 	char c;
 	if (in.is_open()) {
-		while (in.good()) {
+		while (in.good() && !stop) {
 			in.get(c);
 			if (c == 0x1a) break;
 			if (c == '@' && gottag == false) {
@@ -226,12 +233,30 @@ void Node::send_file(std::filesystem::path p) {
 
 			if (socket) {
 
-				if (c == '\n' && lastc != '\r') {
-					send(socket, "\r", 1, 0);
+				if (c == '\n') {
+					if (lastc != '\r') {
+						send(socket, "\r", 1, 0);
+					}
+					lines++;
 				}
-
 				lastc = c;
 				send(socket, &c, 1, 0);
+				if (lines == 23 && pause) {
+					print_f("|14More (Y/N/C) ? ");
+
+					switch (tolower(getche())) {
+					case 'n':
+						stop = true;
+						break;
+					case 'c':
+						pause = false;
+						break;
+					default:
+						break;
+					}
+					print_f("|07\r\n");
+					lines = 0;
+				}
 			}
 			else {
 				putchar(c);
@@ -242,12 +267,16 @@ void Node::send_file(std::filesystem::path p) {
 }
 
 void Node::send_gfile(std::string filename) {
+	send_gfile(filename, false);
+}
+
+void Node::send_gfile(std::string filename, bool pause) {
 
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
 		p.append(filename + ".ans");
 		if (std::filesystem::exists(p)) {
-			send_file(p);
+			send_file(p, pause);
 			print_f("\x1b[0m");
 			return;
 		}
@@ -257,7 +286,7 @@ void Node::send_gfile(std::string filename) {
 	p.assign(config.gfile_path());
 	p.append(filename + ".asc");
 	if (std::filesystem::exists(p)) {
-		send_file(p);
+		send_file(p, pause);
 	}
 }
 
@@ -857,6 +886,10 @@ int Node::run() {
 	print_f("|14Press any key...|07");
 	getch();
 
+	bulletins = new Bulletins();
+	if (bulletins->load(this)) {
+		bulletins->display(this);
+	}
 
 	cls();
 	int email_tot = Email::count_email(this);

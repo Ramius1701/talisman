@@ -1,0 +1,5 @@
+[[bulletin]]
+name = "Talisman BBS Information"
+file = "bulletin0"
+hotkey = "1"
+sec_level = 10

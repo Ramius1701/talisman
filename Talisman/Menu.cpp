@@ -11,6 +11,7 @@
 #include "Logger.h"
 #include "Editor.h"
 #include "Email.h"
+#include "Bulletins.h"
 #include "toml.hpp"
 Menu::Menu(Node *n)
 {
@@ -337,8 +338,13 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listusers") == 0) {
+					n->log->log(LOG_INFO, "%s listing users on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					User::user_list(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "bulletins") == 0) {
+					n->log->log(LOG_INFO, "%s viewing bulletins on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->bulletins->display(n);
 				}
 			}
 		}
