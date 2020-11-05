@@ -96,6 +96,63 @@ bool User::update_password(std::string datapath, std::string username, std::stri
 	return true;
 }
 
+void User::set_attribute(std::string datapath, std::string username, std::string attrib, std::string value) {
+	sqlite3* db;
+	sqlite3_stmt* res;
+	int rc = 0;
+	static const char* chk_sql = "SELECT value FROM details WHERE attrib = ? and username = ?";
+	static const char* ins_sql = "INSERT INTO details (username, attrib, value) VALUES(?, ?, ?)";
+	static const char* upd_sql = "UPDATE details SET value = ? WHERE username = ? and attrib = ?";
+
+	//assert(uid != -1);
+
+	// check if row exists
+	if (!open_database(datapath + "/users.sqlite3", &db)) {
+		return;
+	}
+	rc = sqlite3_prepare_v2(db, chk_sql, strlen(chk_sql), &res, 0);
+	if (rc != SQLITE_OK) {
+		sqlite3_close(db);
+		return;
+	}
+	sqlite3_bind_text(res, 1, attrib.c_str(), -1, 0);
+	sqlite3_bind_text(res, 2, username.c_str(), -1, 0);
+	if (sqlite3_step(res) != SQLITE_ROW) {
+		sqlite3_finalize(res);
+		rc = sqlite3_prepare_v2(db, ins_sql, strlen(ins_sql), &res, 0);
+		if (rc != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
+		sqlite3_bind_text(res, 1, username.c_str(), -1, 0);
+		sqlite3_bind_text(res, 2, attrib.c_str(), -1, 0);
+		sqlite3_bind_text(res, 3, value.c_str(), -1, 0);
+		if (sqlite3_step(res) != SQLITE_DONE) {
+			sqlite3_finalize(res);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	else {
+		sqlite3_finalize(res);
+		rc = sqlite3_prepare_v2(db, upd_sql, strlen(upd_sql), &res, 0);
+		if (rc != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
+		sqlite3_bind_text(res, 1, value.c_str(), -1, 0);
+		sqlite3_bind_text(res, 2, username.c_str(), -1, 0);
+		sqlite3_bind_text(res, 3, attrib.c_str(), -1, 0);
+		if (sqlite3_step(res) != SQLITE_DONE) {
+			sqlite3_finalize(res);
+			sqlite3_close(db);
+			return;
+		}
+	}
+	sqlite3_finalize(res);
+	sqlite3_close(db);
+}
+
 bool User::open_database(std::string filename, sqlite3** db)
 {
 	static const char* create_users_sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";

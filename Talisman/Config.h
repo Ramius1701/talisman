@@ -5,6 +5,7 @@
 #include "MsgConf.h"
 
 class Node;
+class Protocol;
 
 struct sec_level_t {
 	std::string name;
@@ -80,5 +81,6 @@ private:
 	std::string _externaleditor;
 	std::string _logpath;
 	std::vector<struct sec_level_t> seclevels;
+	std::vector<Protocol*> protocols;
 };
 

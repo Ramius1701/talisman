@@ -1,7 +1,9 @@
 #include <fstream>
+#include <iostream>
 #include "toml.hpp"
 #include "INIReader.h"
 #include "Config.h"
+#include "Protocol.h"
 
 Config::Config() {
 
@@ -27,107 +29,177 @@ bool Config::load(Node *n, std::string filename) {
 	_externaleditor = inir.Get("Paths", "External Editor", "");
 	_logpath = inir.Get("Paths", "Log Path", "logs");
 
-	auto data = toml::parse_file(_datapath + "/msgconfs.toml");
+	try {
+		auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
-	auto confitems = data.get_as<toml::array>("messageconf");
+		auto confitems = data.get_as<toml::array>("messageconf");
 
-	for (size_t i = 0; i < confitems->size(); i++) {
-		auto itemtable = confitems->get(i)->as_table();
+		for (size_t i = 0; i < confitems->size(); i++) {
+			auto itemtable = confitems->get(i)->as_table();
 
-		std::string myname;
-		std::string myconfig;
-		int mysec_level;
-		std::string mytagline;
+			std::string myname;
+			std::string myconfig;
+			int mysec_level;
+			std::string mytagline;
 
-		auto name = itemtable->get("name");
-		if (name != nullptr) {
-			myname = name->as_string()->value_or("Invalid Name");
-		}
-		else {
-			myname = "Unknown Name";
-		}
-		auto conf = itemtable->get("config");
-		if (conf != nullptr) {
-			myconfig = conf->as_string()->value_or("");
-		}
-		else {
-			myconfig = "";
-		}
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myname = "Unknown Name";
+			}
+			auto conf = itemtable->get("config");
+			if (conf != nullptr) {
+				myconfig = conf->as_string()->value_or("");
+			}
+			else {
+				myconfig = "";
+			}
 
-		auto tagline = itemtable->get("tagline");
-		if (tagline != nullptr) {
-			mytagline = tagline->as_string()->value_or("");
-		}
-		else {
-			mytagline = "";
-		}
+			auto tagline = itemtable->get("tagline");
+			if (tagline != nullptr) {
+				mytagline = tagline->as_string()->value_or("");
+			}
+			else {
+				mytagline = "";
+			}
 
 
-		auto sec_level = itemtable->get("sec_level");
-		if (sec_level != nullptr) {
-			mysec_level = sec_level->as_integer()->value_or(10);
-		}
-		else {
-			mysec_level = 10;
-		}
+			auto sec_level = itemtable->get("sec_level");
+			if (sec_level != nullptr) {
+				mysec_level = sec_level->as_integer()->value_or(10);
+			}
+			else {
+				mysec_level = 10;
+			}
 
-		MsgConf c(myname, mysec_level, mytagline);
+			MsgConf c(myname, mysec_level, mytagline);
 
-		if (c.load(n, myconfig)) {
-			msgconfs.push_back(c);
+			if (c.load(n, myconfig)) {
+				msgconfs.push_back(c);
+			}
 		}
 	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/msgconfs.toml" << std::endl;
+		return false;
+	}
+	try {
+		auto data2 = toml::parse_file(_datapath + "/seclevels.toml");
 
-	auto data2 = toml::parse_file(_datapath + "/seclevels.toml");
+		auto secitems = data2.get_as<toml::array>("seclevel");
 
-	auto secitems = data2.get_as<toml::array>("seclevel");
+		for (size_t i = 0; i < secitems->size(); i++) {
+			auto itemtable = secitems->get(i)->as_table();
 
-	for (size_t i = 0; i < secitems->size(); i++) {
-		auto itemtable = secitems->get(i)->as_table();
+			std::string myname;
+			int mysec_level;
+			int mytimeonline;
+			int mytimeout;
 
-		std::string myname;
-		int mysec_level;
-		int mytimeonline;
-		int mytimeout;
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myname = "Unknown Name";
+			}
+			auto seclvl = itemtable->get("sec_level");
+			if (seclvl != nullptr) {
+				mysec_level = seclvl->as_integer()->value_or(0);
+			}
+			else {
+				mysec_level = 0;
+			}
 
-		auto name = itemtable->get("name");
-		if (name != nullptr) {
-			myname = name->as_string()->value_or("Invalid Name");
-		}
-		else {
-			myname = "Unknown Name";
-		}
-		auto seclvl = itemtable->get("sec_level");
-		if (seclvl != nullptr) {
-			mysec_level = seclvl->as_integer()->value_or(0);
-		}
-		else {
-			mysec_level = 0;
-		}
+			auto timeon = itemtable->get("mins_per_day");
+			if (timeon != nullptr) {
+				mytimeonline = timeon->as_integer()->value_or(0);
+			}
+			else {
+				mytimeonline = 0;
+			}
+			auto timeout = itemtable->get("timeout_mins");
+			if (timeout != nullptr) {
+				mytimeout = timeout->as_integer()->value_or(0);
+			}
+			else {
+				mytimeout = 0;
+			}
 
-		auto timeon = itemtable->get("mins_per_day");
-		if (timeon != nullptr) {
-			mytimeonline = timeon->as_integer()->value_or(0);
+			if (mysec_level != 0) {
+				struct sec_level_t slvl;
+				slvl.level = mysec_level;
+				slvl.name = myname;
+				slvl.timeout = mytimeout;
+				slvl.time_online = mytimeonline;
+				seclevels.push_back(slvl);
+			}
 		}
-		else {
-			mytimeonline = 0;
-		}
-		auto timeout = itemtable->get("timeout_mins");
-		if (timeout != nullptr) {
-			mytimeout = timeout->as_integer()->value_or(0);
-		}
-		else {
-			mytimeout = 0;
-		}
+	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/seclevels.toml" << std::endl;
+		return false;
+	}
+	try {
+		auto data3 = toml::parse_file(_datapath + "/protocols.toml");
 
-		if (mysec_level != 0) {
-			struct sec_level_t slvl;
-			slvl.level = mysec_level;
-			slvl.name = myname;
-			slvl.timeout = mytimeout;
-			slvl.time_online = mytimeonline;
-			seclevels.push_back(slvl);
+		auto protitems = data3.get_as<toml::array>("protocol");
+
+		for (size_t i = 0; i < protitems->size(); i++) {
+			auto itemtable = protitems->get(i)->as_table();
+
+			std::string myname;
+			std::string myul_cmd;
+			std::string mydl_cmd;
+			bool mybatch;
+			bool myprompt;
+
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myname = "Unknown";
+			}
+			auto ul_cmd = itemtable->get("upload_command");
+			if (ul_cmd != nullptr) {
+				myul_cmd = ul_cmd->as_string()->value_or("");
+			}
+			else {
+				myul_cmd = "";
+			}
+			auto dl_cmd = itemtable->get("download_command");
+			if (dl_cmd != nullptr) {
+				mydl_cmd = dl_cmd->as_string()->value_or("");
+			}
+			else {
+				mydl_cmd = "";
+			}
+
+			auto batch = itemtable->get("batch");
+			if (batch != nullptr) {
+				mybatch = batch->as_boolean()->value_or(false);
+			}
+			else {
+				mybatch = false;
+			}
+			auto prompt = itemtable->get("prompt");
+			if (prompt != nullptr) {
+				myprompt = prompt->as_boolean()->value_or(true);
+			}
+			else {
+				myprompt = true;
+			}
+
+			Protocol* p = new Protocol(myname, mydl_cmd, myul_cmd, mybatch, myprompt);
+			protocols.push_back(p);
 		}
+	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/protocols.toml" << std::endl;
+		return false;
 	}
 	return true;
 }

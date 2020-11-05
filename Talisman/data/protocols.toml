@@ -1,0 +1,20 @@
+[[protocol]]
+name = "Zmodem"
+upload_command = "rz -R"
+download_command = "sz -Y @FILELIST@"
+batch = true
+prompt = false
+
+[[protocol]]
+name = "Xmodem"
+upload_command = "rx -R @UPPATH@"
+download_command = "sx -Y @FILELIST@"
+batch = false
+prompt = true
+
+[[protocol]]
+name = "Ymodem"
+upload_command = "rb -R"
+download_command = "sb -Y @FILELIST@"
+batch = true
+prompt = false

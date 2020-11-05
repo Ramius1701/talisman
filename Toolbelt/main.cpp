@@ -31,9 +31,30 @@ int main(int argc, char** argv) {
 				return 0;
 			}
 		}
+		else if (strcasecmp(argv[1], "seclevel") == 0) {
+			if (argc == 4) {
+				std::string user(argv[2]);
+				int seclevel;
+				try {
+					seclevel = stoi(std::string(argv[3]));
+				}
+				catch (std::invalid_argument) {
+					std::cerr << "Invalid argument for sec level." << std::endl;
+					return -1;
+				}
+				catch (std::out_of_range) {
+					std::cerr << "Out of range for sec level." << std::endl;
+					return -1;
+				}
+				User::set_attribute(inir.Get("paths", "data path", "data"), user, "seclevel", std::to_string(seclevel));
+				std::cout << "Done." << std::endl;
+				return 0;
+			}
+		}
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
-		std::cerr << "   COMMAND password ARGS username  newpassword" << std::endl;
+		std::cerr << "   COMMAND password ARGS username newpassword" << std::endl;
+		std::cerr << "   COMMAND seclevel ARGS username newlevel" << std::endl;
 	}
 }

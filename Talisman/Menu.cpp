@@ -217,7 +217,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
-					n->log->log(LOG_INFO, "%s listing posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07\r\n");
