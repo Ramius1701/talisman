@@ -29,6 +29,7 @@ bool IPBlockItem::should_pass() {
 
 	if (curtime > first_try + 300) {
 		first_try = curtime;
+		times = 0;
 		return true;
 	} else {
 		times++;
