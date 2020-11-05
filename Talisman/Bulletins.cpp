@@ -57,7 +57,7 @@ void Bulletins::display(Node* n) {
 #ifdef _MSC_VER
 				localtime_s(&ftm, &t);
 #else
-				localtime_r(&ftm, &t);
+				localtime_r(&t, &ftm);
 #endif
 				n->print_f(" |15%*s |14%-32.32s |08Updated: |10%04d-%02d-%02d %02d:%02d\r\n", hotkeylen, bullets.at(i).hotkey.c_str(), bullets.at(i).name.c_str(), ftm.tm_year + 1900, ftm.tm_mon + 1, ftm.tm_mday, ftm.tm_hour, ftm.tm_min);
 				ss << "|15" << bullets.at(i).hotkey;
