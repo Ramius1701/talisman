@@ -93,7 +93,7 @@ bool User::load_user(std::string username, std::string password)
 
 int User::get_sec_level() {
 	if (sec_level <= 0) {
-		sec_level = stoi(get_attribute("sec_level", "10"));
+		sec_level = stoi(get_attribute("seclevel", "10"));
 	}
 	return sec_level;
 }
