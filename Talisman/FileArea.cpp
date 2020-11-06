@@ -101,7 +101,7 @@ void FileArea::list_files(Node* n) {
 	std::vector<file_list_t> filelist;
 	static const char units[] = " kmgt";
 
-	static const char sql[] = "SELET filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
+	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
 		return;
