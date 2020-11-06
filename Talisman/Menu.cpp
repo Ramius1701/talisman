@@ -445,7 +445,7 @@ bool Menu::run() {
 							n->print_f("|14Select a file area first!|07");
 						}
 						else {
-							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_u_sec_level() < n->get_user().get_sec_level()) {
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_u_sec_level() > n->get_user().get_sec_level()) {
 								n->print_f("|12You do not have permission to upload into this area!|07\r\n");
 							}
 							else {
