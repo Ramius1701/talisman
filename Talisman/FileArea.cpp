@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <filesystem>
+#include <cstring>
 #include "FileArea.h"
 #include "Node.h"
 
