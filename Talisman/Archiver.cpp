@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include <filesystem>
 #include "Archiver.h"
 #include "Door.h"
