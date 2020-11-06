@@ -417,11 +417,11 @@ bool FileArea::upload_file(Node *n) {
 			std::filesystem::path newp(file_path);
 			newp.append(f.path().filename().u8string());
 			if (!insert_file(n, newp.u8string(), descr)) {
-				n->print_f("|12Failed to add to the database!|07");
+				n->print_f("|12Failed to add to the database!|07\r\n");
 			}
 			else {
 				n->clog->up_bytes(std::filesystem::file_size(newp));
-				n->print_f("|10Thankyou for your upload!|07");
+				n->print_f("|10Thankyou for your upload!|07\r\n");
 				ret = true;
 			}
 		}
