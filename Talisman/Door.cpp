@@ -271,7 +271,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	argv = (char **)malloc(sizeof(char *) * (args.size() + 2));
 	if (!argv) {
 		n->stop_timeout = false;
-		return;
+		return true;
 	}
 
 	argv[0] = strdup(command.c_str());
@@ -291,7 +291,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 			perror("sigaction");
 			n->stop_timeout = false;
-			return;
+			return true;
 		}
 		
 		ttySetRaw(master, &oldit2);
@@ -302,7 +302,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		if (pid < 0) {
 			n->print_f("\r\nFailed to run door\r\n");
 			n->stop_timeout = false;
-			return;
+			return true;
 		} else if (pid == 0) {
 			close(master);
 			dup2(slave, 0);
