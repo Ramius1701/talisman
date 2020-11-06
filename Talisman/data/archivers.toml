@@ -1,5 +1,5 @@
 [[archiver]]
 name = "Zip"
-extension = "zip"
+extension = ".zip"
 unarc = "/usr/bin/unzip -jLoq -d @OUTDIR@ @ARCHIVE@ @FILELIST@"
 arc = "/usr/bin/zip -jkq @ARCHIVE@ @FILELIST@"

@@ -432,11 +432,14 @@ bool Menu::run() {
 								n->tagged_files.at(i).fa->inc_download_count(n, n->tagged_files.at(i).filename);
 							}
 							n->tagged_files.clear();
-							
+							n->print_f("|14Press any key...|07");
+							n->getch();
 						}
 					}
 					else {
 						n->print_f("|12You have no files tagged!|07\r\n");
+						n->print_f("|14Press any key...|07");
+						n->getch();
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "cleartagged") == 0) {
@@ -462,9 +465,13 @@ bool Menu::run() {
 							else {
 								if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).upload_file(n)) {
 									n->print_f("|10Upload successful!|07\r\n");
+									n->print_f("|14Press any key...|07");
+									n->getch();
 								}
 								else {
 									n->print_f("|12Upload failed!|07\r\n");
+									n->print_f("|14Press any key...|07");
+									n->getch();
 								}
 							}
 						}
