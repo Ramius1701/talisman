@@ -196,7 +196,6 @@ void Door::createDropfiles(Node *n) {
 bool telnet_bin_mode;
 
 void Door::runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw) {
-	createDropfiles(n);
 	n->stop_timeout = true;
 #ifdef _MSC_VER
 	std::stringstream ss;
