@@ -387,7 +387,7 @@ bool FileArea::upload_file(Node *n) {
 					break;
 				}
 			}
-			std::filesystem::remove_all(t);
+			//std::filesystem::remove_all(t);
 
 			if (descr.size() > 0) {
 				n->print_f("|10Found Description!\r\n|07");
@@ -395,7 +395,7 @@ bool FileArea::upload_file(Node *n) {
 			else {
 				n->print_f("|14Please enter a description... (5 Lines MAX, Blank Line Ends)|07\r\n");
 				for (int i = 0; i < 5; i++) {
-					n->print_f("|14%d: ", i + 1);
+					n->print_f("\r\n|14%d: ", i + 1);
 					std::string line = n->get_string(32, false);
 					if (line.size() == 0) {
 						break;
@@ -405,8 +405,10 @@ bool FileArea::upload_file(Node *n) {
 			}
 
 			// copy file to directory
+			std::filesystem::path np(file_path);
+			np.append(f.path().filename().u8string());
 
-			if (!std::filesystem::copy_file(f.path(), std::filesystem::path(file_path))) {
+			if (!std::filesystem::copy_file(f.path(), np)) {
 				n->print_f("|12Copy file failed!|07\r\n");
 				continue;
 			}
