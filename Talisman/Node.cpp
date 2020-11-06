@@ -28,6 +28,7 @@
 #include "Logger.h"
 #include "Email.h"
 #include "Bulletins.h"
+#include "Script.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -134,7 +135,7 @@ bool Node::detectANSI() {
 }
 
 
-void Node::send_file(std::filesystem::path p, bool pause) {
+void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 	char lastc = 'x';
 	bool gottag = false;
 	std::stringstream ss;
@@ -256,6 +257,12 @@ void Node::send_file(std::filesystem::path p, bool pause) {
 				else if (ss.str() == "TIMELEFT") {
 					print_f("%d mins", timeleft / 60);
 				}
+				else if (ss.str().substr(0, 10) == "RUNSCRIPT:" && !script) {
+					std::stringstream ss2;
+
+					ss2 << config.script_path() << "/" << ss.str().substr(10) << ".lua";
+					Script::exec(this, ss2.str());
+				}
 				else {
 					if (socket) {
 						send(socket, "@", 1, 0);
@@ -329,12 +336,16 @@ void Node::send_gfile(std::string filename) {
 }
 
 void Node::send_gfile(std::string filename, bool pause) {
+	send_gfile(filename, pause, false);
+}
+
+void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
 		p.append(filename + ".ans");
 		if (std::filesystem::exists(p)) {
-			send_file(p, pause);
+			send_file(p, pause, script);
 			print_f("\x1b[0m");
 			return;
 		}
@@ -344,7 +355,7 @@ void Node::send_gfile(std::string filename, bool pause) {
 	p.assign(config.gfile_path());
 	p.append(filename + ".asc");
 	if (std::filesystem::exists(p)) {
-		send_file(p, pause);
+		send_file(p, pause, script);
 	}
 }
 

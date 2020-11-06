@@ -17,6 +17,8 @@
 #include "toml.hpp"
 #include "Protocol.h"
 #include "Config.h"
+#include "Script.h"
+
 Menu::Menu(Node *n)
 {
 	isloaded = false;
@@ -477,6 +479,13 @@ bool Menu::run() {
 							}
 						}
 					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "runscript") == 0) {
+					n->log->log(LOG_INFO, "%s running script %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+					std::stringstream ss;
+
+					ss << n->get_config()->script_path() << "/" << items[i].data << ".lua";
+					Script::exec(n, ss.str());
 				}
 			}
 		}

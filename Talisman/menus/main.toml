@@ -41,6 +41,16 @@ command = "BULLETINS"
 hotkey = "B"
 
 [[menuitem]]
+command = "RUNSCRIPT"
+hotkey = "R"
+data = "rumors"
+
+[[menuitem]]
+command = "RUNSCRIPT"
+hotkey = "O"
+data = "oneliners"
+
+[[menuitem]]
 command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

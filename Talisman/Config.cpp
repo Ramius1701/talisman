@@ -24,6 +24,7 @@ bool Config::load(Node *n, std::string filename) {
 	_mainmenu = inir.Get("Main", "Root Menu", "main");
 	_msgpath = inir.Get("Paths", "Message Path", "msgs");
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
+	_scriptpath = inir.Get("Paths", "Script Path", "scripts");
 	_opname = inir.Get("Main", "Sysop Name", "Sysop");
 	_sysname = inir.Get("Main", "System Name", "Talisman");
 	_netmailsem = inir.Get("Paths", "Netmail Semaphore", "netmail.sem");

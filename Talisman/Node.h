@@ -27,6 +27,7 @@ public:
 	int run();
 	bool detectANSI();
 	void disconnected();
+	void send_gfile(std::string filename, bool pause, bool script);
 	void send_gfile(std::string filename, bool pause);
 	void send_gfile(std::string filename);
 	void cls();
@@ -70,7 +71,7 @@ private:
 	Config config;
 	User u;
 	void send_str(const char* str);
-	void send_file(std::filesystem::path p, bool pause);
+	void send_file(std::filesystem::path p, bool pause, bool script);
 	
 	time_t last_time_check;
 	bool time_check();

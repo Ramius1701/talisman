@@ -42,7 +42,9 @@ public:
 	std::string sys_name() {
 		return _sysname;
 	}
-
+	std::string script_path() {
+		return _scriptpath;
+	}
 	std::string op_name() {
 		return _opname;
 	}
@@ -85,6 +87,7 @@ private:
 	std::string _echomailsem;
 	std::string _externaleditor;
 	std::string _logpath;
+	std::string _scriptpath;
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 };
