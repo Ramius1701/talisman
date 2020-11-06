@@ -433,7 +433,31 @@ bool Menu::run() {
 					n->print_f("|14Tagged files cleared!|07\r\n");
 				}
 				else if (strcasecmp(items[i].command.c_str(), "upload") == 0) {
-
+					n->log->log(LOG_INFO, "%s uploading files on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->print_f("\r\n\r\n");
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf == -1) {
+						n->print_f("|14Select a file conference first!|07");
+					}
+					else {
+						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+						if (filearea == -1) {
+							n->print_f("|14Select a file area first!|07");
+						}
+						else {
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_u_sec_level() < n->get_user().get_sec_level()) {
+								n->print_f("|12You do not have permission to upload into this area!|07\r\n");
+							}
+							else {
+								if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).upload_file(n)) {
+									n->print_f("|10Upload successful!|07\r\n");
+								}
+								else {
+									n->print_f("|12Upload failed!|07\r\n");
+								}
+							}
+						}
+					}
 				}
 			}
 		}

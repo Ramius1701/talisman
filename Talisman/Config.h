@@ -7,6 +7,7 @@
 
 class Node;
 class Protocol;
+class Archiver;
 
 struct sec_level_t {
 	std::string name;
@@ -68,7 +69,9 @@ public:
 
 	std::vector<MsgConf> msgconfs;
 	std::vector<FileConf> fileconfs;
+	std::vector<Archiver*> archivers;
 	Protocol* select_protocol(Node* n);
+
 private:
 	std::string _mainmenu;
 	std::string _menupath;

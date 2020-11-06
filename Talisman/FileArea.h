@@ -17,6 +17,9 @@ public:
 	int get_d_sec_level() {
 		return dl_sec_level;
 	}
+	int get_u_sec_level() {
+		return ul_sec_level;
+	}
 	std::string get_name() {
 		return name;
 	}
@@ -25,7 +28,9 @@ public:
 	void list_files(Node* n);
 
 	void inc_download_count(Node* n, std::string filename);
-
+	bool upload_file(Node *n);
+	bool file_exists(Node* n, std::string filename);
+	bool insert_file(Node* n, std::string filename, std::vector<std::string> descr);
 private:
 	bool open_database(std::string filename, sqlite3** db);
 	std::string name;

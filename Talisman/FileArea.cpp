@@ -1,10 +1,17 @@
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 #include <sqlite3.h>
 #include <string>
 #include <sstream>
 #include <filesystem>
 #include <cstring>
+#include <fstream>
+#include <sys/stat.h>
 #include "FileArea.h"
+#include "Protocol.h"
 #include "Node.h"
+#include "Archiver.h"
 
 bool FileArea::open_database(std::string filename, sqlite3** db)
 {
@@ -26,6 +33,50 @@ bool FileArea::open_database(std::string filename, sqlite3** db)
 		return false;
 	}
 	return true;
+}
+
+bool FileArea::insert_file(Node* n, std::string filename, std::vector<std::string> descr) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	std::stringstream desc;
+	std::string ddesc;
+	std::string uname;
+	struct stat s;
+	time_t now = time(NULL);
+	bool ret = false;
+
+	for (size_t i = 0; i < descr.size(); i++) {
+		desc << descr.at(i) << "\n";
+	}
+	ddesc = desc.str();
+	uname = n->get_user().get_username();
+	if (stat(filename.c_str(), &s) != 0) {
+		return false;
+	}
+
+	static const char* sql = "INSERT INTO files (filename, filesize, dlcount, uldate, ulname, descr) VALUES(?,?,0,?,?,?)";
+
+	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
+		return false;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return false;
+	}
+	sqlite3_bind_text(stmt, 1, filename.c_str(), -1, NULL);
+	sqlite3_bind_int64(stmt, 2, s.st_size);
+	sqlite3_bind_int64(stmt, 3, now);
+	sqlite3_bind_text(stmt, 4, uname.c_str(), -1, NULL);
+	sqlite3_bind_text(stmt, 5, ddesc.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_DONE) {
+		ret = true;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
 }
 
 void FileArea::inc_download_count(Node* n, std::string filename) {
@@ -85,6 +136,35 @@ int FileArea::get_total_files(Node* n) {
 	return ret;
 }
 
+bool FileArea::file_exists(Node *n, std::string filename) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	bool ret;
+	static const char sql[] = "SELECT COUNT(*) FROM files WHERE filename = ?";
+
+	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
+		return true;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return true;
+	}
+	sqlite3_bind_text(stmt, 1, filename.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		ret = true;
+	}
+	else {
+		ret = false;
+	}
+
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
+}
+
 struct file_list_t {
 	std::string filename;
 	size_t filesize;
@@ -99,7 +179,7 @@ void FileArea::list_files(Node* n) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	std::vector<file_list_t> filelist;
-	static const char units[] = " kmgt";
+	static const char units[] = " KMGT";
 
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 
@@ -162,10 +242,10 @@ void FileArea::list_files(Node* n) {
 
 		if (filelist.at(i).desc.size() > 0) {
 			if (tagged) {
-				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%c |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
 			}
 			else {
-				n->print_f("|14%4d. |15%-16.16s |13%5d%c |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+				n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
 			}
 			lines++;
 			for (size_t z = 1; z < filelist.at(i).desc.size(); z++) {
@@ -194,12 +274,12 @@ void FileArea::list_files(Node* n) {
 					lines = 0;
 				}
 
-				n->print_f("                                   |07%s\r\n", filelist.at(i).desc.at(z).c_str());
+				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).c_str());
 				lines++;
 			}
 		}
 		else {
-			n->print_f("|14%4d. |15%-16.16s |13%5d%c |12%4d |07No Description\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount);
+			n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07No Description\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount);
 			lines++;
 		}
 		if (lines == 23) {
@@ -248,4 +328,90 @@ void FileArea::list_files(Node* n) {
 		}
 		n->print_f("\r\n");
 	}
+}
+
+bool FileArea::upload_file(Node *n) {
+	std::filesystem::path p(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/upload/");
+	std::vector<std::string> file_id;
+	std::vector<std::string> descr;
+
+	bool ret = false;
+
+	file_id.push_back("file_id.diz");
+
+	if (std::filesystem::exists(p)) {
+		std::filesystem::remove_all(p);
+	}
+	std::filesystem::create_directories(p);
+
+	Protocol* pr = n->get_config()->select_protocol(n);
+
+	if (pr != nullptr) {
+		pr->upload(n, n->get_socket(), p.u8string());
+
+		for (auto& f : std::filesystem::directory_iterator(p)) {
+			n->print_f("\r\n\r\n|10Found File: |15%s\r\n", f.path().filename().u8string().c_str());
+
+			if (file_exists(n, f.path().filename().u8string())) {
+				n->print_f("|12Duplicate File|07\r\n");
+				continue;
+			}
+
+			std::filesystem::path t(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/upload/extract/");
+			if (std::filesystem::exists(t)) {
+				std::filesystem::remove_all(t);
+			}
+			std::filesystem::create_directories(t);
+
+
+			Archiver::extract(n, f.path().u8string(), file_id, t.u8string());
+			for (auto& d : std::filesystem::directory_iterator(t)) {
+				if (strcasecmp(d.path().filename().u8string().c_str(), "file_id.diz") == 0) {
+					// found description;
+					std::ifstream infile(d.path().u8string());
+					std::string line;
+					while (std::getline(infile, line))
+					{
+						descr.push_back(line);
+					}
+					break;
+				}
+			}
+			std::filesystem::remove_all(t);
+
+			if (descr.size() > 0) {
+				n->print_f("|10Found Description!\r\n|07");
+			}
+			else {
+				n->print_f("|14Please enter a description... (5 Lines MAX, Blank Line Ends)|07\r\n");
+				for (int i = 0; i < 5; i++) {
+					n->print_f("|14%d: ", i + 1);
+					std::string line = n->get_string(32, false);
+					if (line.size() == 0) {
+						break;
+					}
+					descr.push_back(line);
+				}
+			}
+
+			// copy file to directory
+
+			if (!std::filesystem::copy_file(f.path(), std::filesystem::path(file_path))) {
+				n->print_f("|12Copy file failed!|07\r\n");
+				continue;
+			}
+			// add to database
+			std::filesystem::path newp(file_path);
+			newp.append(f.path().filename().u8string());
+			if (!insert_file(n, newp.u8string(), descr)) {
+				n->print_f("|12Failed to add to the database!|07");
+			}
+			else {
+				n->print_f("|10Thankyou for your upload!|07");
+				ret = true;
+			}
+		}
+	}
+	std::filesystem::remove_all(p);
+	return ret;
 }

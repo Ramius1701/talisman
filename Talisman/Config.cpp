@@ -5,6 +5,7 @@
 #include "Config.h"
 #include "Protocol.h"
 #include "FileConf.h"
+#include "Archiver.h"
 
 Config::Config() {
 
@@ -196,6 +197,57 @@ bool Config::load(Node *n, std::string filename) {
 
 			Protocol* p = new Protocol(myname, mydl_cmd, myul_cmd, mybatch, myprompt);
 			protocols.push_back(p);
+		}
+	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/protocols.toml" << std::endl;
+		return false;
+	}
+	try {
+		auto data3 = toml::parse_file(_datapath + "/archivers.toml");
+
+		auto arcitems = data3.get_as<toml::array>("archiver");
+
+		for (size_t i = 0; i < arcitems->size(); i++) {
+			auto itemtable = arcitems->get(i)->as_table();
+
+			std::string myname;
+			std::string myext;
+			std::string myunarc;
+			std::string myarc;
+
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myname = "Unknown";
+			}
+
+			auto ext = itemtable->get("extension");
+			if (ext != nullptr) {
+				myext = ext->as_string()->value_or("");
+			}
+			else {
+				myext = "";
+			}
+
+			auto unarc = itemtable->get("unarc");
+			if (unarc != nullptr) {
+				myunarc = unarc->as_string()->value_or("");
+			}
+			else {
+				myunarc = "";
+			}
+			auto arc = itemtable->get("arc");
+			if (arc != nullptr) {
+				myarc = arc->as_string()->value_or("");
+			}
+			else {
+				myarc = "";
+			}
+			Archiver* a = new Archiver(myname, myext, myunarc, myarc);
+			archivers.push_back(a);
 		}
 	}
 	catch (toml::parse_error) {
