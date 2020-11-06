@@ -32,6 +32,7 @@ public:
 	void cls();
 	std::string get_string(int maxlen, bool masked);
 	std::string get_string(int maxlen, bool masked, bool clear);
+	std::string get_string(int maxlen, bool masked, bool clear, std::string def);
 	Config *get_config() {
 		return &config;
 	}

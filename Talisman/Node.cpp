@@ -525,12 +525,18 @@ char Node::getch() {
 	}
 	return ch;
 }
-
 std::string Node::get_string(int maxlen, bool masked, bool clear) {
+	return get_string(maxlen, masked, clear, "");
+}
+
+std::string Node::get_string(int maxlen, bool masked, bool clear, std::string def) {
 	std::stringstream ss;
+
+	ss << def;
+
 	if (hasANSI && !clear) {
-		print_f("\x1b[s\x1b[1;37;41m");
-		for (int i = 0; i < maxlen; i++) {
+		print_f("\x1b[1;37;41m%s\x1b[s", def.c_str());
+		for (int i = def.size(); i < maxlen; i++) {
 			print_f(" ");
 		}
 		print_f("\x1b[u");

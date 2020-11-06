@@ -598,18 +598,28 @@ void MsgArea::read_message(int start) {
 			case 'r':
 				if (_is_netmail) {
 					std::stringstream netaddr;
-
 					netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
 
-					std::vector<std::string> nmsg = Editor::enter_message(n, std::string(msg->xmsg.from), std::string(msg->xmsg.subject), true, &quotebuffer);
+					n->print_f("\r\n     To: ");
+					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
+					n->print_f("\r\nSubject: ");
+					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+					n->print_f("\r\nAddress: ");
+					std::string nnetaddr = n->get_string(16, false, false, netaddr.str());
+
+					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, true, &quotebuffer);
 					if (nmsg.size() > 0) {
-						save_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), nmsg, netaddr.str(), msg->xmsg.umsgid);
+						save_message(to, subject, nmsg, nnetaddr, msg->xmsg.umsgid);
 					}
 				}
 				else {
-					std::vector<std::string> nmsg = Editor::enter_message(n, std::string(msg->xmsg.from), std::string(msg->xmsg.subject), false, &quotebuffer);
+					n->print_f("\r\n     To: ");
+					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
+					n->print_f("\r\nSubject: ");
+					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, false, &quotebuffer);
 					if (nmsg.size() > 0) {
-						save_message(std::string(msg->xmsg.from), std::string(msg->xmsg.subject), nmsg, "", msg->xmsg.umsgid);
+						save_message(to, subject, nmsg, "", msg->xmsg.umsgid);
 					}
 				}
 				break;
