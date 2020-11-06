@@ -8,6 +8,12 @@
 class Bulletins;
 class Logger;
 class CallLog;
+class FileArea;
+
+struct tagged_file_t {
+	std::string filename;
+	FileArea* fa;
+};
 
 class Node
 {
@@ -52,6 +58,9 @@ public:
 	Bulletins* bulletins;
 	bool stop_timeout;
 	Logger* log;
+	void tag_file(std::string filename, FileArea* fa);
+
+	std::vector<struct tagged_file_t> tagged_files;
 private:
 	int node;
 	int socket;
@@ -69,6 +78,8 @@ private:
 	int timeout;
 
 	int timeoutmax;
+
+
 
 };
 

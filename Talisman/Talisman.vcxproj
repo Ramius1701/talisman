@@ -149,6 +149,8 @@
     <ClCompile Include="Door.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Email.cpp" />
+    <ClCompile Include="FileArea.cpp" />
+    <ClCompile Include="FileConf.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
@@ -167,6 +169,8 @@
     <ClInclude Include="Door.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="Email.h" />
+    <ClInclude Include="FileArea.h" />
+    <ClInclude Include="FileConf.h" />
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Logger.h" />

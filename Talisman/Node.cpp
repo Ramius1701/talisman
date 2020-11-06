@@ -646,6 +646,20 @@ std::string Node::operating_system() {
 	return std::string("Unknown");
 }
 
+void Node::tag_file(std::string filename, FileArea* fa)
+{
+	for (size_t i = 0; i < tagged_files.size(); i++) {
+		if (tagged_files.at(i).filename == filename) {
+			return;
+		}
+	}
+
+	struct tagged_file_t t;
+	t.filename = filename;
+	t.fa = fa;
+	tagged_files.push_back(t);
+}
+
 void Node::system_info() {
 	cls();
 	send_gfile("sysinfo");

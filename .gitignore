@@ -21,3 +21,5 @@
 /Toolbelt/Debug
 /Toolbelt/Toolbelt.vcxproj.filters
 /Toolbelt/Toolbelt.vcxproj.user
+/Talisman/data/fb_uploads.sqlite3
+/Talisman/data/fb_misc.sqlite3

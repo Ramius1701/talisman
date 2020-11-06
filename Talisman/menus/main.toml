@@ -12,6 +12,11 @@ hotkey = "D"
 data = "doors"
 
 [[menuitem]]
+command = "SUBMENU"
+hotkey = "T"
+data = "file"
+
+[[menuitem]]
 command = "LAST10"
 hotkey = "1"
 

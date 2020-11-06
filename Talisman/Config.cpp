@@ -4,6 +4,7 @@
 #include "INIReader.h"
 #include "Config.h"
 #include "Protocol.h"
+#include "FileConf.h"
 
 Config::Config() {
 
@@ -201,6 +202,52 @@ bool Config::load(Node *n, std::string filename) {
 		std::cerr << "Error parsing " << _datapath << "/protocols.toml" << std::endl;
 		return false;
 	}
+	try {
+		auto data = toml::parse_file(_datapath + "/fileconfs.toml");
+
+		auto confitems = data.get_as<toml::array>("fileconf");
+
+		for (size_t i = 0; i < confitems->size(); i++) {
+			auto itemtable = confitems->get(i)->as_table();
+
+			std::string myname;
+			std::string myconfig;
+			int mysec_level;
+
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myname = "Unknown Name";
+			}
+			auto conf = itemtable->get("config");
+			if (conf != nullptr) {
+				myconfig = conf->as_string()->value_or("");
+			}
+			else {
+				myconfig = "";
+			}
+
+			auto sec_level = itemtable->get("sec_level");
+			if (sec_level != nullptr) {
+				mysec_level = sec_level->as_integer()->value_or(10);
+			}
+			else {
+				mysec_level = 10;
+			}
+
+			FileConf f(myname, myconfig, mysec_level);
+
+			if (f.load(n)) {
+				fileconfs.push_back(f);
+			}
+		}
+	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/msgconfs.toml" << std::endl;
+		return false;
+	}
 	return true;
 }
 
@@ -211,4 +258,33 @@ struct sec_level_t* Config::get_sec_level_info(int seclvl) {
 		}
 	}
 	return NULL;
+}
+
+Protocol* Config::select_protocol(Node* n) {
+	n->print_f("|14Available Protocols\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	for (size_t i = 0; i < protocols.size(); i++) {
+		n->print_f("|15%2d|08. |14%s\r\n", i + 1, protocols.at(i)->get_name());
+	}
+	n->print_f("|15 Q|08. |14Quit\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	std::string res = n->get_string(2, false);
+	if (res.size() > 0) {
+		if (tolower(res.at(0)) == 'q') {
+			return nullptr;
+		}
+		try {
+			int prot = stoi(res);
+			if (prot > 0 && prot <= protocols.size()) {
+				return protocols.at(prot - 1);
+			}
+		}
+		catch (std::invalid_argument) {
+
+		}
+		catch (std::out_of_range) {
+
+		}
+	}
+	return nullptr;
 }

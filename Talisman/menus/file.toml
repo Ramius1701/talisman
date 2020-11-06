@@ -1,0 +1,31 @@
+[menu]
+gfile = "filemenu"
+
+[[menuitem]]
+command = "FILECONFS"
+hotkey = "J"
+
+[[menuitem]]
+command = "FILEAREAS"
+hotkey = "A"
+
+[[menuitem]]
+command = "LISTFILES"
+hotkey = "L"
+
+[[menuitem]]
+command = "DOWNLOAD"
+hotkey = "D"
+
+[[menuitem]]
+command = "UPLOAD"
+hotkey = "U"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "Q"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"

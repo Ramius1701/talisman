@@ -13,6 +13,8 @@
 #include "Email.h"
 #include "Bulletins.h"
 #include "toml.hpp"
+#include "Protocol.h"
+#include "Config.h"
 Menu::Menu(Node *n)
 {
 	isloaded = false;
@@ -345,6 +347,89 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "bulletins") == 0) {
 					n->log->log(LOG_INFO, "%s viewing bulletins on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->bulletins->display(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "fileconfs") == 0) {
+					n->log->log(LOG_INFO, "%s listing file conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					int newconf = FileConf::list(n, n->get_user().get_sec_level());
+					int count = 1;
+					for (size_t fc = 0; fc < n->get_config()->fileconfs.size(); fc++) {
+						if (n->get_config()->fileconfs.at(fc).get_sec_level() > n->get_user().get_sec_level()) continue;
+						if (count == newconf) {
+							n->get_user().set_attribute("cur_file_conf", std::to_string(fc));
+							n->get_user().set_attribute("cur_file_area", "-1");
+							for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fc).areas.size(); fa++) {
+								if (n->get_config()->fileconfs.at(fc).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+									n->get_user().set_attribute("cur_file_area", std::to_string(fa));
+									break;
+								}
+							}
+							break;
+						}
+						count++;
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "fileareas") == 0) {
+					n->log->log(LOG_INFO, "%s listing fileareas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf == -1) {
+						n->print_f("|14Select a file conference first!|07");
+					}
+					else {
+						int newarea = n->get_config()->fileconfs.at(fileconf).list_areas(n, n->get_user().get_sec_level());
+						int count = 1;
+						for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+								if (count == newarea) {
+									n->get_user().set_attribute("cur_file_area", std::to_string(fa));
+									break;
+								}
+								count++;
+							}
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "listfiles") == 0) {
+					n->log->log(LOG_INFO, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->print_f("\r\n\r\n");
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf == -1) {
+						n->print_f("|14Select a file conference first!|07");
+					}
+					else {
+						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+						if (filearea == -1) {
+							n->print_f("|14Select a file area first!|07");
+						}
+						else {
+							n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n);
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "download") == 0) {
+					if (n->tagged_files.size() > 0) {
+						n->log->log(LOG_INFO, "%s downloading files on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+						Protocol *p = n->get_config()->select_protocol(n);
+						if (p != nullptr) {
+							std::vector<std::filesystem::path> files;
+
+							for (size_t i = 0; i < n->tagged_files.size(); i++) {
+								std::filesystem::path pt(n->tagged_files.at(i).filename);
+								files.push_back(pt);
+							}
+
+							p->download(n, n->get_socket(), &files);
+							for (size_t i = 0; i < n->tagged_files.size(); i++) {
+								n->tagged_files.at(i).fa->inc_download_count(n, n->tagged_files.at(i).filename);
+							}
+							n->tagged_files.clear();
+						}
+					}
+					else {
+						n->print_f("|12You have no files tagged!|07\r\n");
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "upload") == 0) {
+
 				}
 			}
 		}

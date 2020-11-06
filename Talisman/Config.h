@@ -3,6 +3,7 @@
 #include <string>
 
 #include "MsgConf.h"
+#include "FileConf.h"
 
 class Node;
 class Protocol;
@@ -66,7 +67,8 @@ public:
 	}
 
 	std::vector<MsgConf> msgconfs;
-
+	std::vector<FileConf> fileconfs;
+	Protocol* select_protocol(Node* n);
 private:
 	std::string _mainmenu;
 	std::string _menupath;
