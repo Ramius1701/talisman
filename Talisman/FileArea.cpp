@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <sys/stat.h>
 #include "FileArea.h"
 #include "Protocol.h"
@@ -146,11 +147,14 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 	std::string fullpath = p.u8string();
 
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
+		std::cerr << "Error opening file database" << std::endl;
+
 		return true;
 	}
 
 	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
 		sqlite3_close(db);
+		std::cerr << "Error preparing statement" << std::endl;
 		return true;
 	}
 
