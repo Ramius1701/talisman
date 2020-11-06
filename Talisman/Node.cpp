@@ -184,8 +184,67 @@ void Node::send_file(std::filesystem::path p, bool pause) {
 						}
 					}
 					else {
-						if (mailconf != 1 && mailarea != -1) {
+						if (mailconf != -1 && mailarea != -1) {
 							std::cout << config.msgconfs.at(mailconf).areas.at(mailarea).get_name();
+						}
+						else {
+							std::cout << "None.";
+						}
+					}
+				}
+				if (ss.str() == "MAILCONF") {
+					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
+					if (socket) {
+						if (mailconf != -1) {
+							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
+						}
+						else {
+							send(socket, "None.", 5, 0);
+						}
+					}
+					else {
+						if (mailconf != -1) {
+							std::cout << config.msgconfs.at(mailconf).get_name();
+						}
+						else {
+							std::cout << "None.";
+						}
+					}
+				}
+				else if (ss.str() == "FILEAREA") {
+					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
+					int filearea = stoi(u.get_attribute("cur_file_area", "-1"));
+
+					if (socket) {
+						if (fileconf != -1 && filearea != -1) {
+							send(socket, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().size(), 0);
+						}
+						else {
+							send(socket, "None.", 5, 0);
+						}
+					}
+					else {
+						if (fileconf != -1 && filearea != -1) {
+							std::cout << config.fileconfs.at(fileconf).areas.at(filearea).get_name();
+						}
+						else {
+							std::cout << "None.";
+						}
+					}
+				}
+				else if (ss.str() == "FILECONF") {
+					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
+					if (socket) {
+						if (fileconf != -1) {
+							send(socket, config.fileconfs.at(fileconf).get_name().c_str(), config.fileconfs.at(fileconf).get_name().size(), 0);
+						}
+						else {
+							send(socket, "None.", 5, 0);
+						}
+					}
+					else {
+						if (fileconf != -1) {
+							std::cout << config.fileconfs.at(fileconf).get_name();
 						}
 						else {
 							std::cout << "None.";
