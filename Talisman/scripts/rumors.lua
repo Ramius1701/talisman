@@ -19,7 +19,7 @@ while true do
     local lines = lines_from(bbs_get_data_path() .. "/rumors.dat");
         
     bbs_clear_screen();
-    bbs_display_gfile("rumors_hdr.txt");
+    bbs_display_gfile("rumors");
 
     local start = 1;
 
