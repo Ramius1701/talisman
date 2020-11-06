@@ -141,6 +141,9 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 	sqlite3_stmt* stmt;
 	bool ret;
 	static const char sql[] = "SELECT COUNT(*) FROM files WHERE filename = ?";
+	std::filesystem::path p(file_path);
+	p.append(filename);
+	std::string fullpath = p.u8string();
 
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
 		return true;
@@ -150,7 +153,10 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 		sqlite3_close(db);
 		return true;
 	}
-	sqlite3_bind_text(stmt, 1, filename.c_str(), -1, NULL);
+
+
+
+	sqlite3_bind_text(stmt, 1, fullpath.c_str(), -1, NULL);
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
 		ret = true;
@@ -357,7 +363,7 @@ bool FileArea::upload_file(Node *n) {
 				continue;
 			}
 
-			std::filesystem::path t(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/upload/extract/");
+			std::filesystem::path t(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/extract/");
 			if (std::filesystem::exists(t)) {
 				std::filesystem::remove_all(t);
 			}
