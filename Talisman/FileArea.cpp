@@ -13,6 +13,7 @@
 #include "Protocol.h"
 #include "Node.h"
 #include "Archiver.h"
+#include "CallLog.h"
 
 bool FileArea::open_database(std::string filename, sqlite3** db)
 {
@@ -419,6 +420,7 @@ bool FileArea::upload_file(Node *n) {
 				n->print_f("|12Failed to add to the database!|07");
 			}
 			else {
+				n->clog->up_bytes(std::filesystem::file_size(newp));
 				n->print_f("|10Thankyou for your upload!|07");
 				ret = true;
 			}

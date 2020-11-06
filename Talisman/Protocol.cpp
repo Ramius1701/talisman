@@ -1,6 +1,7 @@
 #include <sstream>
 #include "Protocol.h"
 #include "Door.h"
+#include "CallLog.h"
 #ifdef _MSC_VER
 #include <windows.h>
 #include <direct.h>
@@ -96,6 +97,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 			else if (s == "@FILELIST@") {
 				for (int i = 0; i < files->size(); i++) {
 					args.push_back(files->at(i).u8string());
+					n->clog->down_bytes(std::filesystem::file_size(files->at(i)));
 				}
 			}
 			else {
@@ -103,6 +105,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 			}
 		}
 		Door::runExternal(n, cmd, args, true);
+		
 	}
 	else {
 		for (int i = 0; i < files->size(); i++) {
@@ -120,6 +123,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 				}
 				else if (s == "@FILENAME@") {
 					args.push_back(files->at(i).u8string());
+					n->clog->down_bytes(std::filesystem::file_size(files->at(i)));
 				}
 				else {
 					args.push_back(s);

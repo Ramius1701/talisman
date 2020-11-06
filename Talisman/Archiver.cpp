@@ -129,7 +129,7 @@ void Archiver::runexec(std::string cmd) {
 #else
 	std::stringstream ss;
 
-	ss << "/bin/sh -c " << cmd;
+	ss << "/bin/sh -c \"" << cmd << "\"";
 
 	system(ss.str().c_str());
 #endif

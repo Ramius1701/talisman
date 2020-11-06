@@ -422,6 +422,7 @@ bool Menu::run() {
 								n->tagged_files.at(i).fa->inc_download_count(n, n->tagged_files.at(i).filename);
 							}
 							n->tagged_files.clear();
+							
 						}
 					}
 					else {
