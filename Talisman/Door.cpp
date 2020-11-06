@@ -195,7 +195,7 @@ void Door::createDropfiles(Node *n) {
 
 bool telnet_bin_mode;
 
-void Door::runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw) {
+bool Door::runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw) {
 	n->stop_timeout = true;
 #ifdef _MSC_VER
 	std::stringstream ss;
@@ -224,7 +224,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		n->print_f("\r\nFailed to run door\r\n");
 		free(cmd);
 		n->stop_timeout = false;
-		return;
+		return true;
 	}
 
 	WaitForSingleObject(pi.hProcess, INFINITE);
@@ -233,6 +233,8 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	CloseHandle(pi.hThread);
 	free(cmd);
 	ioctlsocket(n->get_socket(), FIONBIO, &mode);
+
+	return true;
 #else
 	// TODO unix door
 	pid_t pid;
@@ -338,8 +340,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 								free(argv[i]);
 							}
 							free(argv);
-							close(n->get_socket());
-							n->disconnected();
+							return false;
 						}
 						g = 0;
 						for (h=0;h<len;h++) {
@@ -439,6 +440,7 @@ void Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	free(argv);
 #endif
 	n->stop_timeout = false;
+	return true;
 }
 
 Door::Door()

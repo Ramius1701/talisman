@@ -2,6 +2,9 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#ifdef _MSC_VER
+#include <WinSock2.h>
+#endif
 #include "Editor.h"
 #include "Node.h"
 #include "Door.h"
@@ -43,7 +46,14 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 		args.push_back(std::to_string(n->get_socket()));
 #endif
 		Door::createDropfiles(n);
-		Door::runExternal(n, n->get_config()->external_editor(), args, false);
+		if (!Door::runExternal(n, n->get_config()->external_editor(), args, false)) {
+#ifdef _MSC_VER
+			closesocket(n->get_socket());
+#else
+			close(n->get_socket());
+#endif
+			n->disconnected();
+		}
 		
 		std::string line;
 		std::ifstream infile(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/MSGTMP"));

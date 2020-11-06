@@ -11,7 +11,7 @@ class Door
 {
 public:
 	static void createDropfiles(Node *n);
-	static void runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw);
+	static bool runExternal(Node *n, std::string command, std::vector<std::string> args, bool raw);
 	Door();
 	~Door();
 };

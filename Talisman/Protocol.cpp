@@ -70,9 +70,17 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 			args.push_back(s);
 		}
 	}
-	Door::runExternal(n, cmd, args, true);
+	int ret = Door::runExternal(n, cmd, args, true);
 
 	chdir(buffer);
+	if (!ret) {
+#ifdef _MSC_VER
+		closesocket(n->get_socket());
+#else
+		close(n->get_socket());
+#endif
+		n->disconnected();
+	}
 }
 
 void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> *files)
@@ -104,8 +112,14 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 				args.push_back(s);
 			}
 		}
-		Door::runExternal(n, cmd, args, true);
-		
+		if (!Door::runExternal(n, cmd, args, true)) {
+#ifdef _MSC_VER
+			closesocket(n->get_socket());
+#else
+			close(n->get_socket());
+#endif
+			n->disconnected();
+		}	
 	}
 	else {
 		for (int i = 0; i < files->size(); i++) {
@@ -129,7 +143,14 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 					args.push_back(s);
 				}
 			}
-			Door::runExternal(n, cmd, args, true);
+			if (!Door::runExternal(n, cmd, args, true)) {
+#ifdef _MSC_VER
+				closesocket(n->get_socket());
+#else
+				close(n->get_socket());
+#endif
+				n->disconnected();
+			}
 		}
 	}
 }
