@@ -191,8 +191,7 @@ void Node::send_file(std::filesystem::path p, bool pause) {
 							std::cout << "None.";
 						}
 					}
-				}
-				if (ss.str() == "MAILCONF") {
+				} else if (ss.str() == "MAILCONF") {
 					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
 					if (socket) {
 						if (mailconf != -1) {
