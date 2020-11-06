@@ -141,7 +141,7 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	bool ret;
-	static const char sql[] = "SELECT COUNT(*) FROM files WHERE filename = ?";
+	static const char sql[] = "SELECT filename FROM files WHERE filename = ?";
 	std::filesystem::path p(file_path);
 	p.append(filename);
 	std::string fullpath = p.u8string();
