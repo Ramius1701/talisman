@@ -22,6 +22,10 @@ command = "UPLOAD"
 hotkey = "U"
 
 [[menuitem]]
+command = "CLEARTAGGED"
+hotkey = "C"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 

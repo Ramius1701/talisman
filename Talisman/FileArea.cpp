@@ -142,6 +142,7 @@ void FileArea::list_files(Node* n) {
 
 	for (size_t i = 0; i < filelist.size(); i++) {
 		int unit;
+		bool tagged = false;
 		for (unit = 0; unit < 5; unit++) {
 			if (filelist.at(i).filesize >= 1024) {
 				filelist.at(i).filesize /= 1024;
@@ -152,8 +153,20 @@ void FileArea::list_files(Node* n) {
 		}
 		std::filesystem::path p(filelist.at(i).filename);
 
+		for (size_t j = 0; j < n->tagged_files.size(); j++) {
+			if (n->tagged_files.at(j).filename == filelist.at(i).filename) {
+				tagged = true;
+				break;
+			}
+		}
+
 		if (filelist.at(i).desc.size() > 0) {
-			n->print_f("|14%4d. |15%-16.16s |13%5d%c |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+			if (tagged) {
+				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%c |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+			}
+			else {
+				n->print_f("|14%4d. |15%-16.16s |13%5d%c |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+			}
 			lines++;
 			for (size_t z = 1; z < filelist.at(i).desc.size(); z++) {
 				if (lines == 23) {

@@ -428,6 +428,10 @@ bool Menu::run() {
 						n->print_f("|12You have no files tagged!|07\r\n");
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "cleartagged") == 0) {
+					n->tagged_files.clear();
+					n->print_f("|14Tagged files cleared!|07\r\n");
+				}
 				else if (strcasecmp(items[i].command.c_str(), "upload") == 0) {
 
 				}
