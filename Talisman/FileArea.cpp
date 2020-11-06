@@ -131,6 +131,9 @@ void FileArea::list_files(Node* n) {
 				ss << descr.at(i);
 			}
 		}
+		if (ss.str().size() > 0) {
+			f.desc.push_back(ss.str());
+		}
 		filelist.push_back(f);
 	}
 

@@ -264,7 +264,7 @@ Protocol* Config::select_protocol(Node* n) {
 	n->print_f("|14Available Protocols\r\n");
 	n->print_f("|08----------------------------------------\r\n");
 	for (size_t i = 0; i < protocols.size(); i++) {
-		n->print_f("|15%2d|08. |14%s\r\n", i + 1, protocols.at(i)->get_name());
+		n->print_f("|15%2d|08. |14%s\r\n", i + 1, protocols.at(i)->get_name().c_str());
 	}
 	n->print_f("|15 Q|08. |14Quit\r\n");
 	n->print_f("|08----------------------------------------\r\n");
