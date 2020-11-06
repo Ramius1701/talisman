@@ -342,7 +342,7 @@ int Email::view_email(Node* n, Email e) {
 				}
 			}
 
-			std::vector<std::string> newmsg = Editor::enter_message(n, e.sender, e.subject, true, &quotemsg);
+			std::vector<std::string> newmsg = Editor::enter_message(n, e.sender, e.subject, "E-Mail", true, &quotemsg);
 			if (newmsg.size() > 0) {
 				Email::save_message(n, e.sender, n->get_user().get_username(), e.subject, newmsg);
 			}

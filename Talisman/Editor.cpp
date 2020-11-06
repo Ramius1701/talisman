@@ -11,7 +11,7 @@
 #include "Node.h"
 #include "Door.h"
 
-std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::string subject, bool priv, std::vector<std::string>* quotebuffer)
+std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer)
 {
 	std::vector<std::string> msg;
 	if (quotebuffer != nullptr) {
@@ -31,7 +31,7 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 		fprintf(fptr, "%s\r\n", to.c_str());
 		fprintf(fptr, "%s\r\n", subject.c_str());
 		fprintf(fptr, "0\r\n");
-		fprintf(fptr, "%s\r\n", n->get_user().get_username().c_str());
+		fprintf(fptr, "%s\r\n", areaname.c_str());
 		if (priv) {
 			fprintf(fptr, "YES\r\n");
 		}
@@ -76,32 +76,32 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 	}
 	return msg;
 }
-std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::string subject, bool priv, std::vector<std::string>* quotebuffer) {
+std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer) {
 	int fse = stoi(n->get_user().get_attribute("fullscreeneditor", "0"));
 
 	if (fse == 0) {
 		if (n->get_config()->external_editor() != "" && n->hasANSI) {
 			n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
 			if (tolower(n->getch()) == 'n') {
-				return enter_message_in(n, to, subject, priv, quotebuffer);
+				return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
 			}
 			else {
-				return enter_message_ex(n, to, subject, priv, quotebuffer);
+				return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
 			}
 		}
 		else {
-			return enter_message_in(n, to, subject, priv, quotebuffer);
+			return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
 		}
 	}
 	else if (fse == 1 && n->get_config()->external_editor() != "" && n->hasANSI) {
-		return enter_message_ex(n, to, subject, priv, quotebuffer);
+		return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
 	}
 	else {
-		return enter_message_in(n, to, subject, priv, quotebuffer);
+		return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
 	}
 }
 
-std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::string subject, bool priv, std::vector<std::string>* quotebuffer)
+std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer)
 {
 	std::vector<std::string> lines;
 	bool done = false;

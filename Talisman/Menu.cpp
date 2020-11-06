@@ -259,7 +259,7 @@ bool Menu::run() {
 									n->print_f("\r\n|14Aborted!\r\n");
 								}
 								else {
-									std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail(), nullptr);
+									std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_name(), n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail(), nullptr);
 									if (nmsg.size() > 0) {
 										n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, subject, nmsg, netaddr, 0);
 									}
@@ -324,7 +324,7 @@ bool Menu::run() {
 						n->print_f("\r\nSubject: ");
 						std::string subject = n->get_string(60, false);
 
-						std::vector<std::string> newemail = Editor::enter_message(n, to, subject, true, nullptr);
+						std::vector<std::string> newemail = Editor::enter_message(n, to, subject, "E-Mail", true, nullptr);
 						if (newemail.size() > 0) {
 							Email::save_message(n, to, n->get_user().get_username(), subject, newemail);
 						}
@@ -343,7 +343,7 @@ bool Menu::run() {
 					}
 					else {
 						n->print_f("\r\n|14Sending mail to |15%s\r\n", to.c_str());
-						std::vector<std::string> newemail = Editor::enter_message(n, to, "Feedback", true, nullptr);
+						std::vector<std::string> newemail = Editor::enter_message(n, to, "Feedback", "E-Mail", true, nullptr);
 						if (newemail.size() > 0) {
 							Email::save_message(n, to, n->get_user().get_username(), "Feedback", newemail);
 						}

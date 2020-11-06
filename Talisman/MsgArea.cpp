@@ -607,7 +607,7 @@ void MsgArea::read_message(int start) {
 					n->print_f("\r\nAddress: ");
 					std::string nnetaddr = n->get_string(16, false, false, netaddr.str());
 
-					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, true, &quotebuffer);
+					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, &quotebuffer);
 					if (nmsg.size() > 0) {
 						save_message(to, subject, nmsg, nnetaddr, msg->xmsg.umsgid);
 					}
@@ -617,7 +617,7 @@ void MsgArea::read_message(int start) {
 					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
 					n->print_f("\r\nSubject: ");
 					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
-					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, false, &quotebuffer);
+					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, &quotebuffer);
 					if (nmsg.size() > 0) {
 						save_message(to, subject, nmsg, "", msg->xmsg.umsgid);
 					}
