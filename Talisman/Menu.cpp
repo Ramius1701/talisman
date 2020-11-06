@@ -1,5 +1,7 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
+#else
+#include <unistd.h>
 #endif
 #include <fstream>
 #include <sstream>

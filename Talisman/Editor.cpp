@@ -4,6 +4,8 @@
 #include <string>
 #ifdef _MSC_VER
 #include <WinSock2.h>
+#else
+#include <unistd.h>
 #endif
 #include "Editor.h"
 #include "Node.h"
