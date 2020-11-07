@@ -19,12 +19,8 @@ bbs_display_gfile("automessage");
 
 local lines = lines_from(bbs_get_data_path() .. "/automessage.dat");
 
-for i = 1, 5 do
-	if i > #lines then
-		bbs_write_string("\r\n");
-	else
-		bbs_write_string("|07" .. lines[i] .. "\r\n");
-	end
+for i = 1, #lines do
+	bbs_write_string("|07" .. lines[i] .. "\r\n");
 end
 
 bbs_write_string("|15E|08=|14Enter Message, |15ENTER|08=|14Quit |08: |07");
