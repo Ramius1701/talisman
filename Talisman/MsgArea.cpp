@@ -611,6 +611,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 						}
 						else if (params[z] == 0) {
 							bold = false;
+							fg_color = 7;
+							bg_color = 0;
 						}
 						else if (params[z] >= 30 && params[z] <= 37) {
 							fg_color = params[z] - 30;
