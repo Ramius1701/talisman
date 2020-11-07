@@ -370,6 +370,322 @@ void MsgArea::do_semaphore(std::string sem)
 	}
 }
 
+std::vector<std::string> MsgArea::strip_ansi(const char* msg, int len) {
+	std::stringstream output;
+	std::vector<std::string> ansi_msg = demangle_ansi(msg, len);
+	std::vector<std::string> new_msg;
+
+	for (size_t i = 0; i < ansi_msg.size(); i++) {
+		for (size_t j = 0; j < ansi_msg.at(i).size(); j++) {
+			if (ansi_msg.at(i).at(j) == '\x1b') {
+				while (j < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", ansi_msg.at(i).at(j)) == NULL) j++;
+			}
+			else if (ansi_msg.at(i).at(j) != '\n') {
+				output << ansi_msg.at(i).at(j);
+			}
+
+		}
+		new_msg.push_back(output.str());
+		output.str("");
+	}
+
+	return new_msg;
+}
+
+struct character_t {
+	char c;
+	int fg_color;
+	int bg_color;
+	bool bold;
+};
+
+std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
+	std::vector<std::string> new_msg;
+	int lines = 0;
+	int line_at = 0;
+	int cols = 0;
+	int col_at = 0;
+	int params[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int param_count = 0;
+	int fg_color = 7;
+	int bg_color = 0;
+	bool bold = false;
+
+	for (size_t i = 0; i < len; i++) {
+		if (msg[i] == '\r') {
+			line_at++;
+			if (line_at > lines) {
+				lines = line_at;
+			}
+			col_at = 0;
+		}
+		else if (msg[i] == '\x1b') {
+			i++;
+			if (msg[i] != '[') {
+				i--;
+				continue;
+			}
+			else {
+				param_count = 0;
+				while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
+					if (msg[i] == ';') {
+						param_count++;
+					}
+					else if (msg[i] >= '0' && msg[i] <= '9') {
+						if (param_count == 0) {
+							param_count = 1;
+							for (int j = 0; j < 9; j++) {
+								params[j] = 0;
+							}
+						}
+						params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
+					}
+					i++;
+				}
+				switch (msg[i]) {
+				case 'A':
+					if (param_count > 0) {
+						line_at -= params[0];
+					}
+					else {
+						line_at--;
+					}
+					if (line_at < 0) line_at = 0;
+					break;
+				case 'B':
+					if (param_count > 0) {
+						line_at += params[0];
+					}
+					else {
+						line_at++;
+					}
+					if (line_at > lines) {
+						lines = line_at;
+					}
+					break;
+				case 'C':
+					if (param_count > 0) {
+						col_at += params[0];
+					}
+					else {
+						col_at++;
+					}
+					if (col_at > cols) {
+						cols = col_at;
+					}
+					break;
+				case 'D':
+					if (param_count > 0) {
+						col_at -= params[0];
+					}
+					else {
+						col_at--;
+					}
+					if (col_at < 0) col_at = 0;
+					break;
+				case 'H':
+					if (param_count > 1) {
+						params[0]--;
+						params[1]--;
+					}
+					line_at = params[0];
+					col_at = params[1];
+
+					if (line_at > lines) {
+						lines = line_at;
+					}
+					if (col_at > cols) {
+						cols = col_at;
+					}
+					if (line_at < 0) line_at = 0;
+					if (col_at < 0) col_at = 0;
+					break;
+				}
+
+			}
+		}
+		else if (msg[i] != '\n') {
+			col_at++;
+			if (col_at > cols) {
+				cols = col_at;
+			}
+		}
+	}
+
+	struct character_t ** fakescreen = (struct character_t **)malloc(sizeof(struct character_t *) * (lines + 1));
+	
+	if (!fakescreen) {
+		return new_msg;
+	}
+
+
+	for (int i = 0; i <= lines; i++) {
+		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (cols + 1));
+		if (!fakescreen[i]) return new_msg;
+		for (int x = 0; x < cols; x++) {
+			fakescreen[i][x].c = ' ';
+			fakescreen[i][x].fg_color = 7;
+			fakescreen[i][x].bg_color = 0;
+		}
+	}
+	line_at = 0;
+	col_at = 0;
+
+	for (size_t i = 0; i < len; i++) {
+		if (msg[i] == '\r') {
+			line_at++;
+			col_at = 0;
+		}
+		else if (msg[i] == '\x1b') {
+			i++;
+			if (msg[i] != '[') {
+				i--;
+				continue;
+			}
+			else {
+				param_count = 0;
+				while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
+					if (msg[i] == ';') {
+						param_count++;
+					}
+					else if (msg[i] >= '0' && msg[i] <= '9') {
+						if (param_count == 0) {
+							param_count = 1;
+							for (int j = 0; j < 9; j++) {
+								params[j] = 0;
+							}
+						}
+						params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
+					}
+					i++;
+				}
+				switch (msg[i]) {
+				case 'A':
+					if (param_count > 0) {
+						line_at -= params[0];
+					}
+					else {
+						line_at--;
+					}
+					if (line_at < 0) line_at = 0;
+					break;
+				case 'B':
+					if (param_count > 0) {
+						line_at += params[0];
+					}
+					else {
+						line_at++;
+					}
+					break;
+				case 'C':
+					if (param_count > 0) {
+						col_at += params[0];
+					}
+					else {
+						col_at++;
+					}
+					break;
+				case 'D':
+					if (param_count > 0) {
+						col_at -= params[0];
+					}
+					else {
+						col_at--;
+					}
+					if (col_at < 0) col_at = 0;
+					break;
+				case 'H':
+					if (param_count > 1) {
+						params[0]--;
+						params[1]--;
+					}
+					line_at = params[0];
+					col_at = params[1];
+					if (line_at < 0) line_at = 0;
+					if (col_at < 0) col_at = 0;
+					break;
+				case 'm':
+					for (int z = 0; z < param_count; z++) {
+						if (params[z] == 1) {
+							bold = true;
+						}
+						else if (params[z] == 0) {
+							bold = false;
+						}
+						else if (params[z] >= 30 && params[z] <= 37) {
+							fg_color = params[z] - 30;
+						}
+						else if (params[z] >= 40 && params[z] <= 47) {
+							bg_color = params[z] - 40;
+						}
+					}
+				}
+			}
+		}
+		else if (msg[i] != '\n') {
+			fakescreen[line_at][col_at].c = msg[i];
+			fakescreen[line_at][col_at].bold = bold;
+			fakescreen[line_at][col_at].fg_color = fg_color;
+			fakescreen[line_at][col_at].bg_color = bg_color;
+			col_at++;
+		}
+	}
+
+	for (int i = 0; i < lines; i++) {
+		for (int j = cols - 1; j >= 0; j--) {
+			if (fakescreen[i][j].c == ' ') {
+				fakescreen[i][j].c = '\0';
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	std::stringstream ss;
+
+	fg_color = 7;
+	bg_color = 0;
+	bold = false;
+	for (int i = 0; i < lines; i++) {
+		ss.str("");
+		for (int j = 0; j < cols; j++) {
+			if (fakescreen[i][j].c == '\0') {
+				break;
+			}
+			
+			if (fakescreen[i][j].bold != bold) {
+				bold = fakescreen[i][j].bold;
+				if (bold) {
+					ss << "\x1b[1m";
+				}
+				else {
+					ss << "\x1b[0m";
+				}
+			}
+
+			if (fakescreen[i][j].fg_color != fg_color) {
+				fg_color = fakescreen[i][j].fg_color;
+				ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
+			}
+			if (fakescreen[i][j].bg_color != bg_color) {
+				bg_color = fakescreen[i][j].bg_color;
+				ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+			}
+
+			ss << fakescreen[i][j].c;
+		}
+		new_msg.push_back(ss.str());
+	}
+
+	for (int i = 0; i <= lines; i++) {
+		free(fakescreen[i]);
+	}
+	free(fakescreen);
+
+	return new_msg;
+}
+ 
 struct line_t {
 	std::string line;
 	int type;
@@ -452,19 +768,46 @@ void MsgArea::read_message(int start) {
 			linesv.push_back(nline);
 		}
 		ss.str("");
+
+		bool ansimsg = false;
+
 		for (int i = 0; i < msg->msg_len; i++) {
-			if (msg->msg[i] == '\r') {
-				if (ss.str().size() > 79) {
+			if (msg->msg[i] == '\x1b') {
+				ansimsg = true;
+				break;
+			}
+		}
+
+		if (ansimsg && n->hasANSI) {
+			std::vector<std::string> new_msg = demangle_ansi(msg->msg, msg->msg_len);
+			for (size_t i = 0; i < new_msg.size(); i++) {
+				int type = 0;
+				if (new_msg.at(i).find('>') < 5) {
+					type = 1;
+				}
+				else if (new_msg.at(i).size() > 0 && (new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0)) {
+					type = 2;
+				}
+				struct line_t nline;
+				nline.line = new_msg.at(i);
+				nline.type = type;
+				linesv.push_back(nline);
+			}
+		}
+		else {
+			std::vector<std::string> new_msg = strip_ansi(msg->msg, msg->msg_len);
+			for (size_t i = 0; i < new_msg.size(); i++) {
+				if (new_msg.at(i).size() > 79) {
 					int type = 0;
-					if (ss.str().find('>') < 5) {
+					if (new_msg.at(i).find('>') < 5) {
 						type = 1;
 					}
-					else if (ss.str().at(0) == '\x01' || ss.str().find("SEEN-BY: ") == 0) {
+					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0) {
 						type = 2;
 					}
-					
-					std::vector<std::string> newvec = word_wrap(ss.str(), 79);
-					
+
+					std::vector<std::string> newvec = word_wrap(new_msg.at(i), 79);
+
 					for (size_t z = 0; z < newvec.size(); z++) {
 						struct line_t nline;
 						nline.line = newvec.at(z);
@@ -474,21 +817,17 @@ void MsgArea::read_message(int start) {
 				}
 				else {
 					int type = 0;
-					if (ss.str().find('>') < 5) {
+					if (new_msg.at(i).find('>') < 5) {
 						type = 1;
 					}
-					else if (ss.str().size() > 0 && (ss.str().at(0) == '\x01' || ss.str().find("SEEN-BY: ") == 0)) {
+					else if (new_msg.at(i).size() > 0 && (new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0)) {
 						type = 2;
 					}
 					struct line_t nline;
-					nline.line = ss.str();
+					nline.line = new_msg.at(i);
 					nline.type = type;
 					linesv.push_back(nline);
 				}
-				ss.str("");
-			}
-			else {
-				ss << msg->msg[i];
 			}
 		}
 		quotebuffer.clear();
@@ -498,7 +837,7 @@ void MsgArea::read_message(int start) {
 			for (int i = 0; i < msg->ctrl_len; i++) {
 				if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
 					if (ss.str().size() > 79) {
-						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 79);
+						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 75);
 
 						for (size_t z = 0; z < newvec.size(); z++) {
 							quotebuffer.push_back(" > " + newvec.at(z));
@@ -517,33 +856,31 @@ void MsgArea::read_message(int start) {
 				quotebuffer.push_back(" > @" + ss.str());
 			}
 		}
-		ss.str("");
-		for (int i = 0; i < msg->msg_len; i++) {
-			if (msg->msg[i] == '\r') {
-				
-				if (ss.str().size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (ss.str().at(0) == '\x01' || ss.str().find("SEEN-BY: ") == 0)) {
-					ss.str("");
-				}
-				else {
-					if (ss.str().size() > 75) {
-						std::vector<std::string> newvec = word_wrap(ss.str(), 75);
+		
+		std::vector<std::string> q_msg = strip_ansi(msg->msg, msg->msg_len);
 
-						for (size_t z = 0; z < newvec.size(); z++) {
-							std::stringstream ss2;
-							ss2 << " > " << newvec.at(z);
-							quotebuffer.push_back(ss2.str());
-						}
-					}
-					else {
-						std::stringstream ss2;
-						ss2 << " > " << ss.str();
-						quotebuffer.push_back(ss2.str());
-					}
-					ss.str("");
-				}
+		for (size_t i = 0; i < q_msg.size(); i++) {
+			if (q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (q_msg.at(i).at(0) == '\x01' || q_msg.at(i).find("SEEN-BY: ") == 0)) {
+				continue;
 			}
 			else {
-				ss << msg->msg[i];
+				if (q_msg.at(i).size() > 0 && q_msg.at(i).at(0) == '\x01') {
+					q_msg.at(i).at(0) = '@';
+				}
+				if (q_msg.at(i).size() > 75) {
+					std::vector<std::string> newvec = word_wrap(q_msg.at(i), 75);
+
+					for (size_t z = 0; z < newvec.size(); z++) {
+						std::stringstream ss2;
+						ss2 << " > " << newvec.at(z);
+						quotebuffer.push_back(ss2.str());
+					}
+				}
+				else {
+					std::stringstream ss2;
+					ss2 << " > " << q_msg.at(i);
+					quotebuffer.push_back(ss2.str());
+				}
 			}
 		}
 

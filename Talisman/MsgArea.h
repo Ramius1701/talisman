@@ -27,6 +27,8 @@ public:
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);
+	std::vector<std::string> demangle_ansi(const char* msg, int len);
+	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 private:

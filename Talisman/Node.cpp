@@ -566,7 +566,7 @@ std::string Node::get_string(int maxlen, bool masked, bool clear, std::string de
 				ss << tempstr;
 			}
 		}
-		else if (isprint(ch)) {
+		else if (isprint((unsigned char)ch)) {
 			if (masked) {
 				putch('*');
 			}
