@@ -29,7 +29,7 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 	bool gotcmd = false;
 	char buffer[PATH_MAX];
 	iss.str(upload_cmd);
-
+	std::string fname = "";
 
 	ss.str("");
 	ss << uploadpath;
@@ -49,9 +49,10 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 
 	if (prompt) {
 		n->print_f("Please enter the name of the file you are uploading: ");
-		std::string fname = n->get_string(32, false);
-
-		ss << fname;
+		fname = n->get_string(32, false);
+		if (fname == "") {
+			return;
+		}
 	}
 
 	for (std::string s; iss >> s; ) {
@@ -65,6 +66,9 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 		}
 		else if (s == "@UPPATH@") {
 			args.push_back(ss.str());
+		}
+		else if (s == "@FILENAME@" && fname != "") {
+			args.push_back(fname);
 		}
 		else {
 			args.push_back(s);

@@ -1,5 +1,0 @@
-[[messagearea]]
-name = "General Discussion"
-file = "general"
-read_sec_level = 10
-write_sec_level = 10

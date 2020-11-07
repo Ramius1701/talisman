@@ -61,6 +61,13 @@ Node::Node(int node, int socket, bool telnet) {
 	last_time_check = 0;
 	timeleft = 120;
 	log = new Logger();
+#ifdef _MSC_VER
+	hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD dwMode = 0;
+	GetConsoleMode(hOutput, &dwMode);
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	SetConsoleMode(hOutput, dwMode);
+#endif
 }
 
 Node::~Node() {
@@ -158,9 +165,16 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					if (socket) {
 						if (mailconf != -1) {
 							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), NULL, NULL);
+#endif
 						}
 						else {
 							send(socket, "None.", 5, 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
+#endif
+
 						}
 					}
 					else {
@@ -179,9 +193,15 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					if (socket) {
 						if (mailconf != -1 && mailarea != -1) {
 							send(socket, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().size(), 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().size(), NULL, NULL);
+#endif
 						}
 						else {
 							send(socket, "None.", 5, 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
+#endif
 						}
 					}
 					else {
@@ -197,9 +217,16 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					if (socket) {
 						if (mailconf != -1) {
 							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), NULL, NULL);
+#endif
+
 						}
 						else {
 							send(socket, "None.", 5, 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
+#endif
 						}
 					}
 					else {
@@ -218,9 +245,15 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					if (socket) {
 						if (fileconf != -1 && filearea != -1) {
 							send(socket, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().size(), 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().size(), NULL, NULL);
+#endif
 						}
 						else {
 							send(socket, "None.", 5, 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
+#endif
 						}
 					}
 					else {
@@ -237,9 +270,15 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					if (socket) {
 						if (fileconf != -1) {
 							send(socket, config.fileconfs.at(fileconf).get_name().c_str(), config.fileconfs.at(fileconf).get_name().size(), 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, config.fileconfs.at(fileconf).get_name().c_str(), config.fileconfs.at(fileconf).get_name().size(), NULL, NULL);
+#endif
 						}
 						else {
 							send(socket, "None.", 5, 0);
+#ifdef _MSC_VER
+							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
+#endif
 						}
 					}
 					else {
@@ -306,6 +345,9 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				}
 				lastc = c;
 				send(socket, &c, 1, 0);
+#ifdef _MSC_VER
+				WriteConsoleA(hOutput, &c, 1, NULL, NULL);
+#endif
 				if (lines == 23 && pause) {
 					print_f("|14More (Y/N/C) ? ");
 
@@ -604,7 +646,7 @@ void Node::send_str(const char* str) {
 		send(socket, str, strlen(str), 0);
 	}
 #ifdef _MSC_VER
-	std::cout << str;
+	WriteConsoleA(hOutput, str, strlen(str), NULL, NULL);
 #endif
 }
 
@@ -680,7 +722,7 @@ void Node::print_f(const char* fmt, ...)
 				send(socket, &buffer[i], 1, 0);
 			}
 #ifdef _MSC_VER
-			std::cout << buffer[i];
+			WriteConsoleA(hOutput, &buffer[i], 1, NULL, NULL);
 #endif
 		}
 	}

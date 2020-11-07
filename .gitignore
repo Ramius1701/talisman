@@ -28,3 +28,5 @@
 /Servo/Release
 /Talisman/Release
 /Talisman/lua5.4.dll
+/Talisman/win32_deps/Output
+/Toolbelt/Release

@@ -1,5 +1,7 @@
 #pragma once
-
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
 #include <string>
 #include <filesystem>
 #include "Config.h"
@@ -81,7 +83,8 @@ private:
 
 	int timeoutmax;
 
-
-
+#ifdef _MSC_VER
+	HANDLE hOutput;
+#endif
 };
 

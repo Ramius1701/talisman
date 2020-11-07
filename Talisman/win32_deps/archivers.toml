@@ -1,0 +1,5 @@
+[[archiver]]
+name = "Zip"
+extension = ".zip"
+unarc = "__INST_PATH__\\unzip.exe -jLoq -d @OUTDIR@ @ARCHIVE@ @FILELIST@"
+arc = "__INST_PATH__\\zip.exe -jkq @ARCHIVE@ @FILELIST@"

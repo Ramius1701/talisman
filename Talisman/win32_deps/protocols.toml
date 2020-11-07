@@ -1,0 +1,20 @@
+[[protocol]]
+name = "Zmodem"
+upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ rz @UPPATH@"
+download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sz @FILENAME@"
+batch = false
+prompt = false
+
+[[protocol]]
+name = "Xmodem"
+upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ rx @UPPATH@"
+download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sx @FILENAME@"
+batch = false
+prompt = true
+
+[[protocol]]
+name = "Ymodem"
+upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ ry @UPPATH@"
+download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sy @FILENAME@"
+batch = false
+prompt = false

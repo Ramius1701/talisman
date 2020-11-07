@@ -19,11 +19,13 @@ int main(int argc, char** argv) {
 
 #ifdef _MSC_VER
 	HANDLE hInput;
-	DWORD prev_mode;
+	DWORD in_prev_mode;
+
 
 	hInput = GetStdHandle(STD_INPUT_HANDLE);
-	GetConsoleMode(hInput, &prev_mode);
-	SetConsoleMode(hInput, (prev_mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT)) | ENABLE_EXTENDED_FLAGS);
+	GetConsoleMode(hInput, &in_prev_mode);
+	SetConsoleMode(hInput, (in_prev_mode & ~(ENABLE_QUICK_EDIT_MODE | ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT)) | ENABLE_EXTENDED_FLAGS);
+
 #endif
 	for (int i = 1; i < argc; i++) {
 		if (strcasecmp(argv[i], "-N") == 0) {
@@ -44,7 +46,7 @@ int main(int argc, char** argv) {
 	Node n(node, socket, telnet);
 	ret = n.run();
 #ifdef _MSC_VER
-	SetConsoleMode(hInput, prev_mode);
+	SetConsoleMode(hInput, in_prev_mode);
 	closesocket(socket);
 #else
 	close(socket);

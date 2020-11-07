@@ -252,7 +252,7 @@ bool Config::load(Node *n, std::string filename) {
 		}
 	}
 	catch (toml::parse_error) {
-		std::cerr << "Error parsing " << _datapath << "/protocols.toml" << std::endl;
+		std::cerr << "Error parsing " << _datapath << "/archivers.toml" << std::endl;
 		return false;
 	}
 	try {
@@ -298,7 +298,7 @@ bool Config::load(Node *n, std::string filename) {
 		}
 	}
 	catch (toml::parse_error) {
-		std::cerr << "Error parsing " << _datapath << "/msgconfs.toml" << std::endl;
+		std::cerr << "Error parsing " << _datapath << "/fileconfs.toml" << std::endl;
 		return false;
 	}
 	return true;

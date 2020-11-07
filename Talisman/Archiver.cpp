@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cstring>
 #include <filesystem>
+#include <iostream>
 #include "Archiver.h"
 #include "Door.h"
 #include "Node.h"
@@ -116,7 +117,7 @@ void Archiver::runexec(std::string cmd) {
 	ZeroMemory(&pi, sizeof(pi));
 
 	char* cmd_cstr = strdup(cmd.c_str());
-	if (cmd_cstr) return;
+	if (!cmd_cstr) return;
 
 	if (!CreateProcessA(nullptr, cmd_cstr, nullptr, nullptr, true, 0, nullptr, NULL, &si, &pi)) {
 		return;
