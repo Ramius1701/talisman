@@ -606,14 +606,18 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					break;
 				case 'm':
 					for (int z = 0; z < param_count; z++) {
-						if (params[z] == 1) {
-							bold = true;
-						}
-						else if (params[z] == 0) {
+						if (params[z] == 0) {
 							bold = false;
 							fg_color = 7;
 							bg_color = 0;
 						}
+						else if (params[z] == 1) {
+							bold = true;
+						}
+						else if (params[z] == 2) {
+							bold = false;
+						}
+
 						else if (params[z] >= 30 && params[z] <= 37) {
 							fg_color = params[z] - 30;
 						}
@@ -896,7 +900,12 @@ void MsgArea::read_message(int start) {
 		lines = 6;
 		for (size_t lno = 0; lno < linesv.size(); lno++) {
 			if (linesv.at(lno).type == 0) {
-				n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
+				if (ansimsg) {
+					n->print_f("%s\r\n", linesv.at(lno).line.c_str());
+				}
+				else {
+					n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
+				}
 				lines++;
 			}
 			else if (linesv.at(lno).type == 1) {
