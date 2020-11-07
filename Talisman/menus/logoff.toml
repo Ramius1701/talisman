@@ -12,3 +12,8 @@ hotkey = "N"
 [[menuitem]]
 command = "FEEDBACK"
 hotkey = "F"
+
+[[menuitem]]
+command = "RUNSCRIPT"
+data = "automessage"
+hotkey = "L"
