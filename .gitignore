@@ -24,3 +24,7 @@
 /Talisman/data/fb_uploads.sqlite3
 /Talisman/data/fb_misc.sqlite3
 /Talisman/scripts/data
+/Release
+/Servo/Release
+/Talisman/Release
+/Talisman/lua5.4.dll
