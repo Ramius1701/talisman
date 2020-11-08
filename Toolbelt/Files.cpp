@@ -9,6 +9,7 @@
 #else
 #include <unistd.h>
 #endif
+#include <sys/stat.h>
 #include "Archiver.h"
 #include "Files.h"
 #include "toml.hpp"
