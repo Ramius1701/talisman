@@ -1,8 +1,9 @@
 #include <iostream>
 #include <cstring>
-
+#include <filesystem>
 #include "INIReader.h"
 #include "User.h"
+#include "Files.h"
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -51,10 +52,33 @@ int main(int argc, char** argv) {
 				return 0;
 			}
 		}
+		else if (strcasecmp(argv[1], "uploadbulk") == 0) {
+			std::string uploaded_by = "Unknown";
+			if (argc == 5) {
+				uploaded_by = std::string(argv[4]);
+			}
+			if (argc >= 4) {
+				std::filesystem::path folder(argv[2]);
+				std::string database = std::string(argv[3]);
+				Files files;
+				files.load_archivers(inir.Get("paths", "data path", "data"));
+
+				for (auto& d : std::filesystem::directory_iterator(folder)) {
+					if (!files.add_file(inir.Get("paths", "temp path", "data"), database, std::filesystem::absolute(d.path()).u8string(), uploaded_by)) {
+						std::cout << "Failed to add: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+					}
+					else {
+						std::cout << "Successfully added: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+					}
+				}
+			}
+		}
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
 		std::cerr << "   COMMAND password ARGS username newpassword" << std::endl;
 		std::cerr << "   COMMAND seclevel ARGS username newlevel" << std::endl;
+		std::cerr << "   COMMAND uploadbulk ARGS folder database [uploadedby]" << std::endl;
+
 	}
 }

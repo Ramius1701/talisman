@@ -3,11 +3,11 @@ name = "Uploads"
 database = "fb_uploads"
 file_path = "dloads/general/uploads"
 upload_sec_level = 10
-download_sec_levle = 10
+download_sec_level = 10
 
 [[filearea]]
 name = "Miscellanious"
 database = "fb_misc"
 file_path = "dloads/general/misc"
 upload_sec_level = 10
-download_sec_levle = 10
+download_sec_level = 10
