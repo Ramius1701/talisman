@@ -64,11 +64,16 @@ int main(int argc, char** argv) {
 				files.load_archivers(inir.Get("paths", "data path", "data"));
 
 				for (auto& d : std::filesystem::directory_iterator(folder)) {
-					if (!files.add_file(inir.Get("paths", "temp path", "data"), database, std::filesystem::absolute(d.path()).u8string(), uploaded_by)) {
-						std::cout << "Failed to add: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+					if (d.path().filename().u8string() != "files.bbs") {
+						if (!files.add_file(inir.Get("paths", "temp path", "data"), database, std::filesystem::absolute(d.path()).u8string(), uploaded_by)) {
+							std::cout << "Failed to add: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+						}
+						else {
+							std::cout << "Successfully added: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+						}
 					}
 					else {
-						std::cout << "Successfully added: " << std::filesystem::absolute(d.path()).u8string() << std::endl;
+						std::cout << "Skipping files.bbs" << std::endl;
 					}
 				}
 			}
