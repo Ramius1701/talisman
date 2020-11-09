@@ -36,3 +36,4 @@
 /Talisman/data/ssh_host_ecdsa_key
 /Talisman/data/ssh_host_dsa_key
 /Talisman/ssh.dll
+/Talisman/lua5.4.1.dll
