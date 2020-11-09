@@ -175,34 +175,34 @@ int main()
 	}
 	int nfds;
 	fd_set server_fds;
-	FD_ZERO(&server_fds);
-	FD_SET(telnetfd, &server_fds);
-	if (sshport != -1) {
-		FD_SET(sshfd, &server_fds);
 
-		if (telnetfd > sshfd) {
-			nfds = telnetfd;
-		}
-		else {
-			nfds = sshfd;
-		}
-	}
-	else {
-		nfds = telnetfd;
-	}
-	nfds++;
 
 	while (1) {
 		csockfd = -1;
 		bool telnet = false;
-		fd_set copy_fds = server_fds;
-		select(nfds, &copy_fds, NULL, NULL, NULL);
-		if (FD_ISSET(telnetfd, &copy_fds)) {
+		FD_ZERO(&server_fds);
+		FD_SET(telnetfd, &server_fds);
+		if (sshport != -1) {
+			FD_SET(sshfd, &server_fds);
+
+			if (telnetfd > sshfd) {
+				nfds = telnetfd;
+			}
+			else {
+				nfds = sshfd;
+			}
+		}
+		else {
+			nfds = telnetfd;
+		}
+		nfds++;
+		select(nfds, &server_fds, NULL, NULL, NULL);
+		if (FD_ISSET(telnetfd, &server_fds)) {
 			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			telnet = true;
 		}
 		if (sshport != -1) {
-			if (FD_ISSET(sshfd, &copy_fds)) {
+			if (FD_ISSET(sshfd, &server_fds)) {
 				csockfd = accept(sshfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			}
 		}
