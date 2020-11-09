@@ -142,7 +142,11 @@ int main(int argc, char** argv) {
 
 					
 						sockaddr_in sa;
+#ifdef _MSC_VER
 						int addr_len = sizeof(sockaddr_in);
+#else
+						socklen_t addr_len = sizeof(sockaddr_in);
+#endif
 						memset(&sa, 0, sizeof(sockaddr_in));
 
 						sa.sin_family = AF_INET;
@@ -198,13 +202,18 @@ int main(int argc, char** argv) {
 #else
 							close(sock);
 #endif
+							return -1;
 						}
 						std::thread t([&sshc, rsock]() {
 							sshc->run(rsock);
 							});
 						t.detach();
 						int new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
+#ifdef _MSC_VER
 						closesocket(listener);
+#else
+						close(listener);
+#endif
 						Node n(node, new_sock, false);
 						ret = n.run(&sshc->username, &sshc->password);
 					}
