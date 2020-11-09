@@ -61,7 +61,6 @@ int main()
 	int port;
 	struct sockaddr_in ssh_serv_addr, serv_addr, client_addr;
 	int csockfd;
-	int clen = sizeof(struct sockaddr_in);
 	int on = 1;
 	int max_nodes = 4;
 	int i;
@@ -196,6 +195,11 @@ int main()
 		csockfd = -1;
 		bool telnet = false;
 		fd_set copy_fds = server_fds;
+		
+		int clen = sizeof(struct sockaddr_in);
+
+		memset(&client_addr, 0, clen);
+
 		select(nfds, &copy_fds, NULL, NULL, NULL);
 		if (FD_ISSET(telnetfd, &copy_fds)) {
 			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
@@ -346,7 +350,13 @@ int main()
 						close(csockfd);
 					}
 					else if (pid == 0) {
-						close(telnetfd);
+						if(sshport == -1) {
+							close(telnetfd);
+						}
+						else {
+							close(telnetfd);
+							close(sshfd);
+						}
 
 						snprintf(sockstr, 10, "%d", csockfd);
 						snprintf(nodestr, 10, "%d", i + 1);
