@@ -489,6 +489,25 @@ bool Menu::run() {
 					ss << n->get_config()->script_path() << "/" << items[i].data << ".lua";
 					Script::exec(n, ss.str());
 				}
+				else if (strcasecmp(items[i].command.c_str(), "msgreadnew") == 0) {
+					n->log->log(LOG_INFO, "%s reading all new messages %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+					bool done = false;
+					for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
+						n->print_f("|14Searching conference |15%s|14...\r\n", n->get_config()->msgconfs.at(msgconf).get_name().c_str());
+						for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
+							int last_read = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
+							if (last_read < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+								done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true);
+							}
+							if (done) {
+								break;
+							}
+						}
+						if (done) {
+							break;
+						}
+					}
+				}
 				else if (strcasecmp(items[i].command.c_str(), "msgsearch") == 0) {
 					n->log->log(LOG_INFO, "%s performing a message search %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
 

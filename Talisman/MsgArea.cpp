@@ -698,9 +698,9 @@ struct line_t {
 	int type;
 };
 void MsgArea::read_message(int start) {
-	read_message(start, false);
+	read_message(start, false, false, true);
 }
-bool MsgArea::read_message(int start, bool search) {
+bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read) {
 	sq_msg_base_t* mb;
 	int lr = 0; // TODO set last read
 	mb = SquishOpenMsgBase(file.c_str());
@@ -736,8 +736,10 @@ bool MsgArea::read_message(int start, bool search) {
 			continue;
 		}
 
-		if (n->get_user().user_get_lastread(file) < msg_to_read) {
-			n->get_user().user_set_lastread(file, msg_to_read);
+		if (set_last_read) {
+			if (n->get_user().user_get_lastread(file) < msg_to_read) {
+				n->get_user().user_set_lastread(file, msg_to_read);
+			}
 		}
 
 		std::stringstream ss;
@@ -938,17 +940,25 @@ bool MsgArea::read_message(int start, bool search) {
 			}
 		}
 		n->print_f("\r\n");
-		if (!search) {
-			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+		if (search) {
+			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
+			
+		}
+		else if (unread) {
+			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
 		}
 		else {
-			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
+			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
 		}
 		std::string res = n->get_string(1, false);
 		if (res.size() == 0) {
 			if (search) {
 				SquishCloseMsgBase(mb);
 				return true;
+			}
+			else if (unread) {
+				SquishCloseMsgBase(mb);
+				return false;
 			}
 			else {
 				direction = 1;
@@ -1000,7 +1010,7 @@ bool MsgArea::read_message(int start, bool search) {
 				SquishCloseMsgBase(mb);
 				return false;
 			case 'c':
-				if (search) {
+				if (search || unread) {
 					SquishCloseMsgBase(mb);
 					return true;
 				}
@@ -1166,7 +1176,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		}
 		SquishFreeMsg(msg);
 		if (foundmsg) {
-			if (read_message(i, true) == false) {
+			if (read_message(i, true, false, true) == false) {
 				SquishCloseMsgBase(mb);
 				return false;
 			}

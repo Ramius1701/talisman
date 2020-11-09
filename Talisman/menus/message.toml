@@ -18,12 +18,16 @@ command = "POSTMSG"
 hotkey = "P"
 
 [[menuitem]]
-command = "MAILSCAN"
-hotkey = "N"
-
-[[menuitem]]
 command = "MSGSEARCH"
 hotkey = "S"
+
+[[menuitem]]
+command = "MAILSCAN"
+hotkey = "C"
+
+[[menuitem]]
+command = "MSGREADNEW"
+hotkey = "N"
 
 [[menuitem]]
 command = "LISTEMAIL"

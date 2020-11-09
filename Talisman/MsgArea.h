@@ -27,7 +27,7 @@ public:
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);
-	bool read_message(int start, bool search);
+	bool read_message(int start, bool search, bool unread, bool set_last_read);
 	std::vector<std::string> demangle_ansi(const char* msg, int len);
 	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
