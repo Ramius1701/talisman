@@ -47,8 +47,12 @@ int main(int argc, char** argv) {
 					std::cerr << "Out of range for sec level." << std::endl;
 					return -1;
 				}
-				User::set_attribute(inir.Get("paths", "data path", "data"), user, "seclevel", std::to_string(seclevel));
-				std::cout << "Done." << std::endl;
+				if (!User::set_attribute(inir.Get("paths", "data path", "data"), user, "seclevel", std::to_string(seclevel))) {
+					std::cout << "Failed.";
+				}
+				else {
+					std::cout << "Done." << std::endl;
+				}
 				return 0;
 			}
 		}

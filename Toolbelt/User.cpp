@@ -119,7 +119,7 @@ int User::get_uid(std::string datapath, std::string username) {
 	return uid;
 }
 
-void User::set_attribute(std::string datapath, std::string username, std::string attrib, std::string value) {
+bool User::set_attribute(std::string datapath, std::string username, std::string attrib, std::string value) {
 	sqlite3* db;
 	sqlite3_stmt* res;
 	int rc = 0;
@@ -128,18 +128,20 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 	static const char* upd_sql = "UPDATE details SET value = ? WHERE uid = ? and attrib = ?";
 	int uid = get_uid(datapath, username);
 
-	if (uid == -1) return;
+	if (uid == -1) {
+		return false;
+	}
 
 	//assert(uid != -1);
 
 	// check if row exists
 	if (!open_database(datapath + "/users.sqlite3", &db)) {
-		return;
+		return false;
 	}
 	rc = sqlite3_prepare_v2(db, chk_sql, strlen(chk_sql), &res, 0);
 	if (rc != SQLITE_OK) {
 		sqlite3_close(db);
-		return;
+		return false;
 	}
 	sqlite3_bind_text(res, 1, attrib.c_str(), -1, 0);
 	sqlite3_bind_int(res, 2, uid);
@@ -148,7 +150,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 		rc = sqlite3_prepare_v2(db, ins_sql, strlen(ins_sql), &res, 0);
 		if (rc != SQLITE_OK) {
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 		sqlite3_bind_int(res, 1, uid);
 		sqlite3_bind_text(res, 2, attrib.c_str(), -1, 0);
@@ -156,7 +158,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 		if (sqlite3_step(res) != SQLITE_DONE) {
 			sqlite3_finalize(res);
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 	}
 	else {
@@ -164,7 +166,7 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 		rc = sqlite3_prepare_v2(db, upd_sql, strlen(upd_sql), &res, 0);
 		if (rc != SQLITE_OK) {
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 		sqlite3_bind_text(res, 1, value.c_str(), -1, 0);
 		sqlite3_bind_int(res, 2, uid);
@@ -172,11 +174,13 @@ void User::set_attribute(std::string datapath, std::string username, std::string
 		if (sqlite3_step(res) != SQLITE_DONE) {
 			sqlite3_finalize(res);
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(db);
+
+	return true;
 }
 
 bool User::open_database(std::string filename, sqlite3** db)
