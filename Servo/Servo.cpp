@@ -57,6 +57,7 @@ bool should_pass(std::string ip) {
 
 int main()
 {
+	int sshport;
 	int port;
 	struct sockaddr_in serv_addr, client_addr;
 	int csockfd;
@@ -69,7 +70,7 @@ int main()
 	std::vector<struct node_t> nodes;
 #ifdef _MSC_VER
 	WSADATA wsaData;
-	
+
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		std::cerr << "Error initializing winsock!" << std::endl;
 		return -1;
@@ -93,6 +94,7 @@ int main()
 	}
 
 	port = inir.GetInteger("main", "telnet port", 2323);
+	sshport = inir.GetInteger("main", "ssh port", -1);
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
 	datapath = inir.Get("paths", "data path", "data");
 
@@ -137,7 +139,7 @@ int main()
 		std::cerr << "Error setting TCP_NODELAY (Telnet)" << std::endl;
 		return -1;
 	}
-	if (bind(telnetfd, (struct sockaddr*) & serv_addr, sizeof(struct sockaddr_in)) < 0) {
+	if (bind(telnetfd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) < 0) {
 		std::cerr << "Error binding. (Telnet)" << std::endl;
 		return -1;
 	}
@@ -145,158 +147,231 @@ int main()
 	listen(telnetfd, 5);
 	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
 
-	while (1) {
-		csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
-		std::string ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
-		if (!should_pass(ipaddr)) {
-			std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
-#ifdef _MSC_VER
-			closesocket(csockfd);
-#else
-			close(csockfd);
-#endif
-			continue;
+	int sshfd;
+
+	if (sshport != -1) {
+		sshfd = socket(AF_INET, SOCK_STREAM, 0);
+
+		memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+
+		serv_addr.sin_family = AF_INET;
+		serv_addr.sin_addr.s_addr = INADDR_ANY;
+		serv_addr.sin_port = htons(sshport);
+		if (setsockopt(sshfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << "Error setting SO_REUSEADDR (SSH)" << std::endl;
+			return -1;
+		}
+		if (setsockopt(sshfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << "Error setting TCP_NODELAY (SSH)" << std::endl;
+			return -1;
+		}
+		if (bind(sshfd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) < 0) {
+			std::cerr << "Error binding. (SSH)" << std::endl;
+			return -1;
 		}
 
+		listen(sshfd, 5);
+		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
+	}
+	int nfds;
+	fd_set server_fds;
+	FD_ZERO(&server_fds);
+	FD_SET(telnetfd, &server_fds);
+	if (sshport != -1) {
+		FD_SET(sshfd, &server_fds);
+
+		if (telnetfd > sshfd) {
+			nfds = telnetfd;
+		}
+		else {
+			nfds = sshfd;
+		}
+	}
+	else {
+		nfds = telnetfd;
+	}
+	nfds++;
+
+	while (1) {
+		csockfd = -1;
+		bool telnet = false;
+		fd_set copy_fds = server_fds;
+		select(nfds, &copy_fds, NULL, NULL, NULL);
+		if (FD_ISSET(telnetfd, &copy_fds)) {
+			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+			telnet = true;
+		}
+		if (sshport != -1) {
+			if (FD_ISSET(sshfd, &copy_fds)) {
+				csockfd = accept(sshfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+			}
+		}
+		if (csockfd != -1) {
+			std::string ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
+			if (!should_pass(ipaddr)) {
+				std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
+#ifdef _MSC_VER
+				closesocket(csockfd);
+#else
+				close(csockfd);
+#endif
+				continue;
+			}
+
 
 #ifdef _MSC_VER
 
-		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i).pid != 0) {
-				HANDLE Handle = OpenProcess(
-					PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-					FALSE,
-					nodes.at(i).pid
-				);
+			for (i = 0; i < max_nodes; i++) {
+				if (nodes.at(i).pid != 0) {
+					HANDLE Handle = OpenProcess(
+						PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+						FALSE,
+						nodes.at(i).pid
+					);
 
-				if (Handle) {
-					char pname[256];
+					if (Handle) {
+						char pname[256];
 
-					if (GetModuleBaseNameA(Handle, 0, pname, 256) != 0) {
-						if (strcasecmp(pname, "talisman.exe") == 0) {
-							CloseHandle(Handle);
+						if (GetModuleBaseNameA(Handle, 0, pname, 256) != 0) {
+							if (strcasecmp(pname, "talisman.exe") == 0) {
+								CloseHandle(Handle);
+								continue;
+							}
+						}
+						CloseHandle(Handle);
+					}
+					nodes.at(i).pid = 0;
+					nodes.at(i).ip = "";
+				}
+			}
+
+			bool alreadyloggedin = false;
+			for (size_t i = 0; i < nodes.size(); i++) {
+				if (nodes.at(i).ip == ipaddr) {
+					alreadyloggedin = true;
+					break;
+				}
+			}
+
+			if (alreadyloggedin) {
+				std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+				closesocket(csockfd);
+				continue;
+			}
+
+			for (i = 0; i < max_nodes; i++) {
+				if (nodes.at(i).pid == 0) {
+					std::stringstream ss;
+					ss.str("");
+					ss << "\"talisman.exe\"" << " -S " << csockfd << " -N " << std::to_string(i + 1);
+					if (telnet) {
+						ss << " -T";
+					}
+					else {
+						ss << " -SSH";
+					}
+					char* cmd = strdup(ss.str().c_str());
+
+					STARTUPINFOA si;
+					PROCESS_INFORMATION pi;
+
+					ZeroMemory(&si, sizeof(si));
+					si.cb = sizeof(si);
+					//	si.dwFlags = STARTF_USESTDHANDLES;
+					//	si.hStdInput = INVALID_HANDLE_VALUE;
+					//	si.hStdError = INVALID_HANDLE_VALUE;
+					//	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+					ZeroMemory(&pi, sizeof(pi));
+
+					if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+						std::cerr << "Failed to create process!" << std::endl;
+						free(cmd);
+						closesocket(csockfd);
+						continue;
+					}
+					nodes.at(i).pid = pi.dwProcessId;
+					nodes.at(i).ip = ipaddr;
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
+					free(cmd);
+					break;
+				}
+			}
+			if (i == max_nodes) {
+				send(csockfd, "BUSY\r\n", 6, 0);
+			}
+			closesocket(csockfd);
+#else
+
+			for (i = 0; i < max_nodes; i++) {
+				if (nodes.at(i).pid != 0) {
+					char buffer[PATH_MAX];
+					snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i).pid);
+					FILE* fptr = fopen(buffer, "r");
+
+					if (fptr) {
+						fgets(buffer, sizeof buffer, fptr);
+						fclose(fptr);
+
+						if (strncmp(buffer, "./talisman", 10) == 0) {
 							continue;
 						}
 					}
-					CloseHandle(Handle);
+					nodes.at(i).pid = 0;
+					nodes.at(i).ip = "";
 				}
-				nodes.at(i).pid = 0;
-				nodes.at(i).ip = "";
 			}
-		}
-		
-		bool alreadyloggedin = false;
-		for (size_t i = 0; i < nodes.size(); i++) {
-			if (nodes.at(i).ip == ipaddr) {
-				alreadyloggedin = true;
-				break;
-			}
-		}
-
-		if (alreadyloggedin) {
-			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
-			closesocket(csockfd);
-			continue;
-		}
-
-		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i).pid == 0) {
-				std::stringstream ss;
-				ss.str("");
-				ss << "\"talisman.exe\"" << " -S " << csockfd << " -N " << std::to_string(i + 1) << " -T";
-				char* cmd = strdup(ss.str().c_str());
-
-				STARTUPINFOA si;
-				PROCESS_INFORMATION pi;
-
-				ZeroMemory(&si, sizeof(si));
-				si.cb = sizeof(si);
-				//	si.dwFlags = STARTF_USESTDHANDLES;
-				//	si.hStdInput = INVALID_HANDLE_VALUE;
-				//	si.hStdError = INVALID_HANDLE_VALUE;
-				//	si.hStdOutput = INVALID_HANDLE_VALUE;
-
-				ZeroMemory(&pi, sizeof(pi));
-
-				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-					std::cerr << "Failed to create process!" << std::endl;
-					free(cmd);
-					closesocket(csockfd);
-					continue;
+			bool alreadyloggedin = false;
+			for (size_t i = 0; i < nodes.size(); i++) {
+				if (nodes.at(i).ip == ipaddr) {
+					alreadyloggedin = true;
+					break;
 				}
-				nodes.at(i).pid = pi.dwProcessId;
-				nodes.at(i).ip = ipaddr;
-				CloseHandle(pi.hProcess);
-				CloseHandle(pi.hThread);
-				free(cmd);
-				break;
 			}
-		}
-		if (i == max_nodes) {
-			send(csockfd, "BUSY\r\n", 6, 0);
-		}
-		closesocket(csockfd);
-#else
 
-		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i).pid != 0) {
-				char buffer[PATH_MAX];
-				snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i).pid);
-				FILE* fptr = fopen(buffer, "r");
+			if (alreadyloggedin) {
+				std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+				close(csockfd);
+				continue;
+			}
+			for (i = 0; i < max_nodes; i++) {
+				if (nodes.at(i).pid == 0) {
 
-				if (fptr) {
-					fgets(buffer, sizeof buffer, fptr);
-					fclose(fptr);
+					pid_t pid = fork();
 
-					if (strncmp(buffer, "./talisman", 10) == 0) {
-						continue;
+					if (pid > 0) {
+						nodes.at(i).pid = pid;
+						nodes.at(i).ip = ipaddr;
+						close(csockfd);
 					}
-				}
-				nodes.at(i).pid = 0;
-				nodes.at(i).ip = "";
-			}
-		}
-		bool alreadyloggedin = false;
-		for (size_t i = 0; i < nodes.size(); i++) {
-			if (nodes.at(i).ip == ipaddr) {
-				alreadyloggedin = true;
-				break;
-			}
-		}
+					else if (pid == 0) {
+						close(telnetfd);
 
-		if (alreadyloggedin) {
-			std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
-			close(csockfd);
-			continue;
-		}
-		for (i = 0; i < max_nodes; i++) {
-			if (nodes.at(i).pid == 0) {
-
-				pid_t pid = fork();
-
-				if (pid > 0) {
-					nodes.at(i).pid = pid;
-					nodes.at(i).ip = ipaddr;
-					close(csockfd);
-				}
-				else if (pid == 0) {
-					close(telnetfd);
-
-					snprintf(sockstr, 10, "%d", csockfd);
-					snprintf(nodestr, 10, "%d", i + 1);
-					if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
-						perror("Execlp: ");
-						exit(-1);
+						snprintf(sockstr, 10, "%d", csockfd);
+						snprintf(nodestr, 10, "%d", i + 1);
+						if (telnet) {
+							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
+								perror("Execlp: ");
+								exit(-1);
+							}
+						}
+						else {
+							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-SSH", NULL) == -1) {
+								perror("Execlp: ");
+								exit(-1);
+							}
+						}
 					}
+					else {
+						std::cerr << "Failed to create process!" << std::endl;
+						close(csockfd);
+					}
+					break;
 				}
-				else {
-					std::cerr << "Failed to create process!" << std::endl;
-					close(csockfd);
-				}
-				break;
 			}
-		}
 #endif
+		}
 	}
 	return 0;
 }

@@ -156,6 +156,8 @@ bool Config::load(Node *n, std::string filename) {
 			std::string myname;
 			std::string myul_cmd;
 			std::string mydl_cmd;
+			std::string myssh_ul_cmd;
+			std::string myssh_dl_cmd;
 			bool mybatch;
 			bool myprompt;
 
@@ -180,7 +182,20 @@ bool Config::load(Node *n, std::string filename) {
 			else {
 				mydl_cmd = "";
 			}
-
+			auto ssh_ul_cmd = itemtable->get("ssh_upload_command");
+			if (ssh_ul_cmd != nullptr) {
+				myssh_ul_cmd = ssh_ul_cmd->as_string()->value_or(myul_cmd);
+			}
+			else {
+				myssh_ul_cmd = myul_cmd;
+			}
+			auto ssh_dl_cmd = itemtable->get("ssh_download_command");
+			if (ssh_dl_cmd != nullptr) {
+				myssh_dl_cmd = ssh_dl_cmd->as_string()->value_or(mydl_cmd);
+			}
+			else {
+				myssh_dl_cmd = mydl_cmd;
+			}
 			auto batch = itemtable->get("batch");
 			if (batch != nullptr) {
 				mybatch = batch->as_boolean()->value_or(false);
@@ -196,7 +211,7 @@ bool Config::load(Node *n, std::string filename) {
 				myprompt = true;
 			}
 
-			Protocol* p = new Protocol(myname, mydl_cmd, myul_cmd, mybatch, myprompt);
+			Protocol* p = new Protocol(myname, mydl_cmd, myssh_dl_cmd, myul_cmd, myssh_ul_cmd, mybatch, myprompt);
 			protocols.push_back(p);
 		}
 	}

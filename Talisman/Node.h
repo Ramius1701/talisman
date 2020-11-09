@@ -27,6 +27,8 @@ public:
 	char getche();
 	void putch(const char c);
 	int run();
+	int run(std::string *username, std::string *password);
+	bool newuser();
 	bool detectANSI();
 	void disconnected();
 	void send_gfile(std::string filename, bool pause, bool script);
@@ -53,6 +55,10 @@ public:
 
 	int get_timeleft() {
 		return timeleft;
+	}
+
+	bool is_telnet() {
+		return telnet;
 	}
 
 	void system_info();

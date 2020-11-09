@@ -446,7 +446,6 @@ char Node::getch() {
 	char buffer[2048];
 	int i = 0;
 	struct timeval tv;
-	struct sec_level_t* sl;
 
 	if (socket != 0) {
 		while (true) {
@@ -512,7 +511,7 @@ char Node::getch() {
 					continue;
 				}
 				if (stage == 0) {
-					if ((unsigned char)ch == IAC) {
+					if ((unsigned char)ch == IAC && telnet) {
 						stage = 1;
 					}
 					else if (ch != '\n' && ch != '\0') {
@@ -802,6 +801,100 @@ void Node::system_info() {
 }
 
 int Node::run() {
+	return run(nullptr, nullptr);
+}
+
+bool Node::newuser() {
+	log->log(LOG_INFO, "New user signing up on node %d", node);
+	cls();
+	send_gfile("newuser");
+	print_f("|14Create a new account? (Y/N): |07");
+	char ch = tolower(getche());
+	if (ch == 'y') {
+		std::string newusername = "";
+		while (true) {
+			print_f("\r\n       Desired username: ");
+			newusername = get_string(16, false);
+			trim(newusername);
+			if (User::username_allowed(config, newusername)) {
+				break;
+			}
+			print_f("\r\n|12Sorry, username not allowed (Too short, inappropriate or already in use.)|07\r\n");
+		}
+		std::string password = "";
+		while (true) {
+			print_f("\r\n       Desired password: ");
+			password = get_string(16, true);
+			if (password.size() < 6) {
+				print_f("\r\n|12Password too short..|07\r\n");
+				continue;
+			}
+			print_f("\r\n        Repeat password: ");
+			std::string password_r = get_string(16, true);
+
+			if (password != password_r) {
+				print_f("\r\n|12Passwords don't match..|07\r\n");
+				continue;
+			}
+			break;
+		}
+
+		std::string firstname = "";
+		std::string lastname = "";
+
+		while (true) {
+			print_f("\r\n        Your first name: ");
+			firstname = get_string(26, false);
+			if (firstname.find(' ') != std::string::npos) {
+				print_f("\r\n|12First name can not contain a space!.\r\n|07");
+				continue;
+			}
+			print_f("\r\n         Your last name: ");
+			lastname = get_string(26, false);
+			trim(lastname);
+			if (firstname.size() < 2 || lastname.size() < 2) {
+				print_f("\r\n|12First name and last name must both be at least 2 characters long.\r\n|07");
+				continue;
+			}
+
+			if (!User::check_fullname(config, firstname + " " + lastname)) {
+				print_f("\r\n|12Someone with that name is already registered, sorry.\r\n|07");
+				continue;
+			}
+			break;
+		}
+		std::string location;
+		while (true) {
+			print_f("\r\n   Approximate location: ");
+			location = get_string(26, false);
+			trim(location);
+			if (location.size() < 2) {
+				print_f("\r\n|12Too short. Come on, don't be shy!\r\n|07");
+				continue;
+			}
+
+			break;
+		}
+		std::string email;
+		print_f("\r\n Contact E-Mail address: ");
+		email = get_string(32, false);
+		trim(email);
+		print_f("\r\n|14Thankyou. Have you entered everything correctly? (Y/N): |07");
+		if (tolower(getche() == 'y')) {
+			print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
+			if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
+				return true;
+			}
+			else {
+				print_f("\r\n|12Sorry, an error occured!|07\r\n");
+				return false;
+			}
+		}
+	}
+	return false;
+}
+
+int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	unsigned char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
 	unsigned char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
@@ -852,115 +945,53 @@ int Node::run() {
 
 	int tries = 0;
 
-	while (!logged_in) {
-		print_f("\r\nEnter USERNAME or NEW\r\n");
-		print_f("LOGIN: ");
-		std::string login = get_string(16, false);
-		if (strcasecmp(login.c_str(), "NEW") == 0) {
-			log->log(LOG_INFO, "New user signing up on node %d", node);
-			cls();
-			send_gfile("newuser");
-			print_f("|14Create a new account? (Y/N): |07");
-			char ch = tolower(getche());
-			if (ch == 'y') {
-				std::string newusername = "";
-				while(true) {
-					print_f("\r\n       Desired username: ");
-					newusername = get_string(16, false);
-					trim(newusername);
-					if (User::username_allowed(config, newusername)) {
-						break;
-					}
-					print_f("\r\n|12Sorry, username not allowed (Too short, inappropriate or already in use.)|07\r\n");
-				}
-				std::string password = "";
-				while(true) {
-					print_f("\r\n       Desired password: ");
-					password = get_string(16, true);
-					if (password.size() < 6) {
-						print_f("\r\n|12Password too short..|07\r\n");
-						continue;
-					}
-					print_f("\r\n        Repeat password: ");
-					std::string password_r = get_string(16, true);
-
-					if (password != password_r) {
-						print_f("\r\n|12Passwords don't match..|07\r\n");
-						continue;
-					}
-					break;
-				}
-
-				std::string firstname = "";
-				std::string lastname = "";
-
-				while (true) {
-					print_f("\r\n        Your first name: ");
-					firstname = get_string(26, false);
-					if (firstname.find(' ') != std::string::npos) {
-						print_f("\r\n|12First name can not contain a space!.\r\n|07");
-						continue;
-					}
-					print_f("\r\n         Your last name: ");
-					lastname = get_string(26, false);
-					trim(lastname);
-					if (firstname.size() < 2 || lastname.size() < 2) {
-						print_f("\r\n|12First name and last name must both be at least 2 characters long.\r\n|07");
-						continue;
-					}
-
-					if (!User::check_fullname(config, firstname + " " + lastname)) {
-						print_f("\r\n|12Someone with that name is already registered, sorry.\r\n|07");
-						continue;
-					}
-					break;
-				}
-				std::string location;
-				while (true) {
-					print_f("\r\n   Approximate location: ");
-					location = get_string(26, false);
-					trim(location);
-					if (location.size() < 2) {
-						print_f("\r\n|12Too short. Come on, don't be shy!\r\n|07");
-						continue;
-					}
-
-					break;
-				}
-				std::string email;
-				print_f("\r\n Contact E-Mail address: ");
-				email = get_string(32, false);
-				trim(email);
-				print_f("\r\n|14Thankyou. Have you entered everything correctly? (Y/N): |07");
-				if (tolower(getche() == 'y')) {
-					print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
-					if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
-						logged_in = true;
-					}
-					else {
-						print_f("\r\n|12Sorry, an error occured!|07\r\n");
-						return 0;
-					}
-				}
-			}
-		}
-		else {
-			print_f("\r\nPASSW: ");
-			std::string password = get_string(16, true);
-
-			if (u.load_user(login, password)) {
-				logged_in = true;
+	if (sshusername == nullptr || sshpassword == nullptr) {
+		while (!logged_in) {
+			print_f("\r\nEnter USERNAME or NEW\r\n");
+			print_f("LOGIN: ");
+			std::string login = get_string(16, false);
+			if (strcasecmp(login.c_str(), "NEW") == 0) {
+				logged_in = newuser();
 			}
 			else {
-				log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", login.c_str(), node);
-				tries++;
+				print_f("\r\nPASSW: ");
+				std::string password = get_string(16, true);
+
+				if (u.load_user(login, password)) {
+					logged_in = true;
+				}
+				else {
+					log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", login.c_str(), node);
+					tries++;
+				}
+			}
+			if (tries == 3) {
+				return 0;
 			}
 		}
-		if (tries == 3) {
+	}
+	else if (sshusername != nullptr && sshpassword != nullptr) {
+		std::string login = *sshusername;
+		std::string password = *sshpassword;
+		if (strcasecmp(login.c_str(), "NEW") == 0) {
+			print_f("|14Signing up as a new user...\r\n");
+			print_f("|14Press any key...|07");
+			getch();
+			print_f("\r\n");
+			if (!newuser()) {
+				return 0;
+			}
+		} else if (!u.load_user(login, password)) {
 			return 0;
 		}
+		print_f("|14Welcome back |15%s!|07\r\n", login.c_str());
+		print_f("|14Press any key...|07");
+		getch();
+		print_f("\r\n");
 	}
-
+	else {
+		return 0;
+	}
 	log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
 
 	clog = new CallLog(&config);

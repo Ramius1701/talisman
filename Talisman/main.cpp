@@ -1,25 +1,36 @@
 #ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-
+#include <WinSock2.h>
 #define strcasecmp _stricmp
 #else
 #include <unistd.h>
 #include <cstring>
 #endif
 #include <iostream>
+#include <thread>
+#include <libssh/libssh.h>
 #include "Config.h"
 #include "Node.h"
+#include "SshClient.h"
+#include "INIReader.h"
 
+#define RSA_KEYLEN 4096
+#define DSA_KEYLEN 1024
+#define ECDSA_KEYLEN 521
+#define ED25519_KEYLEN 521
 
 int main(int argc, char** argv) {
 	int node = 0;
-	int socket = 0;
+	int sock = 0;
 	bool telnet = false;
 	int ret;
+	bool ssh = false;
 
 #ifdef _MSC_VER
 	HANDLE hInput;
 	DWORD in_prev_mode;
+
 
 
 	hInput = GetStdHandle(STD_INPUT_HANDLE);
@@ -34,22 +45,182 @@ int main(int argc, char** argv) {
 			continue;
 		}
 		else if (strcasecmp(argv[i], "-S") == 0) {
-			socket = (int)strtoul(argv[i + 1], NULL, 10);
+			sock = (int)strtoul(argv[i + 1], NULL, 10);
 			i++;
 			continue;
 		}
 		else if (strcasecmp(argv[i], "-T") == 0) {
 			telnet = true;
 		}
+		else if (strcasecmp(argv[i], "-SSH") == 0) {
+			ssh = true;
+		}
 	}
 
-	Node n(node, socket, telnet);
-	ret = n.run();
+	if (ssh == true) {
+		INIReader inir("talisman.ini");
+
+		if (inir.ParseError() != 0) {
+#ifdef _MSC_VER
+			SetConsoleMode(hInput, in_prev_mode);
+			closesocket(sock);
+#else
+			close(sock);
+#endif
+			return -1;
+		}
+
+		std::string datapath = inir.Get("Paths", "Data Path", "data");
+		std::filesystem::path ssh_dsa_key(datapath + "/ssh_host_dsa_key");
+		std::filesystem::path ssh_rsa_key(datapath + "/ssh_host_rsa_key");
+		std::filesystem::path ssh_ecdsa_key(datapath + "/ssh_host_ecdsa_key");
+		std::filesystem::path ssh_ed25519_key(datapath + "/ssh_host_ed25519_key");
+
+		ssh_bind p_ssh_bind = NULL;
+
+		if (!std::filesystem::exists(ssh_dsa_key)) {
+			ssh_key new_key;
+			int status = ssh_pki_generate(SSH_KEYTYPE_DSS, DSA_KEYLEN, &new_key);
+			if (status == SSH_OK) {
+				ssh_pki_export_privkey_file(new_key, NULL, NULL, NULL, ssh_dsa_key.u8string().c_str());
+			}
+		}
+
+		if (!std::filesystem::exists(ssh_rsa_key)) {
+			ssh_key new_key;
+			int status = ssh_pki_generate(SSH_KEYTYPE_RSA, RSA_KEYLEN, &new_key);
+			if (status == SSH_OK) {
+				ssh_pki_export_privkey_file(new_key, NULL, NULL, NULL, ssh_rsa_key.u8string().c_str());
+			}
+		}
+		if (!std::filesystem::exists(ssh_ecdsa_key)) {
+			ssh_key new_key;
+			int status = ssh_pki_generate(SSH_KEYTYPE_ECDSA, ECDSA_KEYLEN, &new_key);
+			if (status == SSH_OK) {
+				ssh_pki_export_privkey_file(new_key, NULL, NULL, NULL, ssh_ecdsa_key.u8string().c_str());
+			}
+		}
+		if (!std::filesystem::exists(ssh_ed25519_key)) {
+			ssh_key new_key;
+			int status = ssh_pki_generate(SSH_KEYTYPE_ED25519, ED25519_KEYLEN, &new_key);
+			if (status == SSH_OK) {
+				ssh_pki_export_privkey_file(new_key, NULL, NULL, NULL, ssh_ed25519_key.u8string().c_str());
+			}
+		}
+
+
+		if (std::filesystem::exists(ssh_dsa_key) && std::filesystem::exists(ssh_rsa_key)) {
+			p_ssh_bind = ssh_bind_new();
+			if (p_ssh_bind != NULL) {
+
+				ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_dsa_key.u8string().c_str());
+				ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_rsa_key.u8string().c_str());
+
+				if (std::filesystem::exists(ssh_ecdsa_key)) {
+					ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_ecdsa_key.u8string().c_str());
+				}
+				if (std::filesystem::exists(ssh_ed25519_key)) {
+					ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_ed25519_key.u8string().c_str());
+				}
+
+
+				// do ssh authentication
+				SshClient* sshc = new SshClient();
+
+				sshc->p_ssh_session = ssh_new();
+				if (sshc->p_ssh_session == NULL) {
+#ifdef _MSC_VER
+					SetConsoleMode(hInput, in_prev_mode);
+					closesocket(sock);
+#else
+					close(sock);
+#endif
+					return -1;
+				}
+				else {
+					if (ssh_bind_accept_fd(p_ssh_bind, sshc->p_ssh_session, sock) == SSH_OK) {
+
+					
+						sockaddr_in sa;
+						int addr_len = sizeof(sockaddr_in);
+						memset(&sa, 0, sizeof(sockaddr_in));
+
+						sa.sin_family = AF_INET;
+						sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+						sa.sin_port = 0;
+						
+						if (!sshc->do_auth()) {
+#ifdef _MSC_VER
+							SetConsoleMode(hInput, in_prev_mode);
+							closesocket(sock);
+#else
+							close(sock);
+#endif
+							return -1;
+						}
+						
+						int listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+						if (bind(listener, (sockaddr *)&sa, sizeof(sockaddr_in)) < 0) {
+#ifdef _MSC_VER
+							SetConsoleMode(hInput, in_prev_mode);
+							closesocket(sock);
+#else
+							close(sock);
+#endif
+							return -1;
+						}
+
+						if (listen(listener, 5) < 0) {
+#ifdef _MSC_VER
+							SetConsoleMode(hInput, in_prev_mode);
+							closesocket(sock);
+#else
+							close(sock);
+#endif
+							return -1;
+						}
+
+						if (getsockname(listener, (sockaddr *)&sa, &addr_len) < 0) {
+#ifdef _MSC_VER
+							SetConsoleMode(hInput, in_prev_mode);
+							closesocket(sock);
+#else
+							close(sock);
+#endif
+							return -1;
+						}
+						int rsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+						if (connect(rsock, (sockaddr*)&sa, addr_len) < 0) {
+#ifdef _MSC_VER
+							SetConsoleMode(hInput, in_prev_mode);
+							closesocket(sock);
+#else
+							close(sock);
+#endif
+						}
+						std::thread t([&sshc, rsock]() {
+							sshc->run(rsock);
+							});
+						t.detach();
+						int new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
+						closesocket(listener);
+						Node n(node, new_sock, false);
+						ret = n.run(&sshc->username, &sshc->password);
+					}
+				}
+			}
+		}
+	}
+	else {
+		Node n(node, sock, telnet);
+		ret = n.run();
+	}
 #ifdef _MSC_VER
 	SetConsoleMode(hInput, in_prev_mode);
-	closesocket(socket);
+	closesocket(sock);
 #else
-	close(socket);
+	close(sock);
 #endif
 	
 	return ret;

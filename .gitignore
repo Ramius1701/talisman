@@ -31,3 +31,8 @@
 /Talisman/win32_deps/Output
 /Toolbelt/Release
 /Talisman/dloads/general/uploads
+/Talisman/data/ssh_host_rsa_key
+/Talisman/data/ssh_host_ed25519_key
+/Talisman/data/ssh_host_ecdsa_key
+/Talisman/data/ssh_host_dsa_key
+/Talisman/ssh.dll

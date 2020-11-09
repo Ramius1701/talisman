@@ -11,11 +11,13 @@
 #include <unistd.h>
 #endif
 
-Protocol::Protocol(std::string name, std::string dl_cmd, std::string ul_cmd, bool batch, bool prompt)
+Protocol::Protocol(std::string name, std::string dl_cmd, std::string ssh_dl_cmd, std::string ul_cmd, std::string ssh_ul_cmd, bool batch, bool prompt)
 {
 	this->name = name;
 	download_cmd = dl_cmd;
 	upload_cmd = ul_cmd;
+	ssh_upload_cmd = ssh_ul_cmd;
+	ssh_download_cmd = ssh_dl_cmd;
 	this->batch = batch;
 	this->prompt = prompt;
 }
@@ -28,7 +30,12 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 	std::string cmd;
 	bool gotcmd = false;
 	char buffer[PATH_MAX];
-	iss.str(upload_cmd);
+	if (n->is_telnet()) {
+		iss.str(upload_cmd);
+	}
+	else {
+		iss.str(ssh_upload_cmd);
+	}
 	std::string fname = "";
 
 	ss.str("");
@@ -94,7 +101,12 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 	bool gotcmd = false;
 	std::string cmd;
 
-	iss.str(download_cmd);
+	if (n->is_telnet()) {
+		iss.str(download_cmd);
+	}
+	else {
+		iss.str(ssh_download_cmd);
+	}
 
 	if (batch) {
 		for (std::string s; iss >> s; ) {
