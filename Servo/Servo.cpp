@@ -199,7 +199,17 @@ int main()
 
 		memset(&client_addr, 0, clen);
 
-		select(nfds, &copy_fds, NULL, NULL, NULL);
+		if (select(nfds, &copy_fds, NULL, NULL, NULL) < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+			else {
+				exit(-1);
+			}
+		}
+		std::cerr << "returned from select!" << std::endl;
+
+
 		if (FD_ISSET(telnetfd, &copy_fds)) {
 			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			telnet = true;
@@ -210,6 +220,7 @@ int main()
 			}
 		}
 		if (csockfd != -1) {
+			std::cerr << "accepted socket!" << std::endl;
 			std::string ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
 			if (!should_pass(ipaddr)) {
 				std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
@@ -307,7 +318,7 @@ int main()
 #else
 
 
-
+			std::cerr << "looking for free nodes" << std::endl;
 			for (i = 0; i < max_nodes; i++) {
 				if (nodes.at(i).pid != 0) {
 					char buffer[PATH_MAX];
