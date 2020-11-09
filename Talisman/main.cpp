@@ -57,6 +57,8 @@ int main(int argc, char** argv) {
 		}
 	}
 
+	std::cerr << "Launched Talisman!" << std::endl;
+
 	if (ssh == true) {
 		INIReader inir("talisman.ini");
 
