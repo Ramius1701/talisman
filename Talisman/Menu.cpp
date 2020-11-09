@@ -496,7 +496,7 @@ bool Menu::run() {
 
 					n->print_f("|14Enter |15SPACE |14seperated keywords: |07");
 
-					std::string keywordstr = n->get_string(60, false);
+					std::string keywordstr = n->get_string(45, false);
 
 					std::stringstream ss(keywordstr);
 					std::istream_iterator<std::string> begin(ss);
