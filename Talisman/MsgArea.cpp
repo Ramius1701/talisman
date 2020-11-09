@@ -697,19 +697,21 @@ struct line_t {
 	std::string line;
 	int type;
 };
-
 void MsgArea::read_message(int start) {
+	read_message(start, false);
+}
+bool MsgArea::read_message(int start, bool search) {
 	sq_msg_base_t* mb;
 	int lr = 0; // TODO set last read
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		n->print_f("|14Unable to open message base!|07\r\n");
-		return;
+		return false;
 	}
 	if (start > mb->basehdr.num_msg) {
 		n->print_f("|14Empty message base!|07\r\n");
 		SquishCloseMsgBase(mb);
-		return;
+		return false;
 	}
 	int total_msgs = mb->basehdr.num_msg;
 	int msg_to_read = start;
@@ -722,7 +724,7 @@ void MsgArea::read_message(int start) {
 		sq_msg_t* msg = SquishReadMsg(mb, msg_to_read);
 		if (msg == NULL) {
 			SquishCloseMsgBase(mb);
-			return;
+			return false;
 		}
 		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
 			if (direction == 1) {
@@ -936,11 +938,22 @@ void MsgArea::read_message(int start) {
 			}
 		}
 		n->print_f("\r\n");
-		n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+		if (!search) {
+			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+		}
+		else {
+			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
+		}
 		std::string res = n->get_string(1, false);
 		if (res.size() == 0) {
-			direction = 1;
-			msg_to_read++;
+			if (search) {
+				SquishCloseMsgBase(mb);
+				return true;
+			}
+			else {
+				direction = 1;
+				msg_to_read++;
+			}
 		}
 		else {
 			switch (tolower(res[0])) {
@@ -985,7 +998,12 @@ void MsgArea::read_message(int start) {
 				break;
 			case 'q':
 				SquishCloseMsgBase(mb);
-				return;
+				return false;
+			case 'c':
+				if (search) {
+					SquishCloseMsgBase(mb);
+					return true;
+				}
 			}
 		}
 	}
@@ -1148,14 +1166,11 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		}
 		SquishFreeMsg(msg);
 		if (foundmsg) {
-			read_message(i);
-			n->print_f("\r\n\r\n|14Continue searching? (Y/N) : |07");
-			if (tolower(n->getch()) == 'n') {
+			if (read_message(i, true) == false) {
 				SquishCloseMsgBase(mb);
 				return false;
 			}
 		}
-
 	}
 
 	SquishCloseMsgBase(mb);

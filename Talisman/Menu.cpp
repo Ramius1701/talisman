@@ -543,7 +543,7 @@ bool Menu::run() {
 										break;
 									}
 								}
-								n->print_f("|14Press any key...|07");
+								n->print_f("\r\n|14Press any key...|07");
 								n->getch();
 								n->print_f("\r\n");
 							}
@@ -559,7 +559,7 @@ bool Menu::run() {
 											break;
 										}
 									}
-									n->print_f("|14Press any key...|07");
+									n->print_f("\r\n|14Press any key...|07");
 									n->getch();
 									n->print_f("\r\n");
 								}
