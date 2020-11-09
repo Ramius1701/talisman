@@ -306,6 +306,8 @@ int main()
 			closesocket(csockfd);
 #else
 
+
+
 			for (i = 0; i < max_nodes; i++) {
 				if (nodes.at(i).pid != 0) {
 					char buffer[PATH_MAX];
@@ -359,12 +361,14 @@ int main()
 						snprintf(sockstr, 10, "%d", csockfd);
 						snprintf(nodestr, 10, "%d", i + 1);
 						if (telnet) {
+							std::cerr << "Launching Talisman (Telnet)" << std::endl;
 							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
 								perror("Execlp: ");
 								exit(-1);
 							}
 						}
 						else {
+							std::cerr << "Launching Talisman (SSH)" << std::endl;
 							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-SSH", NULL) == -1) {
 								perror("Execlp: ");
 								exit(-1);
