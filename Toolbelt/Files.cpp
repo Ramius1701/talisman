@@ -203,6 +203,19 @@ bool Files::add_file(std::string temppath, std::string dbname, std::string filen
 					}
 					break;
 				}
+				else {
+					d = p;
+					d.append("FILE_ID.DIZ");
+					if (std::filesystem::exists(d)) {
+						std::ifstream infile(d.u8string());
+						std::string line;
+						while (std::getline(infile, line))
+						{
+							descr.push_back(line);
+						}
+						break;
+					}
+				}
 			}
 		}
 
