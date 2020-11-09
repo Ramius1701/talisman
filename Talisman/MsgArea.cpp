@@ -2,6 +2,7 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #endif
 #include <fstream>
 #include <sstream>
@@ -1072,4 +1073,91 @@ int MsgArea::list_messages(int start) {
 			return 0;
 		}
 	}
+}
+
+bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) {
+	sq_msg_base_t* mb;
+	bool foundmsg = false;
+	mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return true;
+	}
+
+	size_t i;
+
+	if (newonly) {
+		i = n->get_user().user_get_lastread(file) + 1;
+	}
+	else {
+		i = 1;
+	}
+
+	n->print_f("|14Scanning |15%s\r\n|07", name.c_str());
+
+	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+		foundmsg = false;
+		sq_msg_t* msg = SquishReadMsg(mb, i);
+
+		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+			SquishFreeMsg(msg);
+			continue;
+		}
+
+		switch (type) {
+		case MSGSEARCH_BODY:
+		{
+			
+			char* body = (char*)malloc(msg->msg_len + 1);
+			if (!body) {
+				SquishFreeMsg(msg);
+				SquishCloseMsgBase(mb);
+				return true;
+			}
+			memcpy(body, msg->msg, msg->msg_len);
+			body[msg->msg_len] = '0';
+			std::string bodystr(body);
+			for (size_t k = 0; k < keywords.size(); k++) {
+				if (bodystr.find(" " + keywords.at(k) + " ") != std::string::npos) {
+					foundmsg = true;
+					break;
+				}
+			}
+		}
+		break;
+		case MSGSEARCH_SUBJ:
+		{
+			for (size_t k = 0; k < keywords.size(); k++) {
+				if (strncasecmp(msg->xmsg.subject, keywords.at(k).c_str(), 72) == 0) {
+					foundmsg = true;
+					break;
+				}
+			}
+		}
+		break;
+		case MSGSEARCH_USER:
+		{
+			for (size_t k = 0; k < keywords.size(); k++) {
+				if (strncasecmp(msg->xmsg.from, keywords.at(k).c_str(), 36) == 0 || strncasecmp(msg->xmsg.to, keywords.at(k).c_str(), 36) == 0) {
+					foundmsg = true;
+					break;
+				}
+			}
+			
+		}
+		break;
+		}
+		SquishFreeMsg(msg);
+		if (foundmsg) {
+			read_message(i);
+			n->print_f("\r\n\r\n|14Continue searching? (Y/N) : |07");
+			if (tolower(n->getch()) == 'n') {
+				SquishCloseMsgBase(mb);
+				return false;
+			}
+		}
+
+	}
+
+	SquishCloseMsgBase(mb);
+	return true;
 }

@@ -31,6 +31,7 @@ public:
 	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
+	bool search(std::vector<std::string> keywords, int type, bool newonly);
 private:
 	std::string name;
 	std::string file;

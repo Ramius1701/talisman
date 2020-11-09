@@ -12,3 +12,7 @@ constexpr unsigned char IAC_DONT = 254;
 constexpr unsigned char IAC_TRANSMIT_BINARY = 0;
 constexpr unsigned char IAC_SUPPRESS_GO_AHEAD = 3;
 constexpr unsigned char IAC_ECHO = 1;
+
+constexpr int MSGSEARCH_BODY = 0;
+constexpr int MSGSEARCH_SUBJ = 1;
+constexpr int MSGSEARCH_USER = 2;

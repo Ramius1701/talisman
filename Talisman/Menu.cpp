@@ -5,6 +5,7 @@
 #endif
 #include <fstream>
 #include <sstream>
+#include "GenDefs.h"
 #include "Node.h"
 #include "Menu.h"
 #include "CallLog.h"
@@ -486,6 +487,84 @@ bool Menu::run() {
 
 					ss << n->get_config()->script_path() << "/" << items[i].data << ".lua";
 					Script::exec(n, ss.str());
+				}
+				else if (strcasecmp(items[i].command.c_str(), "msgsearch") == 0) {
+					n->log->log(LOG_INFO, "%s performing a message search %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+
+					n->cls();
+
+					n->print_f("|14Enter |15SPACE |14seperated keywords: |07");
+
+					std::string keywordstr = n->get_string(60, false);
+
+					std::stringstream ss(keywordstr);
+					std::istream_iterator<std::string> begin(ss);
+					std::istream_iterator<std::string> end;
+					std::vector<std::string> keywords(begin, end);
+
+					n->print_f("\r\n|14Search |15T|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|14Cancel |08: |07");
+					std::string res = n->get_string(1, false);
+
+					bool allconfs = true;
+					int stype = MSGSEARCH_BODY;
+					bool done = false;
+					if (res.size() > 0) {
+						if (tolower(res[0]) == 'a') {
+							allconfs = true;
+						}
+						else if (tolower(res[0]) == 't') {
+							allconfs = false;
+						}
+						n->print_f("\r\n|14Search |15B|08=|14Body, |15S|08=|14Subject|08, |15U|08=|14User|08, |15ENTER|08=|14Cancel |08 : |07");
+						std::string res2 = n->get_string(1, false);
+
+						if (res2.size() > 0) {
+							if (tolower(res2[0]) == 'b') {
+								stype = MSGSEARCH_BODY;
+							}
+							else if (tolower(res2[0]) == 's') {
+								stype = MSGSEARCH_SUBJ;
+							}
+							else if (tolower(res2[0]) == 'u') {
+								stype = MSGSEARCH_USER;
+							}
+
+							if (allconfs) {
+								for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
+									n->print_f("|14Searching conference |15%s|14...\r\n", n->get_config()->msgconfs.at(msgconf).get_name().c_str());
+									for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
+										if (!n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).search(keywords, stype, false)) {
+											done = true;
+											break;
+										}
+									}
+									if (done) {
+										break;
+									}
+								}
+								n->print_f("|14Press any key...|07");
+								n->getch();
+								n->print_f("\r\n");
+							}
+							else {
+								int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+
+								if (msgconf == -1) {
+									n->print_f("|14Select a message conference first!|07\r\n");
+								}
+								else {
+									for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
+										if (!n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).search(keywords, stype, false)) {
+											break;
+										}
+									}
+									n->print_f("|14Press any key...|07");
+									n->getch();
+									n->print_f("\r\n");
+								}
+							}
+						}
+					}
 				}
 			}
 		}
