@@ -5,6 +5,7 @@
 #endif
 #include <fstream>
 #include <sstream>
+#include <iterator>
 #include "GenDefs.h"
 #include "Node.h"
 #include "Menu.h"
