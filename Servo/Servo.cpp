@@ -59,7 +59,7 @@ int main()
 {
 	int sshport;
 	int port;
-	struct sockaddr_in serv_addr, client_addr;
+	struct sockaddr_in ssh_serv_addr, serv_addr, client_addr;
 	int csockfd;
 	int clen = sizeof(struct sockaddr_in);
 	int on = 1;
@@ -154,9 +154,9 @@ int main()
 
 		memset(&serv_addr, 0, sizeof(struct sockaddr_in));
 
-		serv_addr.sin_family = AF_INET;
-		serv_addr.sin_addr.s_addr = INADDR_ANY;
-		serv_addr.sin_port = htons(sshport);
+		ssh_serv_addr.sin_family = AF_INET;
+		ssh_serv_addr.sin_addr.s_addr = INADDR_ANY;
+		ssh_serv_addr.sin_port = htons(sshport);
 		if (setsockopt(sshfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
 			std::cerr << "Error setting SO_REUSEADDR (SSH)" << std::endl;
 			return -1;
@@ -165,7 +165,7 @@ int main()
 			std::cerr << "Error setting TCP_NODELAY (SSH)" << std::endl;
 			return -1;
 		}
-		if (bind(sshfd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) < 0) {
+		if (bind(sshfd, (struct sockaddr*)&ssh_serv_addr, sizeof(struct sockaddr_in)) < 0) {
 			std::cerr << "Error binding. (SSH)" << std::endl;
 			return -1;
 		}
@@ -175,34 +175,34 @@ int main()
 	}
 	int nfds;
 	fd_set server_fds;
+	FD_ZERO(&server_fds);
+	FD_SET(telnetfd, &server_fds);
+	if (sshport != -1) {
+		FD_SET(sshfd, &server_fds);
 
+		if (telnetfd > sshfd) {
+			nfds = telnetfd;
+		}
+		else {
+			nfds = sshfd;
+		}
+	}
+	else {
+		nfds = telnetfd;
+	}
+	nfds++;
 
 	while (1) {
 		csockfd = -1;
 		bool telnet = false;
-		FD_ZERO(&server_fds);
-		FD_SET(telnetfd, &server_fds);
-		if (sshport != -1) {
-			FD_SET(sshfd, &server_fds);
-
-			if (telnetfd > sshfd) {
-				nfds = telnetfd;
-			}
-			else {
-				nfds = sshfd;
-			}
-		}
-		else {
-			nfds = telnetfd;
-		}
-		nfds++;
-		select(nfds, &server_fds, NULL, NULL, NULL);
-		if (FD_ISSET(telnetfd, &server_fds)) {
+		fd_set copy_fds = server_fds;
+		select(nfds, &copy_fds, NULL, NULL, NULL);
+		if (FD_ISSET(telnetfd, &copy_fds)) {
 			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			telnet = true;
 		}
 		if (sshport != -1) {
-			if (FD_ISSET(sshfd, &server_fds)) {
+			if (FD_ISSET(sshfd, &copy_fds)) {
 				csockfd = accept(sshfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			}
 		}
