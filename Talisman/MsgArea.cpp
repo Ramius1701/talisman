@@ -724,6 +724,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		sq_msg_t* msg = SquishReadMsg(mb, msg_to_read);
 		if (msg == NULL) {
 			SquishCloseMsgBase(mb);
+			if (search || unread) {
+				return true;
+			}
 			return false;
 		}
 		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
