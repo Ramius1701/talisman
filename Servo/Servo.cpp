@@ -339,6 +339,9 @@ int main()
 				close(csockfd);
 				continue;
 			}
+
+			std::cerr << "looking for node" << std::endl;
+
 			for (i = 0; i < max_nodes; i++) {
 				if (nodes.at(i).pid == 0) {
 
@@ -383,6 +386,7 @@ int main()
 				}
 			}
 			if (i == max_nodes) {
+				std::cerr << "All nodes busy." << std::endl;
 				send(csockfd, "BUSY\r\n", 6, 0);
 				close(csockfd);
 			}
