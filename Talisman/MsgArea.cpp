@@ -956,10 +956,6 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				SquishCloseMsgBase(mb);
 				return true;
 			}
-			else if (unread) {
-				SquishCloseMsgBase(mb);
-				return false;
-			}
 			else {
 				direction = 1;
 				msg_to_read++;
