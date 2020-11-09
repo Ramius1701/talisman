@@ -63,8 +63,7 @@ int main()
 	int csockfd;
 	int on = 1;
 	int max_nodes = 4;
-	int i;
-
+	size_t i;
 	char str[INET6_ADDRSTRLEN];
 	std::vector<struct node_t> nodes;
 #ifdef _MSC_VER
@@ -250,7 +249,7 @@ int main()
 			}
 
 			bool alreadyloggedin = false;
-			for (size_t i = 0; i < nodes.size(); i++) {
+			for (i = 0; i < nodes.size(); i++) {
 				if (nodes.at(i).ip == ipaddr) {
 					alreadyloggedin = true;
 					break;
@@ -262,7 +261,6 @@ int main()
 				closesocket(csockfd);
 				continue;
 			}
-
 			for (i = 0; i < max_nodes; i++) {
 				if (nodes.at(i).pid == 0) {
 					std::stringstream ss;
@@ -327,7 +325,7 @@ int main()
 				}
 			}
 			bool alreadyloggedin = false;
-			for (size_t i = 0; i < nodes.size(); i++) {
+			for (i = 0; i < nodes.size(); i++) {
 				if (nodes.at(i).ip == ipaddr) {
 					alreadyloggedin = true;
 					break;
@@ -379,6 +377,10 @@ int main()
 					}
 					break;
 				}
+			}
+			if (i == max_nodes) {
+				send(csockfd, "BUSY\r\n", 6, 0);
+				close(csockfd);
 			}
 #endif
 		}
