@@ -18,7 +18,7 @@
 #define RSA_KEYLEN 4096
 #define DSA_KEYLEN 1024
 #define ECDSA_KEYLEN 521
-#define ED25519_KEYLEN 521
+#define ED25519_KEYLEN 256
 
 int main(int argc, char** argv) {
 	int node = 0;

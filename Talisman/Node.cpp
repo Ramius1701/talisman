@@ -974,7 +974,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		std::string login = *sshusername;
 		std::string password = *sshpassword;
 		if (strcasecmp(login.c_str(), "NEW") == 0) {
-			print_f("|14Signing up as a new user...\r\n");
+			print_f("\r\n|14Signing up as a new user...\r\n");
 			print_f("|14Press any key...|07");
 			getch();
 			print_f("\r\n");
@@ -984,7 +984,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		} else if (!u.load_user(login, password)) {
 			return 0;
 		}
-		print_f("|14Welcome back |15%s!|07\r\n", login.c_str());
+		print_f("\r\n|14Welcome back |15%s!|07\r\n", login.c_str());
 		print_f("|14Press any key...|07");
 		getch();
 		print_f("\r\n");
