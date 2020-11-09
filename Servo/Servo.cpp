@@ -287,6 +287,8 @@ int main()
 
 					ZeroMemory(&si, sizeof(si));
 					si.cb = sizeof(si);
+					si.dwFlags = STARTF_USESHOWWINDOW;
+					si.wShowWindow = SW_MINIMIZE;
 					//	si.dwFlags = STARTF_USESTDHANDLES;
 					//	si.hStdInput = INVALID_HANDLE_VALUE;
 					//	si.hStdError = INVALID_HANDLE_VALUE;
