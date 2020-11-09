@@ -185,6 +185,7 @@ bool Files::add_file(std::string temppath, std::string dbname, std::string filen
 		std::vector<std::string> flist;
 		std::vector<std::string> descr;
 		flist.push_back("file_id.diz");
+		flist.push_back("FILE_ID.DIZ");
 
 		for (size_t i = 0; i < archivers.size(); i++) {
 			std::filesystem::path f(filename);
