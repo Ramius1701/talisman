@@ -74,7 +74,9 @@ bool Files::file_exists(std::string filename, std::string database) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	bool ret;
-	static const char sql[] = "SELECT filename FROM files WHERE filename = ?";
+	struct stat s;
+	static const char sql[] = "SELECT filesize FROM files WHERE filename = ?";
+	static const char sql2[] = "DELETE FROM files WHERE filename = ?";
 	std::filesystem::path p(filename);
 
 	if (!open_database(database, &db)) {
@@ -92,7 +94,26 @@ bool Files::file_exists(std::string filename, std::string database) {
 	sqlite3_bind_text(stmt, 1, fp.c_str(), -1, NULL);
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		ret = true;
+		// check if the file is the same size
+		if (stat(fp.c_str(), &s) == 0) {
+			if (s.st_size != sqlite3_column_int64(stmt, 0)) {
+				sqlite3_finalize(stmt);
+				if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
+					sqlite3_close(db);
+					std::cerr << "Error preparing statement" << std::endl;
+					return true;
+				}
+				sqlite3_bind_text(stmt, 1, fp.c_str(), -1, NULL);
+				sqlite3_step(stmt);
+				ret = false;
+			}
+			else {
+				ret = true;
+			}
+		}
+		else {
+			ret = true;
+		}
 	}
 	else {
 		ret = false;
