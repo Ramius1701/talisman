@@ -2,6 +2,8 @@
 name = "Zmodem"
 upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ rz @UPPATH@"
 download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sz @FILENAME@"
+ssh_upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh rz @UPPATH@"
+ssh_download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh sz @FILENAME@"
 batch = false
 prompt = false
 
@@ -9,6 +11,8 @@ prompt = false
 name = "Xmodem"
 upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ rx @UPPATH@"
 download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sx @FILENAME@"
+ssh_upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh rx @UPPATH@"
+ssh_download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh sx @FILENAME@"
 batch = false
 prompt = true
 
@@ -16,5 +20,7 @@ prompt = true
 name = "Ymodem"
 upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ ry @UPPATH@"
 download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ sy @FILENAME@"
+ssh_upload_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh ry @UPPATH@"
+ssh_download_command = "__INST_PATH__\\sexyz.exe @SOCKET@ -ssh sy @FILENAME@"
 batch = false
 prompt = false
