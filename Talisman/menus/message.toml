@@ -38,6 +38,14 @@ command = "MSGSUBAREAS"
 hotkey = "B"
 
 [[menuitem]]
+command = "QWKDOWN"
+hotkey = "D"
+
+[[menuitem]]
+command = "QWKUP"
+hotkey = "W"
+
+[[menuitem]]
 command = "LISTEMAIL"
 hotkey = "M"
 
