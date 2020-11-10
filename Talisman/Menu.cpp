@@ -511,7 +511,7 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "msgupdatelr") == 0) {
 					n->log->log(LOG_INFO, "%s updating last read messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
-					n->print_f("|14Update last lead pointers on |15T|08=|14This Area|08, |15C|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|15Cancel |08: |07");
+					n->print_f("|14Update last lead pointers on...\r\n|15T|08=|14This Area|08, |15C|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|14Cancel |08: |07");
 					std::string res = n->get_string(1, false);
 					time_t now = time(NULL);
 					struct tm now_tm;
