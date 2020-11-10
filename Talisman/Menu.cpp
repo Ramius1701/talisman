@@ -813,6 +813,8 @@ void Menu::qwk_down(Node* n) {
 	std::vector<std::string> flist;
 	std::vector<unsigned int> last_read_ptrs;
 	std::filesystem::path fpath(n->get_config()->tmp_path());
+	n->cls();
+	
 	fpath.append(std::to_string(n->getnodenum()));
 
 	fpath.append("qwk");
@@ -1001,6 +1003,7 @@ static int safe_atoi(const char* str, int len) {
 }
 
 void Menu::qwk_up(Node *n) {
+	n->cls();
 	std::filesystem::path fpath;
 	fpath.append(n->get_config()->tmp_path());
 	fpath.append(std::to_string(n->getnodenum()));
@@ -1033,6 +1036,8 @@ void Menu::qwk_up(Node *n) {
 		qwkfile.append(n->get_config()->qwk_id() + ".REP");
 		if (!std::filesystem::exists(qwkfile)) {
 			n->print_f("|12Could not find %s.REP\r\n|07", n->get_config()->qwk_id().c_str());
+			n->print_f("|14Press any key...|07");
+			n->getch();
 			return;
 		}
 	}
@@ -1044,6 +1049,8 @@ void Menu::qwk_up(Node *n) {
 
 	if (arc < 0 || arc >= n->get_config()->archivers.size()) {
 		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+		n->print_f("|14Press any key...|07");
+		n->getch();
 		return;
 	}
 	std::vector<std::string> flist;
@@ -1070,6 +1077,8 @@ void Menu::qwk_up(Node *n) {
 		qwkfile.append(ss.str());
 		if (!std::filesystem::exists(qwkfile)) {
 			n->print_f("|14Could not find %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+			n->print_f("|14Press any key...|07");
+			n->getch();
 			return;
 		}
 	}
@@ -1078,6 +1087,8 @@ void Menu::qwk_up(Node *n) {
 
 	if (!msgsfptr) {
 		n->print_f("|12Could not open %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+		n->print_f("|14Press any key...|07");
+		n->getch();
 		return;
 	}
 
@@ -1086,12 +1097,16 @@ void Menu::qwk_up(Node *n) {
 	if (fread(&qhdr, sizeof(struct QwkHeader), 1, msgsfptr) != 1) {
 		n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
 		fclose(msgsfptr);
+		n->print_f("|14Press any key...|07");
+		n->getch();
 		return;
 	}
 
 	if (strncasecmp((char*)&qhdr, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size()) != 0) {
 		n->print_f("|12QWK Packet not for this system..|07\r\n");
 		fclose(msgsfptr);
+		n->print_f("|14Press any key...|07");
+		n->getch();
 		return;
 	}
 
@@ -1105,6 +1120,8 @@ void Menu::qwk_up(Node *n) {
 		if (!msgcontent) {
 			n->print_f("|12Error allocating memory|07\r\n");
 			fclose(msgsfptr);
+			n->print_f("|14Press any key...|07");
+			n->getch();
 			return;
 		}
 
@@ -1112,6 +1129,8 @@ void Menu::qwk_up(Node *n) {
 		if (fread(msgcontent, sizeof(struct QwkHeader), msgrecs - 1, msgsfptr) != msgrecs - 1) {
 			n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
 			fclose(msgsfptr);
+			n->print_f("|14Press any key...|07");
+			n->getch();
 			return;
 		}
 
@@ -1294,4 +1313,6 @@ void Menu::qwk_up(Node *n) {
 	}
 
 	fclose(msgsfptr);
+	n->print_f("|14Press any key...|07");
+	n->getch();
 }
