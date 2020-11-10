@@ -34,6 +34,10 @@ command = "MSGUPDATELR"
 hotkey = "U"
 
 [[menuitem]]
+command = "MSGSUBAREAS"
+hotkey = "B"
+
+[[menuitem]]
 command = "LISTEMAIL"
 hotkey = "M"
 

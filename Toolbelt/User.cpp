@@ -188,6 +188,7 @@ bool User::open_database(std::string filename, sqlite3** db)
 	static const char* create_users_sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
 	static const char* create_details_sql = "CREATE TABLE IF NOT EXISTS details(uid INTEGER, attrib TEXT COLLATE NOCASE, value TEXT COLLATE NOCASE);";
 	static const char* create_lastread_sql = "CREATE TABLE IF NOT EXISTS lastr(uid INTEGER, msgbase TEXT, mid INTEGER);";
+	static const char* create_subscription_sql = "CREATE TABLE IF NOT EXISTS subs(uid INTEGER, msgbase TEXT)";
 	int rc;
 	char* err_msg = NULL;
 
@@ -212,6 +213,14 @@ bool User::open_database(std::string filename, sqlite3** db)
 		return false;
 	}
 	rc = sqlite3_exec(*db, create_lastread_sql, 0, 0, &err_msg);
+	if (rc != SQLITE_OK) {
+		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
+		free(err_msg);
+		sqlite3_close(*db);
+		return false;
+	}
+
+	rc = sqlite3_exec(*db, create_subscription_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
 		free(err_msg);

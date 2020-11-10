@@ -491,20 +491,31 @@ bool Menu::run() {
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgreadnew") == 0) {
 					n->log->log(LOG_INFO, "%s reading all new messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+
+					bool subonly = false;
+					n->print_f("\r\n|14Read only subscribed areas? (Y/N) : |07");
+					subonly = (tolower(n->getch()) == 'y');
+
 					bool done = false;
 					for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
-						n->print_f("|14Searching conference |15%s|14...\r\n", n->get_config()->msgconfs.at(msgconf).get_name().c_str());
-						for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
-							int last_read = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
-							if (last_read < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-								done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true);
+						if (n->get_config()->msgconfs.at(msgconf).get_sec_level() <= n->get_user().get_sec_level()) {
+							n->print_f("\r\n|14Searching conference |15%s|14...\r\n", n->get_config()->msgconfs.at(msgconf).get_name().c_str());
+							for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
+								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() <= n->get_user().get_sec_level()) {
+									if (!subonly || n->get_user().is_subscribed(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
+										int last_read = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
+										if (last_read < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+											done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true);
+										}
+										if (done) {
+											break;
+										}
+									}
+								}
 							}
 							if (done) {
 								break;
 							}
-						}
-						if (done) {
-							break;
 						}
 					}
 				}
@@ -654,6 +665,122 @@ bool Menu::run() {
 									n->print_f("\r\n|14Press any key...|07");
 									n->getch();
 									n->print_f("\r\n");
+								}
+							}
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "msgsubareas") == 0) {
+					n->log->log(LOG_INFO, "%s managing msgbase subscriptions on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+
+					while (true) {
+						int confcounter = 0;
+						int lines = 3;
+						std::string res = "";
+						n->cls();
+						n->print_f("|14Message Conferences|07\r\n\r\n");
+						for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+							if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+								n->print_f("|15%3d|08. |14%s\r\n", confcounter + 1, n->get_config()->msgconfs.at(i).get_name().c_str());
+								if (lines >= 23) {
+									n->print_f("|14Continue (Y/N) : ");
+									if (tolower(n->getch()) == 'n') {
+										break;
+									}
+									lines = 0;
+									n->print_f("\r\n");
+								}
+								lines++;
+								confcounter++;
+							}
+						}
+
+						n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Conference|08, |15Q|08=|14Quit : ", confcounter);
+
+						res = n->get_string(6, false);
+						if (res.size() > 0) {
+							if (tolower(res[0]) == 'q') {
+								break;
+							}
+							else {
+								int selconf = -1;
+								try {
+									selconf = stoi(res) - 1;
+								}
+								catch (std::invalid_argument) {
+								}
+								catch (std::out_of_range) {
+								}
+
+								if (selconf >= 0 && selconf < confcounter) {
+									confcounter = 0;
+									int actualconf = -1;
+									for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+										if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+											if (selconf == confcounter) {
+												actualconf = (int)i;
+												break;
+											}
+											confcounter++;
+										}
+									}
+									if (actualconf >= 0 && actualconf < n->get_config()->msgconfs.size()) {
+										while (true) {
+											n->cls();
+											n->print_f("|14Message Areas|07\r\n\r\n");
+											int areacounter = 0;
+											lines = 3;
+											for (size_t i = 0; i < n->get_config()->msgconfs.at(actualconf).areas.size(); i++) {
+												if (n->get_config()->msgconfs.at(actualconf).areas.at(i).get_r_sec_level() <= n->get_user().get_sec_level()) {
+													n->print_f("|15%3d|08. |14%-48.48s |08[|14%s|08]\r\n", areacounter + 1, n->get_config()->msgconfs.at(actualconf).areas.at(i).get_name().c_str(), n->get_user().is_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(i).get_file()) ? "ON" : "OFF");
+													if (lines >= 23) {
+														n->print_f("|14Continue (Y/N) : ");
+														if (tolower(n->getch()) == 'n') {
+															break;
+														}
+														lines = 0;
+														n->print_f("\r\n");
+													}
+													lines++;
+													areacounter++;
+												}
+											}
+											n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Area|08, |15Q|08=|14Quit : ", areacounter);
+											res = n->get_string(6, false);
+											if (res.size() > 0) {
+												if (tolower(res[0]) == 'q') {
+													break;
+												}
+												else {
+													int selarea = -1;
+													try {
+														selarea = stoi(res) - 1;
+													}
+													catch (std::invalid_argument) {
+													}
+													catch (std::out_of_range) {
+													}
+													if (selarea >= 0 && selarea < areacounter) {
+														areacounter = 0;
+														int actualarea = -1;
+														for (size_t i = 0; i < n->get_config()->msgconfs.at(actualconf).areas.size(); i++) {
+															if (n->get_config()->msgconfs.at(actualconf).areas.at(i).get_r_sec_level() <= n->get_user().get_sec_level()) {
+																if (selarea == areacounter) {
+																	actualarea = (int)i;
+																	break;
+																}
+																areacounter++;
+															}
+														}
+
+														if (actualarea >= 0 && actualarea < n->get_config()->msgconfs.at(actualconf).areas.size()) {
+															n->get_user().set_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(actualarea).get_file(), !n->get_user().is_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(actualarea).get_file()));
+														}
+													}
+												}
+											}
+										}
+									}
 								}
 							}
 						}

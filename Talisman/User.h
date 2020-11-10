@@ -14,6 +14,9 @@ public:
 	bool load_user(std::string username, std::string password);
 	bool inst_user(std::string username, std::string password, std::string firstname, std::string lastname, std::string location, std::string email);
 	void set_attribute(std::string attrib, std::string value);
+	bool is_subscribed(std::string msgbase);
+	void set_subscribed(std::string msgbase, bool value);
+
 	std::string get_username() {
 		return username;
 	}

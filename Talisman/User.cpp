@@ -346,6 +346,7 @@ bool User::open_database(std::string filename, sqlite3** db)
 	static const char* create_users_sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
 	static const char* create_details_sql = "CREATE TABLE IF NOT EXISTS details(uid INTEGER, attrib TEXT COLLATE NOCASE, value TEXT COLLATE NOCASE);";
 	static const char* create_lastread_sql = "CREATE TABLE IF NOT EXISTS lastr(uid INTEGER, msgbase TEXT, mid INTEGER);";
+	static const char* create_subscription_sql = "CREATE TABLE IF NOT EXISTS subs(uid INTEGER, msgbase TEXT)";
 	int rc;
 	char* err_msg = NULL;
 
@@ -370,6 +371,13 @@ bool User::open_database(std::string filename, sqlite3** db)
 		return false;
 	}
 	rc = sqlite3_exec(*db, create_lastread_sql, 0, 0, &err_msg);
+	if (rc != SQLITE_OK) {
+		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
+		free(err_msg);
+		sqlite3_close(*db);
+		return false;
+	}
+	rc = sqlite3_exec(*db, create_subscription_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
 		free(err_msg);
@@ -632,4 +640,77 @@ void User::user_list(Node* n) {
 	sqlite3_close(db);
 	n->print_f("|14Press any key...|07");
 	n->getch();
+}
+
+bool User::is_subscribed(std::string msgbase) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	static const char sql[] = "SELECT uid FROM subs WHERE uid = ? and msgbase = ?";
+
+
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return true;
+	}
+	if (!sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) == SQLITE_OK) {
+		sqlite3_close(db);
+		return true;
+	}
+
+	sqlite3_bind_int(stmt, 1, uid);
+	sqlite3_bind_text(stmt, 2, msgbase.c_str(), -1, NULL);
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+		return true;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+	return false;
+}
+void User::set_subscribed(std::string msgbase, bool value) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+	static const char insert_sql[] = "INSERT INTO subs (uid, msgbase) VALUES(?,?)";
+	static const char delete_sql[] = "DELETE FROM subs WHERE uid=? AND msgbase=?";
+
+	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+		return;
+	}
+
+	if (value) {
+		if (is_subscribed(msgbase)) {
+			sqlite3_close(db);
+			return;
+		}
+		else {
+			if (sqlite3_prepare_v2(db, insert_sql, strlen(insert_sql), &stmt, NULL) != SQLITE_OK) {
+				sqlite3_close(db);
+				return;
+			}
+		}
+	}
+	else {
+		if (!is_subscribed(msgbase)) {
+			sqlite3_close(db);
+			return;
+		}
+		else {
+			if (sqlite3_prepare_v2(db, delete_sql, strlen(delete_sql), &stmt, NULL) != SQLITE_OK) {
+				sqlite3_close(db);
+				return;
+			}
+		}
+	}
+
+	sqlite3_bind_int(stmt, 1, uid);
+	sqlite3_bind_text(stmt, 2, msgbase.c_str(), -1, NULL);
+
+	sqlite3_step(stmt);
+
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return;
 }
