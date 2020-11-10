@@ -81,6 +81,7 @@ public:
 	std::vector<FileConf> fileconfs;
 	std::vector<Archiver*> archivers;
 	Protocol* select_protocol(Node* n);
+	int select_archiver(Node* n);
 
 private:
 	std::string _mainmenu;

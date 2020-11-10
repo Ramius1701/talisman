@@ -358,3 +358,32 @@ Protocol* Config::select_protocol(Node* n) {
 	}
 	return nullptr;
 }
+
+int Config::select_archiver(Node* n) {
+	n->print_f("|14Available Archivers\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	for (size_t i = 0; i < archivers.size(); i++) {
+		n->print_f("|15%2d|08. |14%s\r\n", i + 1, archivers.at(i)->name.c_str());
+	}
+	n->print_f("|15 Q|08. |14Quit\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	std::string res = n->get_string(2, false);
+	if (res.size() > 0) {
+		if (tolower(res.at(0)) == 'q') {
+			return -1;
+		}
+		try {
+			int arc = stoi(res);
+			if (arc > 0 && arc <= archivers.size()) {
+				return arc - 1;
+			}
+		}
+		catch (std::invalid_argument) {
+
+		}
+		catch (std::out_of_range) {
+
+		}
+	}
+	return -1;
+}

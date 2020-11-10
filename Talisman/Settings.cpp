@@ -1,5 +1,6 @@
 #include "Settings.h"
 #include "Node.h"
+#include "Archiver.h"
 
 void Settings::do_settings(Node* n) {
 	const char* yesnoask[] = { "ASK", "YES", "NO" };
@@ -13,6 +14,11 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15P |14Change your password |08(|15NOT SHOWN|08)\r\n");
 		n->print_f(" |15F |14Use full screen editor |08(|15%s|08)\r\n", yesnoask[stoi(n->get_user().get_attribute("fullscreeneditor", "0"))]);
 		n->print_f(" |15K |14Show Message Kludge Lines |08(|15%s|08)\r\n", (n->get_user().get_attribute("viewkludges", "false") == "false" ? "NO" : "YES"));
+		int myarc = stoi(n->get_user().get_attribute("archiver", "-1"));
+		if (myarc >= n->get_config()->archivers.size()) {
+			myarc = -1;
+		}
+		n->print_f(" |15A |14Default Archiver for QWK |08(|15%s|08)\r\n", ( myarc == -1 ? "NONE" : n->get_config()->archivers.at(myarc)->name.c_str()));
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
@@ -81,6 +87,14 @@ void Settings::do_settings(Node* n) {
 			{
 				bool viewkludges = n->get_user().get_attribute("viewkludges", "false") == "false";
 				n->get_user().set_attribute("viewkludges", (viewkludges ? "true" : "false"));
+			}
+				break;
+			case 'a':
+			{
+				int arc = n->get_config()->select_archiver(n);
+				if (arc != -1) {
+					n->get_user().set_attribute("archiver", std::to_string(arc));
+				}
 			}
 				break;
 			case 'q':

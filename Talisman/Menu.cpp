@@ -936,7 +936,9 @@ void Menu::qwk_down(Node* n) {
 		std::filesystem::path qwk_file(fpath);
 		qwk_file.append(n->get_config()->qwk_id() + ".QWK");
 
-		int arc = 0; //TODO: Config set archiver!
+		int arc = stoi(n->get_user().get_attribute("archiver", "-1"));
+
+		if (arc == -1) arc = 0;
 
 		if (arc < 0 || arc >= n->get_config()->archivers.size()) {
 			n->print_f("|12Invalid Archiver!|07\r\n\r\n");
@@ -1045,7 +1047,11 @@ void Menu::qwk_up(Node *n) {
 
 	ss.str("");
 
-	int arc = 0; // TODO: select archiver...
+	int arc = stoi(n->get_user().get_attribute("archiver", "-1"));
+
+	if (arc == -1) {
+		arc = n->get_config()->select_archiver(n);
+	}
 
 	if (arc < 0 || arc >= n->get_config()->archivers.size()) {
 		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
