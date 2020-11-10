@@ -1020,7 +1020,14 @@ void Menu::qwk_up(Node *n) {
 	p->upload(n, n->get_socket(), fpath.u8string());
 
 	std::filesystem::path qwkfile(fpath);
-	qwkfile.append(n->get_config()->qwk_id() + ".rep");
+	std::stringstream ss;
+
+	ss.str("");
+	for (int i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
+		ss << (char)tolower(n->get_config()->qwk_id().at(i));
+	}
+
+	qwkfile.append(ss.str() + ".rep");
 	if (!std::filesystem::exists(qwkfile)) {
 		qwkfile = fpath;
 		qwkfile.append(n->get_config()->qwk_id() + ".REP");
@@ -1030,7 +1037,7 @@ void Menu::qwk_up(Node *n) {
 		}
 	}
 
-	std::stringstream ss;
+
 	ss.str("");
 
 	int arc = 0; // TODO: select archiver...
