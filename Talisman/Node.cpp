@@ -1000,7 +1000,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
 
-	time_t last_on = stoi(u.get_attribute("last_on", "0"));
+	last_on = stol(u.get_attribute("last_on", "0"));
 	time_t now = time(NULL);
 	struct tm last_on_tm;
 	struct tm now_tm;
@@ -1078,6 +1078,19 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	print_f("|14Scan for new messages? (Y/N) : |07");
 	if (tolower(getche()) != 'n') {
 		MsgConf::scan(this);
+	}
+	cls();
+	print_f("|14Scan for new files? (Y/N) : |07");
+	if (tolower(getche()) != 'n') {
+		print_f("\r\n\r\n");
+		for (size_t i = 0; i < config.fileconfs.size(); i++) {
+			if (config.fileconfs.at(i).get_sec_level() > u.get_sec_level()) continue;
+			print_f("|14Scanning conference: |15%s|14...|07\r\n", config.fileconfs.at(i).get_name().c_str());
+			for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
+				if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
+				config.fileconfs.at(i).areas.at(j).list_files(this, last_on);
+			}
+		}
 	}
 
 	cls();

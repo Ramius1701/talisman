@@ -80,7 +80,7 @@ private:
 	User u;
 	void send_str(const char* str);
 	void send_file(std::filesystem::path p, bool pause, bool script);
-	
+	time_t last_on;
 	time_t last_time_check;
 	bool time_check();
 

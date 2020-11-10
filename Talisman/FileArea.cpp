@@ -186,6 +186,10 @@ struct file_list_t {
 };
 
 void FileArea::list_files(Node* n) {
+	list_files(n, 0);
+}
+
+void FileArea::list_files(Node* n, time_t date) {
 	int lines = 0;
 	sqlite3* db;
 	sqlite3_stmt* stmt;
@@ -193,14 +197,24 @@ void FileArea::list_files(Node* n) {
 	static const char units[] = " KMGT";
 
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
+	static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
 
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
 		return;
 	}
 
-	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-		sqlite3_close(db);
-		return;
+	if (date > 0) {
+		if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
+		sqlite3_bind_int64(stmt, 1, date);
+	}
+	else {
+		if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return;
+		}
 	}
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		struct file_list_t f;
