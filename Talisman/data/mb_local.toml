@@ -3,9 +3,11 @@ name = "General Discussion"
 file = "general"
 read_sec_level = 10
 write_sec_level = 10
+qwk_base_no = 100
 
 [[messagearea]]
 name = "Test Posts"
 file = "test"
 read_sec_level = 10
 write_sec_level = 10
+qwk_base_no = 101

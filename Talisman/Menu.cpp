@@ -1,5 +1,6 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #else
 #include <unistd.h>
 #endif
@@ -20,7 +21,8 @@
 #include "Protocol.h"
 #include "Config.h"
 #include "Script.h"
-
+#include "Archiver.h"
+#include "Qwk.h"
 Menu::Menu(Node *n)
 {
 	isloaded = false;
@@ -430,7 +432,6 @@ bool Menu::run() {
 								std::filesystem::path pt(n->tagged_files.at(i).filename);
 								files.push_back(pt);
 							}
-
 							p->download(n, n->get_socket(), &files);
 							for (size_t i = 0; i < n->tagged_files.size(); i++) {
 								n->tagged_files.at(i).fa->inc_download_count(n, n->tagged_files.at(i).filename);
@@ -785,8 +786,497 @@ bool Menu::run() {
 							}
 						}
 					}
+				} 
+
+				else if (strcasecmp(items[i].command.c_str(), "qwkdown") == 0) {
+					qwk_down(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "qwkup") == 0) {
+					qwk_up(n);
 				}
 			}
 		}
 	}
+}
+
+void Menu::qwk_down(Node* n) {
+	static const char* chdr = "Produced by Qmail...Copyright (c) 1987 by Sparkware.  All Rights Reserved";
+
+	int tot_areas = 0;
+	int tot_msgs = 0;
+	FILE* msgs_dat_fptr;
+	FILE* pers_ndx_fptr;
+	FILE* conf_ndx_fptr;
+	char bufferfname[13];
+	char buffer[128];
+	std::vector<std::string> flist;
+	std::vector<int> last_read_ptrs;
+	std::filesystem::path fpath(n->get_config()->tmp_path());
+	fpath.append(std::to_string(n->getnodenum()));
+
+	fpath.append("qwk");
+
+
+	if (std::filesystem::exists(fpath)) {
+		std::filesystem::remove_all(fpath);
+	}
+	std::filesystem::create_directories(fpath);
+
+	std::filesystem::path msgs_dat(fpath);
+	msgs_dat.append("MESSAGES.DAT");
+
+	msgs_dat_fptr = fopen(msgs_dat.string().c_str(), "wb");
+	flist.push_back(msgs_dat.string());
+
+	memset(buffer, ' ', 128);
+	memcpy(buffer, chdr, strlen(chdr));
+	fwrite(buffer, 128, 1, msgs_dat_fptr);
+
+	std::filesystem::path pers_ndx(fpath);
+	pers_ndx.append("PERSONAL.NDX");
+
+	pers_ndx_fptr = fopen(pers_ndx.string().c_str(), "wb");
+	flist.push_back(pers_ndx.string());
+
+	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+			n->print_f("\r\n\r\n|14Searching |15%s|14...\r\n", n->get_config()->msgconfs.at(i).get_name().c_str());
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+					std::filesystem::path conf_ndx(fpath);
+					snprintf(bufferfname, sizeof bufferfname, "%04d.NDX", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
+					conf_ndx.append(bufferfname);
+					conf_ndx_fptr = fopen(conf_ndx.string().c_str(), "wb");
+					flist.push_back(conf_ndx.string());
+					int last_msg_packed = 0;
+					int last_tot = tot_msgs;
+					tot_msgs = n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
+
+					if (last_tot == tot_msgs) {
+						n->print_f("|14... |15%s ... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
+					}
+					else {
+						n->print_f("|14... |15%s ... |10%d Messages\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), tot_msgs - last_tot);
+					}
+					last_read_ptrs.push_back(last_msg_packed);
+					fclose(conf_ndx_fptr);
+					tot_areas++;
+				}
+			}
+		}
+	}
+	fclose(msgs_dat_fptr);
+	fclose(pers_ndx_fptr);
+
+	if (tot_msgs > 0) {
+		std::filesystem::path door_id(fpath);
+		door_id.append("DOOR.ID");
+		flist.push_back(door_id.string());
+		FILE* fptr = fopen(door_id.string().c_str(), "wb");
+		if (!fptr) {
+			// error
+			return;
+		}
+
+		fprintf(fptr, "DOOR = TALISMAN\r\n");
+		fprintf(fptr, "VERSION = %d.%d-%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+		fprintf(fptr, "SYSTEM = Talisman BBS %d.%d-%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+		fprintf(fptr, "MIXEDCASE = YES\r\n");
+
+		fclose(fptr);
+
+		std::filesystem::path ctrl_dat(fpath);
+		ctrl_dat.append("CONTROL.DAT");
+		flist.push_back(ctrl_dat.string());
+		fptr = fopen(ctrl_dat.string().c_str(), "w");
+		if (!fptr) {
+			// error
+			return;
+		}
+
+		fprintf(fptr, "%s\r\n", n->get_config()->sys_name().c_str());
+		fprintf(fptr, "%s\r\n", n->get_config()->get_location().c_str());
+		fprintf(fptr, "000-000-0000\r\n");
+		fprintf(fptr, "%s\r\n", n->get_config()->op_name().c_str());
+		fprintf(fptr, "99999,%s\r\n", n->get_config()->qwk_id().c_str());
+		time_t thetime = time(NULL);
+		struct tm timetm;
+#ifdef _MSC_VER
+		localtime_s(&timetm, &thetime);
+#else
+		localtime_r(&thetime, &timetm);
+#endif
+		fprintf(fptr, "%02d-%02d-%04d,%02d:%02d:%02d\r\n", timetm.tm_mon + 1, timetm.tm_mday, timetm.tm_year + 1900, timetm.tm_hour, timetm.tm_min, timetm.tm_sec);
+
+		fprintf(fptr, "%s\r\n", n->get_user().get_username().c_str());
+
+		fprintf(fptr, "\r\n");
+		fprintf(fptr, "0\r\n");
+		fprintf(fptr, "%d\r\n", tot_msgs);
+		fprintf(fptr, "%d\r\n", tot_areas - 1);
+
+		for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+			if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) continue;
+
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+					fprintf(fptr, "%d\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
+					fprintf(fptr, "%s\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
+				}
+			}
+		}
+
+		fclose(fptr);
+		std::stringstream ss;
+
+		ss.str("");
+
+		std::filesystem::path qwk_file(fpath);
+		qwk_file.append(n->get_config()->qwk_id() + ".QWK");
+
+		int arc = 0; //TODO: Config set archiver!
+
+		if (arc < 0 || arc >= n->get_config()->archivers.size()) {
+			n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+			return;
+		}
+
+		n->get_config()->archivers.at(arc)->compress(qwk_file.u8string(), flist);
+
+		std::vector<std::filesystem::path> sendlist;
+
+		sendlist.push_back(qwk_file);
+
+		Protocol* p = n->get_config()->select_protocol(n);
+
+		p->download(n, n->get_socket(), &sendlist);
+
+		// Update pointers
+		while (1) {
+			n->print_f("\r\n|14Update last read pointers? (Y/N) : ");
+			int h = 0;
+			char c = n->getch();
+			if (tolower(c) == 'y') {
+				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+					if (n->get_config()->msgconfs.at(i).get_sec_level() < n->get_user().get_sec_level()) continue;
+					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+							if (last_read_ptrs.at(h) != 0) {
+								n->get_user().user_set_lastread(n->get_config()->msgconfs.at(i).areas.at(j).get_file(), last_read_ptrs.at(h));
+							}
+							h++;
+						}
+					}
+				}
+				return;
+			}
+			else if (tolower(c) == 'n') {
+				return;
+			}
+		}
+
+	}
+	else {
+		n->print_f("|12No new messages!\r\n");
+		n->print_f("|14Press any key...|07");
+		n->getch();
+		n->print_f("\r\n");
+	}
+}
+
+static int safe_atoi(const char* str, int len) {
+	int ret = 0;
+
+	for (int i = 0; i < len; i++) {
+		if (str[i] < '0' || str[i] > '9') {
+			break;
+		}
+		ret = ret * 10 + (str[i] - '0');
+	}
+	return ret;
+}
+
+void Menu::qwk_up(Node *n) {
+	std::filesystem::path fpath;
+	fpath.append(n->get_config()->tmp_path());
+	fpath.append(std::to_string(n->getnodenum()));
+
+	fpath.append("qwk");
+	if (std::filesystem::exists(fpath)) {
+		std::filesystem::remove_all(fpath);
+	}
+	std::filesystem::create_directories(fpath);
+
+	Protocol *p = n->get_config()->select_protocol(n);
+
+	p->upload(n, n->get_socket(), fpath.u8string());
+
+	std::filesystem::path qwkfile(fpath);
+	qwkfile.append(n->get_config()->qwk_id() + ".rep");
+	if (!std::filesystem::exists(qwkfile)) {
+		qwkfile = fpath;
+		qwkfile.append(n->get_config()->qwk_id() + ".REP");
+		if (!std::filesystem::exists(qwkfile)) {
+			n->print_f("|12Could not find %s.REP\r\n|07", n->get_config()->qwk_id().c_str());
+			return;
+		}
+	}
+
+	std::stringstream ss;
+	ss.str("");
+
+	int arc = 0; // TODO: select archiver...
+
+	if (arc < 0 || arc >= n->get_config()->archivers.size()) {
+		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+		return;
+	}
+	std::vector<std::string> flist;
+
+	ss << n->get_config()->qwk_id() << ".MSG";
+
+	flist.push_back(ss.str());
+
+	ss.str("");
+
+	for (int i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
+		ss << (char)tolower(n->get_config()->qwk_id().at(i));
+	}
+	ss << ".msg";
+
+	flist.push_back(ss.str());
+
+	n->get_config()->archivers.at(arc)->extract(qwkfile.u8string(), flist, fpath.u8string());
+
+	qwkfile = fpath;
+	qwkfile.append(n->get_config()->qwk_id() + ".MSG");
+	if (!std::filesystem::exists(qwkfile)) {
+		qwkfile = fpath;
+		qwkfile.append(ss.str());
+		if (!std::filesystem::exists(qwkfile)) {
+			n->print_f("|14Could not find %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+			return;
+		}
+	}
+
+	FILE* msgsfptr = fopen(qwkfile.string().c_str(), "rb");
+
+	if (!msgsfptr) {
+		n->print_f("|12Could not open %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+		return;
+	}
+
+	struct QwkHeader qhdr;
+
+	if (fread(&qhdr, sizeof(struct QwkHeader), 1, msgsfptr) != 1) {
+		n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+		fclose(msgsfptr);
+		return;
+	}
+
+	if (strncasecmp((char*)&qhdr, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size()) != 0) {
+		n->print_f("|12QWK Packet not for this system..|07\r\n");
+		fclose(msgsfptr);
+		return;
+	}
+
+	while (!feof(msgsfptr)) {
+		if (fread(&qhdr, sizeof(struct QwkHeader), 1, msgsfptr) != 1) {
+			fclose(msgsfptr);
+			return;
+		}
+		int msgrecs = safe_atoi((const char*)qhdr.Msgrecs, 6);
+		char* msgcontent = (char*)malloc((msgrecs - 1) * 128 + 1);
+		if (!msgcontent) {
+			n->print_f("|12Error allocating memory|07\r\n");
+			fclose(msgsfptr);
+			return;
+		}
+
+		memset(msgcontent, 0, (msgrecs - 1) * 128 + 1);
+		if (fread(msgcontent, sizeof(struct QwkHeader), msgrecs - 1, msgsfptr) != msgrecs - 1) {
+			n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
+			fclose(msgsfptr);
+			return;
+		}
+
+		for (int i = (msgrecs - 1) * 128; i >= 0; i--) {
+			if (msgcontent[i] == ' ') {
+				msgcontent[i] = '\0';
+			}
+			else {
+				break;
+			}
+		}
+		for (int i = 0; i < strlen(msgcontent); i++) {
+			if (msgcontent[i] == '\xe3') {
+				msgcontent[i] = '\r';
+			}
+		}
+		int msgbase = (qhdr.Msgareahi << 8) | qhdr.Msgarealo;
+		bool found = false;
+		size_t mb;
+		size_t mc;
+		for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+			if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+				for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+					if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() == msgbase) {
+						mb = j;
+						mc = i;
+						found = true;
+						break;
+					}
+				}
+				if (found == true) {
+					break;
+				}
+			}
+		}
+
+		if (found == true) {
+			std::string subject;
+			std::string to;
+			std::string from;
+			time_t date;
+			int inreplyto;
+
+			std::stringstream ss;
+			std::stringstream msgbody;
+
+			msgbody.str("");
+
+			bool gotkludge = false;
+			int i = 0;
+			std::vector<std::string> text;
+			while (true) {
+				ss.str("");
+				for (; i < strlen(msgcontent); i++) {
+					if (msgcontent[i] == '\r') {
+						i++;
+						break;
+					}
+					ss << msgcontent[i];
+				}
+
+				if (stricmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
+					gotkludge = true;
+					int j;
+					for (j = 8; j < ss.str().length(); j++) {
+						if (ss.str().at(j) != ' ') break;
+					}
+					subject = ss.str().substr(j);
+				}
+				else if (stricmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
+					gotkludge = true;
+					int j;
+					for (j = 3; j < ss.str().length(); j++) {
+						if (ss.str().at(j) != ' ') break;
+					}
+					to = ss.str().substr(j);
+				}
+				else if (stricmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
+					gotkludge = true;
+					int j;
+					for (j = 5; j < ss.str().length(); j++) {
+						if (ss.str().at(j) != ' ') break;
+					}
+					from = ss.str().substr(j);
+				}
+				else {
+					if (gotkludge) {
+						msgbody << &msgcontent[i];
+					}
+					else {
+						msgbody << msgcontent;
+					}
+					break;
+				}
+			}
+
+			free(msgcontent);
+
+			ss.str("");
+			for (size_t i = 0; i < msgbody.str().size(); i++) {
+				if (msgbody.str().at(i) == '\r') {
+					text.push_back(ss.str());
+					ss.str("");
+					continue;
+				}
+				ss << msgbody.str().at(i);
+			}
+
+			if (ss.str().size() > 0) {
+				text.push_back(ss.str());
+			}
+
+			if (subject.length() == 0) {
+				subject.append((const char*)qhdr.MsgSubj, 25);
+				for (i = subject.length() - 1; i >= 0; i--) {
+					if (subject.at(i) == ' ') {
+						subject.pop_back();
+					}
+					else {
+						break;
+					}
+				}
+			}
+			if (to.length() == 0) {
+				to.append((const char*)qhdr.MsgTo, 25);
+				for (i = to.length() - 1; i >= 0; i--) {
+					if (to.at(i) == ' ') {
+						to.pop_back();
+					}
+					else {
+						break;
+					}
+				}
+			}
+			if (from.length() == 0) {
+				from.append((const char*)qhdr.MsgFrom, 25);
+				for (i = from.length() - 1; i >= 0; i--) {
+					if (from.at(i) == ' ') {
+						from.pop_back();
+					}
+					else {
+						break;
+					}
+				}
+			}
+			struct tm thedate;
+			memset(&thedate, 0, sizeof(struct tm));
+
+			thedate.tm_mday = (qhdr.Msgdate[3] - '0') * 10 + (qhdr.Msgdate[4] - '0');
+			thedate.tm_mon = ((qhdr.Msgdate[0] - '0') * 10 + (qhdr.Msgdate[1] - '0')) - 1;
+			int year = (qhdr.Msgdate[6] - '0') * 10 + (qhdr.Msgdate[7] - '0');
+			if (year < 80) {
+				year += 100;
+			}
+			thedate.tm_year = year;
+
+			thedate.tm_hour = (qhdr.Msgtime[0] - '0') * 10 + (qhdr.Msgtime[1] - '0');
+			thedate.tm_min = (qhdr.Msgtime[3] - '0') * 10 + (qhdr.Msgtime[4] - '0');
+
+			date = mktime(&thedate);
+			inreplyto = safe_atoi((const char*)qhdr.Msgrply, 8);
+
+			if (n->get_config()->msgconfs.at(mc).areas.at(mb).get_w_sec_level() <= n->get_user().get_sec_level()) {
+				if (!n->get_config()->msgconfs.at(mc).areas.at(mb).save_message(to, subject, text, "", inreplyto, date)) {
+					n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+				}
+				else {
+					n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+					n->clog->post_msg();
+				}
+			}
+			else {
+				n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+			}
+
+		}
+		else {
+			n->print_f("|14Unknown message base |15%d|07\r\n", msgbase);
+		}
+	}
+
+	fclose(msgsfptr);
 }

@@ -22,6 +22,8 @@ bool Config::load(Node *n, std::string filename) {
 	_datapath = inir.Get("Paths", "Data Path", "data");
 	_menupath = inir.Get("Paths", "Menu Path", "menus");
 	_mainmenu = inir.Get("Main", "Root Menu", "main");
+	_qwk_id = inir.Get("Main", "Qwk ID", "TALISMAN");
+	_location = inir.Get("Main", "Location", "Somewhere, The World");
 	_msgpath = inir.Get("Paths", "Message Path", "msgs");
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 	_scriptpath = inir.Get("Paths", "Script Path", "scripts");

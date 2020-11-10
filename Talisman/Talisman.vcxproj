@@ -187,6 +187,7 @@
     <ClInclude Include="MsgConf.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Protocol.h" />
+    <ClInclude Include="Qwk.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="Squish.h" />

@@ -6,7 +6,7 @@ class Node;
 class MsgArea
 {
 public:
-	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline);
+	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk);
 	int get_r_sec_level() {
 		return read_sec_level;
 	}
@@ -31,9 +31,14 @@ public:
 	std::vector<std::string> demangle_ansi(const char* msg, int len);
 	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
+	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date);
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 	bool search(std::vector<std::string> keywords, int type, bool newonly);
 	void update_lr(time_t date);
+	int qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, int* last_msg_packed);
+	int get_qwk_id() {
+		return qwk_base_no;
+	}
 private:
 	std::string name;
 	std::string file;
@@ -43,5 +48,6 @@ private:
 	std::string orig_addr;
 	std::string tagline;
 	Node* n;
+	int qwk_base_no;
 };
 

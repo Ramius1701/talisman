@@ -16,8 +16,9 @@
 #include "CallLog.h"
 #include "Door.h"
 #include "Editor.h"
+#include "Qwk.h"
 
-MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline)
+MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk)
 {
 	this->name = name;
 	this->file = filename;
@@ -27,6 +28,7 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 	this->orig_addr = oaddr;
 	this->_is_netmail = netmail;
 	this->tagline = tagline;
+	this->qwk_base_no = qwk;
 }
 
 int MsgArea::get_total_msgs()
@@ -74,6 +76,11 @@ std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
 
 bool MsgArea::save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to)
 {
+	return save_message(to, subject, text, netaddr, inreply_to, 0);
+}
+
+bool MsgArea::save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date)
+{
 	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
 	char replyidbuffer[256];
 	char charsbuffer[] = "\001CHRS: CP437 2";
@@ -97,7 +104,12 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 
 	n->clog->post_msg();
 
-	thetime = time(NULL);
+	if (date == 0) {
+		thetime = time(NULL);
+	}
+	else {
+		thetime = date;
+	}
 
 	for (size_t x = 0; x < text.size(); x++) {
 		ss << text.at(x) << "\r";
@@ -1218,4 +1230,213 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 
 	SquishCloseMsgBase(mb);
 	return true;
+}
+
+static int ieee_to_msbin(float* src4, float* dest4) {
+	unsigned char* ieee = (unsigned char*)src4;
+	unsigned char* msbin = (unsigned char*)dest4;
+	unsigned char sign = 0x00;
+	unsigned char msbin_exp = 0x00;
+	int i;
+	/* See _fmsbintoieee() for details of formats   */
+	sign = ieee[3] & 0x80;
+	msbin_exp |= ieee[3] << 1;
+	msbin_exp |= ieee[2] >> 7;
+	/* An ieee exponent of 0xfe overflows in MBF    */
+	if (msbin_exp == 0xfe) return 1;
+	msbin_exp += 2; /* actually, -127 + 128 + 1 */
+	for (i = 0; i < 4; i++) msbin[i] = 0;
+	msbin[3] = msbin_exp;
+	msbin[2] |= sign;
+	msbin[2] |= ieee[2] & 0x7f;
+	msbin[1] = ieee[1];
+	msbin[0] = ieee[0];
+	return 0;
+}
+
+int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, int* last_msg_packed) {
+	int lastread = n->get_user().user_get_lastread(file);
+	char buffer[256];
+
+	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return 0;
+	}
+
+	for (size_t msgno = lastread; msgno < mb->basehdr.num_msg; msgno++) {
+		sq_msg_t* msg = SquishReadMsg(mb, msgno);
+
+		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+			SquishFreeMsg(msg);
+			continue;
+		}
+
+		std::string subject(msg->xmsg.subject);
+		std::string sender(msg->xmsg.from);
+		std::string recipient(msg->xmsg.to);
+		int hour = (msg->xmsg.date_written.time >> 11) & 31;
+		int minute = (msg->xmsg.date_written.time >> 5) & 63;
+
+		int day = msg->xmsg.date_written.date & 31;
+		int month = (msg->xmsg.date_written.date >> 5) & 15;
+		int year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980;
+
+		std::stringstream msgss;
+		for (size_t i = 0; i < msg->msg_len; i++) {
+			if (msg->msg[i] == '\r') {
+				if (i < msg->msg_len - 1) {
+					if (msg->msg[i] == '\001') {
+						i++;
+						while (i < msg->msg_len && msg->msg[i] != '\r') {
+							i++;
+						}
+						continue;
+					}
+				}
+				else if (i < msg->msg_len - 9) {
+					if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' &&
+						msg->msg[i + 4] == '-' && msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+						while (i < msg->msg_len && msg->msg[i] != '\r') {
+							i++;
+						}
+						continue;
+					}
+				}
+			}
+			msgss << msg->msg[i];
+		}
+		int msgid = msg->xmsg.umsgid;
+		SquishFreeMsg(msg);
+		std::string msgbody(msgss.str());
+		std::stringstream extra;
+		struct QwkHeader q;
+
+		uint32_t ndx = ftell(msgs_dat_fptr);
+		float fndx;
+		float mndx;
+		uint8_t zero = 0;
+
+		fndx = (float)ndx;
+		ieee_to_msbin(&fndx, &mndx);
+
+		q.Msgstat = ' ';
+		snprintf(buffer, 7, "%d", msgid);
+
+		memset(q.Msgnum, ' ', 7);
+		memcpy(q.Msgnum, buffer, strlen(buffer));
+
+		snprintf(buffer, sizeof buffer, "%02d-%02d-%02d", month, day, year - 2000);
+		memcpy(q.Msgdate, buffer, 8);
+
+		snprintf(buffer, sizeof buffer, "%02d:%02d", hour, minute);
+		memcpy(q.Msgtime, buffer, 5);
+
+		memset(q.Msgpass, ' ', 12);
+		memset(q.Msgrply, ' ', 8);
+
+		memset(q.MsgSubj, ' ', 25);
+
+		memset(q.MsgTo, ' ', 25);
+
+		std::stringstream mbody2;
+		mbody2.str("");
+		for (int i = 0; i < msgbody.length(); i++) {
+			if (msgbody.at(i) != '\n') {
+				mbody2 << msgbody.at(i);
+			}
+		}
+
+		msgbody = mbody2.str();
+
+		extra.str("");
+
+		if (recipient.length() > 25) {
+			extra << "To: " << recipient << "\r";
+			memcpy(q.MsgTo, recipient.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgTo, recipient.c_str(), recipient.length());
+		}
+
+		memset(q.MsgFrom, ' ', 25);
+		if (sender.length() > 25) {
+			extra << "From: " << sender << "\r";
+			memcpy(q.MsgFrom, sender.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgFrom, sender.c_str(), sender.length());
+		}
+
+		if (subject.length() > 25) {
+			extra << "Subject: " << subject << "\r";
+			memcpy(q.MsgSubj, subject.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgSubj, subject.c_str(), subject.length());
+		}
+
+		if (extra.str().length() > 0) {
+			extra << "\r" << msgbody;
+			msgbody = extra.str();
+		}
+
+
+
+		int len = msgbody.length() / 128;
+
+		if (len * 128 < msgbody.length()) {
+			len++;
+		}
+
+		int lenbytes = len * 128;
+
+		char* msgbuf = (char*)malloc(lenbytes);
+
+		if (!lenbytes) {
+			SquishCloseMsgBase(mb);
+			return tot;
+		}
+
+		memset(msgbuf, ' ', lenbytes);
+
+		for (int i = 0; i < msgbody.length(); i++) {
+			if (msgbody.c_str()[i] == '\r') {
+				msgbuf[i] = '\xe3';
+			}
+			else {
+				msgbuf[i] = msgbody.c_str()[i];
+			}
+		}
+
+
+		snprintf(buffer, 7, "%d", len + 1);
+		memset(q.Msgrecs, ' ', 6);
+		memcpy(q.Msgrecs, buffer, strlen(buffer));
+
+		q.Msglive = 0xE1;
+		q.Msgarealo = qwk_base_no & 0xff;
+		q.Msgareahi = (qwk_base_no >> 8) & 0xff;
+
+		q.Msgoffhi = (ndx >> 8) & 0xff;
+		q.Msgofflo = ndx & 0xff;
+
+		q.Msgtagp = ' ';
+
+		fwrite(&mndx, 4, 1, conf_ndx_fptr);
+		fwrite(&zero, 1, 1, conf_ndx_fptr);
+
+		if (strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+			fwrite(&mndx, 4, 1, pers_ndx_fptr);
+			fwrite(&zero, 1, 1, pers_ndx_fptr);
+		}
+
+		fwrite(&q, sizeof(struct QwkHeader), 1, msgs_dat_fptr);
+		fwrite(msgbuf, lenbytes, 1, msgs_dat_fptr);
+		*last_msg_packed = msgid;
+		tot++;
+	}
+
+	SquishCloseMsgBase(mb);
+
+	return tot;
 }

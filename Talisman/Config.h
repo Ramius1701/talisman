@@ -69,6 +69,14 @@ public:
 		return _logpath;
 	}
 
+	std::string qwk_id() {
+		return _qwk_id;
+	}
+
+	std::string get_location() {
+		return _location;
+	}
+
 	std::vector<MsgConf> msgconfs;
 	std::vector<FileConf> fileconfs;
 	std::vector<Archiver*> archivers;
@@ -88,6 +96,8 @@ private:
 	std::string _externaleditor;
 	std::string _logpath;
 	std::string _scriptpath;
+	std::string _location;
+	std::string _qwk_id;
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 };
