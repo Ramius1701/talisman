@@ -851,13 +851,13 @@ void Menu::qwk_down(Node* n) {
 					flist.push_back(conf_ndx.string());
 					int last_msg_packed = 0;
 					int last_tot = tot_msgs;
-					tot_msgs = n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
+					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
 
 					if (last_tot == tot_msgs) {
-						n->print_f("|14... |15%s ... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
+						n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
 					}
 					else {
-						n->print_f("|14... |15%s ... |10%d Messages\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), tot_msgs - last_tot);
+						n->print_f("|14... |15%s |14... |10%d Messages\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), tot_msgs - last_tot);
 					}
 					last_read_ptrs.push_back(last_msg_packed);
 					fclose(conf_ndx_fptr);
@@ -950,6 +950,10 @@ void Menu::qwk_down(Node* n) {
 
 		Protocol* p = n->get_config()->select_protocol(n);
 
+		if (p == nullptr) {
+			return;
+		}
+
 		p->download(n, n->get_socket(), &sendlist);
 
 		// Update pointers
@@ -1009,6 +1013,10 @@ void Menu::qwk_up(Node *n) {
 	std::filesystem::create_directories(fpath);
 
 	Protocol *p = n->get_config()->select_protocol(n);
+
+	if (p == nullptr) {
+		return;
+	}
 
 	p->upload(n, n->get_socket(), fpath.u8string());
 

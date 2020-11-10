@@ -1263,8 +1263,12 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 		return 0;
 	}
 
-	for (size_t msgno = lastread; msgno < mb->basehdr.num_msg; msgno++) {
+	for (size_t msgno = lastread + 1; msgno <= mb->basehdr.num_msg; msgno++) {
 		sq_msg_t* msg = SquishReadMsg(mb, msgno);
+
+		if (msgno == NULL) {
+			continue;
+		}
 
 		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
 			SquishFreeMsg(msg);
