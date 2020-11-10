@@ -30,6 +30,10 @@ command = "MSGREADNEW"
 hotkey = "N"
 
 [[menuitem]]
+command = "MSGUPDATELR"
+hotkey = "U"
+
+[[menuitem]]
 command = "LISTEMAIL"
 hotkey = "M"
 

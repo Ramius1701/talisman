@@ -1102,6 +1102,40 @@ int MsgArea::list_messages(int start) {
 	}
 }
 
+void MsgArea::update_lr(time_t date) {
+	sq_msg_base_t* mb;
+	bool foundmsg = false;
+
+	mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return;
+	}
+
+	size_t totmsgs = mb->basehdr.num_msg;
+
+	for (size_t i = 1; i <= totmsgs; i++) {
+		sq_msg_t* msg = SquishReadMsg(mb, i);
+		struct tm msg_tm;
+		memset(&msg_tm, 0, sizeof(struct tm));
+		msg_tm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 80;
+		msg_tm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
+		msg_tm.tm_mday = msg->xmsg.date_written.date & 31;
+		msg_tm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
+		msg_tm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
+		SquishFreeMsg(msg);
+		time_t msgtime = mktime(&msg_tm);
+
+		if (msgtime > date) {
+			n->get_user().user_set_lastread(file, i - 1);
+			SquishCloseMsgBase(mb);
+			return;
+		}
+	}
+	n->get_user().user_set_lastread(file, totmsgs);
+	SquishCloseMsgBase(mb);
+	return;
+}
+
 bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) {
 	sq_msg_base_t* mb;
 	bool foundmsg = false;

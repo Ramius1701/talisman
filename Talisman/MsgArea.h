@@ -33,6 +33,7 @@ public:
 	static std::vector<std::string> word_wrap(std::string str, int len);
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 	bool search(std::vector<std::string> keywords, int type, bool newonly);
+	void update_lr(time_t date);
 private:
 	std::string name;
 	std::string file;

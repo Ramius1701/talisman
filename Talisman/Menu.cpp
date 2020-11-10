@@ -490,7 +490,7 @@ bool Menu::run() {
 					Script::exec(n, ss.str());
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgreadnew") == 0) {
-					n->log->log(LOG_INFO, "%s reading all new messages %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s reading all new messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					bool done = false;
 					for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
 						n->print_f("|14Searching conference |15%s|14...\r\n", n->get_config()->msgconfs.at(msgconf).get_name().c_str());
@@ -508,8 +508,81 @@ bool Menu::run() {
 						}
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "msgupdatelr") == 0) {
+					n->log->log(LOG_INFO, "%s updating last read messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->cls();
+					n->print_f("|14Update last lead pointers on |15T|08=|14This Area|08, |15C|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|15Cancel |08: |07");
+					std::string res = n->get_string(1, false);
+					time_t now = time(NULL);
+					struct tm now_tm;
+					struct tm lr_tm;
+#ifdef _MSC_VER
+					localtime_s(&now_tm, &now);
+#else
+					localtime_r(&now, &now_tm);
+#endif
+
+					if (res.size() > 0 && (tolower(res[0]) == 't' || tolower(res[0]) == 'c' || tolower(res[0]) == 'a')) {
+						try {
+							memset(&lr_tm, 0, sizeof(struct tm));
+							n->print_f("\r\n  Year: ");
+							lr_tm.tm_year = std::stoi(n->get_string(4, false, false, std::to_string(now_tm.tm_year + 1900))) - 1900;
+							n->print_f("\r\n Month: ");
+							lr_tm.tm_mon = std::stoi(n->get_string(2, false, false, std::to_string(now_tm.tm_mon + 1))) - 1;
+							n->print_f("\r\n   Day: ");
+							lr_tm.tm_mday = std::stoi(n->get_string(2, false, false, std::to_string(now_tm.tm_mday)));
+							n->print_f("\r\n  Hour: ");
+							lr_tm.tm_hour = std::stoi(n->get_string(2, false, false, std::to_string(now_tm.tm_hour)));
+							n->print_f("\r\nMinute: ");
+							lr_tm.tm_min = std::stoi(n->get_string(2, false, false, std::to_string(now_tm.tm_min)));
+							lr_tm.tm_sec = 0;
+
+							time_t lrtime = mktime(&lr_tm);
+
+							if (tolower(res[0]) == 't') {
+								int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+								if (msgconf == -1) {
+									n->print_f("|14Select a message conference first!|07\r\n");
+								}
+								else {
+									int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+									if (msgarea == -1) {
+										n->print_f("|14Select a message area first!|07\r\n");
+									}
+									else {
+										n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).update_lr(lrtime);
+									}
+								}
+							}
+							else if (tolower(res[0]) == 'c') {
+								int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+								if (msgconf == -1) {
+									n->print_f("|14Select a message conference first!|07\r\n");
+								}
+								else {
+									for (size_t i = 0; i < n->get_config()->msgconfs.at(msgconf).areas.size(); i++) {
+										n->get_config()->msgconfs.at(msgconf).areas.at(i).update_lr(lrtime);
+									}
+								}
+							}
+							else if (tolower(res[0]) == 'a') {
+								for (size_t j = 0; j < n->get_config()->msgconfs.size(); j++) {
+									for (size_t i = 0; i < n->get_config()->msgconfs.at(j).areas.size(); i++) {
+										n->get_config()->msgconfs.at(j).areas.at(i).update_lr(lrtime);
+									}
+								}
+							}
+						}
+						catch (std::invalid_argument) {
+							n->print_f("\r\n|12Invalid Argument!\r\n");
+						}
+						catch (std::out_of_range) {
+							n->print_f("\r\n|12Out of Range!\r\n");
+						}
+					}
+				}
 				else if (strcasecmp(items[i].command.c_str(), "msgsearch") == 0) {
-					n->log->log(LOG_INFO, "%s performing a message search %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
+					n->log->log(LOG_INFO, "%s performing a message search on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 
 					n->cls();
 
