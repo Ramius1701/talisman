@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
+#include <cstring>
 #include "GenDefs.h"
 #include "Node.h"
 #include "Menu.h"
@@ -1158,7 +1159,7 @@ void Menu::qwk_up(Node *n) {
 					ss << msgcontent[i];
 				}
 
-				if (stricmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
+				if (strcasecmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
 					gotkludge = true;
 					int j;
 					for (j = 8; j < ss.str().length(); j++) {
@@ -1166,7 +1167,7 @@ void Menu::qwk_up(Node *n) {
 					}
 					subject = ss.str().substr(j);
 				}
-				else if (stricmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
+				else if (strcasecmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
 					gotkludge = true;
 					int j;
 					for (j = 3; j < ss.str().length(); j++) {
@@ -1174,7 +1175,7 @@ void Menu::qwk_up(Node *n) {
 					}
 					to = ss.str().substr(j);
 				}
-				else if (stricmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
+				else if (strcasecmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
 					gotkludge = true;
 					int j;
 					for (j = 5; j < ss.str().length(); j++) {
