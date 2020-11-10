@@ -1266,7 +1266,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 	for (size_t msgno = lastread + 1; msgno <= mb->basehdr.num_msg; msgno++) {
 		sq_msg_t* msg = SquishReadMsg(mb, msgno);
 
-		if (msgno == NULL) {
+		if (msg == NULL) {
 			continue;
 		}
 
