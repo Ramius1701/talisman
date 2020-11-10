@@ -1254,7 +1254,7 @@ static int ieee_to_msbin(float* src4, float* dest4) {
 	return 0;
 }
 
-int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, int* last_msg_packed) {
+int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, unsigned int* last_msg_packed) {
 	int lastread = n->get_user().user_get_lastread(file);
 	char buffer[256];
 
@@ -1309,7 +1309,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 			}
 			msgss << msg->msg[i];
 		}
-		int msgid = msg->xmsg.umsgid;
+		unsigned int msgid = msg->xmsg.umsgid;
 		SquishFreeMsg(msg);
 		std::string msgbody(msgss.str());
 		std::stringstream extra;

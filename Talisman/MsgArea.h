@@ -35,7 +35,7 @@ public:
 	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 	bool search(std::vector<std::string> keywords, int type, bool newonly);
 	void update_lr(time_t date);
-	int qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, int* last_msg_packed);
+	int qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, unsigned int* last_msg_packed);
 	int get_qwk_id() {
 		return qwk_base_no;
 	}

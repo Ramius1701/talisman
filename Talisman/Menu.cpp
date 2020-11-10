@@ -811,7 +811,7 @@ void Menu::qwk_down(Node* n) {
 	char bufferfname[13];
 	char buffer[128];
 	std::vector<std::string> flist;
-	std::vector<int> last_read_ptrs;
+	std::vector<unsigned int> last_read_ptrs;
 	std::filesystem::path fpath(n->get_config()->tmp_path());
 	fpath.append(std::to_string(n->getnodenum()));
 
@@ -849,10 +849,10 @@ void Menu::qwk_down(Node* n) {
 					conf_ndx.append(bufferfname);
 					conf_ndx_fptr = fopen(conf_ndx.string().c_str(), "wb");
 					flist.push_back(conf_ndx.string());
-					int last_msg_packed = 0;
+					unsigned int last_msg_packed = 0;
 					int last_tot = tot_msgs;
 					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
-
+					printf("last packed : %d\n", last_msg_packed);
 					if (last_tot == tot_msgs) {
 						n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
 					}
