@@ -852,7 +852,6 @@ void Menu::qwk_down(Node* n) {
 					unsigned int last_msg_packed = 0;
 					int last_tot = tot_msgs;
 					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
-					printf("last packed : %d\n", last_msg_packed);
 					if (last_tot == tot_msgs) {
 						n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
 					}
@@ -963,7 +962,7 @@ void Menu::qwk_down(Node* n) {
 			char c = n->getch();
 			if (tolower(c) == 'y') {
 				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
-					if (n->get_config()->msgconfs.at(i).get_sec_level() < n->get_user().get_sec_level()) continue;
+					if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
 						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
 							if (last_read_ptrs.at(h) != 0) {
