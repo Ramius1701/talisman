@@ -26,6 +26,14 @@ command = "CLEARTAGGED"
 hotkey = "C"
 
 [[menuitem]]
+command = "NEWFILES"
+hotkey = "N"
+
+[[menuitem]]
+command = "FILESEARCH"
+hotkey = "S"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 

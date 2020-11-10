@@ -594,6 +594,60 @@ bool Menu::run() {
 						}
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "newfiles") == 0) {
+					for (size_t fileconf = 0; fileconf < n->get_config()->fileconfs.size(); fileconf++) {
+						if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
+						n->print_f("|14Scanning conference: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
+						for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+							n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, n->get_last_on());
+						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "filesearch") == 0) {
+					n->log->log(LOG_INFO, "%s performing a file search on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					n->cls();
+					n->print_f("|14Enter |15SPACE |14seperated keywords: |07");
+
+					std::string keywordstr = n->get_string(45, false);
+					std::stringstream ss(keywordstr);
+					std::istream_iterator<std::string> begin(ss);
+					std::istream_iterator<std::string> end;
+					std::vector<std::string> keywords(begin, end);
+
+					n->print_f("\r\n|14Search |15T|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|14Cancel |08: |07");
+					std::string res = n->get_string(1, false);
+					if (res.size() > 0) {
+						if (tolower(res[0]) == 'a') {
+							for (size_t fileconf = 0; fileconf < n->get_config()->fileconfs.size(); fileconf++) {
+								if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
+								n->print_f("\r\n|14Searching File Conference: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
+								for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
+									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+									n->print_f("\r\n|14Searching File Area: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
+									n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, 0, &keywords);
+								}
+								if (fileconf < n->get_config()->fileconfs.size() - 1) {
+									n->print_f("\r\n|14Continue Search (Y/N) : ");
+									if (tolower(n->getch()) == 'n') break;
+								}
+							}
+						}
+						else if (tolower(res[0]) == 't') {
+							int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+							if (fileconf == -1) {
+								n->print_f("\r\n|12Select a file conference first!|07\r\n");
+							}
+							else {
+								for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
+									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+									n->print_f("\r\n|14Searching File Area: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
+									n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, 0, &keywords);
+								}
+							}
+						}
+					}
+				}
 				else if (strcasecmp(items[i].command.c_str(), "msgsearch") == 0) {
 					n->log->log(LOG_INFO, "%s performing a message search on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 

@@ -60,7 +60,9 @@ public:
 	bool is_telnet() {
 		return telnet;
 	}
-
+	time_t get_last_on() {
+		return last_on;
+	}
 	void system_info();
 	std::string operating_system();
 	bool hasANSI;

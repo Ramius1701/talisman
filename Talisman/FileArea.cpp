@@ -186,10 +186,14 @@ struct file_list_t {
 };
 
 void FileArea::list_files(Node* n) {
-	list_files(n, 0);
+	list_files(n, 0, nullptr);
 }
 
 void FileArea::list_files(Node* n, time_t date) {
+	list_files(n, date, nullptr);
+}
+
+void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords) {
 	int lines = 0;
 	sqlite3* db;
 	sqlite3_stmt* stmt;
@@ -198,6 +202,7 @@ void FileArea::list_files(Node* n, time_t date) {
 
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 	static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
+	std::stringstream sql3("SELECT filename, filesize, dlcount, uldate, ulname, descr WHERE");
 
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
 		return;
@@ -211,6 +216,22 @@ void FileArea::list_files(Node* n, time_t date) {
 		sqlite3_bind_int64(stmt, 1, date);
 	}
 	else {
+		if (keywords != nullptr) {
+			sql3 << " descr LIKE '%' || ? || '%'";
+			for (size_t i = 1; i < keywords->size(); i++) {
+				sql3 << " OR descr LIKE '%' || ? || '%'";
+			}
+			sql3 << " ORDER BY uldate DESC";
+			std::string ssql3 = sql3.str();
+			if (sqlite3_prepare_v2(db, ssql3.c_str(), ssql3.size(), &stmt, NULL) != SQLITE_OK) {
+				sqlite3_close(db);
+				return;
+			}
+			for (size_t i = 0; i < keywords->size(); i++) {
+				std::string kw = keywords->at(i);
+				sqlite3_bind_text(stmt, i + 1, kw.c_str(), -1, NULL);
+			}
+		} else
 		if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
 			sqlite3_close(db);
 			return;

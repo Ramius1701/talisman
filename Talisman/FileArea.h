@@ -27,6 +27,7 @@ public:
 	int get_total_files(Node *n);
 	void list_files(Node* n);
 	void list_files(Node* n, time_t date);
+	void list_files(Node* n, time_t date, std::vector<std::string> *keywords);
 
 	void inc_download_count(Node* n, std::string filename);
 	bool upload_file(Node *n);
