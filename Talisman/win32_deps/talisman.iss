@@ -76,7 +76,10 @@ var
   BBSDetailsPage: TInputQueryWizardPage;
   BBSName : string;
   SysopName : string;
+  LocationStr : string;
+  QwkIdStr : string;
   InstallPath : string;
+  UpgradeBool : Boolean;
 function FileReplaceString(const FileName, SearchString, ReplaceString: string):boolean;
 var
   MyFile : TStrings;
@@ -133,25 +136,32 @@ begin
       'then click Next.');
     BBSDetailsPage.Add('BBS Name', false); 
     BBSDetailsPage.Add('Sysop Username', false);
+    BBSDetailsPage.Add('Location', false);
+    BBSDetailsPage.Add('QWK ID', false);
+    UpgradeBool := false;
   end;
 end;
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
   begin;
-    if IsUpgrade() = false then
+    if UpgradeBool = false then
     begin;
       BBSName := BBSDetailsPage.Values[0];
       SysopName := BBSDetailsPage.Values[1];
+      LocationStr := BBSDetailsPage.Values[2];
+      QwkIdStr := BBSDetailsPage.Values[3];
+
       InstallPath := ExpandConstant('{app}');
              
       StringChangeEx(InstallPath, '\', '\\', True)
 
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__BBS_NAME__', BBSName);
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__SYSOP_NAME__', SysopName);
+      FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__LOCATION__', LocationStr);
+      FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__QWK_ID__', QwkIdStr);
       FileReplaceString(ExpandConstant('{app}\data\protocols.toml'), '__INST_PATH__', InstallPath);
       FileReplaceString(ExpandConstant('{app}\data\archivers.toml'), '__INST_PATH__', InstallPath);
     end;
   end;
 end;
-

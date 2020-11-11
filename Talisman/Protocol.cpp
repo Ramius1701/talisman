@@ -140,7 +140,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 	else {
 		for (int i = 0; i < files->size(); i++) {
 			args.clear();
-			n->print_f("Sending %s with %s\r\n", files->at(i).c_str(), name.c_str());
+			n->print_f("Sending %s with %s\r\n", files->at(i).u8string().c_str(), name.c_str());
 			gotcmd = false;
 			for (std::string s; iss >> s; ) {
 				if (!gotcmd) {
