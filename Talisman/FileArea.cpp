@@ -17,7 +17,7 @@
 
 bool FileArea::open_database(std::string filename, sqlite3** db)
 {
-	static const char* create_sql = "CREATE TABLE IF NOT EXISTS files(id INTEGER PRIMARY KEY, filename TEXT, filesize INTEGER, dlcount INTEGER, uldate INTEGER, ulname TEXT, descr TEXT);";
+	static const char* create_sql = "CREATE TABLE IF NOT EXISTS files(id INTEGER PRIMARY KEY, filename TEXT, filesize INTEGER, dlcount INTEGER, uldate INTEGER, ulname TEXT, descr TEXT COLLATE NOCASE);";
 	int rc;
 	char* err_msg = NULL;
 
@@ -202,8 +202,8 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 	static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
-	std::stringstream sql3("SELECT filename, filesize, dlcount, uldate, ulname, descr WHERE");
-
+	std::stringstream sql3;
+	
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
 		return;
 	}
@@ -217,18 +217,22 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 	}
 	else {
 		if (keywords != nullptr) {
-			sql3 << " descr LIKE '%' || ? || '%'";
+			sql3 << "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE";
+			sql3 << " descr LIKE ?";
 			for (size_t i = 1; i < keywords->size(); i++) {
-				sql3 << " OR descr LIKE '%' || ? || '%'";
+				sql3 << " OR descr LIKE ?";
 			}
 			sql3 << " ORDER BY uldate DESC";
 			std::string ssql3 = sql3.str();
+			std::cerr << ssql3 << std::endl;
 			if (sqlite3_prepare_v2(db, ssql3.c_str(), ssql3.size(), &stmt, NULL) != SQLITE_OK) {
+				std::cerr << "Error preparing statement: " << sqlite3_errstr(sqlite3_errcode(db)) << std::endl;
+				
 				sqlite3_close(db);
 				return;
 			}
 			for (size_t i = 0; i < keywords->size(); i++) {
-				std::string kw = keywords->at(i);
+				std::string kw = "%" + keywords->at(i) + "%";
 				sqlite3_bind_text(stmt, i + 1, kw.c_str(), -1, NULL);
 			}
 		} else
