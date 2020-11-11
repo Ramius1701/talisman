@@ -984,8 +984,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		} else if (!u.load_user(login, password)) {
 			return 0;
 		}
-		print_f("\r\n|14Welcome back |15%s!|07\r\n", login.c_str());
-		print_f("|14Press any key...|07");
+		if (strcasecmp(login.c_str(), "NEW") != 0) {
+			print_f("\r\n|14Welcome back |15%s!|07\r\n", login.c_str());
+			print_f("|14Press any key...|07");
+		}
 		getch();
 		print_f("\r\n");
 	}
