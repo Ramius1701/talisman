@@ -6,7 +6,7 @@ class Node;
 class MsgArea
 {
 public:
-	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk);
+	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn);
 	int get_r_sec_level() {
 		return read_sec_level;
 	}
@@ -49,5 +49,6 @@ private:
 	std::string tagline;
 	Node* n;
 	int qwk_base_no;
+	bool real_names;
 };
 

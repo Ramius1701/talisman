@@ -18,7 +18,7 @@
 #include "Editor.h"
 #include "Qwk.h"
 
-MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk)
+MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn)
 {
 	this->name = name;
 	this->file = filename;
@@ -29,6 +29,7 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 	this->_is_netmail = netmail;
 	this->tagline = tagline;
 	this->qwk_base_no = qwk;
+	this->real_names = rn;
 }
 
 int MsgArea::get_total_msgs()
@@ -314,7 +315,12 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	}
 
 	strncpy(newmsg.xmsg.subject, subject.c_str(), 72);
-	strncpy(newmsg.xmsg.from, n->get_user().get_username().c_str(), 36);
+	if (real_names) {
+		strncpy(newmsg.xmsg.from, n->get_user().get_attribute("fullname", n->get_user().get_username()).c_str(), 36);
+	}
+	else {
+		strncpy(newmsg.xmsg.from, n->get_user().get_username().c_str(), 36);
+	}
 	strncpy(newmsg.xmsg.to, to.c_str(), 36);
 
 	newmsg.xmsg.replyto = repmsgid;

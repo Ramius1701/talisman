@@ -28,6 +28,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 		std::string myoaddr;
 		bool mynetmail;
 		int my_qwk_base_no;
+		bool myrealnames;
 
 		auto name = itemtable->get("name");
 		if (name != nullptr) {
@@ -76,6 +77,14 @@ bool MsgConf::load(Node *n, std::string filename) {
 			mynetmail = false;
 		}
 
+		auto realnames = itemtable->get("real_names");
+		if (realnames != nullptr) {
+			myrealnames = realnames->as_boolean()->value_or(false);
+		}
+		else {
+			myrealnames = false;
+		}
+
 		auto q_base_no = itemtable->get("qwk_base_no");
 		if (q_base_no != nullptr) {
 			my_qwk_base_no = q_base_no->as_integer()->value_or(-1);
@@ -85,7 +94,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 		}
 
 		if (myfile != "") {
-			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no);
+			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no, myrealnames);
 			areas.push_back(a);
 		}
 	}
