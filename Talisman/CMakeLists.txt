@@ -9,7 +9,7 @@ find_package(OpenSSL REQUIRED)
 find_package(Lua 5.3 REQUIRED)
 find_package(LibSSH REQUIRED)
 
-add_executable(talisman main.cpp Node.cpp Config.cpp User.cpp Menu.cpp MsgArea.cpp MsgConf.cpp Squish.cpp CallLog.cpp Door.cpp Settings.cpp Logger.cpp Editor.cpp Email.cpp Protocol.cpp Bulletins.cpp FileConf.cpp FileArea.cpp Archiver.cpp Script.cpp SshClient.cpp)
+add_executable(talisman main.cpp Node.cpp Config.cpp User.cpp Menu.cpp MsgArea.cpp MsgConf.cpp Squish.cpp CallLog.cpp Door.cpp Settings.cpp Logger.cpp Editor.cpp Email.cpp Protocol.cpp Bulletins.cpp FileConf.cpp FileArea.cpp Archiver.cpp Script.cpp SshClient.cpp Nodelist.cpp)
 include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${LIBSSH_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries (talisman ${SQLITE3_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_CRYPTO_LIBRARY} ${LIBSSH_LIBRARIES} ${LUA_LIBRARIES} c++fs util pthread)

@@ -24,6 +24,9 @@
 #include "Script.h"
 #include "Archiver.h"
 #include "Qwk.h"
+#include "Nodelist.h"
+#include "Squish.h"
+
 Menu::Menu(Node *n)
 {
 	isloaded = false;
@@ -246,6 +249,7 @@ bool Menu::run() {
 								n->print_f("|14Sorry, you do not have permission to post in this area!|07\r\n");
 							}
 							else {
+								bool doabort = false;
 								n->print_f("\r\n     To: ");
 								std::string to = n->get_string(35, false);
 								n->print_f("\r\nSubject: ");
@@ -254,6 +258,20 @@ bool Menu::run() {
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail()) {
 									n->print_f("\r\nAddress: ");
 									netaddr = n->get_string(16, false);
+									NETADDR *na = parse_fido_addr(netaddr.c_str());
+
+									if (na == NULL) {
+										doabort = true;
+									}
+									else {
+										if (na->point == 0) {
+											n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)));
+										}
+										else {
+											n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+										}
+										free(na);
+									}
 								}
 								else {
 									netaddr = "";
@@ -262,7 +280,7 @@ bool Menu::run() {
 								if (to.size() == 0) {
 									to = "All";
 								}
-								if (subject.size() == 0) {
+								if (doabort || subject.size() == 0) {
 									n->print_f("\r\n|14Aborted!\r\n");
 								}
 								else {
