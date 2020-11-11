@@ -1,3 +1,4 @@
+#include <cstring>
 #include "Node.h"
 #include "Config.h"
 #include "Nodelist.h"

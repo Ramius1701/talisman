@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cstring>
 #include <sqlite3.h>
 #include "Nodelist.h"
 
