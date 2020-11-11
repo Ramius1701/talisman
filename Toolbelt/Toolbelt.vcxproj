@@ -150,12 +150,14 @@
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Nodelist.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="INIReader.h" />
+    <ClInclude Include="Nodelist.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />
   </ItemGroup>

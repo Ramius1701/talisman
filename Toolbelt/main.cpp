@@ -4,6 +4,7 @@
 #include "INIReader.h"
 #include "User.h"
 #include "Files.h"
+#include "Nodelist.h"
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -82,12 +83,25 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
+		else if (strcasecmp(argv[1], "nodelistp") == 0) {
+			if (argc == 5) {
+				std::string nodelist = std::string(argv[3]);
+				std::string database = std::string(argv[4]);
+				std::string domain = std::string(argv[2]);
+				if (!Nodelist::parse(domain, nodelist, database)) {
+					std::cout << "Failure" << std::endl;
+				}
+				else {
+					std::cout << "Done" << std::endl;
+				}
+			}
+		}
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
-		std::cerr << "   COMMAND password ARGS username newpassword" << std::endl;
-		std::cerr << "   COMMAND seclevel ARGS username newlevel" << std::endl;
+		std::cerr << "   COMMAND password   ARGS username newpassword" << std::endl;
+		std::cerr << "   COMMAND seclevel   ARGS username newlevel" << std::endl;
 		std::cerr << "   COMMAND uploadbulk ARGS folder database [uploadedby]" << std::endl;
-
+		std::cerr << "   COMMAND nodelistp  ARGS domain nodelist database" << std::endl;
 	}
 }
