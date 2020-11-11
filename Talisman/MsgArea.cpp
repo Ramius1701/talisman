@@ -926,15 +926,15 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
 		}
 		else {
-			n->print_f("|14   From: |15%-41.41s |14From Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+			n->print_f("|14   From: |15%-36.36s |14From Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
 
 			std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
 
 			if (msg->xmsg.orig.point == 0) {
-				n->print_f("|14     To: |15%-36.36s      |14From Host: |15%s\r\n", msg->xmsg.to, node.c_str());
+				n->print_f("|14     To: |15%-36.36s |14From Host: |15%s\r\n", msg->xmsg.to, node.c_str());
 			}
 			else {
-				n->print_f("|14     To: |15%-36.36s      |14From Host: |15A Point System\r\n", msg->xmsg.to);
+				n->print_f("|14     To: |15%-36.36s |14From Host: |15A Point System\r\n", msg->xmsg.to);
 			}
 		}
 		n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63);
