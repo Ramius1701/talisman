@@ -224,10 +224,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 			}
 			sql3 << " ORDER BY uldate DESC";
 			std::string ssql3 = sql3.str();
-			std::cerr << ssql3 << std::endl;
 			if (sqlite3_prepare_v2(db, ssql3.c_str(), ssql3.size(), &stmt, NULL) != SQLITE_OK) {
-				std::cerr << "Error preparing statement: " << sqlite3_errstr(sqlite3_errcode(db)) << std::endl;
-				
 				sqlite3_close(db);
 				return;
 			}
