@@ -147,6 +147,77 @@ bool Config::load(Node *n, std::string filename) {
 		std::cerr << "Error parsing " << _datapath << "/seclevels.toml" << std::endl;
 		return false;
 	}
+
+	try {
+		auto data2 = toml::parse_file(_datapath + "/loginitems.toml");
+
+		auto loginitemst = data2.get_as<toml::array>("loginitem");
+
+		for (size_t i = 0; i < loginitemst->size(); i++) {
+			auto itemtable = loginitemst->get(i)->as_table();
+
+			std::string mycommand;
+			std::string mydata;
+			bool myclearscreen;
+			bool mypauseafter;
+			int mysec_level;
+
+			auto cmd = itemtable->get("command");
+			if (cmd != nullptr) {
+				mycommand = cmd->as_string()->value_or("");
+			}
+			else {
+				mycommand = "";
+			}
+
+			auto data = itemtable->get("data");
+			if (data != nullptr) {
+				mydata = data->as_string()->value_or("");
+			}
+			else {
+				mydata = "";
+			}
+
+			auto clearscreen = itemtable->get("clear_screen");
+			if (clearscreen != nullptr) {
+				myclearscreen = clearscreen->as_boolean()->value_or(false);
+			}
+			else {
+				myclearscreen = false;
+			}
+
+			auto pauseafter = itemtable->get("pause_after");
+			if (pauseafter != nullptr) {
+				mypauseafter = pauseafter->as_boolean()->value_or(false);
+			}
+			else {
+				mypauseafter = false;
+			}
+
+			auto seclevel = itemtable->get("sec_level");
+			if (seclevel != nullptr) {
+				mysec_level = seclevel->as_integer()->value_or(0);
+			}
+			else {
+				mysec_level = 0;
+			}
+
+			if (mycommand != "") {
+				struct login_item_t litm;
+				litm.command = mycommand;
+				litm.data = mydata;
+				litm.clearscreen = myclearscreen;
+				litm.pauseafter = mypauseafter;
+				litm.seclevel = mysec_level;
+
+				loginitems.push_back(litm);
+			}
+		}
+	}
+	catch (toml::parse_error) {
+		std::cerr << "Error parsing " << _datapath << "/loginitems.toml" << std::endl;
+		return false;
+	}
 	try {
 		auto data3 = toml::parse_file(_datapath + "/protocols.toml");
 

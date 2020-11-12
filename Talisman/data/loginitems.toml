@@ -1,0 +1,36 @@
+[[loginitem]]
+clear_screen = true
+pause_after = true
+command = "SENDGFILE"
+data = "login"
+
+[[loginitem]]
+clear_screen = true
+pause_after = false
+command = "BULLETINS"
+
+[[loginitem]]
+clear_screen = true
+pause_after = false
+command = "EMAILCHECK"
+
+[[loginitem]]
+clear_screen = false
+pause_after = false
+command = "MAILSCAN"
+
+[[loginitem]]
+clear_screen = true
+pause_after = false
+command = "NEWFILES"
+
+[[loginitem]]
+clear_screen = true
+pause_after = true
+command = "LAST10"
+
+[[loginitem]]
+clear_screen = true
+pause_after = true
+command = "RUNSCRIPT"
+data = "oneliners"

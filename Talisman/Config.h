@@ -16,6 +16,14 @@ struct sec_level_t {
 	int timeout;
 };
 
+struct login_item_t {
+	std::string command;
+	std::string data;
+	bool clearscreen;
+	bool pauseafter;
+	int seclevel;
+};
+
 class Config
 {
 public:
@@ -77,6 +85,10 @@ public:
 		return _location;
 	}
 
+	std::vector<struct login_item_t>* get_login_items() {
+		return &loginitems;
+	}
+
 	std::vector<MsgConf> msgconfs;
 	std::vector<FileConf> fileconfs;
 	std::vector<Archiver*> archivers;
@@ -101,5 +113,6 @@ private:
 	std::string _qwk_id;
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
+	std::vector<struct login_item_t> loginitems;
 };
 

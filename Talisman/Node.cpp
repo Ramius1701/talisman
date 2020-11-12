@@ -29,6 +29,7 @@
 #include "Email.h"
 #include "Bulletins.h"
 #include "Script.h"
+#include "Door.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -1043,64 +1044,124 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	u.set_attribute("last_on", std::to_string(time(NULL)));
 
-	cls();
-	
-	send_gfile("login");
-
-	print_f("|14Press any key...|07");
-	getch();
-
 	bulletins = new Bulletins();
-	if (bulletins->load(this)) {
-		bulletins->display(this);
-	}
+	bulletins->load(this);
 
-	cls();
-	int email_tot = Email::count_email(this);
-	int email_unr = Email::unread_email(this);
-	if (email_tot > 0) {
-		if (email_unr > 0) {
-			print_f("|14You have %d new, and %d old private email(s).\r\n", email_unr, email_tot);
-			print_f("|14Read them now? (Y/N) : ");
-			if (tolower(getche()) == 'y') {
-				Email::list_email(this);
+	for (size_t i = 0; i < config.get_login_items()->size(); i++) {
+		if (u.get_sec_level() >= config.get_login_items()->at(i).seclevel) {
+			if (config.get_login_items()->at(i).clearscreen) {
 				cls();
 			}
-			else {
-				print_f("\r\n\r\n\r\n");
+
+			if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SENDGFILE") == 0) {
+				send_gfile(config.get_login_items()->at(i).data);
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "BULLETINS") == 0) {
+				bulletins->display(this);
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "EMAILCHECK") == 0) {
+				int email_tot = Email::count_email(this);
+				int email_unr = Email::unread_email(this);
+				if (email_tot > 0) {
+					if (email_unr > 0) {
+						print_f("|14You have %d new, and %d old private email(s).\r\n", email_unr, email_tot);
+						print_f("|14Read them now? (Y/N) : ");
+						if (tolower(getche()) == 'y') {
+							Email::list_email(this);
+							cls();
+						}
+						else {
+							print_f("\r\n\r\n\r\n");
+						}
+					}
+					else {
+						print_f("|14You have %d old private email(s).\r\n\r\n", email_tot);
+					}
+				}
+				else {
+					print_f("|14You have no private email.\r\n\r\n");
+				}
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "MAILSCAN") == 0) {
+				print_f("|14Scan for new messages? (Y/N) : |07");
+				if (tolower(getche()) != 'n') {
+					MsgConf::scan(this);
+				}
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "NEWFILES") == 0) {
+				print_f("|14Scan for new files? (Y/N) : |07");
+				if (tolower(getche()) != 'n') {
+					print_f("\r\n\r\n");
+					for (size_t i = 0; i < config.fileconfs.size(); i++) {
+						if (config.fileconfs.at(i).get_sec_level() > u.get_sec_level()) continue;
+						print_f("|14Scanning conference: |15%s|14...|07\r\n", config.fileconfs.at(i).get_name().c_str());
+						for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
+							if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
+							config.fileconfs.at(i).areas.at(j).list_files(this, last_on);
+						}
+					}
+				}
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "LAST10") == 0) {
+				CallLog::last10_callers(this);
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "RUNSCRIPT") == 0) {
+				std::stringstream ss;
+
+				ss << config.script_path() << "/" << config.get_login_items()->at(i).data << ".lua";
+				Script::exec(this, ss.str());
+			} 
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "RUNDOOR") == 0) {
+				std::vector<std::string> arguments;
+				arguments.push_back(std::to_string(node));
+#ifdef _MSC_VER
+				arguments.push_back(std::to_string(socket));
+#endif
+				Door::createDropfiles(this);
+				if (!Door::runExternal(this, config.get_login_items()->at(i).data, arguments, false)) {
+#ifdef _MSC_VER
+					closesocket(socket);
+#else
+					close(socket);
+#endif
+					disconnected();
+				}
+			}
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "MSGREADNEW") == 0) {
+				bool subonly = false;
+				print_f("\r\n|14Read only subscribed areas? (Y/N) : |07");
+				subonly = (tolower(getch()) == 'y');
+
+				bool done = false;
+				for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
+					if (config.msgconfs.at(msgconf).get_sec_level() <= u.get_sec_level()) {
+						print_f("\r\n|14Searching conference |15%s|14...\r\n", config.msgconfs.at(msgconf).get_name().c_str());
+						for (size_t msgarea = 0; msgarea < config.msgconfs.at(msgconf).areas.size(); msgarea++) {
+							if (config.msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() <= u.get_sec_level()) {
+								if (!subonly || u.is_subscribed(config.msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
+									int last_read = u.user_get_lastread(config.msgconfs.at(msgconf).areas.at(msgarea).get_file());
+									if (last_read < config.msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+										done = !config.msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, false);
+									}
+									if (done) {
+										break;
+									}
+								}
+							}
+						}
+						if (done) {
+							break;
+						}
+					}
+				}
+			}
+			if (config.get_login_items()->at(i).pauseafter) {
+				print_f("\r\n|14Press any key...|07");
+				getch();
+				print_f("\r\n");
 			}
 		}
-		else {
-			print_f("|14You have %d old private email(s).\r\n\r\n", email_tot);
-		}
 	}
-	else {
-		print_f("|14You have no private email.\r\n\r\n");
-	}
-	print_f("|14Scan for new messages? (Y/N) : |07");
-	if (tolower(getche()) != 'n') {
-		MsgConf::scan(this);
-	}
-	cls();
-	print_f("|14Scan for new files? (Y/N) : |07");
-	if (tolower(getche()) != 'n') {
-		print_f("\r\n\r\n");
-		for (size_t i = 0; i < config.fileconfs.size(); i++) {
-			if (config.fileconfs.at(i).get_sec_level() > u.get_sec_level()) continue;
-			print_f("|14Scanning conference: |15%s|14...|07\r\n", config.fileconfs.at(i).get_name().c_str());
-			for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
-				if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
-				config.fileconfs.at(i).areas.at(j).list_files(this, last_on);
-			}
-		}
-	}
-
-	cls();
-	CallLog::last10_callers(this);
-
-	print_f("|14Press any key...|07");
-	getch();
-
 
 	Menu m(this);
 

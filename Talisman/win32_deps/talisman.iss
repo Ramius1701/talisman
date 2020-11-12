@@ -45,6 +45,7 @@ Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\mb_local.toml"; Dest
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
@@ -62,6 +63,7 @@ Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\mb_local.toml"; Dest
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
