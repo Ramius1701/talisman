@@ -8,6 +8,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <vector>
 #include <sys/stat.h>
 #include "FileArea.h"
 #include "Protocol.h"

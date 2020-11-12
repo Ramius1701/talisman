@@ -1,5 +1,5 @@
 #pragma once
-
+#include <vector>
 #include <string>
 #include <sqlite3.h>
 class Node;
