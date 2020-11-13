@@ -1129,28 +1129,33 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "MSGREADNEW") == 0) {
 				bool subonly = false;
-				print_f("\r\n|14Read only subscribed areas? (Y/N) : |07");
-				subonly = (tolower(getch()) == 'y');
-
-				bool done = false;
-				for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
-					if (config.msgconfs.at(msgconf).get_sec_level() <= u.get_sec_level()) {
-						print_f("\r\n|14Searching conference |15%s|14...\r\n", config.msgconfs.at(msgconf).get_name().c_str());
-						for (size_t msgarea = 0; msgarea < config.msgconfs.at(msgconf).areas.size(); msgarea++) {
-							if (config.msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() <= u.get_sec_level()) {
-								if (!subonly || u.is_subscribed(config.msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
-									int last_read = u.user_get_lastread(config.msgconfs.at(msgconf).areas.at(msgarea).get_file());
-									if (last_read < config.msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-										done = !config.msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, false);
-									}
-									if (done) {
-										break;
+				char c;
+				print_f("\r\n|14Read new messages? |15Y|08=|14Yes, All|08, |15S|08=|14Yes, Subbed only|08, |15N|08=|14No |08: |07");
+				c = tolower(getch());
+				if (c == 's') {
+					subonly = true;
+				} 
+				if (c != 'n') {
+					bool done = false;
+					for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
+						if (config.msgconfs.at(msgconf).get_sec_level() <= u.get_sec_level()) {
+							print_f("\r\n|14Searching conference |15%s|14...\r\n", config.msgconfs.at(msgconf).get_name().c_str());
+							for (size_t msgarea = 0; msgarea < config.msgconfs.at(msgconf).areas.size(); msgarea++) {
+								if (config.msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() <= u.get_sec_level()) {
+									if (!subonly || u.is_subscribed(config.msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
+										int last_read = u.user_get_lastread(config.msgconfs.at(msgconf).areas.at(msgarea).get_file());
+										if (last_read < config.msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+											done = !config.msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, false);
+										}
+										if (done) {
+											break;
+										}
 									}
 								}
 							}
-						}
-						if (done) {
-							break;
+							if (done) {
+								break;
+							}
 						}
 					}
 				}
