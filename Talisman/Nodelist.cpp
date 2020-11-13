@@ -93,9 +93,9 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
     sqlite3_close(db);
 
     n->cls();
-    n->print_f("|14Enter a string to filter by, or nothing for all : ");
-    std::string filter = n->get_string(32, false);
-
+    n->print_f("|14Enter a keyword to filter by, or nothing for all : ");
+    std::string filter = n->get_string(24, false);
+    n->print_f("\r\n\r\n");
     int lines = 0;
 
     for (size_t i = 0; i < entries.size(); i++) {
