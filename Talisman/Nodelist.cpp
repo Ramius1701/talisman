@@ -125,7 +125,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
             lines += 4;
 
             if (lines + 4 > 23) {
-                n->print_f("Continue (Y/N) : ");
+                n->print_f("|14Continue (Y/N) : ");
                 if (tolower(n->getch()) == 'n') {
                     n->print_f("\r\n");
                     break;
@@ -175,7 +175,7 @@ void Nodelist::browse_nodelist(Node* n) {
         n->print_f("|14%d. |15%s\r\n", i + 1, domains.at(i).c_str());
     }
 
-    n->print_f("|15Q. |15Quit\r\n\r\n");
+    n->print_f("|14Q. |15Quit\r\n\r\n");
 
     n->print_f("|14Domain |08[|151|08-|15%d|08] : |07", domains.size());
 
