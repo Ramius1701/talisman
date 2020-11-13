@@ -28,9 +28,3 @@ command = "NEWFILES"
 clear_screen = true
 pause_after = true
 command = "LAST10"
-
-[[loginitem]]
-clear_screen = true
-pause_after = true
-command = "RUNSCRIPT"
-data = "oneliners"
