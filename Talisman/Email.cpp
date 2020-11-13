@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include "Email.h"
 #include "Editor.h"
+#include "Qwk.h"
 
 bool Email::open_database(std::string filename, sqlite3** db) {
 	const char* create_users_sql = "CREATE TABLE IF NOT EXISTS email(id INTEGER PRIMARY KEY, sender TEXT COLLATE NOCASE, recipient TEXT COLLATE NOCASE, subject TEXT, body TEXT, date INTEGER, seen INTEGER)";
@@ -319,7 +320,7 @@ int Email::view_email(Node* n, Email e) {
 	}
 
 	n->print_f("\r\n");
-	n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+	n->print_f("|15R|08=|14Reply|08, |15D|08=|14Delete|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
 	std::string res = n->get_string(1, false);
 	if (res.size() == 0) {
 		return 1;
@@ -349,6 +350,9 @@ int Email::view_email(Node* n, Email e) {
 
 		}
 			return 0;
+		case 'd':
+			delete_email(n, e.id);
+			return 0;
 		case 'p':
 			return -1;
 		case 'n':
@@ -358,4 +362,250 @@ int Email::view_email(Node* n, Email e) {
 		}
 	}
 	return 0;
+}
+
+void Email::set_all_seen(Node* n) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+	static const char sql[] = "UPDATE email SET seen=1 WHERE recipient = ?";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+		sqlite3_close(db);
+		return;
+	}
+
+	std::string uname = n->get_user().get_username();
+
+	sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
+
+	sqlite3_step(stmt);
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+}
+
+void Email::delete_email(Node* n, int id) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+	static const char sql[] = "DELETE FROM email WHERE id=?";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+		sqlite3_close(db);
+		return;
+	}
+
+	sqlite3_bind_int(stmt, 1, id);
+	sqlite3_step(stmt);
+
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+}
+
+static int ieee_to_msbin(float* src4, float* dest4) {
+	unsigned char* ieee = (unsigned char*)src4;
+	unsigned char* msbin = (unsigned char*)dest4;
+	unsigned char sign = 0x00;
+	unsigned char msbin_exp = 0x00;
+	int i;
+	/* See _fmsbintoieee() for details of formats   */
+	sign = ieee[3] & 0x80;
+	msbin_exp |= ieee[3] << 1;
+	msbin_exp |= ieee[2] >> 7;
+	/* An ieee exponent of 0xfe overflows in MBF    */
+	if (msbin_exp == 0xfe) return 1;
+	msbin_exp += 2; /* actually, -127 + 128 + 1 */
+	for (i = 0; i < 4; i++) msbin[i] = 0;
+	msbin[3] = msbin_exp;
+	msbin[2] |= sign;
+	msbin[2] |= ieee[2] & 0x7f;
+	msbin[1] = ieee[1];
+	msbin[0] = ieee[0];
+	return 0;
+}
+
+int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+
+	char buffer[256];
+	static const char sql[] = "SELECT id, sender, subject, body, date FROM email WHERE recipient = ? AND seen = 0";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return tot;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+		sqlite3_close(db);
+		return tot;
+	}
+	std::string uname = n->get_user().get_username();
+	sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		std::string subject((const char *)sqlite3_column_text(stmt, 2));
+		std::string sender((const char*)sqlite3_column_text(stmt, 1));
+		time_t date = sqlite3_column_int64(stmt, 4);
+		struct tm datetm;
+#ifdef _MSC_VER
+		localtime_s(&datetm, &date);
+#else
+		localtime_r(&date, &datetm);
+#endif
+
+		int hour = datetm.tm_hour;
+		int minute = datetm.tm_min;
+
+		int day = datetm.tm_mday;
+		int month = datetm.tm_mon + 1;
+		int year = datetm.tm_year + 1900;
+
+		std::stringstream msgss;
+
+		unsigned int msgid = sqlite3_column_int(stmt, 0);
+		std::string msgbody((const char *)sqlite3_column_text(stmt, 3));
+		std::stringstream extra;
+		struct QwkHeader q;
+
+		uint32_t ndx = ftell(msgs_dat_fptr);
+		float fndx;
+		float mndx;
+		uint8_t zero = 0;
+
+		fndx = (float)ndx;
+		ieee_to_msbin(&fndx, &mndx);
+
+		q.Msgstat = ' ';
+		snprintf(buffer, 7, "%d", msgid);
+
+		memset(q.Msgnum, ' ', 7);
+		memcpy(q.Msgnum, buffer, strlen(buffer));
+
+		snprintf(buffer, sizeof buffer, "%02d-%02d-%02d", month, day, year - 2000);
+		memcpy(q.Msgdate, buffer, 8);
+
+		snprintf(buffer, sizeof buffer, "%02d:%02d", hour, minute);
+		memcpy(q.Msgtime, buffer, 5);
+
+		memset(q.Msgpass, ' ', 12);
+		memset(q.Msgrply, ' ', 8);
+
+		memset(q.MsgSubj, ' ', 25);
+
+		memset(q.MsgTo, ' ', 25);
+
+		std::stringstream mbody2;
+		mbody2.str("");
+		for (int i = 0; i < msgbody.length(); i++) {
+			if (msgbody.at(i) != '\n') {
+				mbody2 << msgbody.at(i);
+			}
+		}
+
+		msgbody = mbody2.str();
+
+		extra.str("");
+
+		if (uname.size() > 25) {
+			extra << "To: " << uname << "\r";
+			memcpy(q.MsgTo, uname.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgTo, uname.c_str(), uname.length());
+		}
+
+		memset(q.MsgFrom, ' ', 25);
+		if (sender.length() > 25) {
+			extra << "From: " << sender << "\r";
+			memcpy(q.MsgFrom, sender.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgFrom, sender.c_str(), sender.length());
+		}
+
+		if (subject.length() > 25) {
+			extra << "Subject: " << subject << "\r";
+			memcpy(q.MsgSubj, subject.c_str(), 25);
+		}
+		else {
+			memcpy(q.MsgSubj, subject.c_str(), subject.length());
+		}
+
+		if (extra.str().length() > 0) {
+			extra << "\r" << msgbody;
+			msgbody = extra.str();
+		}
+
+
+
+		int len = msgbody.length() / 128;
+
+		if (len * 128 < msgbody.length()) {
+			len++;
+		}
+
+		int lenbytes = len * 128;
+
+		char* msgbuf = (char*)malloc(lenbytes);
+
+		if (!lenbytes) {
+			sqlite3_finalize(stmt);
+			sqlite3_close(db);
+			return tot;
+		}
+
+		memset(msgbuf, ' ', lenbytes);
+
+		for (int i = 0; i < msgbody.length(); i++) {
+			if (msgbody.c_str()[i] == '\r') {
+				msgbuf[i] = '\xe3';
+			}
+			else {
+				msgbuf[i] = msgbody.c_str()[i];
+			}
+		}
+
+
+		snprintf(buffer, 7, "%d", len + 1);
+		memset(q.Msgrecs, ' ', 6);
+		memcpy(q.Msgrecs, buffer, strlen(buffer));
+
+		q.Msglive = 0xE1;
+		q.Msgarealo = 0;
+		q.Msgareahi = 0;
+
+		q.Msgoffhi = (ndx >> 8) & 0xff;
+		q.Msgofflo = ndx & 0xff;
+
+		q.Msgtagp = ' ';
+
+		fwrite(&mndx, 4, 1, conf_ndx_fptr);
+		fwrite(&zero, 1, 1, conf_ndx_fptr);
+
+		fwrite(&mndx, 4, 1, pers_ndx_fptr);
+		fwrite(&zero, 1, 1, pers_ndx_fptr);
+
+		fwrite(&q, sizeof(struct QwkHeader), 1, msgs_dat_fptr);
+		fwrite(msgbuf, lenbytes, 1, msgs_dat_fptr);
+
+		tot++;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return tot;
 }

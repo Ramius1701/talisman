@@ -919,8 +919,8 @@ void Menu::qwk_down(Node* n) {
 	std::filesystem::path msgs_dat(fpath);
 	msgs_dat.append("MESSAGES.DAT");
 
-	msgs_dat_fptr = fopen(msgs_dat.string().c_str(), "wb");
-	flist.push_back(msgs_dat.string());
+	msgs_dat_fptr = fopen(msgs_dat.u8string().c_str(), "wb");
+	flist.push_back(msgs_dat.u8string());
 
 	memset(buffer, ' ', 128);
 	memcpy(buffer, chdr, strlen(chdr));
@@ -929,19 +929,31 @@ void Menu::qwk_down(Node* n) {
 	std::filesystem::path pers_ndx(fpath);
 	pers_ndx.append("PERSONAL.NDX");
 
-	pers_ndx_fptr = fopen(pers_ndx.string().c_str(), "wb");
-	flist.push_back(pers_ndx.string());
+	pers_ndx_fptr = fopen(pers_ndx.u8string().c_str(), "wb");
+	flist.push_back(pers_ndx.u8string());
 
+	n->print_f("\r\n\r\n|14Searching |15Email|14...\r\n");
+	std::filesystem::path conf_ndx(fpath);
+	conf_ndx.append("0000.NDX");
+	conf_ndx_fptr = fopen(conf_ndx.u8string().c_str(), "wb");
+	flist.push_back(conf_ndx.u8string());
+	tot_msgs = Email::qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs);
+	if (!tot_msgs) {
+		n->print_f("|14... |12None\r\n");
+	}
+	else {
+		n->print_f("|14... |10%d Messages\r\n", tot_msgs);
+	}
 	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
 			n->print_f("\r\n\r\n|14Searching |15%s|14...\r\n", n->get_config()->msgconfs.at(i).get_name().c_str());
 			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
 				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
-					std::filesystem::path conf_ndx(fpath);
+					conf_ndx = fpath;
 					snprintf(bufferfname, sizeof bufferfname, "%04d.NDX", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
 					conf_ndx.append(bufferfname);
-					conf_ndx_fptr = fopen(conf_ndx.string().c_str(), "wb");
-					flist.push_back(conf_ndx.string());
+					conf_ndx_fptr = fopen(conf_ndx.u8string().c_str(), "wb");
+					flist.push_back(conf_ndx.u8string());
 					unsigned int last_msg_packed = 0;
 					int last_tot = tot_msgs;
 					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).qwk_scan(n, msgs_dat_fptr, pers_ndx_fptr, conf_ndx_fptr, tot_msgs, i, &last_msg_packed);
@@ -964,8 +976,8 @@ void Menu::qwk_down(Node* n) {
 	if (tot_msgs > 0) {
 		std::filesystem::path door_id(fpath);
 		door_id.append("DOOR.ID");
-		flist.push_back(door_id.string());
-		FILE* fptr = fopen(door_id.string().c_str(), "wb");
+		flist.push_back(door_id.u8string());
+		FILE* fptr = fopen(door_id.u8string().c_str(), "wb");
 		if (!fptr) {
 			// error
 			return;
@@ -1006,8 +1018,9 @@ void Menu::qwk_down(Node* n) {
 		fprintf(fptr, "\r\n");
 		fprintf(fptr, "0\r\n");
 		fprintf(fptr, "%d\r\n", tot_msgs);
-		fprintf(fptr, "%d\r\n", tot_areas - 1);
-
+		fprintf(fptr, "%d\r\n", tot_areas);
+		fprintf(fptr, "0\r\n");
+		fprintf(fptr, "Email\r\n");
 		for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 			if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 
@@ -1056,6 +1069,7 @@ void Menu::qwk_down(Node* n) {
 			int h = 0;
 			char c = n->getch();
 			if (tolower(c) == 'y') {
+				Email::set_all_seen(n);
 				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 					if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
@@ -1248,22 +1262,27 @@ void Menu::qwk_up(Node *n) {
 		bool found = false;
 		size_t mb;
 		size_t mc;
-		for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
-			if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
-				for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-					if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() == msgbase) {
-						mb = j;
-						mc = i;
-						found = true;
+		if (msgbase == 0) {
+			found = true;
+		}
+		else {
+
+			for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+				if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() == msgbase) {
+							mb = j;
+							mc = i;
+							found = true;
+							break;
+						}
+					}
+					if (found == true) {
 						break;
 					}
 				}
-				if (found == true) {
-					break;
-				}
 			}
 		}
-
 		if (found == true) {
 			std::string subject;
 			std::string to;
@@ -1389,20 +1408,30 @@ void Menu::qwk_up(Node *n) {
 
 			date = mktime(&thedate);
 			inreplyto = safe_atoi((const char*)qhdr.Msgrply, 8);
-
-			if (n->get_config()->msgconfs.at(mc).areas.at(mb).get_w_sec_level() <= n->get_user().get_sec_level()) {
-				if (!n->get_config()->msgconfs.at(mc).areas.at(mb).save_message(to, subject, text, "", inreplyto, date)) {
-					n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+			if (msgbase == 0) {
+				std::string sanatized_to = User::user_exists(n->get_config(), to);
+				if (sanatized_to != "") {
+					Email::save_message(n, sanatized_to, n->get_user().get_username(), subject, text);
+					n->print_f("|10Posted email to \"|15%s\"!\r\n", sanatized_to.c_str());
 				}
 				else {
-					n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
-					n->clog->post_msg();
+					n->print_f("|14Failed to post email to \"%s\"!|07\r\n", to.c_str());
 				}
 			}
 			else {
-				n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+				if (n->get_config()->msgconfs.at(mc).areas.at(mb).get_w_sec_level() <= n->get_user().get_sec_level()) {
+					if (!n->get_config()->msgconfs.at(mc).areas.at(mb).save_message(to, subject, text, "", inreplyto, date)) {
+						n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+					}
+					else {
+						n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+						n->clog->post_msg();
+					}
+				}
+				else {
+					n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
+				}
 			}
-
 		}
 		else {
 			n->print_f("|14Unknown message base |15%d|07\r\n", msgbase);
