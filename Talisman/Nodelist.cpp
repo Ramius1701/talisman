@@ -151,7 +151,6 @@ void Nodelist::browse_nodelist(Node* n) {
 
     if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
         sqlite3_close(db);
-        std::cerr << sqlite3_errstr(sqlite3_errcode(db)) << std::endl;
         return;
     }
 
