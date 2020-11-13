@@ -176,7 +176,7 @@ void Nodelist::browse_nodelist(Node* n) {
 
     n->print_f("|15Q. |15Quit\r\n\r\n");
 
-    n->print_f("|14Domain |08[|151|08-|15%d|08] : |07");
+    n->print_f("|14Domain |08[|151|08-|15%d|08] : |07", domains.size());
 
     std::string inp = n->get_string(2, false);
 
