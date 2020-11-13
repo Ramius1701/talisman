@@ -651,7 +651,7 @@ bool User::is_subscribed(std::string msgbase) {
 	if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
 		return true;
 	}
-	if (!sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) == SQLITE_OK) {
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) == SQLITE_OK) {
 		sqlite3_close(db);
 		return true;
 	}
