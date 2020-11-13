@@ -127,6 +127,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
             if (lines + 4 > 23) {
                 n->print_f("Continue (Y/N) : ");
                 if (tolower(n->getch()) == 'n') {
+                    n->print_f("\r\n");
                     break;
                 }
                 n->print_f("\r\n");
