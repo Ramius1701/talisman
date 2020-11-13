@@ -88,6 +88,7 @@ public:
 	std::vector<struct login_item_t>* get_login_items() {
 		return &loginitems;
 	}
+	const char* get_prompt_colour();
 
 	std::vector<MsgConf> msgconfs;
 	std::vector<FileConf> fileconfs;
@@ -96,6 +97,8 @@ public:
 	int select_archiver(Node* n);
 
 private:
+	std::string _bg_colour;
+	std::string _fg_colour;
 	std::string _mainmenu;
 	std::string _menupath;
 	std::string _gfilepath;
@@ -114,5 +117,6 @@ private:
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;
+	std::string prompt_background_ansi;
 };
 

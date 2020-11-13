@@ -1,5 +1,10 @@
 #include <fstream>
 #include <iostream>
+#include <cstring>
+#include <sstream>
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 #include "toml.hpp"
 #include "INIReader.h"
 #include "Config.h"
@@ -8,7 +13,7 @@
 #include "Archiver.h"
 
 Config::Config() {
-
+	prompt_background_ansi = "";
 }
 
 bool Config::load(Node *n, std::string filename) {
@@ -33,7 +38,8 @@ bool Config::load(Node *n, std::string filename) {
 	_echomailsem = inir.Get("Paths", "Echomail Semaphore", "echomail.sem");
 	_externaleditor = inir.Get("Paths", "External Editor", "");
 	_logpath = inir.Get("Paths", "Log Path", "logs");
-
+	_bg_colour = inir.Get("Main", "Input Background", "red");
+	_fg_colour = inir.Get("Main", "Input Foreground", "bright white");
 	try {
 		auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
@@ -457,4 +463,94 @@ int Config::select_archiver(Node* n) {
 		}
 	}
 	return -1;
+}
+
+const char* Config::get_prompt_colour() {
+	std::stringstream ss;
+
+	ss << "\x1b[";
+
+	if (prompt_background_ansi != "") return prompt_background_ansi.c_str();
+
+	if (strcasecmp(_fg_colour.c_str(), "black") == 0) {
+		ss << "0;30;";
+	}
+
+	if (strcasecmp(_fg_colour.c_str(), "red") == 0) {
+		ss << "0;31;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "green") == 0) {
+		ss << "0;32;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "brown") == 0) {
+		ss << "0;33;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "blue") == 0) {
+		ss << "0;34;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "magenta") == 0) {
+		ss << "0;35;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "cyan") == 0) {
+		ss << "0;36;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "white") == 0) {
+		ss << "0;37;";
+	}
+
+	if (strcasecmp(_fg_colour.c_str(), "bright black") == 0) {
+		ss << "1;30;";
+	}
+
+	if (strcasecmp(_fg_colour.c_str(), "bright red") == 0) {
+		ss << "1;31;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright green") == 0) {
+		ss << "1;32;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright brown") == 0) {
+		ss << "1;33;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright blue") == 0) {
+		ss << "1;34;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright magenta") == 0) {
+		ss << "1;35;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright cyan") == 0) {
+		ss << "1;36;";
+	}
+	if (strcasecmp(_fg_colour.c_str(), "bright white") == 0) {
+		ss << "1;37;";
+	}
+
+	if (strcasecmp(_fg_colour.c_str(), "black") == 0) {
+		ss << "0;30;";
+	}
+
+	if (strcasecmp(_bg_colour.c_str(), "red") == 0) {
+		ss << "41m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "green") == 0) {
+		ss << "42m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "brown") == 0) {
+		ss << "43m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "blue") == 0) {
+		ss << "44m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "magenta") == 0) {
+		ss << "45m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "cyan") == 0) {
+		ss << "46m";
+	}
+	if (strcasecmp(_bg_colour.c_str(), "white") == 0) {
+		ss << "47m";
+	}
+
+	prompt_background_ansi = ss.str();
+
+	return prompt_background_ansi.c_str();
 }

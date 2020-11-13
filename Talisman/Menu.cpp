@@ -49,6 +49,15 @@ bool Menu::load(std::string filename)
 			gfile = _gfile->value_or("");
 		}
 
+		auto _prompt = data["menu"]["prompt"].as_string();
+
+		if (_prompt == nullptr) {
+			prompt = "";
+		}
+		else {
+			prompt = _prompt->value_or("");
+		}
+
 		auto menuitems = data.get_as<toml::array>("menuitem");
 
 		for (size_t i = 0; i < menuitems->size(); i++) {
@@ -130,7 +139,13 @@ bool Menu::run() {
 
 		ss << "|08]";
 
-		n->print_f("\r\n|14Command %s|08: ", ss.str().c_str());
+		if (prompt == "") {
+			n->print_f("\r\n|14Command %s|08: ", ss.str().c_str());
+		}
+		else {
+			n->print_f("\r\n%s ", prompt.c_str());
+		}
+
 		std::string cmd = n->get_string(longest_hotkey, false);
 
 		for (size_t i = 0; i < items.size(); i++) {

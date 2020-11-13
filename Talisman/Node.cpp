@@ -588,7 +588,7 @@ std::string Node::get_string(int maxlen, bool masked, bool clear, std::string de
 	ss << def;
 
 	if (hasANSI && !clear) {
-		print_f("\x1b[1;37;41m%s\x1b[s", def.c_str());
+		print_f("%s%s\x1b[s", config.get_prompt_colour(), def.c_str());
 		for (int i = def.size(); i < maxlen; i++) {
 			print_f(" ");
 		}

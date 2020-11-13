@@ -24,6 +24,7 @@ private:
 	static void qwk_down(Node* n);
 	static void qwk_up(Node* n);
 	std::string gfile;
+	std::string prompt;
 	std::vector<struct menuitem_t> items;
 	bool isloaded;
 	Node* n;
