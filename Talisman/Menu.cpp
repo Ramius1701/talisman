@@ -524,6 +524,10 @@ bool Menu::run() {
 					ss << n->get_config()->script_path() << "/" << items[i].data << ".lua";
 					Script::exec(n, ss.str());
 				}
+				else if (strcasecmp(items[i].command.c_str(), "nlbrowse") == 0) {
+					n->log->log(LOG_INFO, "%s browsing nodelists on node %d", n->get_user().get_username().c_str(), n->getnodenum());
+					Nodelist::browse_nodelist(n);
+				}
 				else if (strcasecmp(items[i].command.c_str(), "msgreadnew") == 0) {
 					n->log->log(LOG_INFO, "%s reading all new messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 

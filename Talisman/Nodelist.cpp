@@ -53,3 +53,148 @@ std::string Nodelist::lookup_bbsname(Node* n, std::string nodeno) {
 
     return std::string("Unknown Node");
 }
+
+struct node_list_entry_t {
+    std::string nodeno;
+    std::string bbsname;
+    std::string location;
+    std::string sysop;
+};
+
+void Nodelist::browse_nodelist(Node* n, std::string domain) {
+    sqlite3* db;
+    sqlite3_stmt* stmt;
+    std::vector<node_list_entry_t> entries;
+
+    static const char sql[] = "SELET nodeno, bbsname, location, sysop FROM nodes WHERE domain = ?";
+    if (!open_database(n->get_config()->data_path() + "/nodelist.sqlite3", &db)) {
+        return;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return;
+    }
+
+    sqlite3_bind_text(stmt, 1, domain.c_str(), -1, NULL);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        struct node_list_entry_t entry;
+
+        entry.nodeno = std::string((const char *)sqlite3_column_text(stmt, 0));
+        entry.bbsname = std::string((const char*)sqlite3_column_text(stmt, 1));
+        entry.location = std::string((const char*)sqlite3_column_text(stmt, 2));
+        entry.sysop = std::string((const char*)sqlite3_column_text(stmt, 3));
+
+        entries.push_back(entry);
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    n->cls();
+    n->print_f("|14Enter a string to filter by, or nothing for all : ");
+    std::string filter = n->get_string(32, false);
+
+    int lines = 0;
+
+    for (size_t i = 0; i < entries.size(); i++) {
+        bool show = false;
+        if (filter.size() > 0) {
+            if (entries.at(i).bbsname.find(filter) != std::string::npos) {
+                show = true;
+            }
+            else if (entries.at(i).location.find(filter) != std::string::npos) {
+                show = true;
+            }
+            else if (entries.at(i).sysop.find(filter) != std::string::npos) {
+                show = true;
+            }
+            else if (entries.at(i).nodeno.find(filter) != std::string::npos) {
+                show = true;
+            }
+        }
+        else {
+            show = true;
+        }
+
+        if (show) {
+            n->print_f("|14     Node: |15 %s |08(|15%s|08)\r\n", entries.at(i).nodeno.c_str(), entries.at(i).bbsname.c_str());
+            n->print_f("|14    Sysop: |15 %s\r\n", entries.at(i).sysop.c_str());
+            n->print_f("|14 Location: |15 %s\r\n\r\n", entries.at(i).location.c_str());
+            lines += 4;
+
+            if (lines + 4 > 23) {
+                n->print_f("Continue (Y/N) : ");
+                if (tolower(n->getch()) == 'n') {
+                    break;
+                }
+                n->print_f("\r\n");
+                lines = 0;
+            }
+        }
+    }
+    n->print_f("|14Press any key...|07");
+    n->getch();
+}
+
+void Nodelist::browse_nodelist(Node* n) {
+    sqlite3 *db;
+    sqlite3_stmt* stmt;
+
+    static const char sql[] = "SELET DISTINCT domain FROM nodes";
+
+    if (!open_database(n->get_config()->data_path() + "/nodelist.sqlite3", &db)) {
+        return;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return;
+    }
+
+    std::vector<std::string> domains;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        domains.push_back(std::string((const char*)sqlite3_column_text(stmt, 0)));
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    if (domains.size() == 0) {
+
+        return;
+    }
+
+    n->cls();
+    n->print_f("|14Select Domain...|07\r\n\r\n");
+
+    for (size_t i = 0; i < domains.size(); i++) {
+        n->print_f("|14%d. |15%s\r\n", i + 1, domains.at(i).c_str());
+    }
+
+    n->print_f("|15Q. |15Quit\r\n\r\n");
+
+    n->print_f("|14Domain |08[|151|08-|15%d|08] : |07");
+
+    std::string inp = n->get_string(2, false);
+
+    if (inp.size() > 0) {
+        if (tolower(inp[0]) == 'q') {
+            return;
+        }
+        try {
+            int i = stoi(inp) - 1;
+
+            if (i >= 0 && i < domains.size()) {
+                browse_nodelist(n, domains.at(i));
+            }
+        }
+        catch (std::invalid_argument) {
+           
+        }
+        catch (std::out_of_range) {
+
+        }
+
+    }
+}

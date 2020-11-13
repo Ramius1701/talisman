@@ -22,6 +22,10 @@ command = "MSGSEARCH"
 hotkey = "S"
 
 [[menuitem]]
+command = "NLBROWSE"
+hotkey = "I"
+
+[[menuitem]]
 command = "MAILSCAN"
 hotkey = "C"
 
