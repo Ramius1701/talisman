@@ -1,4 +1,5 @@
 #include <cstring>
+#include <iostream>
 #include "Node.h"
 #include "Config.h"
 #include "Nodelist.h"
@@ -141,7 +142,7 @@ void Nodelist::browse_nodelist(Node* n) {
     sqlite3 *db;
     sqlite3_stmt* stmt;
 
-    static const char sql[] = "SELET DISTINCT domain FROM nodes";
+    static const char sql[] = "SELECT DISTINCT domain FROM nodes";
 
     if (!open_database(n->get_config()->data_path() + "/nodelist.sqlite3", &db)) {
         return;
@@ -149,6 +150,7 @@ void Nodelist::browse_nodelist(Node* n) {
 
     if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
         sqlite3_close(db);
+        std::cerr << sqlite3_errstr(sqlite3_errcode(db)) << std::endl;
         return;
     }
 
