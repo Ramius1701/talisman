@@ -67,7 +67,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
     sqlite3_stmt* stmt;
     std::vector<node_list_entry_t> entries;
 
-    static const char sql[] = "SELET nodeno, bbsname, location, sysop FROM nodes WHERE domain = ?";
+    static const char sql[] = "SELECT nodeno, bbsname, location, sysop FROM nodes WHERE domain = ?";
     if (!open_database(n->get_config()->data_path() + "/nodelist.sqlite3", &db)) {
         return;
     }
