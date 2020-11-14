@@ -524,10 +524,9 @@ const char* Config::get_prompt_colour() {
 		ss << "1;37;";
 	}
 
-	if (strcasecmp(_fg_colour.c_str(), "black") == 0) {
-		ss << "0;30;";
+	if (strcasecmp(_bg_colour.c_str(), "black") == 0) {
+		ss << "40m";
 	}
-
 	if (strcasecmp(_bg_colour.c_str(), "red") == 0) {
 		ss << "41m";
 	}
