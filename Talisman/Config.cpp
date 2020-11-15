@@ -475,7 +475,6 @@ const char* Config::get_prompt_colour() {
 	if (strcasecmp(_fg_colour.c_str(), "black") == 0) {
 		ss << "0;30;";
 	}
-
 	if (strcasecmp(_fg_colour.c_str(), "red") == 0) {
 		ss << "0;31;";
 	}
@@ -501,7 +500,6 @@ const char* Config::get_prompt_colour() {
 	if (strcasecmp(_fg_colour.c_str(), "bright black") == 0) {
 		ss << "1;30;";
 	}
-
 	if (strcasecmp(_fg_colour.c_str(), "bright red") == 0) {
 		ss << "1;31;";
 	}

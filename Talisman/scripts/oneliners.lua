@@ -34,6 +34,7 @@ while true do
 
 	local command = bbs_getchar()
 	if command == "y" or command == "Y" then
+		bbs_write_string("\r\n|08           |----------------------------------------------------------|")
 		bbs_write_string("\r\n|14Your Line: |07")
 		local tmpline = bbs_read_string(60)
 
@@ -49,7 +50,8 @@ while true do
 				file:write(lines[i] .. "\n")
 			end
 
-			file:write("|07" .. tmpline .. " |08 -> |15 " .. bbs_get_username() .. "\n")
+			file:write(string.format("|15%-16.16s|14-|08> |07%-60.60s\n", bbs_get_username(), tmpline))
+--			file:write("|07" .. tmpline .. " |08 -> |15 " .. bbs_get_username() .. "\n")
 			file:close()
 		end
 	else
