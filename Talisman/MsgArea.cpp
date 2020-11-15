@@ -769,9 +769,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		ss.str("");
 		for (int i = 0; i < msg->ctrl_len; i++) {
 			if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-				if (ss.str().size() > 79) {
+				if (ss.str().size() > n->term_width -1) {
 					int type = 2;
-					std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), 79);
+					std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), n->term_width - 1);
 
 					for (size_t z = 0; z < newvec.size(); z++) {
 						struct line_t nline;
@@ -830,7 +830,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		else {
 			std::vector<std::string> new_msg = strip_ansi(msg->msg, msg->msg_len);
 			for (size_t i = 0; i < new_msg.size(); i++) {
-				if (new_msg.at(i).size() > 79) {
+				if (new_msg.at(i).size() > n->term_width - 1) {
 					int type = 0;
 					if (new_msg.at(i).find('>') < 5) {
 						type = 1;
@@ -839,7 +839,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 						type = 2;
 					}
 
-					std::vector<std::string> newvec = word_wrap(new_msg.at(i), 79);
+					std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->term_width - 1);
 
 					for (size_t z = 0; z < newvec.size(); z++) {
 						struct line_t nline;
@@ -869,7 +869,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		if (n->get_user().get_attribute("viewkludges", "false") == "true") {
 			for (int i = 0; i < msg->ctrl_len; i++) {
 				if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-					if (ss.str().size() > 79) {
+					if (ss.str().size() > 75) {
 						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 75);
 
 						for (size_t z = 0; z < newvec.size(); z++) {
@@ -966,7 +966,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				}
 			}
 
-			if (lines == 23) {
+			if (lines == n->term_height -2) {
 				n->print_f("|14Continue (Y/N) : |07");
 				if (tolower(n->getche()) == 'n') {
 					n->print_f("\r\n");
@@ -1100,7 +1100,7 @@ int MsgArea::list_messages(int start) {
 			}
 		}
 		lines++;
-		if (lines == 23) {
+		if (lines == n->term_height - 2) {
 			n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", start, mb->basehdr.num_msg);
 
 			std::string res = n->get_string(6, false);

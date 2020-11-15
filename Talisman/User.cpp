@@ -626,7 +626,7 @@ void User::user_list(Node* n) {
 			n->print_f("|15%-16.16s |13%-32.32s |11%6d |10%04d/%02d/%02d\r\n", username.c_str(), location.c_str(), total_calls, thetm.tm_year + 1900, thetm.tm_mon + 1, thetm.tm_mday);
 		}
 		lines++;
-		if (lines == 23) {
+		if (lines == n->term_height - 2) {
 			n->print_f("|14Continue? (Y/N) : ");
 			if (tolower(n->getche()) == 'n') {
 				break;

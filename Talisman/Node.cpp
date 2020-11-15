@@ -69,6 +69,8 @@ Node::Node(int node, int socket, bool telnet) {
 	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	SetConsoleMode(hOutput, dwMode);
 #endif
+	term_width = 80;
+	term_height = 25;
 }
 
 Node::~Node() {
@@ -349,7 +351,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 #ifdef _MSC_VER
 				WriteConsoleA(hOutput, &c, 1, NULL, NULL);
 #endif
-				if (lines == 23 && pause) {
+				if (lines == term_height - 2 && pause) {
 					print_f("|14More (Y/N/C) ? ");
 
 					switch (tolower(getche())) {
@@ -386,19 +388,38 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
-		p.append(filename + ".ans");
+		p.append(filename + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans");
 		if (std::filesystem::exists(p)) {
 			send_file(p, pause, script);
 			print_f("\x1b[0m");
 			return;
 		}
+		else {
+			p.clear();
+			p.assign(config.gfile_path());
+			p.append(filename + ".ans");
+			if (std::filesystem::exists(p)) {
+				send_file(p, pause, script);
+				print_f("\x1b[0m");
+				return;
+			}
+		}
 	}
 
 	p.clear();
 	p.assign(config.gfile_path());
-	p.append(filename + ".asc");
+	p.append(filename + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc");
 	if (std::filesystem::exists(p)) {
 		send_file(p, pause, script);
+	}
+	else {
+		p.clear();
+		p.assign(config.gfile_path());
+
+		p.append(filename + ".asc");
+		if (std::filesystem::exists(p)) {
+			send_file(p, pause, script);
+		}
 	}
 }
 
@@ -444,7 +465,7 @@ char Node::getch() {
 	int len;
 	int stage = 0;
 	char order = 0;
-	char buffer[2048];
+	unsigned char buffer[2048];
 	int i = 0;
 	struct timeval tv;
 
@@ -511,47 +532,59 @@ char Node::getch() {
 #endif
 					continue;
 				}
-				if (stage == 0) {
-					if ((unsigned char)ch == IAC && telnet) {
-						stage = 1;
-					}
-					else if (ch != '\n' && ch != '\0') {
-						if (!time_check()) {
-							print_f("|14You are out of time for today!\r\n");
-#ifdef _MSC_VER
-							closesocket(socket);
-#else
-							close(socket);
-#endif
-							disconnected();
+				else {
+					if (stage == 0) {
+						if ((unsigned char)ch == IAC && telnet) {
+							printf("GOT IAC\n");
+							stage = 1;
 						}
-						return ch;
+						else if (ch != '\n' && ch != '\0') {
+							if (!time_check()) {
+								printf("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+								closesocket(socket);
+#else
+								close(socket);
+#endif
+								disconnected();
+							}
+							printf("GOT %d\n", ch);
+							return ch;
+						}
 					}
-				}
-				else if (stage == 1) {
-					if ((unsigned char)ch == IAC) {
-						return ch;
+					else if (stage == 1) {
+						if ((unsigned char)ch == IAC) {
+							return ch;
+						}
+						else if ((unsigned char)ch == 250) {
+							stage = 3;
+						}
+						else {
+							order = ch;
+							stage = 2;
+						}
 					}
-					else if ((unsigned char)ch == 240) {
-						stage = 3;
-					}
-					else {
-						order = ch;
-						stage = 2;
-					}
-				}
-				else if (stage == 2) {
-					// handle iac
-					stage = 0;
-				}
-				else if (stage == 3) {
-					if ((unsigned char)ch == 250) {
+					else if (stage == 2) {
+						// handle iac
+						printf("Got %d %d\n", order, ch);
 						stage = 0;
 					}
-					else {
-						if (i < 2047) {
-							buffer[i++] = ch;
-							buffer[i] = '\0';
+					else if (stage == 3) {
+						if ((unsigned char)ch == 240) {
+							printf("Got %d\n", buffer[0]);
+							if (buffer[0] == NAWS) {
+
+								term_width = buffer[2];
+								term_height = buffer[4];
+							}
+							stage = 0;
+						}
+						else {
+							printf("Got %d\n", ch);
+							if (i < 2047) {
+								buffer[i++] = (unsigned char)ch;
+								buffer[i] = '\0';
+							}
 						}
 					}
 				}
@@ -899,6 +932,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	unsigned char iac_echo[] = { IAC, IAC_WILL, IAC_ECHO, '\0' };
 	unsigned char iac_sga[] = { IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0' };
+	unsigned char iac_naws[] = { IAC, IAC_DO, NAWS, '\0' };
 	bool logged_in = false;
 
 	if (socket != 0) {
@@ -913,6 +947,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		if (telnet) {
 			send(socket, (char *)iac_echo, 3, 0);
 			send(socket, (char *)iac_sga, 3, 0);
+			send(socket, (char *)iac_naws, 3, 0);
 		}
 	}
 

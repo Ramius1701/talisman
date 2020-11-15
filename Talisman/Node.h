@@ -71,7 +71,8 @@ public:
 	bool stop_timeout;
 	Logger* log;
 	void tag_file(std::string filename, FileArea* fa);
-
+	int term_width;
+	int term_height;
 	std::vector<struct tagged_file_t> tagged_files;
 private:
 	int node;

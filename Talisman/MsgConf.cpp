@@ -253,7 +253,7 @@ void MsgConf::scan(Node* n) {
 		n->print_f("|14CONFERENCE: |15%s\r\n", n->get_config()->msgconfs.at(conf).get_name().c_str());
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
 		lines += 3;
-		if (lines >= 23) {
+		if (lines >= n->term_height - 2) {
 			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
@@ -273,7 +273,7 @@ void MsgConf::scan(Node* n) {
 				n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
 			}
 			lines++;
-			if (lines >= 23) {
+			if (lines >= n->term_height - 2) {
 				n->print_f("|14Continue? (Y/N) : |07");
 				if (tolower(n->getche()) == 'n') {
 					return;

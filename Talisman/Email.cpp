@@ -199,7 +199,7 @@ void Email::list_email(Node* n) {
 		}
 		
 		lines++;
-		if (lines == 23) {
+		if (lines == n->term_height - 2) {
 			n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", 1, emails.size());
 
 			std::string res = n->get_string(6, false);
@@ -308,7 +308,7 @@ int Email::view_email(Node* n, Email e) {
 			n->print_f("|15%s\r\n", e.msg.at(i).c_str());
 		}
 		lines++;
-		if (lines == 23) {
+		if (lines == n->term_width - 2) {
 			n->print_f("|14Continue (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				n->print_f("\r\n");
