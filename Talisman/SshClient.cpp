@@ -164,6 +164,8 @@ bool SshClient::do_auth() {
 					break;
 				}
 				else if (ssh_message_subtype(msg) == SSH_CHANNEL_REQUEST_PTY) {
+					term_width = ssh_message_channel_request_pty_width(msg);
+					term_height = ssh_message_channel_request_pty_height(msg);
 					ssh_message_channel_request_reply_success(msg);
 					ssh_message_free(msg);
 					continue;

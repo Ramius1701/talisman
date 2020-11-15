@@ -16,6 +16,9 @@ public:
 	std::string username;
 	std::string password;
 
+	int term_width;
+	int term_height;
+
 	void run(int rsock);
 	SshClient();
 	~SshClient();
