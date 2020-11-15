@@ -131,7 +131,7 @@ int MsgConf::list_areas(Node* n, int sec)
 				}
 			}
 			lines++;
-			if (lines == 24 && i != areas.size() - 1) {
+			if (lines == n->term_height - 2 && i != areas.size() - 1) {
 				n->print_f("|14Select |08[|151|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", cur_area - 1);
 				std::string res = n->get_string(3, false);
 

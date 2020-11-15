@@ -535,7 +535,6 @@ char Node::getch() {
 				else {
 					if (stage == 0) {
 						if ((unsigned char)ch == IAC && telnet) {
-							printf("GOT IAC\n");
 							stage = 1;
 						}
 						else if (ch != '\n' && ch != '\0') {
@@ -548,7 +547,6 @@ char Node::getch() {
 #endif
 								disconnected();
 							}
-							printf("GOT %d\n", ch);
 							return ch;
 						}
 					}
@@ -566,12 +564,10 @@ char Node::getch() {
 					}
 					else if (stage == 2) {
 						// handle iac
-						printf("Got %d %d\n", order, ch);
 						stage = 0;
 					}
 					else if (stage == 3) {
 						if ((unsigned char)ch == 240) {
-							printf("Got %d\n", buffer[0]);
 							if (buffer[0] == NAWS) {
 
 								term_width = buffer[2];
@@ -580,7 +576,6 @@ char Node::getch() {
 							stage = 0;
 						}
 						else {
-							printf("Got %d\n", ch);
 							if (i < 2047) {
 								buffer[i++] = (unsigned char)ch;
 								buffer[i] = '\0';
