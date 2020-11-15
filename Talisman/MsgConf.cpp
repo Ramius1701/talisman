@@ -241,7 +241,7 @@ void MsgConf::scan(Node* n) {
 		if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).get_sec_level()) {
 			continue;
 		}
-		if (lines >= 20) {
+		if (lines >= n->term_height - 5) {
 			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
