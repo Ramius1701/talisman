@@ -947,7 +947,6 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		if (telnet) {
 			send(socket, (char *)iac_echo, 3, 0);
 			send(socket, (char *)iac_sga, 3, 0);
-			send(socket, (char *)iac_naws, 3, 0);
 		}
 	}
 
@@ -975,6 +974,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	}
 	else {
 		hasANSI = true;
+	}
+
+	if (telnet) {
+		send(socket, (char*)iac_naws, 3, 0);
 	}
 
 	send_gfile("welcome");
