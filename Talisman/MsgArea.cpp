@@ -531,6 +531,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					save_col = col_at;
 					save_row = line_at;
 					break;
+				default:
+					printf("Unknown ansi Char %c\r\n", msg[i]);
+					break;
 				}
 
 			}
