@@ -423,7 +423,6 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	std::vector<std::string> new_msg;
 	int lines = 0;
 	int line_at = 0;
-	int cols = 0;
 	int col_at = 0;
 	int params[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int param_count = 0;
@@ -492,8 +491,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					else {
 						col_at++;
 					}
-					if (col_at > cols) {
-						cols = col_at;
+					if (col_at > n->term_width) {
+						col_at = n->term_width;
 					}
 					break;
 				case 'D':
@@ -517,8 +516,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					if (line_at > lines) {
 						lines = line_at;
 					}
-					if (col_at > cols) {
-						cols = col_at;
+					if (col_at > n->term_width) {
+						col_at = n->term_width;
 					}
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
@@ -537,13 +536,14 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					printf("Unknown ansi Char %c\r\n", msg[i]);
 					break;
 				}
-
+				
 			}
 		}
 		else if (msg[i] != '\n') {
 			col_at++;
-			if (col_at > cols) {
-				cols = col_at;
+			
+			if (col_at > n->term_width) {
+				col_at = n->term_width;
 			}
 		}
 	}
@@ -556,9 +556,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 
 	for (int i = 0; i <= lines; i++) {
-		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (cols + 1));
+		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->term_width + 1));
 		if (!fakescreen[i]) return new_msg;
-		for (int x = 0; x <= cols; x++) {
+		for (int x = 0; x <= n->term_width; x++) {
 			fakescreen[i][x].c = ' ';
 			fakescreen[i][x].fg_color = 7;
 			fakescreen[i][x].bg_color = 0;
@@ -620,6 +620,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					}
 					else {
 						col_at++;
+						if (col_at > n->term_width) {
+							col_at = n->term_width;
+						}
 					}
 					break;
 				case 'D':
@@ -641,6 +644,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					col_at = params[1];
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
+					if (col_at > n->term_width) col_at = n->term_width;
 					break;
 				case 'm':
 					for (int z = 0; z < param_count; z++) {
@@ -681,11 +685,14 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			fakescreen[line_at][col_at].fg_color = fg_color;
 			fakescreen[line_at][col_at].bg_color = bg_color;
 			col_at++;
+			if (col_at > n->term_width) {
+				col_at = n->term_width;
+			}
 		}
 	}
 
 	for (int i = 0; i < lines; i++) {
-		for (int j = cols - 1; j >= 0; j--) {
+		for (int j = n->term_width; j >= 0; j--) {
 			if (fakescreen[i][j].c == ' ') {
 				fakescreen[i][j].c = '\0';
 			}
@@ -703,7 +710,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	for (int i = 0; i < lines; i++) {
 		ss.str("");
 		int j;
-		for (j = 0; j < cols; j++) {
+		for (j = 0; j < n->term_width; j++) {
 			if (fakescreen[i][j].c == '\0') {
 				break;
 			}
