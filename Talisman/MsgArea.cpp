@@ -890,7 +890,23 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 		else {
-			std::vector<std::string> new_msg = strip_ansi(msg->msg, msg->msg_len);
+			std::vector<std::string> new_msg;
+			if (ansimsg) {
+				new_msg = strip_ansi(msg->msg, msg->msg_len);
+			}
+			else {
+				std::stringstream ss;
+				for (size_t i = 0; i < msg->msg_len; i++) {
+					if (msg->msg[i] == '\r') {
+						new_msg.push_back(ss.str());
+						ss.str("");
+					}
+					else {
+						ss << msg->msg[i];
+					}
+				}
+				new_msg.push_back(ss.str());
+			}
 			for (size_t i = 0; i < new_msg.size(); i++) {
 				if (new_msg.at(i).size() > n->term_width - 1) {
 					int type = 0;
