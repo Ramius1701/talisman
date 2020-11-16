@@ -534,7 +534,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 				case 'm':
 					break;
 				default:
-					printf("Unknown ansi Char %c\r\n", msg[i]);
+
 					break;
 				}
 				
@@ -708,9 +708,32 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	fg_color = 7;
 	bg_color = 0;
 	bold = false;
+
 	for (int i = 0; i < lines; i++) {
 		ss.str("");
 		int j;
+
+		if (fakescreen[i][0].c != '\001' && !(
+			fakescreen[i][0].c == 'S' &&
+			fakescreen[i][1].c == 'E' &&
+			fakescreen[i][2].c == 'E' &&
+			fakescreen[i][3].c == 'N' &&
+			fakescreen[i][4].c == '-' &&
+			fakescreen[i][5].c == 'B' &&
+			fakescreen[i][6].c == 'Y' &&
+			fakescreen[i][7].c == ':' &&
+			fakescreen[i][8].c == ' '
+			)) {
+			if (bold) {
+				ss << "\x1b[1m";
+			}
+			else {
+				ss << "\x1b[0m";
+			}
+
+			ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
+			ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+		}
 		for (j = 0; j < n->term_width; j++) {
 			if (fakescreen[i][j].c == '\0') {
 				break;
@@ -736,6 +759,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			}
 
 			ss << fakescreen[i][j].c;
+		}
+		if (j < n->term_width) {
+			ss << "\r\n";
 		}
 		new_msg.push_back(ss.str());
 	}
@@ -979,7 +1005,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		for (size_t lno = 0; lno < linesv.size(); lno++) {
 			if (linesv.at(lno).type == 0) {
 				if (ansimsg) {
-					n->print_f("%s\r\n", linesv.at(lno).line.c_str());
+					n->print_f("%s", linesv.at(lno).line.c_str());
 				}
 				else {
 					n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
