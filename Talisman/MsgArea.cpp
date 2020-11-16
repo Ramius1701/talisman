@@ -400,7 +400,7 @@ std::vector<std::string> MsgArea::strip_ansi(const char* msg, int len) {
 			if (ansi_msg.at(i).at(j) == '\x1b') {
 				while (j < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", ansi_msg.at(i).at(j)) == NULL) j++;
 			}
-			else if (ansi_msg.at(i).at(j) != '\n') {
+			else if (ansi_msg.at(i).at(j) != '\n' && ansi_msg.at(i).at(j) != '\r') {
 				output << ansi_msg.at(i).at(j);
 			}
 
@@ -551,9 +551,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 
 	for (int i = 0; i <= lines; i++) {
-		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * cols);
+		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (cols + 1));
 		if (!fakescreen[i]) return new_msg;
-		for (int x = 0; x < cols; x++) {
+		for (int x = 0; x <= cols; x++) {
 			fakescreen[i][x].c = ' ';
 			fakescreen[i][x].fg_color = 7;
 			fakescreen[i][x].bg_color = 0;
@@ -724,10 +724,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 			ss << fakescreen[i][j].c;
 		}
-		if (j < cols) {
+		if (j <= cols) {
 			ss << "\r\n";
 		}
-
 		new_msg.push_back(ss.str());
 	}
 
