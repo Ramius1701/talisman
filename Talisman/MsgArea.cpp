@@ -708,60 +708,60 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	fg_color = 7;
 	bg_color = 0;
 	bold = false;
-
+	bool got_tearline = false;
 	for (int i = 0; i < lines; i++) {
 		ss.str("");
 		int j;
 
-		if (fakescreen[i][0].c != '\001' && !(
-			fakescreen[i][0].c == 'S' &&
-			fakescreen[i][1].c == 'E' &&
-			fakescreen[i][2].c == 'E' &&
-			fakescreen[i][3].c == 'N' &&
-			fakescreen[i][4].c == '-' &&
-			fakescreen[i][5].c == 'B' &&
-			fakescreen[i][6].c == 'Y' &&
-			fakescreen[i][7].c == ':' &&
-			fakescreen[i][8].c == ' '
-			)) {
-			if (bold) {
-				ss << "\x1b[1m";
-			}
-			else {
-				ss << "\x1b[0m";
-			}
-
-			ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
-			ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+		if ((fakescreen[i][0].c == '-' &&
+			fakescreen[i][1].c == '-' &&
+			fakescreen[i][2].c == '-') && (fakescreen[i][3].c == 0 || fakescreen[i][3].c == ' ')) {
+			got_tearline = true;
 		}
-		for (j = 0; j < n->term_width; j++) {
-			if (fakescreen[i][j].c == '\0') {
-				break;
-			}
-			
-			if (fakescreen[i][j].bold != bold) {
-				bold = fakescreen[i][j].bold;
+
+		if (!got_tearline) {
+			if (fakescreen[i][0].c != '\001') {
 				if (bold) {
 					ss << "\x1b[1m";
 				}
 				else {
 					ss << "\x1b[0m";
 				}
-			}
 
-			if (fakescreen[i][j].fg_color != fg_color) {
-				fg_color = fakescreen[i][j].fg_color;
 				ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
-			}
-			if (fakescreen[i][j].bg_color != bg_color) {
-				bg_color = fakescreen[i][j].bg_color;
 				ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
 			}
+		}
+		for (j = 0; j < n->term_width; j++) {
+			if (fakescreen[i][j].c == '\0') {
+				break;
+			}
+			if (!got_tearline) {
+				if (fakescreen[i][j].bold != bold) {
+					bold = fakescreen[i][j].bold;
+					if (bold) {
+						ss << "\x1b[1m";
+					}
+					else {
+						ss << "\x1b[0m";
+					}
+				}
 
+				if (fakescreen[i][j].fg_color != fg_color) {
+					fg_color = fakescreen[i][j].fg_color;
+					ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
+				}
+				if (fakescreen[i][j].bg_color != bg_color) {
+					bg_color = fakescreen[i][j].bg_color;
+					ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
+				}
+			}
 			ss << fakescreen[i][j].c;
 		}
 		if (j < n->term_width) {
-			ss << "\r\n";
+			if (!got_tearline) {
+				ss << "\r\n";
+			}
 		}
 		new_msg.push_back(ss.str());
 	}
@@ -873,16 +873,33 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 
+		bool got_tearline = false;
+
 		if (ansimsg && n->hasANSI) {
 			std::vector<std::string> new_msg = demangle_ansi(msg->msg, msg->msg_len);
 			for (size_t i = 0; i < new_msg.size(); i++) {
 				int type = 0;
-				if (new_msg.at(i).find('>') < 5) {
-					type = 1;
+				if (!got_tearline) {
+					if (new_msg.at(i).find('>') < 5) {
+						type = 1;
+					}
+					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+						type = 2;
+					}
+					else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+						got_tearline = true;
+						type = 3;
+					}
 				}
-				else if (new_msg.at(i).size() > 0 && (new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0)) {
-					type = 2;
+				else {
+					if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+						type = 2;
+					}
+					else {
+						type = 3;
+					}
 				}
+
 				struct line_t nline;
 				nline.line = new_msg.at(i);
 				nline.type = type;
@@ -901,6 +918,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 						new_msg.push_back(ss.str());
 						ss.str("");
 					}
+
 					else {
 						ss << msg->msg[i];
 					}
@@ -910,11 +928,28 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			for (size_t i = 0; i < new_msg.size(); i++) {
 				if (new_msg.at(i).size() > n->term_width - 1) {
 					int type = 0;
-					if (new_msg.at(i).find('>') < 5) {
-						type = 1;
+					if (!got_tearline) {
+						if (new_msg.at(i).find('>') < 5) {
+							type = 1;
+						}
+						else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+							type = 2;
+						}
+						else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+							got_tearline = true;
+							type = 3;
+						}
+						else {
+							type = 0;
+						}
 					}
-					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0) {
-						type = 2;
+					else {
+						if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+							type = 2;
+						}
+						else {
+							type = 3;
+						}
 					}
 
 					std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->term_width - 1);
@@ -928,11 +963,28 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				}
 				else {
 					int type = 0;
-					if (new_msg.at(i).find('>') < 5) {
-						type = 1;
+					if (!got_tearline) {
+						if (new_msg.at(i).find('>') < 5) {
+							type = 1;
+						}
+						else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+							type = 2;
+						}
+						else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+							got_tearline = true;
+							type = 3;
+						}
+						else {
+							type = 0;
+						}
 					}
-					else if (new_msg.at(i).size() > 0 && (new_msg.at(i).at(0) == '\x01' || new_msg.at(i).find("SEEN-BY: ") == 0)) {
-						type = 2;
+					else {
+						if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+							type = 2;
+						}
+						else {
+							type = 3;
+						}
 					}
 					struct line_t nline;
 					nline.line = new_msg.at(i);
@@ -1040,10 +1092,14 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					else {
 						n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
 					}
+					
 					lines++;
 				}
 			}
-
+			else if (linesv.at(lno).type == 3) {
+				n->print_f("|13%s\r\n", linesv.at(lno).line.c_str());
+				lines++;
+			}
 			if (lines == n->term_height -2) {
 				n->print_f("|14Continue (Y/N) : |07");
 				if (tolower(n->getche()) == 'n') {
@@ -1056,14 +1112,14 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		}
 		n->print_f("\r\n");
 		if (search) {
-			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
+			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
 			
 		}
 		else if (unread) {
-			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
+			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
 		}
 		else {
-			n->print_f("|15R|08=|14Reply|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
 		}
 		std::string res = n->get_string(1, false);
 		if (res.size() == 0) {
@@ -1125,6 +1181,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 						}
 					}
 				}
+				break;
+			case 'a':
+				direction = 1;
 				break;
 			case 'n':
 				direction = 1;
