@@ -620,9 +620,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					}
 					else {
 						col_at++;
-						if (col_at > n->term_width) {
-							col_at = n->term_width;
-						}
+					}
+					if (col_at > n->term_width) {
+						col_at = n->term_width;
 					}
 					break;
 				case 'D':
@@ -692,7 +692,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	}
 
 	for (int i = 0; i < lines; i++) {
-		for (int j = n->term_width; j >= 0; j--) {
+		for (int j = n->term_width - 1; j >= 0; j--) {
 			if (fakescreen[i][j].c == ' ') {
 				fakescreen[i][j].c = '\0';
 			}
