@@ -71,8 +71,7 @@ void Settings::do_settings(Node* n) {
 					n->print_f("\r\n|12Sorry, that is incorrect.\r\n");
 				}
 			}
-			n->print_f("|12Press any key...|07");
-			n->getch();
+			n->pause();
 				break;
 			case 'f':
 			{

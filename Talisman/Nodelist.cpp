@@ -135,8 +135,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
             }
         }
     }
-    n->print_f("|14Press any key...|07");
-    n->getch();
+    n->pause();
 }
 
 void Nodelist::browse_nodelist(Node* n) {

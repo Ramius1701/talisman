@@ -97,8 +97,7 @@ void Bulletins::display(Node* n) {
 			if (strcasecmp(cmd.c_str(), bullets.at(i).hotkey.c_str()) == 0) {
 				n->cls();
 				n->send_gfile(bullets.at(i).file, true);
-				n->print_f("|14Press any key...|07");
-				n->getch();
+				n->pause();
 				disp = true;
 				break;
 			}

@@ -317,8 +317,7 @@ bool Menu::run() {
 					n->log->log(LOG_INFO, "%s listing last 10 callers on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					CallLog::last10_callers(n);
-					n->print_f("|14Press any key...|07");
-					n->getch();
+					n->pause();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "rundoor") == 0) {
 					n->log->log(LOG_INFO, "%s running door %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
@@ -342,8 +341,7 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
 					n->log->log(LOG_INFO, "%s looking at system info on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->system_info();
-					n->print_f("|14Press any key...|07");
-					n->getch();
+					n->pause();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "settings") == 0) {
 					n->log->log(LOG_INFO, "%s modifying settings on node %d", n->get_user().get_username().c_str(), n->getnodenum());
@@ -471,14 +469,12 @@ bool Menu::run() {
 								n->tagged_files.at(i).fa->inc_download_count(n, n->tagged_files.at(i).filename);
 							}
 							n->tagged_files.clear();
-							n->print_f("|14Press any key...|07");
-							n->getch();
+							n->pause();
 						}
 					}
 					else {
 						n->print_f("|12You have no files tagged!|07\r\n");
-						n->print_f("|14Press any key...|07");
-						n->getch();
+						n->pause();
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "cleartagged") == 0) {
@@ -503,15 +499,11 @@ bool Menu::run() {
 							}
 							else {
 								if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).upload_file(n)) {
-									n->print_f("|14Press any key...|07");
-									n->getch();
-									n->print_f("\r\n");
+									n->pause();
 								}
 								else {
 									n->print_f("|12Upload failed!|07\r\n");
-									n->print_f("|14Press any key...|07");
-									n->getch();
-									n->print_f("\r\n");
+									n->pause();
 								}
 							}
 						}
@@ -739,9 +731,8 @@ bool Menu::run() {
 										break;
 									}
 								}
-								n->print_f("\r\n|14Press any key...|07");
-								n->getch();
 								n->print_f("\r\n");
+								n->pause();
 							}
 							else {
 								int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
@@ -755,9 +746,8 @@ bool Menu::run() {
 											break;
 										}
 									}
-									n->print_f("\r\n|14Press any key...|07");
-									n->getch();
 									n->print_f("\r\n");
+									n->pause();
 								}
 							}
 						}
@@ -1091,9 +1081,7 @@ void Menu::qwk_down(Node* n) {
 	}
 	else {
 		n->print_f("|12No new messages!\r\n");
-		n->print_f("|14Press any key...|07");
-		n->getch();
-		n->print_f("\r\n");
+		n->pause();
 	}
 }
 
@@ -1143,8 +1131,7 @@ void Menu::qwk_up(Node *n) {
 		qwkfile.append(n->get_config()->qwk_id() + ".REP");
 		if (!std::filesystem::exists(qwkfile)) {
 			n->print_f("|12Could not find %s.REP\r\n|07", n->get_config()->qwk_id().c_str());
-			n->print_f("|14Press any key...|07");
-			n->getch();
+			n->pause();
 			return;
 		}
 	}
@@ -1160,8 +1147,7 @@ void Menu::qwk_up(Node *n) {
 
 	if (arc < 0 || arc >= n->get_config()->archivers.size()) {
 		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
-		n->print_f("|14Press any key...|07");
-		n->getch();
+		n->pause();
 		return;
 	}
 	std::vector<std::string> flist;
@@ -1188,8 +1174,7 @@ void Menu::qwk_up(Node *n) {
 		qwkfile.append(ss.str());
 		if (!std::filesystem::exists(qwkfile)) {
 			n->print_f("|14Could not find %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
-			n->print_f("|14Press any key...|07");
-			n->getch();
+			n->pause();
 			return;
 		}
 	}
@@ -1198,8 +1183,7 @@ void Menu::qwk_up(Node *n) {
 
 	if (!msgsfptr) {
 		n->print_f("|12Could not open %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
-		n->print_f("|14Press any key...|07");
-		n->getch();
+		n->pause();
 		return;
 	}
 
@@ -1208,16 +1192,14 @@ void Menu::qwk_up(Node *n) {
 	if (fread(&qhdr, sizeof(struct QwkHeader), 1, msgsfptr) != 1) {
 		n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
 		fclose(msgsfptr);
-		n->print_f("|14Press any key...|07");
-		n->getch();
+		n->pause();
 		return;
 	}
 
 	if (strncasecmp((char*)&qhdr, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size()) != 0) {
 		n->print_f("|12QWK Packet not for this system..|07\r\n");
 		fclose(msgsfptr);
-		n->print_f("|14Press any key...|07");
-		n->getch();
+		n->pause();
 		return;
 	}
 
@@ -1231,8 +1213,7 @@ void Menu::qwk_up(Node *n) {
 		if (!msgcontent) {
 			n->print_f("|12Error allocating memory|07\r\n");
 			fclose(msgsfptr);
-			n->print_f("|14Press any key...|07");
-			n->getch();
+			n->pause();
 			return;
 		}
 
@@ -1240,8 +1221,7 @@ void Menu::qwk_up(Node *n) {
 		if (fread(msgcontent, sizeof(struct QwkHeader), msgrecs - 1, msgsfptr) != msgrecs - 1) {
 			n->print_f("|12Short read on %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
 			fclose(msgsfptr);
-			n->print_f("|14Press any key...|07");
-			n->getch();
+			n->pause();
 			return;
 		}
 
@@ -1439,6 +1419,5 @@ void Menu::qwk_up(Node *n) {
 	}
 
 	fclose(msgsfptr);
-	n->print_f("|14Press any key...|07");
-	n->getch();
+	n->pause();
 }

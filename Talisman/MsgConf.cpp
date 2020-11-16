@@ -283,8 +283,5 @@ void MsgConf::scan(Node* n) {
 			}
 		}
 	}
-
-	n->print_f("|14Press any key...|07");
-	n->getch();
-	n->print_f("\r\n");
+	n->pause();
 }

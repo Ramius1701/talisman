@@ -430,6 +430,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	int fg_color = 7;
 	int bg_color = 0;
 	bool bold = false;
+	int save_col = 0;
+	int save_row = 0;
 
 	for (size_t i = 0; i < len; i++) {
 		if (msg[i] == '\r') {
@@ -504,6 +506,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					if (col_at < 0) col_at = 0;
 					break;
 				case 'H':
+				case 'f':
 					if (param_count > 1) {
 						params[0]--;
 						params[1]--;
@@ -519,6 +522,14 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					}
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
+					break;
+				case 'u':
+					col_at = save_col;
+					line_at = save_row;
+					break;
+				case 's':
+					save_col = col_at;
+					save_row = line_at;
 					break;
 				}
 
@@ -540,7 +551,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 
 	for (int i = 0; i <= lines; i++) {
-		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (cols + 1));
+		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * cols);
 		if (!fakescreen[i]) return new_msg;
 		for (int x = 0; x < cols; x++) {
 			fakescreen[i][x].c = ' ';
@@ -550,7 +561,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	}
 	line_at = 0;
 	col_at = 0;
-
+	save_row = 0;
+	save_col = 0;
 	for (size_t i = 0; i < len; i++) {
 		if (msg[i] == '\r') {
 			line_at++;
@@ -615,6 +627,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					if (col_at < 0) col_at = 0;
 					break;
 				case 'H':
+				case 'f':
 					if (param_count > 1) {
 						params[0]--;
 						params[1]--;
@@ -645,6 +658,15 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 							bg_color = params[z] - 40;
 						}
 					}
+					break;
+				case 'u':
+					col_at = save_col;
+					line_at = save_row;
+					break;
+				case 's':
+					save_col = col_at;
+					save_row = line_at;
+					break;
 				}
 			}
 		}

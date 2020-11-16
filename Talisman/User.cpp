@@ -638,8 +638,7 @@ void User::user_list(Node* n) {
 	}
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
-	n->print_f("|14Press any key...|07");
-	n->getch();
+	n->pause();
 }
 
 bool User::is_subscribed(std::string msgbase) {

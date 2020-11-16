@@ -82,6 +82,12 @@ Node::~Node() {
 	}
 }
 
+void Node::pause() {
+	print_f("|14Press any key...|07");
+	getch();
+	print_f("\r\n");
+}
+
 bool Node::detectANSI() {
 	print_f("\x1b[6n");
 	char buffer[1024];
@@ -739,6 +745,30 @@ void Node::print_f(const char* fmt, ...)
 			case 15:
 				send_str("\x1b[1;37m");
 				break;
+			case 16:
+				send_str("\x1b[40m");
+				break;
+			case 17:
+				send_str("\x1b[44m");
+				break;
+			case 18:
+				send_str("\x1b[42m");
+				break;
+			case 19:
+				send_str("\x1b[46m");
+				break;
+			case 20:
+				send_str("\x1b[41m");
+				break;
+			case 21:
+				send_str("\x1b[45m");
+				break;
+			case 22:
+				send_str("\x1b[43m");
+				break;
+			case 23:
+				send_str("\x1b[47m");
+				break;
 			}
 			
 			
@@ -817,13 +847,11 @@ void Node::system_info() {
 	print_f("|15         OS: |14%s\r\n", operating_system().c_str());
 	print_f("|15       Node: |14%d\r\n\r\n", node);
 
-	print_f("|14Press any key...|07");
-	getch();
+	pause();
 
 	cls();
 	send_gfile("system");
-	print_f("|14Press any key...|07");
-	getch();
+	pause();
 
 	cls();
 	send_gfile("login");
@@ -1009,9 +1037,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		std::string password = *sshpassword;
 		if (strcasecmp(login.c_str(), "NEW") == 0) {
 			print_f("\r\n|14Signing up as a new user...\r\n");
-			print_f("|14Press any key...|07");
-			getch();
-			print_f("\r\n");
+			pause();
 			if (!newuser()) {
 				return 0;
 			}
@@ -1020,10 +1046,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		}
 		if (strcasecmp(login.c_str(), "NEW") != 0) {
 			print_f("\r\n|14Welcome back |15%s!|07\r\n", login.c_str());
-			print_f("|14Press any key...|07");
+			pause();
 		}
-		getch();
-		print_f("\r\n");
 	}
 	else {
 		return 0;
@@ -1194,9 +1218,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				}
 			}
 			if (config.get_login_items()->at(i).pauseafter) {
-				print_f("\r\n|14Press any key...|07");
-				getch();
 				print_f("\r\n");
+				pause();
 			}
 		}
 	}

@@ -23,6 +23,7 @@ public:
 	Node(int node, int socket, bool telnet);
 	~Node();
 	void print_f(const char* fmt, ...);
+	void pause();
 	char getch();
 	char getche();
 	void putch(const char c);

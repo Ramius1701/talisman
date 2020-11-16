@@ -1,0 +1,16 @@
+Talisman BBS v0.4 (Source TAR)
+   https://talismanbbs.com/
+
+ * Uses Squish Message Bases
+ * Supports door32.sys, door.sys
+   and chain.txt
+ * Configured via INI and TOML
+   text files.
+ * Works on Linux & Windows 10
+ * IP auto blocking
+ * SSH support, latest libssh
+ * QWK-E offline mail
+ * LUA Scripting
+ * Support for Terminal sizes
+   larger than 80x25
+ * Open Source, GNU GPLv3
