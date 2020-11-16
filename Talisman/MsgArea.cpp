@@ -544,7 +544,11 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			col_at++;
 			
 			if (col_at > n->term_width) {
-				col_at = n->term_width;
+				col_at = 0;
+				line_at++;
+				if (line_at > lines) {
+					lines = line_at;
+				}
 			}
 		}
 	}
@@ -687,7 +691,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			fakescreen[line_at][col_at].bg_color = bg_color;
 			col_at++;
 			if (col_at > n->term_width) {
-				col_at = n->term_width;
+				line_at++;
+				col_at = 0;
 			}
 		}
 	}
