@@ -434,7 +434,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 
 	for (size_t i = 0; i < len; i++) {
-		if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i]-1 != '\r')) {
+		if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i - 1] != '\r')) {
 			line_at++;
 			if (line_at > lines) {
 				lines = line_at;
@@ -570,7 +570,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	save_row = 0;
 	save_col = 0;
 	for (size_t i = 0; i < len; i++) {
-		if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i] - 1 != '\r')) {
+		if (msg[i] == '\r' || (i >= 1 && msg[i] == '\n' && msg[i - 1] != '\r')) {
 			line_at++;
 			col_at = 0;
 		}
