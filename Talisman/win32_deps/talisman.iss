@@ -90,8 +90,10 @@ Name: "{app}\dist\scripts"
 
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{group}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"
+Name: "{commondesktop}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"; Tasks: desktopicon
 
 [Code]
 var
@@ -175,7 +177,7 @@ begin
       BBSName := BBSDetailsPage.Values[0];
       SysopName := BBSDetailsPage.Values[1];
       LocationStr := BBSDetailsPage.Values[2];
-      QwkIdStr := BBSDetailsPage.Values[3];
+      QwkIdStr := Copy(Uppercase(BBSDetailsPage.Values[3]), 0, 8);
 
       InstallPath := ExpandConstant('{app}');
              
