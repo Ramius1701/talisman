@@ -850,11 +850,11 @@ void Node::system_info() {
 	pause();
 
 	cls();
-	send_gfile("system");
+	send_gfile("system", true);
 	pause();
 
 	cls();
-	send_gfile("login");
+	send_gfile("login", true);
 }
 
 int Node::run() {
@@ -1118,7 +1118,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				print_f("\r\n");
 			} 
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SENDGFILE") == 0) {
-				send_gfile(config.get_login_items()->at(i).data);
+				send_gfile(config.get_login_items()->at(i).data, true);
 			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "BULLETINS") == 0) {
 				bulletins->display(this);
