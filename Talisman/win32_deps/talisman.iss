@@ -174,10 +174,25 @@ begin
   begin;
     if UpgradeBool = false then
     begin;
-      BBSName := BBSDetailsPage.Values[0];
-      SysopName := BBSDetailsPage.Values[1];
-      LocationStr := BBSDetailsPage.Values[2];
-      QwkIdStr := Copy(Uppercase(BBSDetailsPage.Values[3]), 0, 8);
+      if (Length(BBSDetailsPage.Values[0]) > 0) then
+        BBSName := BBSDetailsPage.Values[0]
+      else
+        BBSName := 'Talisman BBS';
+      
+      if (Length(BBSDetailsPage.Values[1]) > 0) then
+        SysopName := BBSDetailsPage.Values[1]
+      else
+        SysopName := 'Sysop';
+
+      if (Length(BBSDetailsPage.Values[2]) > 0) then
+        LocationStr := BBSDetailsPage.Values[2]
+      else
+        LocationStr := 'Somewhere, The World';
+
+      if (Length(BBSDetailsPage.Values[3]) > 0) then
+        QwkIdStr := Copy(Uppercase(BBSDetailsPage.Values[3]), 0, 8)
+      else
+        QwkIdStr := 'TALISMAN';
 
       InstallPath := ExpandConstant('{app}');
              
