@@ -148,6 +148,8 @@ bool Menu::run() {
 
 		std::string cmd = n->get_string(longest_hotkey, false);
 
+		n->print_f("\r\n");
+
 		for (size_t i = 0; i < items.size(); i++) {
 			if (strcasecmp(cmd.c_str(), items[i].hotkey.c_str()) == 0) {
 				if (strcasecmp(items[i].command.c_str(), "goodbye") == 0) {
@@ -629,6 +631,7 @@ bool Menu::run() {
 						n->print_f("|14Scanning conference: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
 						for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
 							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+							n->print_f("|14... Scanning area: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 							n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, n->get_last_on());
 						}
 					}

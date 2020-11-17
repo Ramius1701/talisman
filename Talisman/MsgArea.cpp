@@ -1153,6 +1153,10 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 
 					bool doabort = false;
 
+					if (to.size() == 0) {
+						to = "All";
+					}
+
 					NETADDR* na = parse_fido_addr(nnetaddr.c_str());
 					if (!na) {
 						doabort = true;
@@ -1179,6 +1183,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
 					n->print_f("\r\nSubject: ");
 					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+
+					if (to.size() == 0) {
+						to = "All";
+					}
+
 					if (subject.size() > 0) {
 						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, &quotebuffer);
 						if (nmsg.size() > 0) {

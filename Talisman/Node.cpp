@@ -1109,8 +1109,15 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 			if (config.get_login_items()->at(i).clearscreen) {
 				cls();
 			}
-
-			if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SENDGFILE") == 0) {
+			if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "QUICKLOGIN") == 0) {
+				print_f("|14Quick Login? (Y/N) : |07");
+				if (tolower(getche()) == 'y') {
+					print_f("\r\n");
+					break;
+				}
+				print_f("\r\n");
+			} 
+			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SENDGFILE") == 0) {
 				send_gfile(config.get_login_items()->at(i).data);
 			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "BULLETINS") == 0) {
@@ -1122,7 +1129,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				if (email_tot > 0) {
 					if (email_unr > 0) {
 						print_f("|14You have %d new, and %d old private email(s).\r\n", email_unr, email_tot);
-						print_f("|14Read them now? (Y/N) : ");
+						print_f("|14Read them now? (Y/N) : |07");
 						if (tolower(getche()) == 'y') {
 							Email::list_email(this);
 							cls();
@@ -1132,11 +1139,11 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 						}
 					}
 					else {
-						print_f("|14You have %d old private email(s).\r\n\r\n", email_tot);
+						print_f("|14You have %d old private email(s).|07\r\n\r\n", email_tot);
 					}
 				}
 				else {
-					print_f("|14You have no private email.\r\n\r\n");
+					print_f("|14You have no private email.|07\r\n\r\n");
 				}
 			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "MAILSCAN") == 0) {
@@ -1154,6 +1161,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 						print_f("|14Scanning conference: |15%s|14...|07\r\n", config.fileconfs.at(i).get_name().c_str());
 						for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
 							if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
+							print_f("|14... Scanning area: |15%s|14...|07\r\n", config.fileconfs.at(i).areas.at(j).get_name().c_str());
 							config.fileconfs.at(i).areas.at(j).list_files(this, last_on);
 						}
 					}
