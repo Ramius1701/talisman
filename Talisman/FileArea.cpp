@@ -182,6 +182,7 @@ struct file_list_t {
 	size_t filesize;
 	int dlcount;
 	time_t uldate;
+	bool missing;
 	std::string ulname;
 	std::vector<std::string> desc;
 };
@@ -200,7 +201,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 	sqlite3_stmt* stmt;
 	std::vector<file_list_t> filelist;
 	static const char units[] = " KMGT";
-
+	struct stat s;
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 	static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
 	std::stringstream sql3;
@@ -247,6 +248,14 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 		f.dlcount = sqlite3_column_int(stmt, 2);
 		f.uldate = sqlite3_column_int64(stmt, 3);
 		f.ulname = std::string((const char*)sqlite3_column_text(stmt, 4));
+		
+		if (stat(f.filename.c_str(), &s) != 0) {
+			f.missing = true;
+		}
+		else {
+			f.missing = false;
+		}
+		
 		std::string descr((const char*)sqlite3_column_text(stmt, 5));
 		std::stringstream ss;
 
@@ -293,7 +302,12 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
 			}
 			else {
-				n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+				if (filelist.at(i).missing) {
+					n->print_f("|14%4d. |15%-16.16s |13MISSING |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+				}
+				else {
+					n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).c_str());
+				}
 			}
 			lines++;
 			for (size_t z = 1; z < filelist.at(i).desc.size(); z++) {
@@ -315,7 +329,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 							ftag = 0;
 						}
 						if (ftag > 0 && ftag <= filelist.size()) {
-							n->tag_file(filelist.at(ftag - 1).filename, this);
+							if (!filelist.at(ftag - 1).missing) {
+								n->tag_file(filelist.at(ftag - 1).filename, this);
+							}
 						}
 					}
 					n->print_f("\r\n");
@@ -348,7 +364,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 					ftag = 0;
 				}
 				if (ftag > 0 && ftag <= filelist.size()) {
-					n->tag_file(filelist.at(ftag - 1).filename, this);
+					if (!filelist.at(ftag - 1).missing) {
+						n->tag_file(filelist.at(ftag - 1).filename, this);
+					}
 				}
 			}
 			n->print_f("\r\n");
@@ -371,7 +389,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 				ftag = 0;
 			}
 			if (ftag > 0 && ftag <= filelist.size()) {
-				n->tag_file(filelist.at(ftag - 1).filename, this);
+				if (!filelist.at(ftag - 1).missing) {
+					n->tag_file(filelist.at(ftag - 1).filename, this);
+				}
 			}
 		}
 		n->print_f("\r\n");

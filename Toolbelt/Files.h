@@ -10,6 +10,7 @@ class Files
 public:
 	bool load_archivers(std::string datapath);
 	bool add_file(std::string temppath, std::string dbname, std::string filename, std::string uploader);
+	int trim(std::string dbname);
 private:
 	bool insert_file(std::string database, std::string filename, std::vector<std::string> descr, std::string uploader);
 	bool file_exists(std::string filename, std::string database);

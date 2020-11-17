@@ -83,6 +83,16 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
+		else if (strcasecmp(argv[1], "filetrim") == 0) {
+			if (argc == 3) {
+				std::string database = std::string(argv[2]);
+				Files files;
+
+				int trimmed = files.trim(database);
+
+				std::cout << "Trimmed " << std::to_string(trimmed) << " missing files from database." << std::endl;
+			}
+		}
 		else if (strcasecmp(argv[1], "nodelistp") == 0) {
 			if (argc == 5) {
 				std::string nodelist = std::string(argv[3]);

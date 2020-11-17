@@ -250,3 +250,43 @@ bool Files::open_database(std::string filename, sqlite3** db)
 	}
 	return true;
 }
+
+int Files::trim(std::string dbname) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	int ret = 0;
+	std::vector<int> totrim;
+	struct stat s;
+
+	static const char sql[] = "SELECT id, filename FROM files";
+	static const char dsql[] = "DELETE FROM files WHERE id=?";
+
+	if (!open_database(dbname, &db)) {
+		return ret;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return ret;
+	}
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		if (stat((const char*)sqlite3_column_text(stmt, 1), &s) != 0) {
+			totrim.push_back(sqlite3_column_int(stmt, 0));
+		}
+	}
+	sqlite3_finalize(stmt);
+	for (size_t i = 0; i < totrim.size(); i++) {
+		if (sqlite3_prepare_v2(db, dsql, strlen(dsql), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			return ret;
+		}
+		sqlite3_bind_int(stmt, 1, totrim.at(i));
+
+		sqlite3_step(stmt);
+		sqlite3_finalize(stmt);
+		ret++;
+	}
+	sqlite3_close(db);
+
+	return ret;
+}
