@@ -338,7 +338,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 					lines = 0;
 				}
 
-				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).c_str());
+				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).substr(0, n->term_width - 36).c_str());
 				lines++;
 			}
 		}
