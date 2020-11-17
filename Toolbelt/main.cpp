@@ -112,6 +112,7 @@ int main(int argc, char** argv) {
 		std::cerr << "   COMMAND password   ARGS username newpassword" << std::endl;
 		std::cerr << "   COMMAND seclevel   ARGS username newlevel" << std::endl;
 		std::cerr << "   COMMAND uploadbulk ARGS folder database [uploadedby]" << std::endl;
+		std::cerr << "   COMMAND filetrim   ARGS database" << std::endl;
 		std::cerr << "   COMMAND nodelistp  ARGS domain nodelist database" << std::endl;
 	}
 }
