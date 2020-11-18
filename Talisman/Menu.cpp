@@ -985,6 +985,33 @@ bool Menu::run() {
 	}
 }
 
+static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::path dest) {
+	FILE* src_ptr;
+	FILE* dest_ptr;
+	unsigned char c;
+
+	src_ptr = fopen(src.u8string().c_str(), "r");
+	if (!src_ptr) {
+		return false;
+	}
+	dest_ptr = fopen(dest.u8string().c_str(), "w");
+	if (!dest_ptr) {
+		fclose(src_ptr);
+		return false;
+	}
+	c = fgetc(src_ptr);
+	while (!feof(src_ptr)) {
+		if (c == 0x1a) break;
+		fputc(c, dest_ptr);
+		c = fgetc(src_ptr);
+	}
+
+	fclose(src_ptr);
+	fclose(dest_ptr);
+
+	return true;
+}
+
 void Menu::qwk_down(Node* n) {
 	static const char* chdr = "Produced by Qmail...Copyright (c) 1987 by Sparkware.  All Rights Reserved";
 
@@ -1125,6 +1152,72 @@ void Menu::qwk_down(Node* n) {
 				}
 			}
 		}
+
+		std::filesystem::path bpath(fpath);
+		std::filesystem::path sbpath(n->get_config()->gfile_path());
+
+
+		bpath.append("HELLO");
+		sbpath.append("welcome.ans");
+
+		if (std::filesystem::exists(sbpath)) {
+			if (copy_file_without_sauce(sbpath, bpath)) {
+				flist.push_back(bpath.u8string());
+			}
+		}
+
+		bpath = fpath;
+		sbpath = n->get_config()->gfile_path();
+
+		bpath.append("BBSNEWS");
+		sbpath.append("login.ans");
+
+		if (std::filesystem::exists(sbpath)) {
+			if (copy_file_without_sauce(sbpath, bpath)) {
+				flist.push_back(bpath.u8string());
+			}
+		}
+
+		bpath = fpath;
+		sbpath = n->get_config()->gfile_path();
+
+		bpath.append("GOODBYE");
+		sbpath.append("goodbye.ans");
+
+		if (std::filesystem::exists(sbpath)) {
+			if (copy_file_without_sauce(sbpath, bpath)) {
+				flist.push_back(bpath.u8string());
+			}
+		}
+
+		std::vector<bulletin_t> bullets = n->bulletins->get_bulletins();
+
+		for (size_t i = 0; i < bullets.size(); i++) {
+			bpath = fpath;
+			sbpath = n->get_config()->gfile_path();
+
+			bpath.append("BLT-" + std::to_string(i));
+			sbpath.append(bullets.at(i).file + ".ans");
+
+			if (std::filesystem::exists(sbpath)) {
+				if (copy_file_without_sauce(sbpath, bpath)) {
+					flist.push_back(bpath.u8string());
+				}
+			}
+			else {
+				sbpath = n->get_config()->gfile_path();
+				sbpath.append(bullets.at(i).file + ".asc");
+				if (std::filesystem::exists(sbpath)) {
+					if (copy_file_without_sauce(sbpath, bpath)) {
+						flist.push_back(bpath.u8string());
+					}
+				}
+			}
+		}
+
+		fprintf(fptr, "HELLO\r\n");
+		fprintf(fptr, "BBSNEWS\r\n");
+		fprintf(fptr, "GOODBYE\r\n");
 
 		fclose(fptr);
 		std::stringstream ss;

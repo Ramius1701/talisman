@@ -18,6 +18,10 @@ public:
 	}
 	bool load(Node* n);
 	void display(Node* n);
+	std::vector<struct bulletin_t> get_bulletins() {
+		return bullets;
+	}
+
 private:
 	bool isloaded;
 	std::vector<struct bulletin_t> bullets;
