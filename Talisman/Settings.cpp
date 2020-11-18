@@ -14,6 +14,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15P |14Change your password |08(|15NOT SHOWN|08)\r\n");
 		n->print_f(" |15F |14Use full screen editor |08(|15%s|08)\r\n", yesnoask[stoi(n->get_user().get_attribute("fullscreeneditor", "0"))]);
 		n->print_f(" |15K |14Show Message Kludge Lines |08(|15%s|08)\r\n", (n->get_user().get_attribute("viewkludges", "false") == "false" ? "NO" : "YES"));
+		n->print_f(" |15N |14Allow Node Messages |08(|15%s|08)\r\n", (n->get_user().get_attribute("nodemsgs", "true") == "false" ? "NO" : "YES"));
 		int myarc = stoi(n->get_user().get_attribute("archiver", "-1"));
 		if (myarc >= n->get_config()->archivers.size()) {
 			myarc = -1;
@@ -88,6 +89,12 @@ void Settings::do_settings(Node* n) {
 				n->get_user().set_attribute("viewkludges", (viewkludges ? "true" : "false"));
 			}
 				break;
+			case 'n':
+			{
+				bool nodemsgs = n->get_user().get_attribute("nodemsgs", "true") == "false";
+				n->get_user().set_attribute("nodemsgs", (nodemsgs ? "true" : "false"));
+			}
+			break;
 			case 'a':
 			{
 				int arc = n->get_config()->select_archiver(n);

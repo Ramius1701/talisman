@@ -121,7 +121,7 @@ bool Menu::run() {
 	
 
 	while (true) {
-		if (std::filesystem::exists(nmsgp)) {
+		if (std::filesystem::exists(nmsgp) && n->get_user().get_attribute("nodemsgs", "true") == "true") {
 			n->cls();
 			std::ifstream file(nmsgp);
 			std::string str;
