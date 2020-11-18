@@ -36,6 +36,8 @@ public:
 	void send_gfile(std::string filename, bool pause);
 	void send_gfile(std::string filename);
 	void cls();
+	void update_node_use(std::string usage);
+	void display_nodes();
 	std::string get_string(int maxlen, bool masked);
 	std::string get_string(int maxlen, bool masked, bool clear);
 	std::string get_string(int maxlen, bool masked, bool clear, std::string def);

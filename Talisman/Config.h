@@ -32,6 +32,10 @@ public:
 
 	struct sec_level_t* get_sec_level_info(int seclvl);
 
+	int max_nodes() {
+		return _max_nodes;
+	}
+
 	std::string gfile_path() {
 		return _gfilepath;
 	}
@@ -97,6 +101,7 @@ public:
 	int select_archiver(Node* n);
 
 private:
+	int _max_nodes;
 	std::string _bg_colour;
 	std::string _fg_colour;
 	std::string _mainmenu;

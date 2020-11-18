@@ -40,6 +40,8 @@ bool Config::load(Node *n, std::string filename) {
 	_logpath = inir.Get("Paths", "Log Path", "logs");
 	_bg_colour = inir.Get("Main", "Input Background", "red");
 	_fg_colour = inir.Get("Main", "Input Foreground", "bright white");
+	_max_nodes = inir.GetInteger("Main", "Max Nodes", 4);
+
 	try {
 		auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 

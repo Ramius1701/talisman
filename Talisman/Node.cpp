@@ -82,6 +82,23 @@ Node::~Node() {
 	}
 }
 
+void Node::update_node_use(std::string usage) {
+	std::filesystem::path nusep(config.tmp_path());
+	nusep.append(std::to_string(node));
+	std::filesystem::create_directories(nusep);
+	nusep.append("node.use");
+
+	
+
+	FILE* fptr = fopen(nusep.u8string().c_str(), "w");
+
+	if (fptr) {
+		fprintf(fptr, "%s\n", u.get_username().c_str());
+		fprintf(fptr, "%s\n", usage.c_str());
+		fclose(fptr);
+	}
+}
+
 void Node::pause() {
 	print_f("|14Press any key...|07");
 	getch();
@@ -981,6 +998,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		return -1;
 	}
 
+	std::filesystem::path nmsgp(config.tmp_path());
+
+	nmsgp.append(std::to_string(node));
+	nmsgp.append("node.msg");
+
+	std::filesystem::remove(nmsgp);
+
 	log->load(config.get_logpath() + "/talisman.log");
 
 	u.set_config(config);
@@ -1056,7 +1080,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
-
+	update_node_use("Logging in.");
 
 	struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
 
@@ -1241,6 +1265,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	send_gfile("goodbye");
 	log->log(LOG_INFO, "Node %d logged off (graceful)", node);
 	clog->log_off();
+	std::filesystem::path nusep(config.tmp_path());
+
+	nusep.append(std::to_string(node));
+	nusep.append("node.use");
+
+	std::filesystem::remove(nusep);
+
 	return 0;
 }
 
@@ -1248,6 +1279,44 @@ void Node::disconnected() {
 	if (clog != nullptr) {
 		clog->log_off();
 	}
+
+	std::filesystem::path nusep(config.tmp_path());
+
+	nusep.append(std::to_string(node));
+	nusep.append("node.use");
+
+	std::filesystem::remove(nusep);
+
 	log->log(LOG_INFO, "Node %d logged off (disconnected)", node);
  	exit(-1);
+}
+
+void Node::display_nodes() {
+	cls();
+	char buffer2[256];
+
+	for (int i = 1; i <= config.max_nodes(); i++) {
+		std::filesystem::path nusep(config.tmp_path());
+
+		nusep.append(std::to_string(i));
+		nusep.append("node.use");
+
+		FILE* fptr = fopen(nusep.u8string().c_str(), "r");
+
+		if (fptr) {
+			fgets(buffer2, 256, fptr);
+			std::string uname(buffer2);
+			fgets(buffer2, 256, fptr);
+			std::string action(buffer2);
+			fclose(fptr);
+
+			rtrim(uname);
+			rtrim(action);
+
+			print_f("|14Node %d|08: |15%s|08, |07%s\r\n", i, uname.c_str(), action.c_str());
+		}
+		else {
+			print_f("|14Node %d|08: Waiting for call.\r\n", i);
+		}
+	}
 }

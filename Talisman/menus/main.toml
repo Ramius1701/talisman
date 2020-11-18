@@ -37,6 +37,10 @@ command = "LISTUSERS"
 hotkey = "L"
 
 [[menuitem]]
+command = "NODEMSG"
+hotkey = "N"
+
+[[menuitem]]
 command = "BULLETINS"
 hotkey = "B"
 

@@ -113,7 +113,30 @@ bool Menu::run() {
 		n->print_f("Menu is not loaded!\r\n");
 		return false;
 	}
+	std::filesystem::path nmsgp(n->get_config()->tmp_path());
+
+	nmsgp.append(std::to_string(n->getnodenum()));
+	nmsgp.append("node.msg");
+
+	
+
 	while (true) {
+		if (std::filesystem::exists(nmsgp)) {
+			n->cls();
+			std::ifstream file(nmsgp);
+			std::string str;
+			while (std::getline(file, str))
+			{
+				n->print_f("%s\r\n", str.c_str());
+			}
+			file.close();
+			std::filesystem::remove(nmsgp);
+
+			n->pause();
+		}
+
+		n->update_node_use("Browsing Menus");
+
 		n->cls();
 		if (gfile != "") {
 			n->send_gfile(gfile);
@@ -165,6 +188,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listconfs") == 0) {
+					n->update_node_use("Listing Mail Conferences");
 					n->log->log(LOG_INFO, "%s listing conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
@@ -185,6 +209,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listareas") == 0) {
+					n->update_node_use("Listing Mail Areas");
 					n->log->log(LOG_INFO, "%s listing areas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
@@ -204,6 +229,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listmsgs") == 0) {
+					n->update_node_use("Listing Messages");
 					n->log->log(LOG_INFO, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n\r\n");
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
@@ -251,6 +277,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
+				n->update_node_use("Posting a Message");
 					n->log->log(LOG_INFO, "%s posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
@@ -311,17 +338,20 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "mailscan") == 0) {
+					n->update_node_use("Running a Mail Scan");
 					n->log->log(LOG_INFO, "%s running mailscan on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					MsgConf::scan(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "last10") == 0) {
+					n->update_node_use("Listing Last 10 Callers");
 					n->log->log(LOG_INFO, "%s listing last 10 callers on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					CallLog::last10_callers(n);
 					n->pause();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "rundoor") == 0) {
+					n->update_node_use("Running a Door");
 					n->log->log(LOG_INFO, "%s running door %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
 					std::vector<std::string> arguments;
 					arguments.push_back(std::to_string(n->getnodenum()));
@@ -341,15 +371,18 @@ bool Menu::run() {
 					n->clog->ran_door();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
+					n->update_node_use("Looking at System Info");
 					n->log->log(LOG_INFO, "%s looking at system info on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->system_info();
 					n->pause();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "settings") == 0) {
+					n->update_node_use("Modifying User Settings");
 					n->log->log(LOG_INFO, "%s modifying settings on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					Settings::do_settings(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postemail") == 0) {
+					n->update_node_use("Posting an EMail");
 					n->log->log(LOG_INFO, "%s posting an email on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n     To: ");
 					std::string to = n->get_string(30, false);
@@ -371,10 +404,12 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listemail") == 0) {
+					n->update_node_use("Listing EMail");
 					n->log->log(LOG_INFO, "%s listing email on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					Email::list_email(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "feedback") == 0) {
+					n->update_node_use("Sending Feedback");
 					n->log->log(LOG_INFO, "%s sending feedback on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					std::string to = User::user_exists(n->get_config(), n->get_config()->op_name());
 
@@ -390,15 +425,18 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listusers") == 0) {
+					n->update_node_use("Listing Users");
 					n->log->log(LOG_INFO, "%s listing users on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					User::user_list(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "bulletins") == 0) {
+					n->update_node_use("Browsing the Bulletins");
 					n->log->log(LOG_INFO, "%s viewing bulletins on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->bulletins->display(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "fileconfs") == 0) {
+					n->update_node_use("Listing File Conferences");
 					n->log->log(LOG_INFO, "%s listing file conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int newconf = FileConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
@@ -419,6 +457,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "fileareas") == 0) {
+					n->update_node_use("Listing File Areas");
 					n->log->log(LOG_INFO, "%s listing fileareas on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
 					if (fileconf == -1) {
@@ -439,6 +478,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listfiles") == 0) {
+					n->update_node_use("Listing Files");
 					n->log->log(LOG_INFO, "%s listing messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n\r\n");
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
@@ -457,6 +497,7 @@ bool Menu::run() {
 				}
 				else if (strcasecmp(items[i].command.c_str(), "download") == 0) {
 					if (n->tagged_files.size() > 0) {
+						n->update_node_use("Downloading Files");
 						n->log->log(LOG_INFO, "%s downloading files on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 						Protocol *p = n->get_config()->select_protocol(n);
 						if (p != nullptr) {
@@ -484,6 +525,7 @@ bool Menu::run() {
 					n->print_f("|14Tagged files cleared!|07\r\n");
 				}
 				else if (strcasecmp(items[i].command.c_str(), "upload") == 0) {
+					n->update_node_use("Uploading Files");
 					n->log->log(LOG_INFO, "%s uploading files on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->print_f("\r\n\r\n");
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
@@ -512,6 +554,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "runscript") == 0) {
+					n->update_node_use("Running a Script");
 					n->log->log(LOG_INFO, "%s running script %s on node %d", n->get_user().get_username().c_str(), items[i].data.c_str(), n->getnodenum());
 					std::stringstream ss;
 
@@ -519,10 +562,12 @@ bool Menu::run() {
 					Script::exec(n, ss.str());
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nlbrowse") == 0) {
+					n->update_node_use("Browsing the Nodelist");
 					n->log->log(LOG_INFO, "%s browsing nodelists on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					Nodelist::browse_nodelist(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgreadnew") == 0) {
+					n->update_node_use("Reading New Messages");
 					n->log->log(LOG_INFO, "%s reading all new messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 
 					bool subonly = false;
@@ -553,6 +598,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgupdatelr") == 0) {
+					n->update_node_use("Updating Message Pointers");
 					n->log->log(LOG_INFO, "%s updating last read messages on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					n->print_f("|14Update last lead pointers on...\r\n|15T|08=|14This Area|08, |15C|08=|14This Conference|08, |15A|08=|14All Conferences|08, |15ENTER|08=|14Cancel |08: |07");
@@ -626,6 +672,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "newfiles") == 0) {
+					n->update_node_use("Scanning for New Files");
 					for (size_t fileconf = 0; fileconf < n->get_config()->fileconfs.size(); fileconf++) {
 						if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
 						n->print_f("|14Scanning conference: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
@@ -637,6 +684,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "filesearch") == 0) {
+					n->update_node_use("Performing a File Search");
 					n->log->log(LOG_INFO, "%s performing a file search on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					n->cls();
 					n->print_f("|14Enter |15SPACE |14seperated keywords: |07");
@@ -681,6 +729,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgsearch") == 0) {
+					n->update_node_use("Performing a Message Search");
 					n->log->log(LOG_INFO, "%s performing a message search on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 
 					n->cls();
@@ -757,6 +806,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgsubareas") == 0) {
+					n->update_node_use("Managing Message Area Subscriptions");
 					n->log->log(LOG_INFO, "%s managing msgbase subscriptions on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 
 					while (true) {
@@ -874,10 +924,61 @@ bool Menu::run() {
 				} 
 
 				else if (strcasecmp(items[i].command.c_str(), "qwkdown") == 0) {
+					n->update_node_use("Downloading a QWK Packet");
 					qwk_down(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "qwkup") == 0) {
+					n->update_node_use("Uploading a QWK Packet");
 					qwk_up(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
+					n->update_node_use("Node Messaging");
+					n->cls();
+					n->display_nodes();
+
+					n->print_f("|14Message Node |08[|151|08-|15%d|08], |15ENTER|08=|14Quit |08: ", n->get_config()->max_nodes());
+					std::string res = n->get_string(3, false);
+					if (res.size() > 0) {
+						try {
+							n->print_f("\r\n");
+							int nn = stoi(res);
+							if (nn < 1 || nn > n->get_config()->max_nodes()) {
+								n->print_f("|12Invalid Node!|07");
+							}
+							else {
+								n->print_f("\r\nYour Message: ");
+								std::string msg = n->get_string(65, false);
+								if (msg.size() > 0) {
+									std::filesystem::path nmsgp(n->get_config()->tmp_path());
+									nmsgp.append(std::to_string(nn));
+									std::filesystem::create_directories(nmsgp);
+									nmsgp.append("node.msg");
+
+									
+
+									FILE* fptr = fopen(nmsgp.u8string().c_str(), "a");
+									if (fptr) {
+										fprintf(fptr, "|14Message from |15%s |14on Node %d|08:|07\r\n\r\n%s\r\n\r\n", n->get_user().get_username().c_str(), n->getnodenum(), msg.c_str());
+										fclose(fptr);
+										n->print_f("\r\n|10Sent!|07\r\n");
+									}
+									else {
+										n->print_f("\r\n|12Failed!|07\r\n");
+									}
+								}
+								else {
+									n->print_f("\r\n|12Aborted!|07\r\n");
+								}
+							}
+						}
+						catch (std::invalid_argument) {
+							n->print_f("\r\n|12Invalid Node!|07\r\n");
+						}
+						catch (std::out_of_range) {
+							n->print_f("\r\n|12Invalid Node!|07\r\n");
+						}
+						n->pause();
+					}
 				}
 			}
 		}
