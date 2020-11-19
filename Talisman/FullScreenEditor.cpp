@@ -510,6 +510,7 @@ std::vector<std::string> FullScreenEditor::edit() {
 	n->print_f("\x1b[0;30;47m       To: %s\x1b[K\x1b[0m\r\n", to.c_str());
 
 	fsb.refresh_screen();
+	fsb.update_cursor();
 
 	while (true) {
 		char c = n->getch();
