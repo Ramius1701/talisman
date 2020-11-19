@@ -330,7 +330,14 @@ bool Menu::run() {
 								else {
 									std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_name(), n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail(), nullptr);
 									if (nmsg.size() > 0) {
-										n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, subject, nmsg, netaddr, 0);
+										if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_real_names()) {
+											n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, netaddr, 0);
+										}
+										else {
+											n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
+											
+										}
+										
 									}
 								}
 							}
@@ -1597,7 +1604,14 @@ void Menu::qwk_up(Node *n) {
 			}
 			else {
 				if (n->get_config()->msgconfs.at(mc).areas.at(mb).get_w_sec_level() <= n->get_user().get_sec_level()) {
-					if (!n->get_config()->msgconfs.at(mc).areas.at(mb).save_message(to, subject, text, "", inreplyto, date)) {
+					std::string from;
+					if (n->get_config()->msgconfs.at(mc).areas.at(mb).get_real_names()) {
+						from = n->get_user().get_attribute("fullname", n->get_user().get_username());
+					}
+					else {
+						from = n->get_user().get_username();
+					}
+					if (!n->get_config()->msgconfs.at(mc).areas.at(mb).save_message(to, from, subject, text, "", inreplyto, date)) {
 						n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
 					}
 					else {

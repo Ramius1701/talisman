@@ -1,9 +1,11 @@
 #include <sqlite3.h>
+#include <sstream>
 #include "Script.h"
 #include "Node.h"
 #include "Config.h"
 #include "User.h"
 #include "Logger.h"
+#include "Squish.h"
 
 extern "C" {
 #include "lua.h"
@@ -127,9 +129,96 @@ extern "C" int lua_bbsPostNetmail(lua_State *L) {
 	}
 	return 0;
 }
+*/
+
+extern "C" int lua_getBBSMsg(lua_State * L) {
+	const char* mbfile = lua_tostring(L, 1);
+	int mid = lua_tonumber(L, 2);
+	Node* n = lua_getNode(L);
+
+	sq_msg_base_t* mb;
+
+	mb = SquishOpenMsgBase(mbfile);
+
+	if (!mb) {
+		lua_pushnumber(L, 0);
+		lua_pushstring(L, "Nobody");
+		lua_pushstring(L, "Nobody");
+		lua_pushstring(L, "No Message");
+		lua_pushstring(L, "No Message");
+		return 5;
+	}
+
+	if (mid < 1 || mid > mb->basehdr.num_msg) {
+		SquishCloseMsgBase(mb);
+		lua_pushnumber(L, 0);
+		lua_pushstring(L, "Nobody");
+		lua_pushstring(L, "Nobody");
+		lua_pushstring(L, "No Message");
+		lua_pushstring(L, "No Message");
+		return 5;
+	}
+
+	while (mid <= mb->basehdr.num_msg) {
+		sq_msg_t* msg;
+
+		msg = SquishReadMsg(mb, mid);
+		if (!msg) {
+			SquishCloseMsgBase(mb);
+			lua_pushnumber(L, 0);
+			lua_pushstring(L, "Nobody");
+			lua_pushstring(L, "Nobody");
+			lua_pushstring(L, "No Message");
+			lua_pushstring(L, "No Message");
+			return 5;
+		}
+		if (msg->xmsg.attr & MSGPRIVATE) {
+			SquishFreeMsg(msg);
+			mid++;
+			continue;
+		}
+		
+		char* msgc = (char*)malloc(msg->msg_len + 1);
+
+		if (!msgc) {
+			SquishFreeMsg(msg);
+			SquishCloseMsgBase(mb);
+			lua_pushnumber(L, 0);
+			lua_pushstring(L, "Nobody");
+			lua_pushstring(L, "Nobody");
+			lua_pushstring(L, "No Message");
+			lua_pushstring(L, "No Message");
+			return 5;
+		}
+
+		memcpy(msgc, msg->msg, msg->msg_len);
+
+		msgc[msg->msg_len] = '\0';
+
+		lua_pushnumber(L, mid);
+		lua_pushstring(L, msg->xmsg.to);
+		lua_pushstring(L, msg->xmsg.from);
+		lua_pushstring(L, msg->xmsg.subject);
+		lua_pushstring(L, msgc);
+
+		SquishFreeMsg(msg);
+		SquishCloseMsgBase(mb);
+		free(msgc);
+		return 5;
+
+	}
+
+	SquishCloseMsgBase(mb);
+	lua_pushnumber(L, 0);
+	lua_pushstring(L, "Nobody");
+	lua_pushstring(L, "Nobody");
+	lua_pushstring(L, "No Message");
+	lua_pushstring(L, "No Message");
+	return 5;
+}
 
 extern "C" int lua_bbsPostMsg(lua_State *L) {
-	int mbid = lua_tonumber(L, 1);
+	const char *mbfile = lua_tostring(L, 1);
 	const char *to = lua_tostring(L, 2);
 	const char *from = lua_tostring(L, 3);
 	const char *subj = lua_tostring(L, 4);
@@ -137,12 +226,33 @@ extern "C" int lua_bbsPostMsg(lua_State *L) {
 	Node *n = lua_getNode(L);
 	time_t date = time(NULL);
 
-	if (!MessageBase::isNetmailBase(n->getConfig(), mbid)) {
-		MessageBase::postMessage(n, n->user, mbid, std::string(to), std::string(from), std::string(subj), std::string(body), date, 0);
+	for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
+		for (size_t msgbase = 0; msgbase < n->get_config()->msgconfs.at(msgconf).areas.size(); msgbase++) {
+			if (n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).get_file() == std::string(mbfile) && !n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).is_netmail()) {
+				std::stringstream ss;
+				std::vector<std::string> msg;
+
+				for (size_t i = 0; i < strlen(body); i++) {
+					if (body[i] == '\n') {
+						msg.push_back(ss.str());
+						ss.str("");
+					}
+					else {
+						ss << body[i];
+					}
+				}
+
+				if (ss.str().size() > 0) {
+					msg.push_back(ss.str());
+				}
+
+				n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).save_message(std::string(to), std::string(from), std::string(subj), msg, "", -1);
+			}
+		}
 	}
 	return 0;
 }
-*/
+
 
 extern "C" int lua_BBSWrite(lua_State *L) {
     char *str = (char *)lua_tostring(L, -1);
@@ -244,13 +354,13 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_getBBSMsgHeader);
 	lua_setglobal(l, "bbs_get_message_header");
-
-	lua_pushcfunction(l, lua_getBBSMsgBody);
-	lua_setglobal(l, "bbs_get_message_body");
-
+	*/
+	lua_pushcfunction(l, lua_getBBSMsg);
+	lua_setglobal(l, "bbs_get_message");
+	
 	lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
-
+	/*
 	lua_pushcfunction(l, lua_bbsPostNetmail);
 	lua_setglobal(l, "bbs_post_netmail");
 	*/

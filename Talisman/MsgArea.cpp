@@ -76,12 +76,12 @@ std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
 	return strvec;
 }
 
-bool MsgArea::save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to)
+bool MsgArea::save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to)
 {
-	return save_message(to, subject, text, netaddr, inreply_to, 0);
+	return save_message(to, from, subject, text, netaddr, inreply_to, 0);
 }
 
-bool MsgArea::save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date)
+bool MsgArea::save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date)
 {
 	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
 	char replyidbuffer[256];
@@ -316,12 +316,7 @@ bool MsgArea::save_message(std::string to, std::string subject, std::vector<std:
 	}
 
 	strncpy(newmsg.xmsg.subject, subject.c_str(), 72);
-	if (real_names) {
-		strncpy(newmsg.xmsg.from, n->get_user().get_attribute("fullname", n->get_user().get_username()).c_str(), 36);
-	}
-	else {
-		strncpy(newmsg.xmsg.from, n->get_user().get_username().c_str(), 36);
-	}
+	strncpy(newmsg.xmsg.from, from.c_str(), 36);
 	strncpy(newmsg.xmsg.to, to.c_str(), 36);
 
 	newmsg.xmsg.replyto = repmsgid;
@@ -1174,7 +1169,13 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					if (subject.size() > 0 && !doabort) {
 						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, &quotebuffer);
 						if (nmsg.size() > 0) {
-							save_message(to, subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+							if (real_names) {
+								save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+							}
+							else {
+								save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+							}
+							
 						}
 					}
 				}
@@ -1191,7 +1192,14 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					if (subject.size() > 0) {
 						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, &quotebuffer);
 						if (nmsg.size() > 0) {
-							save_message(to, subject, nmsg, "", msg->xmsg.umsgid);
+							if (real_names) {
+								save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, "", msg->xmsg.umsgid);
+							}
+							else {
+								save_message(to, n->get_user().get_username(), subject, nmsg, "", msg->xmsg.umsgid);
+							}
+
+						
 						}
 					}
 				}

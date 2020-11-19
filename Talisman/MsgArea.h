@@ -23,6 +23,11 @@ public:
 	std::string get_file() {
 		return file;
 	}
+
+	bool get_real_names() {
+		return real_names;
+	}
+
 	void do_semaphore(std::string sem);
 	int get_total_msgs();
 	int list_messages(int start);
@@ -31,8 +36,8 @@ public:
 	std::vector<std::string> demangle_ansi(const char* msg, int len);
 	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
-	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date);
-	bool save_message(std::string to, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
+	bool save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date);
+	bool save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 	bool search(std::vector<std::string> keywords, int type, bool newonly);
 	void update_lr(time_t date);
 	int qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, unsigned int* last_msg_packed);
