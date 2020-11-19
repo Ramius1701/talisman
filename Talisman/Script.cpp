@@ -139,7 +139,7 @@ extern "C" int lua_getBBSMsg(lua_State * L) {
 
 	sq_msg_base_t* mb;
 
-	mb = SquishOpenMsgBase(mbfile);
+	mb = SquishOpenMsgBase(std::string(n->get_config()->msg_path() + "/" + mbfile).c_str());
 
 	if (!mb) {
 		lua_pushnumber(L, 0);
