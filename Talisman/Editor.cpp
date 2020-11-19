@@ -103,8 +103,14 @@ std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::str
 			return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
 		}
 	}
-	else if (fse == 1 && n->get_config()->external_editor() != "" && n->hasANSI) {
-		return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
+	else if (fse == 1 && n->hasANSI) {
+		if (n->get_config()->external_editor() != "") {
+			return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
+		}
+		else {
+			FullScreenEditor fseditor(n, to, subject, quotebuffer);
+			return fseditor.edit();
+		}
 	}
 	else {
 		return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
