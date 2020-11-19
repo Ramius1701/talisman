@@ -1,5 +1,6 @@
 #include <sqlite3.h>
 #include <sstream>
+#include <cstring>
 #include "Script.h"
 #include "Node.h"
 #include "Config.h"
