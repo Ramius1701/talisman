@@ -229,7 +229,7 @@ extern "C" int lua_bbsPostMsg(lua_State *L) {
 
 	for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
 		for (size_t msgbase = 0; msgbase < n->get_config()->msgconfs.at(msgconf).areas.size(); msgbase++) {
-			if (n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).get_file() == std::string(mbfile) && !n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).is_netmail()) {
+			if (n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).get_file() == std::string(n->get_config()->msg_path() + "/" + mbfile) && !n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).is_netmail()) {
 				std::stringstream ss;
 				std::vector<std::string> msg;
 
