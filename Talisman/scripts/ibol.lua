@@ -84,15 +84,13 @@ bbs_clear_screen();
 
 userhandle = bbs_get_username();
 
-i = lastread;
-
 postfile = bbs_get_data_path() .. "/ibol.txt";
 
 local file = io.open(postfile, "a");
 
 io.output(file);
 
-local nxt_msg = lastread;
+local nxt_msg = lastread + 1;
 
 while (nxt_msg ~= 0) do 
     local sender;
@@ -100,12 +98,14 @@ while (nxt_msg ~= 0) do
     local subject;
     local msgtext;
 
-    lastread = nxt_msg;
+    nxt_msg, sender, recipient, subject, msgtext = bbs_get_message(msgarea, nxt_msg);
 
-    nxt_msg, sender, recipient, subject, body = bbs_get_message(msgarea, nxt_msg);
+    if (nxt_msg ~= 0) then
+	    lastread = nxt_msg;
+	    nxt_msg = nxt_msg + 1;
+    end
 
     if (subject == "InterBBS Oneliner") then 
-        local msgtext = bbs_get_message_body(nxt_msg);
         local thisbbs;
         local thisauthor;
         local thisline = "";
@@ -163,7 +163,7 @@ end
 local topline = ctr - 20;
 
 bbs_write_string(" |08+----------------------------------------------------------------------------+|07\r\n");
-bbs_write_string(" |08||20  |14>> |15Inter BBS Oneliners |20<<                                                 |16|08||07\r\n");
+bbs_write_string(" |08||20  |14>> |15Inter BBS Oneliners |14<<                                                 |16|08||07\r\n");
 bbs_write_string(" |08+----------------------------------------------------------------------------+|07\r\n");
 
 ctr = 0;
@@ -206,7 +206,22 @@ if (command == "a" or command == "A") then
     bbs_getchar();
 elseif (command == "v" or command == "V") then
     bbs_write_string("\r\n");
-    bbs_display_gfile_pause(postfile);
-    bbs_write_string("Press any key to quit...");
+    ctr = 0;
+    for line in io.lines(postfile) do
+	    bbs_write_string(line .. "\r\n");
+	    if (ctr == 22) then
+		    bbs_write_string("|14Continue (Y/N) :");
+		    command = bbs_getchar();
+		    if (command == "n" or command == "N") then
+			    break;
+		    end
+		    bbs_write_string("\r\n");
+		    ctr = 0;
+             end
+	     ctr = ctr + 1;
+    end
+
+
+    bbs_write_string("|14Press any key to quit...");
     bbs_getchar();
 end
