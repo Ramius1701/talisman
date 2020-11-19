@@ -1004,8 +1004,8 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		if (n->get_user().get_attribute("viewkludges", "false") == "true") {
 			for (int i = 0; i < msg->ctrl_len; i++) {
 				if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-					if (ss.str().size() > 75) {
-						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 75);
+					if (ss.str().size() > 71) {
+						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 72);
 
 						for (size_t z = 0; z < newvec.size(); z++) {
 							quotebuffer.push_back(" > " + newvec.at(z));
@@ -1035,8 +1035,8 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				if (q_msg.at(i).size() > 0 && q_msg.at(i).at(0) == '\x01') {
 					q_msg.at(i).at(0) = '@';
 				}
-				if (q_msg.at(i).size() > 75) {
-					std::vector<std::string> newvec = word_wrap(q_msg.at(i), 75);
+				if (q_msg.at(i).size() > 72) {
+					std::vector<std::string> newvec = word_wrap(q_msg.at(i), 72);
 
 					for (size_t z = 0; z < newvec.size(); z++) {
 						std::stringstream ss2;
