@@ -156,6 +156,7 @@
     <ClCompile Include="Email.cpp" />
     <ClCompile Include="FileArea.cpp" />
     <ClCompile Include="FileConf.cpp" />
+    <ClCompile Include="FullScreenEditor.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Email.h" />
     <ClInclude Include="FileArea.h" />
     <ClInclude Include="FileConf.h" />
+    <ClInclude Include="FullScreenEditor.h" />
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Logger.h" />

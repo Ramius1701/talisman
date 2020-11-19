@@ -10,6 +10,7 @@
 #include "Editor.h"
 #include "Node.h"
 #include "Door.h"
+#include "FullScreenEditor.h"
 
 std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer)
 {
@@ -89,7 +90,16 @@ std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::str
 				return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
 			}
 		}
-		else {
+		else if (n->hasANSI) {
+			n->print_f("\r\n\r\n|14Use fullscreen editor (Y/N) : |07");
+			if (tolower(n->getch()) == 'n') {
+				return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
+			}
+			else {
+				FullScreenEditor fseditor(n, to, subject, quotebuffer);
+				return fseditor.edit();
+			}
+		} else {
 			return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
 		}
 	}
