@@ -14,6 +14,93 @@
 #include "Files.h"
 #include "toml.hpp"
 
+
+std::vector<struct file_area_t> Files::load_areas(std::string datapath, int sec_level) {
+	std::vector<struct file_area_t> ret;
+	
+	try {
+		auto data1 = toml::parse_file(datapath + "/fileconfs.toml");
+		auto confitems = data1.get_as<toml::array>("fileconf");
+
+		for (size_t i = 0; i < confitems->size(); i++) {
+			auto itemtable = confitems->get(i)->as_table();
+
+			std::string myconfname;
+			std::string myfbdatafile;
+
+			auto confname = itemtable->get("name");
+			if (confname != nullptr) {
+				myconfname = confname->as_string()->value_or("Invalid Name");
+			}
+			else {
+				myconfname = "Unknown Name";
+			}
+
+			auto conf = itemtable->get("config");
+			if (conf != nullptr) {
+				myfbdatafile = conf->as_string()->value_or("");
+			}
+			else {
+				myfbdatafile = "";
+			}
+
+			if (myfbdatafile != "") {
+				try {
+					auto data2 = toml::parse_file(datapath + "/" + myfbdatafile);
+					auto areaitems = data2.get_as<toml::array>("filearea");
+					for (size_t d = 0; d < areaitems->size(); d++) {
+						auto itemtable2 = areaitems->get(d)->as_table();
+						std::string myareaname;
+						std::string mydatabase;
+						int my_d_sec_level;
+
+						auto areaname = itemtable2->get("name");
+						if (areaname != nullptr) {
+							myareaname = areaname->as_string()->value_or("Invalid Name");
+						}
+						else {
+							myareaname = "Unknown Name";
+						}
+						auto database = itemtable2->get("database");
+						if (database != nullptr) {
+							mydatabase = database->as_string()->value_or("");
+						}
+						else {
+							mydatabase = "";
+						}
+
+						auto d_sec_level = itemtable2->get("download_sec_level");
+						if (d_sec_level != nullptr) {
+							my_d_sec_level = d_sec_level->as_integer()->value_or(10);
+						}
+						else {
+							my_d_sec_level = 10;
+						}
+
+						if (my_d_sec_level <= sec_level) {
+							struct file_area_t newfa;
+
+							newfa.confname = myconfname;
+							newfa.areaname = myareaname;
+							newfa.database = mydatabase;
+
+							ret.push_back(newfa);
+						}
+					}
+				}
+				catch (toml::parse_error) {
+					return std::vector<struct file_area_t>();
+				}
+			}
+		}
+	}
+	catch (toml::parse_error) {
+		return std::vector<struct file_area_t>();
+	}
+
+	return ret;
+}
+
 bool Files::load_archivers(std::string datapath)
 {
 	try {
@@ -289,4 +376,95 @@ int Files::trim(std::string dbname) {
 	sqlite3_close(db);
 
 	return ret;
+}
+
+int Files::all_files(std::string datapath, int sec_level, time_t date, std::string output) {
+	int tot_files = 0;
+	time_t now;
+	struct tm now_tm;
+
+	if (date == 0) {
+		now = time(NULL);
+	}
+	else {
+		now = date;
+	}
+
+#ifdef _MSC_VER
+	localtime_s(&now_tm, &now);
+#else
+	localtime_r(&now, &now_tm);
+#endif
+
+	FILE* fptr = fopen(output.c_str(), "w");
+
+	std::vector<struct file_area_t> fareas = load_areas(datapath, sec_level);
+
+
+	if (date == 0) {
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+		fprintf(fptr, " All files list as of %4d-%2d-%2d\n", now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday);
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+	}
+	else {
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+		fprintf(fptr, " New files list since %4d-%2d-%2d\n", now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday);
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+	}
+
+	for (size_t i = 0; i < fareas.size(); i++) {
+		sqlite3* db;
+		sqlite3_stmt* stmt;
+
+		static const char sql[] = "SELECT filename, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
+
+		if (!open_database(fareas.at(i).database, &db)) {
+			continue;
+		}
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+		fprintf(fptr, " %s -> %s\n", fareas.at(i).confname.c_str(), fareas.at(i).areaname.c_str());
+		fprintf(fptr, "------------------------------------------------------------------------------\n");
+
+		if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+			sqlite3_close(db);
+			continue;
+		}
+		sqlite3_bind_int64(stmt, 1, date);
+
+		while (sqlite3_step(stmt) == SQLITE_ROW) {
+			std::filesystem::path file(std::string((const char*)sqlite3_column_text(stmt, 0)));
+			std::string descr((const char*)sqlite3_column_text(stmt, 1));
+			std::stringstream ss;
+			std::vector<std::string> desc;
+
+			for (size_t i = 0; i < descr.size(); i++) {
+				if (descr.at(i) == '\n') {
+					desc.push_back(ss.str());
+					ss.str("");
+				}
+				else {
+					ss << descr.at(i);
+				}
+			}
+			if (ss.str().size() > 0) {
+				desc.push_back(ss.str());
+			}
+
+			if (desc.size() > 0) {
+				fprintf(fptr, "\n%-24.24s %-54.54s\n", file.filename().u8string().c_str(), desc.at(0).c_str());
+
+				for (size_t j = 1; j < desc.size(); j++) {
+					fprintf(fptr, "                         %-54.54s\n", desc.at(j).c_str());
+				}
+			}
+			else {
+				fprintf(fptr, "\n%-24.24s No Description\n", file.filename().u8string().c_str());
+			}
+			tot_files++;
+		}
+
+		sqlite3_finalize(stmt);
+		sqlite3_close(db);
+	}
+	return tot_files;
 }
