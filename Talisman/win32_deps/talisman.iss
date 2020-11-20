@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.4"
+#define MyAppVersion "0.5"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
@@ -36,6 +36,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Servo.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Talisman.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Toolbelt.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\menus\*"; DestDir: "{app}\menus\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\scripts\*"; DestDir: "{app}\scripts"; Flags: onlyifdoesntexist
@@ -55,6 +57,8 @@ Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-1_1.dll"; DestDir: "
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}\dist"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\gfiles\*"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\menus\*"; DestDir: "{app}\dist\menus\"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\scripts\*"; DestDir: "{app}\dist\scripts"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\dist\data"; Flags: ignoreversion

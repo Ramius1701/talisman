@@ -161,6 +161,15 @@
   <ItemGroup>
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="IPBlockItem.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
+    <ClInclude Include="resource2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Servo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\servo_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
