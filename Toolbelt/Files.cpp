@@ -442,7 +442,7 @@ int Files::all_files(std::string datapath, int sec_level, time_t date, std::stri
 					desc.push_back(ss.str());
 					ss.str("");
 				}
-				else {
+				else if (descr.at(i) != '\r') {
 					ss << descr.at(i);
 				}
 			}
