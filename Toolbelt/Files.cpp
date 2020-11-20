@@ -46,7 +46,7 @@ std::vector<struct file_area_t> Files::load_areas(std::string datapath, int sec_
 
 			if (myfbdatafile != "") {
 				try {
-					auto data2 = toml::parse_file(datapath + "/" + myfbdatafile);
+					auto data2 = toml::parse_file(datapath + "/" + myfbdatafile + ".toml");
 					auto areaitems = data2.get_as<toml::array>("filearea");
 					for (size_t d = 0; d < areaitems->size(); d++) {
 						auto itemtable2 = areaitems->get(d)->as_table();
