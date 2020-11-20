@@ -957,6 +957,8 @@ bool Node::newuser() {
 		if (tolower(getche() == 'y')) {
 			print_f("\r\n|10Great! Saving your account, and logging you in!\r\n|07");
 			if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
+				u.set_attribute("seclevel", std::to_string(config.new_user_sec_level()));
+				
 				bool found = false;
 
 				for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
@@ -984,7 +986,7 @@ bool Node::newuser() {
 					}
 					if (found) break;
 				}
-
+				
 				return true;
 			}
 			else {

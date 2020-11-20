@@ -92,6 +92,11 @@ public:
 	std::vector<struct login_item_t>* get_login_items() {
 		return &loginitems;
 	}
+
+	int new_user_sec_level() {
+		return _new_user_sec_level;
+	}
+
 	const char* get_prompt_colour();
 
 	std::vector<MsgConf> msgconfs;
@@ -123,5 +128,6 @@ private:
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;
 	std::string prompt_background_ansi;
+	int _new_user_sec_level;
 };
 

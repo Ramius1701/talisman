@@ -19,118 +19,6 @@ extern "C" Node *lua_getNode(lua_State *L) {
     lua_gettable(L, LUA_REGISTRYINDEX);
     return (Node *)lua_touserdata(L, -1);	
 }
-/*
-extern "C" int lua_getBBSFirstMsg(lua_State *L) {
-	int mbid = lua_tonumber(L, -1);
-	Node *n = lua_getNode(L);
-
-	lua_pushnumber(L, MessageBase::getFirstMsg(n, n->user, mbid));
-	return 1;
-}
-
-extern "C" int lua_getBBSNextMsg(lua_State *L) {
-	int mbid = lua_tonumber(L, 1);
-	int mid = lua_tonumber(L, 2);
-	Node *n = lua_getNode(L);
-
-	lua_pushnumber(L, MessageBase::getNextMsg(n, n->user, mbid, mid));
-	return 1;	
-}
-
-extern "C" int lua_getBBSMsgHeader(lua_State *L) {
-	int mid = lua_tonumber(L, -1);
-	Node *n = lua_getNode(L);
-
-	static const char *sql = "SELECT sender, recipient, subject FROM msgs WHERE id = ?";
-
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-
-	if (!MessageBase::openDatabase(n->getConfig(), &db)) {
-		lua_pushstring(L, "Nobody");
-		lua_pushstring(L, "Nobody");
-		lua_pushstring(L, "No Message");
-		return 3;
-	}
-
-	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-		lua_pushstring(L, "Nobody");
-		lua_pushstring(L, "Nobody");
-		lua_pushstring(L, "No Message");
-		sqlite3_close(db);
-		return 3;
-	}
-	sqlite3_bind_int(stmt, 1, mid);
-
-	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		lua_pushstring(L, (const char *)sqlite3_column_text(stmt, 0));
-		lua_pushstring(L, (const char *)sqlite3_column_text(stmt, 1));
-		lua_pushstring(L, (const char *)sqlite3_column_text(stmt, 2));
-		sqlite3_finalize(stmt);
-		sqlite3_close(db);
-		return 3;
-	}
-	lua_pushstring(L, "Nobody");
-	lua_pushstring(L, "Nobody");
-	lua_pushstring(L, "No Message");
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
-
-	return 3;
-}
-
-extern "C" int lua_getBBSMsgBody(lua_State *L) {
-	int mid = lua_tonumber(L, -1);
-	Node *n = lua_getNode(L);
-
-	static const char *sql = "SELECT body FROM msgs WHERE id = ?";
-
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-
-	if (!MessageBase::openDatabase(n->getConfig(), &db)) {
-		lua_pushstring(L, "No Message");
-		return 1;
-	}
-
-	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-		lua_pushstring(L, "No Message");
-		sqlite3_close(db);
-		return 1;
-	}
-	sqlite3_bind_int(stmt, 1, mid);
-
-	if (sqlite3_step(stmt) == SQLITE_ROW) {
-		lua_pushstring(L, (const char *)sqlite3_column_text(stmt, 0));
-		sqlite3_finalize(stmt);
-		sqlite3_close(db);
-		return 1;
-	}
-
-	lua_pushstring(L, "No Message");
-	sqlite3_finalize(stmt);
-	sqlite3_close(db);
-
-	return 1;
-}
-
-extern "C" int lua_bbsPostNetmail(lua_State *L) {
-	int mbid = lua_tonumber(L, 1);
-	const char *to = lua_tostring(L, 2);
-	const char *from = lua_tostring(L, 3);
-	const char *subj = lua_tostring(L, 4);
-	const char *body = lua_tostring(L, 5);
-	const char *dest = lua_tostring(L, 6);
-
-	Node *n = lua_getNode(L);
-	time_t date = time(NULL);
-
-	if (MessageBase::isNetmailBase(n->getConfig(), mbid)) {
-		MessageBase::postMessage(n, n->user, mbid, std::string(to), std::string(from), std::string(subj), std::string(body), date, 0, dest);
-	}
-	return 0;
-}
-*/
 
 extern "C" int lua_getBBSMsg(lua_State * L) {
 	const char* mbfile = lua_tostring(L, 1);
@@ -349,22 +237,13 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_BBSClrScr);
 	lua_setglobal(l, "bbs_clear_screen");
-	/*
-	lua_pushcfunction(l, lua_getBBSNextMsg);
-	lua_setglobal(l, "bbs_next_message_id");
 
-	lua_pushcfunction(l, lua_getBBSMsgHeader);
-	lua_setglobal(l, "bbs_get_message_header");
-	*/
 	lua_pushcfunction(l, lua_getBBSMsg);
 	lua_setglobal(l, "bbs_get_message");
 	
 	lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
-	/*
-	lua_pushcfunction(l, lua_bbsPostNetmail);
-	lua_setglobal(l, "bbs_post_netmail");
-	*/
+
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){
 		n->log->log(LOG_ERROR, "Error executing script \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
