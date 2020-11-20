@@ -36,7 +36,7 @@ local function rot47_cipher(str) return cipher(str, 47)  end
 local function rot47_decipher(str) return cipher(str, -47)  end
 
 
-local userhandle = bbs_get_userhandle();
+local userhandle = bbs_get_username();
 local userlocation = bbs_get_user_location();
 local thetime = os.time();
 local sysname = bbs_get_os();
