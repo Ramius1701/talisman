@@ -169,6 +169,17 @@ extern "C" int lua_BBSUsername(lua_State *L) {
 	return 1;
 }
 
+extern "C" int lua_BBSSysName(lua_State * L) {
+	lua_pushstring(L, lua_getNode(L)->operating_system().c_str());
+	return 1;
+}
+
+
+extern "C" int lua_BBSUserLocation(lua_State * L) {
+	lua_pushstring(L, lua_getNode(L)->get_user().get_attribute("location", "Somewhere, The World").c_str());
+	return 1;
+}
+
 extern "C" int lua_BBSClrScr(lua_State *L) {
 	Node *n = lua_getNode(L);
 	n->cls();
@@ -234,6 +245,12 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_BBSUsername);
 	lua_setglobal(l, "bbs_get_username");
+
+	lua_pushcfunction(l, lua_BBSUserLocation);
+	lua_setglobal(l, "bbs_get_user_location");
+
+	lua_pushcfunction(l, lua_BBSSysName);
+	lua_setglobal(l, "bbs_get_os");
 
 	lua_pushcfunction(l, lua_BBSClrScr);
 	lua_setglobal(l, "bbs_clear_screen");
