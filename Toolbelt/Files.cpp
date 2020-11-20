@@ -418,7 +418,7 @@ int Files::all_files(std::string datapath, int sec_level, time_t date, std::stri
 
 		static const char sql[] = "SELECT filename, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
 
-		if (!open_database(fareas.at(i).database, &db)) {
+		if (!open_database(datapath + "/" + fareas.at(i).database + ".sqlite3", &db)) {
 			continue;
 		}
 		fprintf(fptr, "------------------------------------------------------------------------------\n");
