@@ -40,7 +40,7 @@ local function rot47_cipher(str) return cipher(str, 47)  end
 -- returns : the deciphered string
 local function rot47_decipher(str) return cipher(str, -47)  end
 
-local lastreadfile = bbs_data_path() .. "ilc-lr.dat";
+local lastreadfile = bbs_get_data_path() .. "/ilc-lr.dat";
 local file = io.open(lastreadfile, "r");
 local lastread  = 0
 
@@ -58,7 +58,7 @@ local index = 0;
 local i = 0;
 
 
-local csvfile = bbs_data_path() .. "ilc.csv";
+local csvfile = bbs_get_data_path() .. "/ilc.csv";
 
 if file_exists(csvfile) then
     for line in io.lines(csvfile) do
@@ -82,7 +82,7 @@ while (nxt_msg ~= 0) do
     local key = 0;
     local msgtext;
 
-    nxt_msg, sender, recipient, subject, msgtext = bbs_get_message(msgarea, nxt_msg);
+    nxt_msg, recipient, sender, subject, msgtext = bbs_get_message(msg_area, nxt_msg);
 
     if (nxt_msg ~= 0) then
         lastread = nxt_msg;
@@ -139,9 +139,9 @@ bbs_write_string(" |08||20  |14>> |15Inter BBS Last Callers |14<<               
 bbs_write_string(" |08+----------------------------------------------------------------------------+|07\r\n");
 
 for i = start, index - 1 do
-    bbs_write_string(string.format("  |06m%-16s |01%-24s |05%-24s |03%-8s\r\n", username[i], location[i], bbsname[i], udate[i]));
+    bbs_write_string(string.format("  |14%-16s |09%-24s |13%-24s |11%-8s\r\n", username[i], location[i], bbsname[i], udate[i]));
 end
 
 bbs_write_string(" |08+----------------------------------------------------------------------------+|07\r\n");
-bbs_write_string(" |14Press any key....\r\n\027|07");
-bbs_read_char();
+bbs_write_string(" |14Press any key....\r\n|07");
+bbs_getchar();

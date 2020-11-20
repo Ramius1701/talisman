@@ -98,7 +98,7 @@ while (nxt_msg ~= 0) do
     local subject;
     local msgtext;
 
-    nxt_msg, sender, recipient, subject, msgtext = bbs_get_message(msgarea, nxt_msg);
+    nxt_msg, recipient, sender, subject, msgtext = bbs_get_message(msgarea, nxt_msg);
 
     if (nxt_msg ~= 0) then
 	    lastread = nxt_msg;
