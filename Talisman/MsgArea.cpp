@@ -1030,7 +1030,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				if (q_msg.at(i).size() > 0 && q_msg.at(i).at(0) == '\x01') {
 					q_msg.at(i).at(0) = '@';
 				}
-				if (q_msg.at(i).size() > 72) {
+				if (q_msg.at(i).size() > 70) {
 					std::vector<std::string> newvec = word_wrap(q_msg.at(i), 70);
 
 					for (size_t z = 0; z < newvec.size(); z++) {
