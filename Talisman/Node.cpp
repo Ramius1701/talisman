@@ -890,7 +890,7 @@ bool Node::newuser() {
 			print_f("\r\n       Desired username: ");
 			newusername = get_string(16, false);
 			trim(newusername);
-			if (User::username_allowed(config, newusername)) {
+			if (User::username_allowed(config, newusername) && User::check_fullname(config, newusername)) {
 				break;
 			}
 			print_f("\r\n|12Sorry, username not allowed (Too short, inappropriate or already in use.)|07\r\n");
@@ -931,7 +931,7 @@ bool Node::newuser() {
 				continue;
 			}
 
-			if (!User::check_fullname(config, firstname + " " + lastname)) {
+			if (!User::check_fullname(config, firstname + " " + lastname) || !User::username_allowed(config, firstname + " " + lastname)) {
 				print_f("\r\n|12Someone with that name is already registered, sorry.\r\n|07");
 				continue;
 			}
