@@ -1275,16 +1275,14 @@ int MsgArea::list_messages(int start) {
 				return 0;
 			}
 			else {
+				SquishCloseMsgBase(mb);
 				try {
-					SquishCloseMsgBase(mb);
 					return std::stoi(res);
 				}
 				catch (std::invalid_argument) {
-					SquishCloseMsgBase(mb);
 					return 0;
 				}
 				catch (std::out_of_range) {
-					SquishCloseMsgBase(mb);
 					return 0;
 				}
 			}
