@@ -490,7 +490,13 @@ bool User::username_allowed(Config config, std::string username) {
 	if (username.size() < 2) {
 		return false;
 	}
-	
+
+	for (size_t i = 0; i < username.size(); i++) {
+		if (!(username[i] == ' ' || isalnum(username[i]))) {
+			return false;
+		}
+	}
+
 	std::filesystem::path p(config.data_path());
 	p.append("trashcan.txt");
 
