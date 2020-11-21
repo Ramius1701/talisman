@@ -162,37 +162,46 @@ public:
 			if (line_at < lines.size() - 1) {
 				if (lines.at(line_at + 1).size() > 0) {
 					// should pull in the next line's first word?
-					if (lines.at(line_at).size() + lines.at(line_at + 1).size() + 1 <= 74) {
-						ss.str("");
-						if (lines.at(line_at + 1).at(0) != ' ') {
-							ss << lines.at(line_at) << " " << lines.at(line_at + 1);
+					size_t fs = lines.at(line_at + 1).find(' ');
+
+					if (74 - lines.at(line_at).size() <= lines.at(line_at + 1).find(' ', fs + 1)) {
+
+						if (lines.at(line_at).size() + lines.at(line_at + 1).size() + 1 <= 74) {
+							// the whole next line fits..
+							ss.str("");
+							if (lines.at(line_at + 1).at(0) != ' ') {
+								ss << lines.at(line_at) << " " << lines.at(line_at + 1);
+							}
+							else {
+								ss << lines.at(line_at) << lines.at(line_at + 1);
+							}
+							lines.at(line_at) = ss.str();
+							lines.erase(lines.begin() + line_at + 1);
+							refresh_down(line_at);
 						}
 						else {
-							ss << lines.at(line_at) << lines.at(line_at + 1);
-						}
-						lines.at(line_at) = ss.str();
-						lines.erase(lines.begin() + line_at + 1);
-						refresh_down(line_at);
-					}
-					else {
 
-						int first_space = lines.at(line_at + 1).substr(0, 74 - lines.at(line_at).size()).rfind(' ');
-						if (first_space != std::string::npos) {
-							if (lines.at(line_at).size() + first_space <= 74) {
-								ss.str("");
-								ss << lines.at(line_at) << lines.at(line_at + 1).substr(0, first_space);
-								ss2 << lines.at(line_at + 1).substr(first_space + 1);
-								lines.at(line_at) = ss.str();
-								lines.at(line_at + 1) = ss2.str();
-								refresh_down(line_at);
+							size_t first_space = lines.at(line_at + 1).substr(0, 74 - lines.at(line_at).size()).rfind(' ');
+							if (first_space != std::string::npos) {
+								if (lines.at(line_at).size() + first_space <= 74) {
+									ss.str("");
+									ss << lines.at(line_at) << " " << lines.at(line_at + 1).substr(0, first_space);
+									ss2 << lines.at(line_at + 1).substr(first_space + 1);
+									lines.at(line_at) = ss.str();
+									lines.at(line_at + 1) = ss2.str();
+									refresh_down(line_at);
+								}
+								else {
+									refresh_line(line_at);
+								}
 							}
 							else {
 								refresh_line(line_at);
 							}
 						}
-						else {
-							refresh_line(line_at);
-						}
+					}
+					else {
+						refresh_line(line_at);
 					}
 				}
 			}
@@ -441,6 +450,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 					n->print_f("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
 					char c = n->getch();
 					if (tolower(c) == 's') {
+						
 						stop = true;
 						break;
 					}
@@ -452,7 +462,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 			}
 		}
 		else {
-			n->print_f("\x1b[1;37m%4d \x1b[0m%s\r\n", i + 1, quotelines.at(i).c_str());
+			n->print_f("\x1b[1;37m%4d \x1b[0m%s\x1b[K\r\n", i + 1, quotelines.at(i).c_str());
 			lines_printed++;
 		}
 
@@ -470,7 +480,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		}
 	}
 
-	n->print_f("\x1b[22;1H\x1b[1;37mQuote From Line #: \x1b[0m");
+	n->print_f("\x1b[22;1H\x1b[K\x1b[1;37mQuote From Line #: \x1b[0m");
 	std::string from = n->get_string(5, false);
 	int from_num;
 	try {
@@ -480,7 +490,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		return content;
 	}
 
-	n->print_f("\x1b[23;1H\x1b[1;37m  Quote To Line #: \x1b[0m");
+	n->print_f("\x1b[23;1H\x1b[K\x1b[1;37m  Quote To Line #: \x1b[0m");
 	std::string to = n->get_string(5, false);
 	int to_num;
 	try {
