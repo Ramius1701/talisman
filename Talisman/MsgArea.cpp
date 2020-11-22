@@ -104,8 +104,6 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 	sq_msg_t* rep_msg = NULL;
 	std::stringstream ss;
 
-	n->clog->post_msg();
-
 	if (date == 0) {
 		thetime = time(NULL);
 	}
@@ -1175,7 +1173,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							else {
 								save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
 							}
-							
+							n->clog->post_msg();
 						}
 					}
 				}
@@ -1198,7 +1196,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							else {
 								save_message(to, n->get_user().get_username(), subject, nmsg, "", msg->xmsg.umsgid);
 							}
-
+							n->clog->post_msg();
 						
 						}
 					}

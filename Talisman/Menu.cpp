@@ -337,7 +337,7 @@ bool Menu::run() {
 											n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
 											
 										}
-										
+										n->clog->post_msg();
 									}
 								}
 							}
