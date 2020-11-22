@@ -204,6 +204,9 @@ public:
 						refresh_line(line_at);
 					}
 				}
+				else {
+					refresh_line(line_at);
+				}
 			}
 			else {
 				refresh_line(line_at);
