@@ -556,21 +556,30 @@ std::vector<std::string> FullScreenEditor::edit() {
 		}
 		else if (c == 'z' - 'a' + 1) {
 			// ctrl-z
-			n->print_f("\x1b[7;10H\x1b[1;37;41m+--------[MENU]--------+");
-			n->print_f("\x1b[8;10H|                      |");
-			n->print_f("\x1b[9;10H| (Q) Quote Message    |");
-			n->print_f("\x1b[10;10H| (S) Save Message     |");
-			n->print_f("\x1b[11;10H| (A) Abort Message    |");
-			n->print_f("\x1b[12;10H| (C) Continue Message |");
-			n->print_f("\x1b[13;10H|                      |");
-			n->print_f("\x1b[14;10H+----------------------+\x1b[0m");
+			n->print_f("\x1b[%d;23H\x1b[0;30;47m+--------[MENU]--------+", n->term_height / 2 - 4);
+			n->print_f("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 1);
+			n->print_f("\x1b[%d;23H| (Q) Quote Message    |", (n->term_height / 2 - 4) + 2);
+			n->print_f("\x1b[%d;23H| (S) Save Message     |", (n->term_height / 2 - 4) + 3);
+			n->print_f("\x1b[%d;23H| (A) Abort Message    |", (n->term_height / 2 - 4) + 4);
+			n->print_f("\x1b[%d;23H| (C) Continue Message |", (n->term_height / 2 - 4) + 5);
+			n->print_f("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 6);
+			n->print_f("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 4) + 7);
 			do {
 				c = n->getch();
 				if (tolower(c) == 's') {
 					return fsb.return_body();
 				}
 				else if (tolower(c) == 'a') {
-					return std::vector<std::string>();
+					fsb.refresh_screen();
+					n->print_f("\x1b[%d;23H\x1b[1;37;41m+----[Really Abort?]---+", n->term_height / 2 - 2);
+					n->print_f("\x1b[%d;23H|  (Y) Yes / (N) No    |", (n->term_height / 2 - 2) + 1);
+					n->print_f("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 2) + 2);
+
+					c = n->getch();
+					if (c == 'y') {
+						return std::vector<std::string>();
+					}
+					break;
 				}
 				else if (tolower(c) == 'q') {
 					if (quotelines.size() > 0) {
