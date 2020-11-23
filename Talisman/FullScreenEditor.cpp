@@ -47,11 +47,11 @@ public:
 	void refresh_down(int start) {
 		for (size_t i = start; i < lines.size(); i++) {
 			refresh_line(i);
-			if (i - top == n->term_height - 5) {
+			if (i > top + n->term_height - 5) {
 				break;
 			}
 		}
-		for (size_t i = lines.size(); i - top < n->term_height - 5;i++) {
+		for (size_t i = lines.size(); i <= top + n->term_height - 5;i++) {
 			n->print_f("\x1b[%d;%dH\x1b[0;31m~\x1b[K", i - top + 4, 1);
 		}
 	}
@@ -137,7 +137,7 @@ public:
 			line_at++;
 			col_at = 0;
 		}
-		if (line_at > top + n->term_height - 7) {
+		if (line_at >= top + n->term_height - 5) {
 			top++;
 			refresh_screen();
 		}
@@ -384,7 +384,13 @@ public:
 				}
 			}
 			if (line_at > 0) {
-				refresh_down(line_at - 1);
+				if (line_at >= top + n->term_height - 5) {
+					top++;
+					refresh_screen();
+				}
+				else {
+					refresh_down(line_at - 1);
+				}
 			}
 			else {
 				refresh_down(line_at);
