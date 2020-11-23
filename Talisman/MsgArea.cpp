@@ -1248,6 +1248,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 
 bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 	if (strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		printf("Not to me %s\n", msg->xmsg.to);
 		return false;
 	}
 	if (_is_netmail) {
@@ -1259,7 +1260,7 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 
 		if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
 			free(myaddr);
-			printf("Not equal %d:%d/%d.%d %d:%d/%d.%d", myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
+			printf("Not equal %d:%d/%d.%d %d:%d/%d.%d\n", myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
 			return false;
 		}
 
