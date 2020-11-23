@@ -1260,8 +1260,9 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 		}
 
 		if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
+			printf("Not equal %s, %d:%d/%d.%d %d:%d/%d.%d\n", oaddr.c_str(), myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
 			free(myaddr);
-			printf("Not equal %s, %d:%d/%d.%d %d:%d/%d.%d\n", orig_addr.c_str(), myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
+			
 			return false;
 		}
 
