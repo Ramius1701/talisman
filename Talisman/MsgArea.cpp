@@ -1374,6 +1374,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							return true;
 						}
 					}
+					if (tolower(c) == 'r') {
+						n->cls();
+						reply_to_msg(msg, &quotebuffer);
+						break;
+					}
 					if (c == '?') {
 						n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->term_height - 8) / 2 + 4);
 						n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 1);
