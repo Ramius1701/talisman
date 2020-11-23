@@ -1290,11 +1290,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\x1b[0m");
 				}
 			}
-			n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->term_height -1);
+			
 			bool done = false;
 			while (!done) {
 				n->print_f("\x1b[6;1H\x1b[1;41;37m\x1b[K\x1b[0;40;37m");
-
+				n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->term_height - 1);
 				if (top + n->term_height - 8 < linesv2.size()) {
 					n->print_f("\x1b[%d;%dH\x1b[1;41;33mMORE\x1b[0;40;37m", n->term_height - 1, n->term_width - 5);
 				}
