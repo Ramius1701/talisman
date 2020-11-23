@@ -1251,7 +1251,7 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 		//printf("Not to me %s\n", msg->xmsg.to);
 		return false;
 	}
-	if (_is_netmail) {
+	/*if (_is_netmail) {
 		NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
 		if (!myaddr) {
 			//printf("Failed to parse %s\n", orig_addr.c_str());
@@ -1267,7 +1267,7 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 
 		free(myaddr);
 	}
-
+	*/
 	return true;
 }
 
