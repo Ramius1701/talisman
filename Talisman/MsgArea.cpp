@@ -1362,7 +1362,38 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 								done = true;
 								break;
 							}
-
+							else if (c == 'K') {
+								// end
+								top = linesv2.size() - (n->term_height - 8);
+								break;
+							}
+							else if (c == 'H') {
+								// home
+								top = 0;
+								break;
+							}
+							else if (c == 'V' || c == '5') {
+								// page up
+								if (c == '5') {
+									n->getch();
+								}
+								top = top - (n->term_height - 8);
+								if (top < 0) {
+									top = 0;
+								}
+								break;
+							}
+							else if (c == 'U' || c == '6') {
+								// page down
+								if (c == '6') {
+									n->getch();
+								}
+								top = top + (n->term_height - 8);
+								if (top > linesv2.size() - (n->term_height - 8)) {
+									top = linesv2.size() - (n->term_height - 8);
+								}
+								break;
+							}
 						}
 					}
 					if (tolower(c) == 'q') {
@@ -1454,8 +1485,8 @@ struct msg_list_t {
 
 int MsgArea::list_messages_full(int start) {
 	bool redraw = true;
-	int pos;
-	int selected;
+	int pos = 0;
+	int selected = 0;
 
 	std::vector<struct msg_list_t> msgs;
 
@@ -1589,6 +1620,42 @@ int MsgArea::list_messages_full(int start) {
 							}
 						}
 					}
+				}
+				else if (c == 'K') {
+					// end
+					pos = msgs.size() - (n->term_height - 3);
+					selected = pos;
+					redraw = true;
+				}
+				else if (c == 'H') {
+					// home
+					pos = 0;
+					selected = pos;
+					redraw = true;
+				}
+				else if (c == 'V' || c == '5') {
+					// page up
+					if (c == '5') {
+						n->getch();
+					}
+					pos = pos - (n->term_height - 3);
+					if (pos < 0) {
+						pos = 0;
+					}
+					selected = pos;
+					redraw = true;
+				}
+				else if (c == 'U' || c == '6') {
+					// page down
+					if (c == '6') {
+						n->getch();
+					}
+					pos = pos + (n->term_height - 3);
+					if (pos > msgs.size() - (n->term_height - 3)) {
+						pos = msgs.size() - (n->term_height - 3);
+					}
+					selected = pos;
+					redraw = true;
 				}
 			}
 		}
