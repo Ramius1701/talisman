@@ -1253,11 +1253,13 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 	if (_is_netmail) {
 		NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
 		if (!myaddr) {
+			printf("Failed to parse %s\n", orig_addr.c_str());
 			return false;
 		}
 
 		if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
 			free(myaddr);
+			printf("Not equal %d:%d/%d.%d %d:%d/%d.%d", myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
 			return false;
 		}
 
