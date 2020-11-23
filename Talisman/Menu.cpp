@@ -269,9 +269,16 @@ bool Menu::run() {
 									msgno = 1;
 								}
 							}
-							msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).list_messages(msgno);
-							if (msgno > 0 && msgno <= n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-								n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(msgno);
+							while (true) {
+								msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).list_messages(msgno);
+								if (msgno > 0 && msgno <= n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+									int last;
+									n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(msgno, &last);
+									msgno = last;
+								}
+								else {
+									break;
+								}
 							}
 						}
 					}
@@ -590,7 +597,7 @@ bool Menu::run() {
 									if (!subonly || n->get_user().is_subscribed(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
 										int last_read = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
 										if (last_read < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-											done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true);
+											done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true, NULL);
 										}
 										if (done) {
 											break;

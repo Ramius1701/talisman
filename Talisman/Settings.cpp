@@ -13,6 +13,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15E |14Change your email |08(|15%s|08)\r\n", n->get_user().get_attribute("email", "").c_str());
 		n->print_f(" |15P |14Change your password |08(|15NOT SHOWN|08)\r\n");
 		n->print_f(" |15F |14Use full screen editor |08(|15%s|08)\r\n", yesnoask[stoi(n->get_user().get_attribute("fullscreeneditor", "0"))]);
+		n->print_f(" |15R |14Use full screen reader |08(|15%s|08)\r\n", (n->get_user().get_attribute("fullscreenreader", "false") == "false" ? "NO" : "YES"));
 		n->print_f(" |15K |14Show Message Kludge Lines |08(|15%s|08)\r\n", (n->get_user().get_attribute("viewkludges", "false") == "false" ? "NO" : "YES"));
 		n->print_f(" |15N |14Allow Node Messages |08(|15%s|08)\r\n", (n->get_user().get_attribute("nodemsgs", "true") == "false" ? "NO" : "YES"));
 		int myarc = stoi(n->get_user().get_attribute("archiver", "-1"));
@@ -20,10 +21,11 @@ void Settings::do_settings(Node* n) {
 			myarc = -1;
 		}
 		n->print_f(" |15A |14Default Archiver for QWK |08(|15%s|08)\r\n", ( myarc == -1 ? "NONE" : n->get_config()->archivers.at(myarc)->name.c_str()));
+
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
-		n->print_f("|14Command |08[|15L|08,|15E|08,|15P|08,|15F|08,|15Q|08]: |07");
+		n->print_f("|14Command |08[|15L|08,|15E|08,|15P|08,|15F|08,|15R|08,|15Q|08]: |07");
 		std::string cmd = n->get_string(1, false);
 		n->print_f("\r\n\r\n");
 		if (cmd.size() > 0) {
@@ -89,6 +91,12 @@ void Settings::do_settings(Node* n) {
 				n->get_user().set_attribute("viewkludges", (viewkludges ? "true" : "false"));
 			}
 				break;
+			case 'r':
+			{
+				bool fsr = n->get_user().get_attribute("fullscreenreader", "false") == "false";
+				n->get_user().set_attribute("fullscreenreader", (fsr ? "true" : "false"));
+			}
+			break;
 			case 'n':
 			{
 				bool nodemsgs = n->get_user().get_attribute("nodemsgs", "true") == "false";

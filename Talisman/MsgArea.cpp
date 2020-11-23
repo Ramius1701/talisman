@@ -777,12 +777,328 @@ struct line_t {
 	std::string line;
 	int type;
 };
-void MsgArea::read_message(int start) {
-	read_message(start, false, false, true);
+
+bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer) {
+	std::stringstream ss;
+
+	ss.str("");
+	for (int i = 0; i < msg->ctrl_len; i++) {
+		if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
+			if (ss.str().size() > n->term_width - 1) {
+				int type = 2;
+				std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), n->term_width - 1);
+
+				for (size_t z = 0; z < newvec.size(); z++) {
+					struct line_t nline;
+					nline.line = newvec.at(z);
+					nline.type = type;
+					linesv->push_back(nline);
+				}
+			}
+			else if (ss.str().size() > 0) {
+				int type = 2;
+				struct line_t nline;
+				nline.line = "\x01" + ss.str();
+				nline.type = type;
+				linesv->push_back(nline);
+			}
+			ss.str("");
+		}
+		else if (msg->ctrl[i] != '\x01') {
+			ss << msg->ctrl[i];
+		}
+	}
+	if (ss.str().size() > 0) {
+		int type = 2;
+		struct line_t nline;
+		nline.line = "\x01" + ss.str();
+		nline.type = type;
+		linesv->push_back(nline);
+	}
+	ss.str("");
+
+	bool ansimsg = false;
+
+	for (int i = 0; i < msg->msg_len; i++) {
+		if (msg->msg[i] == '\x1b') {
+			ansimsg = true;
+			break;
+		}
+	}
+
+	bool got_tearline = false;
+
+	if (ansimsg && n->hasANSI) {
+		std::vector<std::string> new_msg = demangle_ansi(msg->msg, msg->msg_len);
+		for (size_t i = 0; i < new_msg.size(); i++) {
+			int type = 0;
+			if (!got_tearline) {
+				if (new_msg.at(i).find('>') < 5) {
+					type = 1;
+				}
+				else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+					type = 2;
+				}
+				else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+					got_tearline = true;
+					type = 3;
+				}
+			}
+			else {
+				if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+					type = 2;
+				}
+				else {
+					type = 3;
+				}
+			}
+
+			struct line_t nline;
+			nline.line = new_msg.at(i);
+			nline.type = type;
+			linesv->push_back(nline);
+		}
+	}
+	else {
+		std::vector<std::string> new_msg;
+		if (ansimsg) {
+			new_msg = strip_ansi(msg->msg, msg->msg_len);
+		}
+		else {
+			std::stringstream ss;
+			for (size_t i = 0; i < msg->msg_len; i++) {
+				if (msg->msg[i] == '\r') {
+					new_msg.push_back(ss.str());
+					ss.str("");
+				}
+
+				else {
+					ss << msg->msg[i];
+				}
+			}
+			new_msg.push_back(ss.str());
+		}
+		for (size_t i = 0; i < new_msg.size(); i++) {
+			if (new_msg.at(i).size() > n->term_width - 1) {
+				int type = 0;
+				if (!got_tearline) {
+					if (new_msg.at(i).find('>') < 5) {
+						type = 1;
+					}
+					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+						type = 2;
+					}
+					else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+						got_tearline = true;
+						type = 3;
+					}
+					else {
+						type = 0;
+					}
+				}
+				else {
+					if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+						type = 2;
+					}
+					else {
+						type = 3;
+					}
+				}
+
+				std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->term_width - 1);
+
+				for (size_t z = 0; z < newvec.size(); z++) {
+					struct line_t nline;
+					nline.line = newvec.at(z);
+					nline.type = type;
+					linesv->push_back(nline);
+				}
+			}
+			else {
+				int type = 0;
+				if (!got_tearline) {
+					if (new_msg.at(i).find('>') < 5) {
+						type = 1;
+					}
+					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
+						type = 2;
+					}
+					else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
+						got_tearline = true;
+						type = 3;
+					}
+					else {
+						type = 0;
+					}
+				}
+				else {
+					if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
+						type = 2;
+					}
+					else {
+						type = 3;
+					}
+				}
+				struct line_t nline;
+				nline.line = new_msg.at(i);
+				nline.type = type;
+				linesv->push_back(nline);
+			}
+		}
+	}
+	quotebuffer->clear();
+	ss.str("");
+
+	if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+		for (int i = 0; i < msg->ctrl_len; i++) {
+			if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
+				if (ss.str().size() > 69) {
+					std::vector<std::string> newvec = word_wrap("@" + ss.str(), 70);
+
+					for (size_t z = 0; z < newvec.size(); z++) {
+						quotebuffer->push_back(" > " + newvec.at(z));
+					}
+				}
+				else {
+					quotebuffer->push_back(" > @" + ss.str());
+				}
+				ss.str("");
+			}
+			else if (msg->ctrl[i] != '\x01') {
+				ss << msg->ctrl[i];
+			}
+		}
+		if (ss.str().size() > 0) {
+			quotebuffer->push_back(" > @" + ss.str());
+		}
+	}
+
+	std::vector<std::string> q_msg;
+
+	if (ansimsg) {
+		q_msg = strip_ansi(msg->msg, msg->msg_len);
+	}
+	else {
+		std::stringstream ss;
+		for (size_t m = 0; m < msg->msg_len; m++) {
+			if (msg->msg[m] == '\r') {
+				q_msg.push_back(ss.str());
+				ss.str("");
+			}
+			else if (msg->msg[m] != '\n') {
+				ss << msg->msg[m];
+			}
+		}
+		if (ss.str().size() > 0) {
+			q_msg.push_back(ss.str());
+		}
+	}
+
+	for (size_t i = 0; i < q_msg.size(); i++) {
+		if (q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (q_msg.at(i).at(0) == '\x01' || q_msg.at(i).find("SEEN-BY: ") == 0)) {
+			continue;
+		}
+		else {
+			if (q_msg.at(i).size() > 0 && q_msg.at(i).at(0) == '\x01') {
+				q_msg.at(i).at(0) = '@';
+			}
+			if (q_msg.at(i).size() > 70) {
+				std::vector<std::string> newvec = word_wrap(q_msg.at(i), 70);
+
+				for (size_t z = 0; z < newvec.size(); z++) {
+					std::stringstream ss2;
+					ss2 << " > " << newvec.at(z);
+					quotebuffer->push_back(ss2.str());
+				}
+			}
+			else {
+				std::stringstream ss2;
+				ss2 << " > " << q_msg.at(i);
+				quotebuffer->push_back(ss2.str());
+			}
+		}
+	}
+	return ansimsg;
 }
-bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read) {
+
+void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer) {
+	if (_is_netmail) {
+		std::stringstream netaddr;
+		netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+
+		n->print_f("\r\n     To: ");
+		std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
+		n->print_f("\r\nSubject: ");
+		std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+		n->print_f("\r\nAddress: ");
+		std::string nnetaddr = n->get_string(16, false, false, netaddr.str());
+
+		bool doabort = false;
+
+		if (to.size() == 0) {
+			to = "All";
+		}
+
+		NETADDR* na = parse_fido_addr(nnetaddr.c_str());
+		if (!na) {
+			doabort = true;
+		}
+		else {
+			if (na->point == 0) {
+				n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+			}
+			else {
+				n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+			}
+			free(na);
+		}
+
+		if (subject.size() > 0 && !doabort) {
+			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, quotebuffer);
+			if (nmsg.size() > 0) {
+				if (real_names) {
+					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+				}
+				else {
+					save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+				}
+				n->clog->post_msg();
+			}
+		}
+	}
+	else {
+		n->print_f("\r\n     To: ");
+		std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
+		n->print_f("\r\nSubject: ");
+		std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+
+		if (to.size() == 0) {
+			to = "All";
+		}
+
+		if (subject.size() > 0) {
+			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, quotebuffer);
+			if (nmsg.size() > 0) {
+				if (real_names) {
+					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, "", msg->xmsg.umsgid);
+				}
+				else {
+					save_message(to, n->get_user().get_username(), subject, nmsg, "", msg->xmsg.umsgid);
+				}
+				n->clog->post_msg();
+
+			}
+		}
+	}
+}
+
+void MsgArea::read_message(int start, int *last) {
+	read_message(start, false, false, true, last);
+}
+bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
 	sq_msg_base_t* mb;
 	int lr = 0; // TODO set last read
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "false") == "true";
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		n->print_f("|14Unable to open message base!|07\r\n");
@@ -797,7 +1113,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 	int msg_to_read = start;
 	int direction = 1;
 	int lines;
-
+	std::vector<struct line_t> linesv;
 	std::vector<std::string> quotebuffer;
 
 	while (true) {
@@ -819,251 +1135,22 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			continue;
 		}
 
+		if (last != NULL) {
+			*last = msg_to_read;
+		}
+
 		if (set_last_read) {
 			if (n->get_user().user_get_lastread(file) < msg_to_read) {
 				n->get_user().user_set_lastread(file, msg_to_read);
 			}
 		}
 
-		std::stringstream ss;
-		std::vector<struct line_t> linesv;
-		ss.str("");
-		for (int i = 0; i < msg->ctrl_len; i++) {
-			if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-				if (ss.str().size() > n->term_width -1) {
-					int type = 2;
-					std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), n->term_width - 1);
-
-					for (size_t z = 0; z < newvec.size(); z++) {
-						struct line_t nline;
-						nline.line = newvec.at(z);
-						nline.type = type;
-						linesv.push_back(nline);
-					}
-				}
-				else if (ss.str().size() > 0) {
-					int type = 2;
-					struct line_t nline;
-					nline.line = "\x01" + ss.str();
-					nline.type = type;
-					linesv.push_back(nline);
-				}
-				ss.str("");
-			}
-			else if (msg->ctrl[i] != '\x01') {
-				ss << msg->ctrl[i];
-			}
-		}
-		if (ss.str().size() > 0) {
-			int type = 2;
-			struct line_t nline;
-			nline.line = "\x01" + ss.str();
-			nline.type = type;
-			linesv.push_back(nline);
-		}
-		ss.str("");
-
-		bool ansimsg = false;
-
-		for (int i = 0; i < msg->msg_len; i++) {
-			if (msg->msg[i] == '\x1b') {
-				ansimsg = true;
-				break;
-			}
-		}
-
-		bool got_tearline = false;
-
-		if (ansimsg && n->hasANSI) {
-			std::vector<std::string> new_msg = demangle_ansi(msg->msg, msg->msg_len);
-			for (size_t i = 0; i < new_msg.size(); i++) {
-				int type = 0;
-				if (!got_tearline) {
-					if (new_msg.at(i).find('>') < 5) {
-						type = 1;
-					}
-					else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
-						type = 2;
-					}
-					else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
-						got_tearline = true;
-						type = 3;
-					}
-				}
-				else {
-					if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
-						type = 2;
-					}
-					else {
-						type = 3;
-					}
-				}
-
-				struct line_t nline;
-				nline.line = new_msg.at(i);
-				nline.type = type;
-				linesv.push_back(nline);
-			}
-		}
-		else {
-			std::vector<std::string> new_msg;
-			if (ansimsg) {
-				new_msg = strip_ansi(msg->msg, msg->msg_len);
-			}
-			else {
-				std::stringstream ss;
-				for (size_t i = 0; i < msg->msg_len; i++) {
-					if (msg->msg[i] == '\r') {
-						new_msg.push_back(ss.str());
-						ss.str("");
-					}
-
-					else {
-						ss << msg->msg[i];
-					}
-				}
-				new_msg.push_back(ss.str());
-			}
-			for (size_t i = 0; i < new_msg.size(); i++) {
-				if (new_msg.at(i).size() > n->term_width - 1) {
-					int type = 0;
-					if (!got_tearline) {
-						if (new_msg.at(i).find('>') < 5) {
-							type = 1;
-						}
-						else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
-							type = 2;
-						}
-						else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
-							got_tearline = true;
-							type = 3;
-						}
-						else {
-							type = 0;
-						}
-					}
-					else {
-						if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
-							type = 2;
-						}
-						else {
-							type = 3;
-						}
-					}
-
-					std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->term_width - 1);
-
-					for (size_t z = 0; z < newvec.size(); z++) {
-						struct line_t nline;
-						nline.line = newvec.at(z);
-						nline.type = type;
-						linesv.push_back(nline);
-					}
-				}
-				else {
-					int type = 0;
-					if (!got_tearline) {
-						if (new_msg.at(i).find('>') < 5) {
-							type = 1;
-						}
-						else if (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01') {
-							type = 2;
-						}
-						else if (new_msg.at(i) == "---" || new_msg.at(i).find("--- ") == 0) {
-							got_tearline = true;
-							type = 3;
-						}
-						else {
-							type = 0;
-						}
-					}
-					else {
-						if (new_msg.at(i).find("SEEN-BY: ") == 0 || (new_msg.at(i).size() > 0 && new_msg.at(i).at(0) == '\x01')) {
-							type = 2;
-						}
-						else {
-							type = 3;
-						}
-					}
-					struct line_t nline;
-					nline.line = new_msg.at(i);
-					nline.type = type;
-					linesv.push_back(nline);
-				}
-			}
-		}
+		linesv.clear();
 		quotebuffer.clear();
-		ss.str("");
 
-		if (n->get_user().get_attribute("viewkludges", "false") == "true") {
-			for (int i = 0; i < msg->ctrl_len; i++) {
-				if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-					if (ss.str().size() > 69) {
-						std::vector<std::string> newvec = word_wrap("@" + ss.str(), 70);
+		bool ansimsg = prepare_msg(msg, &linesv, &quotebuffer);
 
-						for (size_t z = 0; z < newvec.size(); z++) {
-							quotebuffer.push_back(" > " + newvec.at(z));
-						}
-					}
-					else {
-						quotebuffer.push_back(" > @" + ss.str());
-					}
-					ss.str("");
-				}
-				else if (msg->ctrl[i] != '\x01') {
-					ss << msg->ctrl[i];
-				}
-			}
-			if (ss.str().size() > 0) {
-				quotebuffer.push_back(" > @" + ss.str());
-			}
-		}
 		
-		std::vector<std::string> q_msg;
-
-		if (ansimsg) {
-			q_msg = strip_ansi(msg->msg, msg->msg_len);
-		}
-		else {
-			std::stringstream ss;
-			for (size_t m = 0; m < msg->msg_len; m++) {
-				if (msg->msg[m] == '\r') {
-					q_msg.push_back(ss.str());
-					ss.str("");
-				}
-				else if (msg->msg[m] != '\n') {
-					ss << msg->msg[m];
-				}
-			}
-			if (ss.str().size() > 0) {
-				q_msg.push_back(ss.str());
-			}
-		}
-
-		for (size_t i = 0; i < q_msg.size(); i++) {
-			if (q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (q_msg.at(i).at(0) == '\x01' || q_msg.at(i).find("SEEN-BY: ") == 0)) {
-				continue;
-			}
-			else {
-				if (q_msg.at(i).size() > 0 && q_msg.at(i).at(0) == '\x01') {
-					q_msg.at(i).at(0) = '@';
-				}
-				if (q_msg.at(i).size() > 70) {
-					std::vector<std::string> newvec = word_wrap(q_msg.at(i), 70);
-
-					for (size_t z = 0; z < newvec.size(); z++) {
-						std::stringstream ss2;
-						ss2 << " > " << newvec.at(z);
-						quotebuffer.push_back(ss2.str());
-					}
-				}
-				else {
-					std::stringstream ss2;
-					ss2 << " > " << q_msg.at(i);
-					quotebuffer.push_back(ss2.str());
-				}
-			}
-		}
 
 		n->cls();
 		n->print_f("|14   Area: |15%-46.46s\r\n", name.c_str());
@@ -1086,160 +1173,228 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 		n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d                 |14Msg#: |15%6d of %6d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg_to_read, total_msgs);
-		n->print_f("|08------------------------------------------------------------------------------\r\n");
-		lines = 6;
-		for (size_t lno = 0; lno < linesv.size(); lno++) {
-			if (linesv.at(lno).type == 0) {
-				if (ansimsg) {
-					n->print_f("%s", linesv.at(lno).line.c_str());
-				}
-				else {
-					n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
-				}
-				lines++;
-			}
-			else if (linesv.at(lno).type == 1) {
-				n->print_f("|10%s\r\n", linesv.at(lno).line.c_str());
-				lines++;
-			}
-			else if (linesv.at(lno).type == 2) {
-				if (n->get_user().get_attribute("viewkludges", "false") == "true") {
-					if (linesv.at(lno).line[0] == '\x01') {
-						n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
+
+
+		if (fsr == false || !n->hasANSI) {
+			n->print_f("|08------------------------------------------------------------------------------\r\n");
+			lines = 6;
+			for (size_t lno = 0; lno < linesv.size(); lno++) {
+				if (linesv.at(lno).type == 0) {
+					if (ansimsg) {
+						n->print_f("%s", linesv.at(lno).line.c_str());
 					}
 					else {
-						n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
+						n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
 					}
-					
 					lines++;
 				}
-			}
-			else if (linesv.at(lno).type == 3) {
-				n->print_f("|13%s\r\n", linesv.at(lno).line.c_str());
-				lines++;
-			}
-			if (lines == n->term_height -2) {
-				n->print_f("|14Continue (Y/N) : |07");
-				if (tolower(n->getche()) == 'n') {
-					n->print_f("\r\n");
-					break;
+				else if (linesv.at(lno).type == 1) {
+					n->print_f("|10%s\r\n", linesv.at(lno).line.c_str());
+					lines++;
 				}
-				n->print_f("\r\n");
-				lines = 0;
-			}
-		}
-		n->print_f("\r\n");
-		if (search) {
-			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
-			
-		}
-		else if (unread) {
-			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
-		}
-		else {
-			n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
-		}
-		std::string res = n->get_string(1, false);
-		if (res.size() == 0) {
-			if (search) {
-				SquishCloseMsgBase(mb);
-				return true;
-			}
-			else {
-				direction = 1;
-				msg_to_read++;
-			}
-		}
-		else {
-			switch (tolower(res[0])) {
-			case 'r':
-				if (_is_netmail) {
-					std::stringstream netaddr;
-					netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-
-					n->print_f("\r\n     To: ");
-					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
-					n->print_f("\r\nSubject: ");
-					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
-					n->print_f("\r\nAddress: ");
-					std::string nnetaddr = n->get_string(16, false, false, netaddr.str());
-
-					bool doabort = false;
-
-					if (to.size() == 0) {
-						to = "All";
-					}
-
-					NETADDR* na = parse_fido_addr(nnetaddr.c_str());
-					if (!na) {
-						doabort = true;
-					}
-					else {
-						if (na->point == 0) {
-							n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+				else if (linesv.at(lno).type == 2) {
+					if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+						if (linesv.at(lno).line[0] == '\x01') {
+							n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
 						}
 						else {
-							n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+							n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
 						}
-						free(na);
-					}
 
-					if (subject.size() > 0 && !doabort) {
-						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, &quotebuffer);
-						if (nmsg.size() > 0) {
-							if (real_names) {
-								save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
-							}
-							else {
-								save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
-							}
-							n->clog->post_msg();
-						}
+						lines++;
 					}
 				}
-				else {
-					n->print_f("\r\n     To: ");
-					std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
-					n->print_f("\r\nSubject: ");
-					std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
-
-					if (to.size() == 0) {
-						to = "All";
-					}
-
-					if (subject.size() > 0) {
-						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, &quotebuffer);
-						if (nmsg.size() > 0) {
-							if (real_names) {
-								save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, "", msg->xmsg.umsgid);
-							}
-							else {
-								save_message(to, n->get_user().get_username(), subject, nmsg, "", msg->xmsg.umsgid);
-							}
-							n->clog->post_msg();
-						
-						}
-					}
+				else if (linesv.at(lno).type == 3) {
+					n->print_f("|13%s\r\n", linesv.at(lno).line.c_str());
+					lines++;
 				}
-				break;
-			case 'a':
-				direction = 1;
-				break;
-			case 'n':
-				direction = 1;
-				msg_to_read++;
-				break;
-			case 'p':
-				direction = 0;
-				msg_to_read--;
-				break;
-			case 'q':
-				SquishCloseMsgBase(mb);
-				return false;
-			case 'c':
-				if (search || unread) {
+				if (lines == n->term_height - 2) {
+					n->print_f("|14Continue (Y/N) : |07");
+					if (tolower(n->getche()) == 'n') {
+						n->print_f("\r\n");
+						break;
+					}
+					n->print_f("\r\n");
+					lines = 0;
+				}
+			}
+			n->print_f("\r\n");
+			if (search) {
+				n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
+
+			}
+			else if (unread) {
+				n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
+			}
+			else {
+				n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
+			}
+			std::string res = n->get_string(1, false);
+			if (res.size() == 0) {
+				if (search) {
 					SquishCloseMsgBase(mb);
 					return true;
+				}
+				else {
+					direction = 1;
+					msg_to_read++;
+				}
+			}
+			else {
+				switch (tolower(res[0])) {
+				case 'r':
+					reply_to_msg(msg, &quotebuffer);
+					break;
+				case 'a':
+					direction = 1;
+					break;
+				case 'n':
+					direction = 1;
+					msg_to_read++;
+					break;
+				case 'p':
+					direction = 0;
+					msg_to_read--;
+					break;
+				case 'q':
+					SquishCloseMsgBase(mb);
+					return false;
+				case 'c':
+					if (search || unread) {
+						SquishCloseMsgBase(mb);
+						return true;
+					}
+				}
+			}
+		}
+		else if (fsr == true) {
+			int top = 0;
+			std::vector<std::string> linesv2;
+			bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true";
+			for (size_t i = 0; i < linesv.size(); i++) {
+				if (linesv.at(i).type == 0) {
+					linesv2.push_back(linesv.at(i).line);
+				}
+				else if (linesv.at(i).type == 1) {
+					linesv2.push_back("\x1b[1;36m" + linesv.at(i).line + "\x1b[0m");
+				}
+				else if (linesv.at(i).type == 2 && kludges) {
+					if (linesv.at(i).line[0] == '\x01') {
+						linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\x1b[0m");
+					}
+					else {
+						linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\x1b[0m");
+					}
+				}
+				else if (linesv.at(i).type == 3) {
+					linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\x1b[0m");
+				}
+			}
+			n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->term_height -1);
+			bool done = false;
+			while (!done) {
+				n->print_f("\x1b[6;1H\x1b[1;41;37m\x1b[K\x1b[0;40;37m");
+
+				if (top + n->term_height - 8 < linesv2.size()) {
+					n->print_f("\x1b[%d;%dH\x1b[1;41;33mMORE\x1b[0;40;37m", n->term_height - 1, n->term_width - 5);
+				}
+				else {
+					n->print_f("\x1b[%d;%dH\x1b[1;41;33m END\x1b[0;40;37m", n->term_height - 1, n->term_width - 5);
+				}
+				
+
+				for (size_t i = 0; i < n->term_height - 8; i++) {
+					if (i + top < linesv2.size()) {
+						if (ansimsg) {
+							n->print_f("\x1b[%d;1H", i + 7);
+							for (size_t z = 0; z < linesv2.at(top + i).size(); z++) {
+								if (linesv2.at(top + i).at(z) == '\r') {
+									n->print_f("\x1b[0m\x1b[K");
+									break;
+								}
+								else {
+									n->print_f("%c", linesv2.at(top + i).at(z));
+								}
+							}
+						}
+						else {
+							n->print_f("\x1b[%d;1H%s\x1b[K", i + 7, linesv2.at(i + top).c_str());
+						}
+					}
+					else {
+						n->print_f("\x1b[%d;1H\x1b[K", i + 7);
+					}
+				}
+
+	
+
+				while (true) {
+					char c = n->getch();
+
+					if (c == '\x1b') {
+						c = n->getch();
+						if (c == '[') {
+							c = n->getch();
+							if (c == 'A') {
+								// up
+								if (top > 0) {
+									top--;
+									break;
+								}
+							}
+							else if (c == 'B') {
+								// down
+								if (top + n->term_height - 8 < linesv2.size()) {
+									top++;
+									break;
+								}
+							}
+							else if (c == 'C') {
+								// right
+								msg_to_read++;
+								done = true;
+								break;
+							}
+							else if (c == 'D') {
+								// left
+								msg_to_read--;
+								done = true;
+								break;
+							}
+
+						}
+					}
+					if (tolower(c) == 'q') {
+						SquishCloseMsgBase(mb);
+						return false;
+					}
+					if (tolower(c) == 'c') {
+						if (search || unread) {
+							SquishCloseMsgBase(mb);
+							return true;
+						}
+					}
+					if (c == '?') {
+						n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->term_height - 8) / 2 + 4);
+						n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 1);
+						n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->term_height - 8) / 2 + 4) + 2);
+						n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->term_height - 8) / 2 + 4) + 3);
+						if (unread) {
+							n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->term_height - 8) / 2 + 4) + 4);
+						}
+						else if (search) {
+							n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->term_height - 8) / 2 + 4) + 4);
+						}
+						else {
+							n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 4);
+						}
+						
+						n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->term_height - 8) / 2 + 4) + 5);
+						n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 6);
+						n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->term_height - 8) / 2 + 4) + 7);
+						n->getch();
+						break;
+					}
 				}
 			}
 		}
@@ -1272,6 +1427,168 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 }
 
 int MsgArea::list_messages(int start) {
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "false") == "true";
+
+	if (fsr == false || !n->hasANSI) {
+		return list_messages_old(start);
+	}
+	else if (fsr == true) {
+		return list_messages_full(start);
+	}
+	return 0;
+}
+
+struct msg_list_t {
+	int msgno;
+	std::string subject;
+	std::string from;
+	std::string to;
+};
+
+int MsgArea::list_messages_full(int start) {
+	bool redraw = true;
+	int pos;
+	int selected;
+
+	std::vector<struct msg_list_t> msgs;
+
+	int lr = n->get_user().user_get_lastread(file);
+
+	sq_msg_base_t *mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		n->print_f("|14Unable to open message base!|07\r\n");
+		return 0;
+	}
+	if (start > mb->basehdr.num_msg) {
+		n->print_f("|14Empty message base!|07\r\n");
+		SquishCloseMsgBase(mb);
+		return 0;
+	}
+
+	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+		struct msg_list_t mli;
+		sq_msg_t* msg = SquishReadMsg(mb, i);
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
+			SquishFreeMsg(msg);
+			continue;
+		}
+
+		if (i == start) {
+			pos = i - 1;
+			selected = i - 1;
+		}
+
+		mli.msgno = i;
+		mli.subject = std::string(msg->xmsg.subject);
+		mli.from = std::string(msg->xmsg.from);
+		mli.to = std::string(msg->xmsg.to);
+		msgs.push_back(mli);
+		SquishFreeMsg(msg);
+	}
+	SquishCloseMsgBase(mb);
+
+	while (true) {
+		if (redraw) {
+			n->cls();
+			n->print_f("\x1b[1;1H\x1b[1;41;37m Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m");
+
+			for (int i = pos; i - pos < n->term_height - 3 && i < msgs.size(); i++) {
+				if (msgs.at(i).msgno <= lr) {
+					if (i == selected) {
+						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
+					}
+					else {
+						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
+					}
+				}
+				else {
+					if (i == selected) {
+						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
+					}
+					else {
+						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
+					}
+				}
+			}
+
+			n->print_f("\x1b[%d;1H\x1b[1;41;37mUp/Down to Move, Enter to Select, Q to Quit\x1b[K\x1b[0;40;37m", n->term_height - 1);
+			redraw = false;
+		}
+
+		n->print_f("\x1b[%d;7H", selected - pos + 2);
+
+		char c = n->getch();
+
+		if (tolower(c) == 'q') {
+			return 0;
+		}
+
+		if (c == '\r') {
+			return msgs.at(selected).msgno;
+		}
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					// up
+					if (selected > 0) {
+						selected--;
+						if (selected - pos < 0) {
+							pos -= n->term_height - 3;
+							if (pos < 0) {
+								pos = 0;
+							}
+							redraw = true;
+						}
+						else {
+							if (msgs.at(selected).msgno <= lr) {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
+							}
+							if (msgs.at(selected + 1).msgno <= lr) {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 3, msgs.at(selected + 1).msgno, msgs.at(selected + 1).subject.c_str(), msgs.at(selected + 1).from.c_str(), msgs.at(selected + 1).to.c_str());
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 3, msgs.at(selected + 1).msgno, msgs.at(selected + 1).subject.c_str(), msgs.at(selected + 1).from.c_str(), msgs.at(selected + 1).to.c_str());
+							}
+						}
+					}
+				}
+				else if (c == 'B') {
+					// down
+					if (selected < msgs.size() - 1) {
+						selected++;
+
+						if (selected - pos >= n->term_height - 3 && pos + n->term_height - 3 < msgs.size()) {
+							pos += n->term_height - 3;
+							redraw = true;
+						}
+						else {
+							if (msgs.at(selected).msgno <= lr) {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
+							}
+							if (msgs.at(selected - 1).msgno <= lr) {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 1, msgs.at(selected - 1).msgno, msgs.at(selected - 1).subject.c_str(), msgs.at(selected - 1).from.c_str(), msgs.at(selected - 1).to.c_str());
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 1, msgs.at(selected - 1).msgno, msgs.at(selected - 1).subject.c_str(), msgs.at(selected - 1).from.c_str(), msgs.at(selected - 1).to.c_str());
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+int MsgArea::list_messages_old(int start) {
 	sq_msg_base_t* mb;
 	int lr = n->get_user().user_get_lastread(file); 
 	mb = SquishOpenMsgBase(file.c_str());
@@ -1460,7 +1777,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		}
 		SquishFreeMsg(msg);
 		if (foundmsg) {
-			if (read_message(i, true, false, true) == false) {
+			if (read_message(i, true, false, true, NULL) == false) {
 				SquishCloseMsgBase(mb);
 				return false;
 			}

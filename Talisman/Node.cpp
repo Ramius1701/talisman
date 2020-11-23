@@ -1264,7 +1264,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 									if (!subonly || u.is_subscribed(config.msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
 										int last_read = u.user_get_lastread(config.msgconfs.at(msgconf).areas.at(msgarea).get_file());
 										if (last_read < config.msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-											done = !config.msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, false);
+											done = !config.msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, false, NULL);
 										}
 										if (done) {
 											break;

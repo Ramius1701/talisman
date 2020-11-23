@@ -32,9 +32,12 @@ public:
 	void do_semaphore(std::string sem);
 	int get_total_msgs();
 	int list_messages(int start);
-	void read_message(int start);
+	int list_messages_old(int start);
+	int list_messages_full(int start);
+
+	void read_message(int start, int *last);
 	bool is_to_me(Node* n, sq_msg_t *msg);
-	bool read_message(int start, bool search, bool unread, bool set_last_read);
+	bool read_message(int start, bool search, bool unread, bool set_last_read, int *last);
 	std::vector<std::string> demangle_ansi(const char* msg, int len);
 	std::vector<std::string> strip_ansi(const char* msg, int len);
 	static std::vector<std::string> word_wrap(std::string str, int len);
@@ -47,6 +50,8 @@ public:
 		return qwk_base_no;
 	}
 private:
+	bool prepare_msg(sq_msg_t* msg, std::vector<struct line_t>* linesv, std::vector<std::string>* quotebuffer);
+	void reply_to_msg(sq_msg_t* msg, std::vector<std::string>* quotebuffer);
 	std::string name;
 	std::string file;
 	int read_sec_level;
