@@ -39,7 +39,7 @@ public:
 	}
 
 	void refresh_line(int lineno) {
-		if (lineno >= top && lineno - top <= n->term_height - 5) {
+		if (lineno >= top && lineno <= top + n->term_height - 5) {
 			n->print_f("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 4, 1, lines.at(lineno).c_str());
 		}
 	}

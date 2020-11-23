@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstring>
 #ifdef _MSC_VER
 #include <Windows.h>
 #define strcasecmp _stricmp
@@ -1018,7 +1019,26 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 		
-		std::vector<std::string> q_msg = strip_ansi(msg->msg, msg->msg_len);
+		std::vector<std::string> q_msg;
+
+		if (ansimsg) {
+			q_msg = strip_ansi(msg->msg, msg->msg_len);
+		}
+		else {
+			std::stringstream ss;
+			for (size_t m = 0; m < msg->msg_len; m++) {
+				if (msg->msg[m] == '\r') {
+					q_msg.push_back(ss.str());
+					ss.str("");
+				}
+				else if (msg->msg[m] != '\n') {
+					ss << msg->msg[m];
+				}
+			}
+			if (ss.str().size() > 0) {
+				q_msg.push_back(ss.str());
+			}
+		}
 
 		for (size_t i = 0; i < q_msg.size(); i++) {
 			if (q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" && (q_msg.at(i).at(0) == '\x01' || q_msg.at(i).find("SEEN-BY: ") == 0)) {
