@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "Squish.h"
 class Node;
 
 class MsgArea
@@ -32,6 +33,7 @@ public:
 	int get_total_msgs();
 	int list_messages(int start);
 	void read_message(int start);
+	bool is_to_me(Node* n, sq_msg_t *msg);
 	bool read_message(int start, bool search, bool unread, bool set_last_read);
 	std::vector<std::string> demangle_ansi(const char* msg, int len);
 	std::vector<std::string> strip_ansi(const char* msg, int len);

@@ -809,7 +809,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 			return false;
 		}
-		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
 			if (direction == 1) {
 				msg_to_read++;
 			}
@@ -1246,6 +1246,27 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 	}
 }
 
+bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
+	if (strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		return false;
+	}
+	if (_is_netmail) {
+		NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
+		if (!myaddr) {
+			return false;
+		}
+
+		if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
+			free(myaddr);
+			return false;
+		}
+
+		free(myaddr);
+	}
+
+	return true;
+}
+
 int MsgArea::list_messages(int start) {
 	sq_msg_base_t* mb;
 	int lr = n->get_user().user_get_lastread(file); 
@@ -1264,7 +1285,7 @@ int MsgArea::list_messages(int start) {
 	n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
 	for (size_t i = start; i <= mb->basehdr.num_msg; i++) {
 		sq_msg_t* msg = SquishReadMsg(mb, i);
-		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
@@ -1385,7 +1406,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		foundmsg = false;
 		sq_msg_t* msg = SquishReadMsg(mb, i);
 
-		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
@@ -1484,7 +1505,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 			continue;
 		}
 
-		if (msg->xmsg.attr & MSGPRIVATE && strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
