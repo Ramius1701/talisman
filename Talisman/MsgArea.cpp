@@ -1252,9 +1252,10 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 		return false;
 	}
 	if (_is_netmail) {
-		NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
+		const char* oaddr = orig_addr.c_str();
+		NETADDR* myaddr = parse_fido_addr(oaddr);
 		if (!myaddr) {
-			printf("Failed to parse %s\n", orig_addr.c_str());
+			printf("Failed to parse %s\n", oaddr);
 			return false;
 		}
 
