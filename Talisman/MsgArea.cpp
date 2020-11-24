@@ -1279,15 +1279,30 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					linesv2.push_back("\x1b[1;36m" + linesv.at(i).line + "\x1b[0m");
 				}
 				else if (linesv.at(i).type == 2 && kludges) {
-					if (linesv.at(i).line[0] == '\x01') {
-						linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\x1b[0m");
+					if (ansimsg) {
+						if (linesv.at(i).line[0] == '\x01') {
+							linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\r\n");
+						}
+						else {
+							linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\r\n");
+						}
 					}
 					else {
-						linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\x1b[0m");
+						if (linesv.at(i).line[0] == '\x01') {
+							linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\x1b[0m");
+						}
+						else {
+							linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\x1b[0m");
+						}
 					}
 				}
 				else if (linesv.at(i).type == 3) {
-					linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\x1b[0m");
+					if (ansimsg) {
+						linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\r\n");
+					}
+					else {
+						linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\x1b[0m");
+					}
 				}
 			}
 			n->print_f("\x1b[6;1H\x1b[1;41;37m\x1b[K\x1b[0;40;37m");
@@ -1317,6 +1332,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 									n->print_f("%c", linesv2.at(top + i).at(z));
 								}
 							}
+							
 						}
 						else {
 							n->print_f("\x1b[%d;1H%s\x1b[K", i + 7, linesv2.at(i + top).c_str());
