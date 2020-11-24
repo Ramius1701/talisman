@@ -100,9 +100,17 @@ void Node::update_node_use(std::string usage) {
 }
 
 void Node::pause() {
-	print_f("|14Press any key...|07");
-	getch();
-	print_f("\r\n");
+	if (hasANSI) {
+		print_f("\x1b[s|14Press any key...|07");
+		getch();
+		print_f("\x1b[u\x1b[K");
+
+	}
+	else {
+		print_f("|14Press any key...|07");
+		getch();
+		print_f("\r\n");
+	}
 }
 
 bool Node::detectANSI() {
@@ -375,7 +383,12 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				WriteConsoleA(hOutput, &c, 1, NULL, NULL);
 #endif
 				if (lines == term_height - 2 && pause) {
-					print_f("|14More (Y/N/C) ? ");
+					if (hasANSI) {
+						print_f("\x1b[s|14More (Y/N/C) ? |07");
+					}
+					else {
+						print_f("|14More (Y/N/C) ? |07");
+					}
 
 					switch (tolower(getche())) {
 					case 'n':
@@ -387,7 +400,12 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					default:
 						break;
 					}
-					print_f("|07\r\n");
+					if (hasANSI) {
+						print_f("\x1b[u\x1b[K");
+					}
+					else {
+						print_f("\r\n");
+					}
 					lines = 0;
 				}
 			}

@@ -1209,12 +1209,27 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					lines++;
 				}
 				if (lines == n->term_height - 2) {
-					n->print_f("|14Continue (Y/N) : |07");
+					if (n->hasANSI) {
+						n->print_f("\x1b[s|14Continue (Y/N) : |07");
+					}
+					else {
+						n->print_f("|14Continue (Y/N) : |07");
+					}
 					if (tolower(n->getche()) == 'n') {
-						n->print_f("\r\n");
+						if (n->hasANSI) {
+							n->print_f("\x1b[u\x1b[K");
+						}
+						else {
+							n->print_f("\r\n");
+						}
 						break;
 					}
-					n->print_f("\r\n");
+					if (n->hasANSI) {
+						n->print_f("\x1b[u\x1b[K");
+					}
+					else {
+						n->print_f("\r\n");
+					}
 					lines = 0;
 				}
 			}
