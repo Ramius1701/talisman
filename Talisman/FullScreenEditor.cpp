@@ -20,6 +20,10 @@ public:
 		rewrap(line_at);
 
 		line_at += content.size();
+
+		if (line_at > top + n->term_height - 5) {
+			top += line_at - (top + n->term_height - 5) + 1;
+		}
 	}
 
 	std::vector<std::string> return_body() {
