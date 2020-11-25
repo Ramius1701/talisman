@@ -185,8 +185,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 	bool stop = false;
 	char c;
 	if (in.is_open()) {
-		while (in.good() && !stop) {
-			in.get(c);
+		while (in.get(c) && !stop) {
 			if (c == 0x1a) break;
 			if (c == '@' && gottag == false) {
 				gottag = true;
@@ -335,6 +334,9 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 
 					ss2 << config.script_path() << "/" << ss.str().substr(10) << ".lua";
 					Script::exec(this, ss2.str());
+				}
+				else if (ss.str() == "NOPAUSE") {
+					pause = false;
 				}
 				else {
 					if (socket) {
