@@ -242,12 +242,19 @@ bool Menu::run() {
 						}
 					}
 					n->get_user().set_attribute("cur_msg_conf", std::to_string(msgconf));
+					n->get_user().set_attribute("cur_msg_area", "-1");
+					for (size_t ma = 0; ma < n->get_config()->msgconfs.at(msgconf).areas.size(); ma++) {
+						if (n->get_config()->msgconfs.at(msgconf).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+							n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
+							break;
+						}
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "prevmailconf") == 0) {
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 
 					if (msgconf > 0) {
-						for (size_t nmc = msgconf - 1; nmc >= 0; nmc--) {
+						for (int nmc = msgconf - 1; nmc >= 0; nmc--) {
 							if (n->get_config()->msgconfs.at(nmc).get_sec_level() <= n->get_user().get_sec_level()) {
 								msgconf = nmc;
 								break;
@@ -255,6 +262,13 @@ bool Menu::run() {
 						}
 					}
 					n->get_user().set_attribute("cur_msg_conf", std::to_string(msgconf));
+					n->get_user().set_attribute("cur_msg_area", "-1");
+					for (size_t ma = 0; ma < n->get_config()->msgconfs.at(msgconf).areas.size(); ma++) {
+						if (n->get_config()->msgconfs.at(msgconf).areas.at(ma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+							n->get_user().set_attribute("cur_msg_area", std::to_string(ma));
+							break;
+						}
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nextfileconf") == 0) {
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
@@ -267,12 +281,19 @@ bool Menu::run() {
 						}
 					}
 					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
+					n->get_user().set_attribute("cur_file_area", "-1");
+					for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
+						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+							n->get_user().set_attribute("cur_file_area", std::to_string(fa));
+							break;
+						}
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "prevfileconf") == 0) {
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
 
 					if (fileconf > 0) {
-						for (size_t nfc = fileconf - 1; nfc >= 0; nfc--) {
+						for (int nfc = fileconf - 1; nfc >= 0; nfc--) {
 							if (n->get_config()->fileconfs.at(nfc).get_sec_level() <= n->get_user().get_sec_level()) {
 								fileconf = nfc;
 								break;
@@ -280,6 +301,13 @@ bool Menu::run() {
 						}
 					}
 					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
+					n->get_user().set_attribute("cur_file_area", "-1");
+					for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
+						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+							n->get_user().set_attribute("cur_file_area", std::to_string(fa));
+							break;
+						}
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nextmailarea") == 0) {
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
@@ -301,7 +329,7 @@ bool Menu::run() {
 					if (msgconf != -1) {
 						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
 						if (msgarea > 0) {
-							for (size_t nma = msgarea - 1; nma >= 0; nma--) {
+							for (int nma = msgarea - 1; nma >= 0; nma--) {
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(nma).get_r_sec_level() <= n->get_user().get_sec_level()) {
 									msgarea = nma;
 									break;
@@ -332,7 +360,7 @@ bool Menu::run() {
 					if (fileconf != -1) {
 						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
 						if (filearea > 0) {
-							for (size_t nfa = filearea - 1; nfa >= 0; nfa--) {
+							for (int nfa = filearea - 1; nfa >= 0; nfa--) {
 								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
 									filearea = nfa;
 									break;
