@@ -721,6 +721,16 @@ void Node::send_str(const char* str) {
 #endif
 }
 
+void Node::print_f_nc(const char* fmt, ...) {
+	char buffer[2048];
+	va_list args;
+	va_start(args, fmt);
+
+	vsnprintf(buffer, sizeof buffer, fmt, args);
+	send_str(buffer);
+	va_end(args);
+}
+
 void Node::print_f(const char* fmt, ...)
 {
 	char buffer[2048];

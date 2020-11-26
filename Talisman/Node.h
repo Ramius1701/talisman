@@ -22,6 +22,7 @@ class Node
 public:
 	Node(int node, int socket, bool telnet);
 	~Node();
+	void print_f_nc(const char* fmt, ...);
 	void print_f(const char* fmt, ...);
 	void pause();
 	char getch();

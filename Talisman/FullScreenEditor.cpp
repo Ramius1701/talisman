@@ -39,12 +39,12 @@ public:
 			top++;
 		}
 
-		n->print_f("\x1b[%d;%dH", line_at - top + 4, col_at + 1);
+		n->print_f_nc("\x1b[%d;%dH", line_at - top + 4, col_at + 1);
 	}
 
 	void refresh_line(int lineno) {
 		if (lineno >= top && lineno <= top + n->term_height - 5) {
-			n->print_f("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 4, 1, lines.at(lineno).c_str());
+			n->print_f_nc("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 4, 1, lines.at(lineno).c_str());
 		}
 	}
 
@@ -56,7 +56,7 @@ public:
 			}
 		}
 		for (size_t i = lines.size(); i <= top + n->term_height - 5;i++) {
-			n->print_f("\x1b[%d;%dH\x1b[0;31m~\x1b[K", i - top + 4, 1);
+			n->print_f_nc("\x1b[%d;%dH\x1b[0;31m~\x1b[K", i - top + 4, 1);
 		}
 	}
 
@@ -435,32 +435,32 @@ FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject,
 std::vector<std::string> FullScreenEditor::do_quote() {
 	std::vector<std::string> content;
 	bool stop = false;
-	n->print_f("\x1b[4;1H\x1b[J");
+	n->print_f_nc("\x1b[4;1H\x1b[J");
 	int lines_printed = 0;
 
 	for (int i = 0; i < quotelines.size() && !stop; i++) {
 		if (quotelines.at(i).length() > 74) {
-			n->print_f("\x1b[1;37m%4d \x1b[0m%s\r\n", i + 1, quotelines.at(i).substr(0, 74).c_str());
+			n->print_f_nc("\x1b[1;37m%4d \x1b[0m%s\r\n", i + 1, quotelines.at(i).substr(0, 74).c_str());
 			lines_printed++;
 			if (lines_printed == (n->term_height - 7)) {
-				n->print_f("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
+				n->print_f_nc("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
 				char c = n->getch();
 				if (tolower(c) == 's') {
 					stop = true;
 					break;
 				}
 				else {
-					n->print_f("\x1b[4;1H\x1b[J");
+					n->print_f_nc("\x1b[4;1H\x1b[J");
 					lines_printed = 0;
 				}
 			}
 			for (int z = 74; z < quotelines.at(i).length(); z += 74) {
 				int left = quotelines.at(i).length() - z;
 				if (left > 74) left = 74;
-				n->print_f("\x1b[1;37m     \x1b[0m%s\r\n", quotelines.at(i).substr(z, left).c_str());
+				n->print_f_nc("\x1b[1;37m     \x1b[0m%s\r\n", quotelines.at(i).substr(z, left).c_str());
 				lines_printed++;
 				if (lines_printed == (n->term_height - 7)) {
-					n->print_f("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
+					n->print_f_nc("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
 					char c = n->getch();
 					if (tolower(c) == 's') {
 						
@@ -468,32 +468,32 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 						break;
 					}
 					else {
-						n->print_f("\x1b[4;1H\x1b[J");
+						n->print_f_nc("\x1b[4;1H\x1b[J");
 						lines_printed = 0;
 					}
 				}
 			}
 		}
 		else {
-			n->print_f("\x1b[1;37m%4d \x1b[0m%s\x1b[K\r\n", i + 1, quotelines.at(i).c_str());
+			n->print_f_nc("\x1b[1;37m%4d \x1b[0m%s\x1b[K\r\n", i + 1, quotelines.at(i).c_str());
 			lines_printed++;
 		}
 
 		if (lines_printed == (n->term_height - 7)) {
-			n->print_f("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
+			n->print_f_nc("\x1b[1;37mPress (C) to continue, or (S) to stop\x1b[0m");
 			char c = n->getch();
 
 			if (tolower(c) == 's') {
 				break;
 			}
 			else {
-				n->print_f("\x1b[4;1H\x1b[J");
+				n->print_f_nc("\x1b[4;1H\x1b[J");
 				lines_printed = 0;
 			}
 		}
 	}
 
-	n->print_f("\x1b[22;1H\x1b[K\x1b[1;37mQuote From Line #: \x1b[0m");
+	n->print_f_nc("\x1b[22;1H\x1b[K\x1b[1;37mQuote From Line #: \x1b[0m");
 	std::string from = n->get_string(5, false);
 	int from_num;
 	try {
@@ -503,7 +503,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		return content;
 	}
 
-	n->print_f("\x1b[23;1H\x1b[K\x1b[1;37m  Quote To Line #: \x1b[0m");
+	n->print_f_nc("\x1b[23;1H\x1b[K\x1b[1;37m  Quote To Line #: \x1b[0m");
 	std::string to = n->get_string(5, false);
 	int to_num;
 	try {
@@ -528,9 +528,9 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 std::vector<std::string> FullScreenEditor::edit() {
 	FullScreenBuffer fsb(n);
 	n->cls();
-	n->print_f("\x1b[1;37;41mTalisman/FSE CTRL-Z for Menu\x1b[K\r\n");
-	n->print_f("\x1b[0;30;47m  Subject: %s\x1b[K\r\n", subject.c_str());
-	n->print_f("\x1b[0;30;47m       To: %s\x1b[K\x1b[0m\r\n", to.c_str());
+	n->print_f_nc("\x1b[1;37;41mTalisman/FSE CTRL-Z for Menu\x1b[K\r\n");
+	n->print_f_nc("\x1b[0;30;47m  Subject: %s\x1b[K\r\n", subject.c_str());
+	n->print_f_nc("\x1b[0;30;47m       To: %s\x1b[K\x1b[0m\r\n", to.c_str());
 
 	fsb.refresh_screen();
 	fsb.update_cursor();
@@ -569,14 +569,14 @@ std::vector<std::string> FullScreenEditor::edit() {
 		}
 		else if (c == 'z' - 'a' + 1) {
 			// ctrl-z
-			n->print_f("\x1b[%d;23H\x1b[0;30;47m+--------[MENU]--------+", n->term_height / 2 - 4);
-			n->print_f("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 1);
-			n->print_f("\x1b[%d;23H| (Q) Quote Message    |", (n->term_height / 2 - 4) + 2);
-			n->print_f("\x1b[%d;23H| (S) Save Message     |", (n->term_height / 2 - 4) + 3);
-			n->print_f("\x1b[%d;23H| (A) Abort Message    |", (n->term_height / 2 - 4) + 4);
-			n->print_f("\x1b[%d;23H| (C) Continue Message |", (n->term_height / 2 - 4) + 5);
-			n->print_f("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 6);
-			n->print_f("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 4) + 7);
+			n->print_f_nc("\x1b[%d;23H\x1b[0;30;47m+--------[MENU]--------+", n->term_height / 2 - 4);
+			n->print_f_nc("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 1);
+			n->print_f_nc("\x1b[%d;23H| (Q) Quote Message    |", (n->term_height / 2 - 4) + 2);
+			n->print_f_nc("\x1b[%d;23H| (S) Save Message     |", (n->term_height / 2 - 4) + 3);
+			n->print_f_nc("\x1b[%d;23H| (A) Abort Message    |", (n->term_height / 2 - 4) + 4);
+			n->print_f_nc("\x1b[%d;23H| (C) Continue Message |", (n->term_height / 2 - 4) + 5);
+			n->print_f_nc("\x1b[%d;23H|                      |", (n->term_height / 2 - 4) + 6);
+			n->print_f_nc("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 4) + 7);
 			do {
 				c = n->getch();
 				if (tolower(c) == 's') {
@@ -584,9 +584,9 @@ std::vector<std::string> FullScreenEditor::edit() {
 				}
 				else if (tolower(c) == 'a') {
 					fsb.refresh_screen();
-					n->print_f("\x1b[%d;23H\x1b[1;37;41m+----[Really Abort?]---+", n->term_height / 2 - 2);
-					n->print_f("\x1b[%d;23H|  (Y) Yes / (N) No    |", (n->term_height / 2 - 2) + 1);
-					n->print_f("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 2) + 2);
+					n->print_f_nc("\x1b[%d;23H\x1b[1;37;41m+----[Really Abort?]---+", n->term_height / 2 - 2);
+					n->print_f_nc("\x1b[%d;23H|  (Y) Yes / (N) No    |", (n->term_height / 2 - 2) + 1);
+					n->print_f_nc("\x1b[%d;23H+----------------------+\x1b[0m", (n->term_height / 2 - 2) + 2);
 
 					c = n->getch();
 					if (c == 'y') {
