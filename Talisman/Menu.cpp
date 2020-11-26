@@ -177,9 +177,11 @@ bool Menu::run() {
 			if (strcasecmp(cmd.c_str(), items[i].hotkey.c_str()) == 0) {
 				if (strcasecmp(items[i].command.c_str(), "goodbye") == 0) {
 					return true;
-				} else if (strcasecmp(items[i].command.c_str(), "prevmenu") == 0) {
+				}
+				else if (strcasecmp(items[i].command.c_str(), "prevmenu") == 0) {
 					return false;
-				} else if (strcasecmp(items[i].command.c_str(), "submenu") == 0) {
+				}
+				else if (strcasecmp(items[i].command.c_str(), "submenu") == 0) {
 					Menu m(n);
 					if (m.load(n->get_config()->menu_path() + "/" + items[i].data + ".toml")) {
 						if (m.run() == true) {
@@ -192,7 +194,7 @@ bool Menu::run() {
 					n->log->log(LOG_INFO, "%s listing conferences on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int newconf = MsgConf::list(n, n->get_user().get_sec_level());
 					int count = 1;
-					for (size_t mc = 0; mc < n->get_config()->msgconfs.size();mc++) {
+					for (size_t mc = 0; mc < n->get_config()->msgconfs.size(); mc++) {
 						if (n->get_config()->msgconfs.at(mc).get_sec_level() > n->get_user().get_sec_level()) continue;
 						if (count == newconf) {
 							n->get_user().set_attribute("cur_msg_conf", std::to_string(mc));
@@ -214,7 +216,8 @@ bool Menu::run() {
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
 						n->print_f("|14Select a message conference first!|07");
-					} else {
+					}
+					else {
 						int newarea = n->get_config()->msgconfs.at(msgconf).list_areas(n, n->get_user().get_sec_level());
 						int count = 1;
 						for (size_t ma = 0; ma < n->get_config()->msgconfs.at(msgconf).areas.size(); ma++) {
@@ -226,6 +229,117 @@ bool Menu::run() {
 								count++;
 							}
 						}
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "nextmailconf") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf < n->get_config()->msgconfs.size() - 1) {
+						for (size_t nmc = msgconf + 1; nmc < n->get_config()->msgconfs.size(); nmc++) {
+							if (n->get_config()->msgconfs.at(nmc).get_sec_level() <= n->get_user().get_sec_level()) {
+								msgconf = nmc;
+								break;
+							}
+						}
+					}
+					n->get_user().set_attribute("cur_msg_conf", std::to_string(msgconf));
+				}
+				else if (strcasecmp(items[i].command.c_str(), "prevmailconf") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+
+					if (msgconf > 0) {
+						for (size_t nmc = msgconf - 1; nmc >= 0; nmc--) {
+							if (n->get_config()->msgconfs.at(nmc).get_sec_level() <= n->get_user().get_sec_level()) {
+								msgconf = nmc;
+								break;
+							}
+						}
+					}
+					n->get_user().set_attribute("cur_msg_conf", std::to_string(msgconf));
+				}
+				else if (strcasecmp(items[i].command.c_str(), "nextfileconf") == 0) {
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf < n->get_config()->fileconfs.size() - 1) {
+						for (size_t nfc = fileconf + 1; nfc < n->get_config()->fileconfs.size(); nfc++) {
+							if (n->get_config()->fileconfs.at(nfc).get_sec_level() <= n->get_user().get_sec_level()) {
+								fileconf = nfc;
+								break;
+							}
+						}
+					}
+					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
+				}
+				else if (strcasecmp(items[i].command.c_str(), "prevfileconf") == 0) {
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+
+					if (fileconf > 0) {
+						for (size_t nfc = fileconf - 1; nfc >= 0; nfc--) {
+							if (n->get_config()->fileconfs.at(nfc).get_sec_level() <= n->get_user().get_sec_level()) {
+								fileconf = nfc;
+								break;
+							}
+						}
+					}
+					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
+				}
+				else if (strcasecmp(items[i].command.c_str(), "nextmailarea") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf != -1) {
+						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+						if (msgarea < n->get_config()->msgconfs.at(msgconf).areas.size() - 1) {
+							for (size_t nma = msgarea + 1; nma < n->get_config()->msgconfs.at(msgconf).areas.size(); nma++) {
+								if (n->get_config()->msgconfs.at(msgconf).areas.at(nma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+									msgarea = nma;
+									break;
+								}
+							}
+						}
+						n->get_user().set_attribute("cur_msg_area", std::to_string(msgarea));
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "prevmailarea") == 0) {
+					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+					if (msgconf != -1) {
+						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+						if (msgarea > 0) {
+							for (size_t nma = msgarea - 1; nma >= 0; nma--) {
+								if (n->get_config()->msgconfs.at(msgconf).areas.at(nma).get_r_sec_level() <= n->get_user().get_sec_level()) {
+									msgarea = nma;
+									break;
+								}
+							}
+						}
+						n->get_user().set_attribute("cur_msg_area", std::to_string(msgarea));
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "nextfilearea") == 0) {
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf != -1) {
+						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+						if (filearea < n->get_config()->fileconfs.at(fileconf).areas.size() - 1) {
+							for (size_t nfa = filearea + 1; nfa < n->get_config()->fileconfs.at(fileconf).areas.size(); nfa++) {
+								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+									filearea = nfa;
+									break;
+								}
+							}
+						}
+						n->get_user().set_attribute("cur_file_area", std::to_string(filearea));
+					}
+					
+				}
+				else if (strcasecmp(items[i].command.c_str(), "prevfilearea") == 0) {
+					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+					if (fileconf != -1) {
+						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+						if (filearea > 0) {
+							for (size_t nfa = filearea - 1; nfa >= 0; nfa--) {
+								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+									filearea = nfa;
+									break;
+								}
+							}
+						}
+						n->get_user().set_attribute("cur_file_area", std::to_string(filearea));
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "listmsgs") == 0) {

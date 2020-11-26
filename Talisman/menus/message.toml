@@ -2,6 +2,22 @@
 gfile = "messagemenu"
 
 [[menuitem]]
+command = "PREVMAILCONF"
+hotkey = "{"
+
+[[menuitem]]
+command = "NEXTMAILCONF"
+hotkey = "}"
+
+[[menuitem]]
+command = "PREVMAILAREA"
+hotkey = "["
+
+[[menuitem]]
+command = "NEXTMAILAREA"
+hotkey = "]"
+
+[[menuitem]]
 command = "LISTCONFS"
 hotkey = "J"
 

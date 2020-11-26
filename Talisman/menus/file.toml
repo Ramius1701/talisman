@@ -2,6 +2,22 @@
 gfile = "filemenu"
 
 [[menuitem]]
+command = "PREVFILECONF"
+hotkey = "{"
+
+[[menuitem]]
+command = "NEXTFILECONF"
+hotkey = "}"
+
+[[menuitem]]
+command = "PREVFILEAREA"
+hotkey = "["
+
+[[menuitem]]
+command = "NEXTFILEAREA"
+hotkey = "]"
+
+[[menuitem]]
 command = "FILECONFS"
 hotkey = "J"
 
