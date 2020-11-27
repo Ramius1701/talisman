@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 #include "Config.h"
 #include "toml.hpp"
 #include "Archiver.h"
