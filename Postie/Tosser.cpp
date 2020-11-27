@@ -6,6 +6,7 @@
 #endif
 #include <filesystem>
 #include <sstream>
+#include <iomanip>
 #include "INIReader.h"
 #include "Config.h"
 #include "Tosser.h"
