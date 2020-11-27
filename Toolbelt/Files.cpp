@@ -146,7 +146,7 @@ bool Files::load_archivers(std::string datapath)
 			else {
 				myarc = "";
 			}
-			Archiver* a = new Archiver(myname, myext, myunarc, myarc);
+			Archiver* a = new Archiver(myname, myext, myunarc, myarc, 0, NULL, 0);
 			archivers.push_back(a);
 		}
 	}

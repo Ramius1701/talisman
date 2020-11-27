@@ -344,7 +344,7 @@ bool Config::load(Node *n, std::string filename) {
 			else {
 				myarc = "";
 			}
-			Archiver* a = new Archiver(myname, myext, myunarc, myarc);
+			Archiver* a = new Archiver(myname, myext, myunarc, myarc, 0, NULL, 0);
 			archivers.push_back(a);
 		}
 	}

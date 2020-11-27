@@ -1,0 +1,23 @@
+[postie]
+inbound = "ftn/in"
+protinbound = "ftn/in_sec"
+outbound = "ftn/out"
+msgbasedir = "msgs"
+
+[[Address]]
+aka = "21:1/126.1"
+
+[[Link]]
+aka = "21:1/126"
+ouraka = "21:1/126.1"
+archiver = "zip"
+
+[[Route]]
+aka = "21:1/126"
+pattern = "21:*"
+
+[[Area]]
+aka = "21:1/126.1"
+file = "fsx/tst"
+tag = "FSX_TST"
+links = "21:1/126"

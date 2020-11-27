@@ -139,7 +139,12 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 	TIME_ZONE_INFORMATION tz;
 	GetTimeZoneInformation(&tz);
 	int bias = tz.Bias;
-
+	if (bias > 0) {
+		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+	}
+	else {
+		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+	}
 #else
 	time_t gmt, rawtime = time(NULL);
 	struct tm* ptm;
@@ -152,14 +157,15 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 
 	int bias = (int)difftime(rawtime, gmt);
 	bias /= 60;
-#endif
-
 	if (bias < 0) {
 		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
 	}
 	else {
 		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
 	}
+#endif
+
+
 	memset(replyidbuffer, 0, 256);
 
 	if (inreply_to > 0) {
