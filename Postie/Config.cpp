@@ -145,6 +145,16 @@ bool Config::load(std::string datapath) {
 			__inbound = _inbound->value_or("");
 		}
 
+		auto _dupebase = data["postie"]["dupebase"].as_string();
+
+		if (_dupebase == nullptr) {
+			__dupebase = "";
+		}
+		else {
+			__dupebase = _dupebase->value_or("");
+		}
+
+
 		auto _protinbound = data["postie"]["protinbound"].as_string();
 
 		if (_protinbound == nullptr) {

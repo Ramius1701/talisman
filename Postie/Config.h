@@ -64,11 +64,16 @@ public:
 	std::string protinbound() {
 		return __protinbound;
 	}
+	std::string dupebase() {
+		return __dupebase;
+	}
+
 private:
 	std::string __inbound;
 	std::string __protinbound;
 	std::string __outbound;
 	std::string __msgbasedir;
 	std::string __packetdir;
+	std::string __dupebase;
 };
 

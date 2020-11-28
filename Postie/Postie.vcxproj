@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Dupe.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Scanner.cpp" />
@@ -154,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Dupe.h" />
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Logger.h" />

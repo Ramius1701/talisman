@@ -14,7 +14,30 @@
 #include "Archiver.h"
 #include "PacketStructs.h"
 #include "Scanner.h"
+#include "Dupe.h"
 
+std::string Tosser::get_msgid(std::string ctrlbody) {
+	std::stringstream kludge;
+
+	for (size_t z = 0; z < ctrlbody.size(); z++) {
+		if (ctrlbody.at(z) == '\001') {
+			if (kludge.str().size() > 0) {
+				if (kludge.str().find("MSGID: ") == 0) {
+					int start = 7;
+
+					std::string msgid = kludge.str().substr(start);
+
+					return msgid;
+				}
+			}
+			kludge.str("");
+			continue;
+		}
+		kludge << ctrlbody.at(z);
+	}
+
+	return "";
+}
 
 NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 	// first try getting address from origin line
@@ -253,8 +276,10 @@ bool Tosser::run() {
 				}
 
 				bool msgprocessed = false;
-				// check if dupe
+
 				if (areatag != "") {
+
+
 					// it's an echomail
 					sq_msg_t sqmsg;
 
@@ -269,6 +294,7 @@ bool Tosser::run() {
 
 					sqmsg.msg = (char*)malloc(msgstr.str().size());
 					if (!sqmsg.msg) {
+						free(sqmsg.ctrl);
 						continue;
 					}
 					memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
@@ -324,6 +350,35 @@ bool Tosser::run() {
 					strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
 
 					sqmsg.xmsg.attr = MSGUID;
+
+					// check if dupe
+					std::string msgid = get_msgid(ctrlstr.str());
+
+					if (msgid != "") {
+						if (Dupe::is_dupe(_datapath + "/dupehist.dat", msgid)) {
+							
+							if (c.dupebase() == "") {
+								log.log(LOG_INFO, "Found duplicate, discarding as no dupe base is configured.");
+							}
+							else {
+								sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.dupebase()).c_str());
+
+								if (mb != NULL) {
+									SquishLockMsgBase(mb);
+									SquishWriteMsg(mb, &sqmsg);
+									SquishUnlockMsgBase(mb);
+									SquishCloseMsgBase(mb);
+									log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
+								}
+								else {
+									log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
+								}
+							}
+							free(sqmsg.msg);
+							free(sqmsg.ctrl);
+							continue;
+						}
+					}
 
 					for (size_t a = 0; a < c.areas.size(); a++) {
 						if (areatag == c.areas.at(a).areatag) {
@@ -531,6 +586,7 @@ bool Tosser::run() {
 
 					sqmsg.msg = (char*)malloc(msgstr.str().size());
 					if (!sqmsg.msg) {
+						free(sqmsg.ctrl);
 						continue;
 					}
 					memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
@@ -627,6 +683,8 @@ bool Tosser::run() {
 							log.log(LOG_ERROR, "Got netmail with no matching routes..");
 						}
 					}
+					free(sqmsg.msg);
+					free(sqmsg.ctrl);
 				}
 			}
 			fclose(fptr);

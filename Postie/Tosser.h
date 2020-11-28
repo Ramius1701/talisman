@@ -8,6 +8,7 @@ public:
 	bool run();
 	NETADDR* get_echomail_addr(std::string ctrlbody, std::string msgbody);
 private:
+	std::string get_msgid(std::string ctrlbody);
 	std::string _datapath;
 	std::string _logpath;
 	std::string _msgpath;
