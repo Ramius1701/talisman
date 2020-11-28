@@ -197,6 +197,55 @@ bool Config::load(std::string datapath) {
 				}
 			}
 		}
+
+		auto routeitems = data.get_as<toml::array>("route");
+		for (size_t i = 0; i < routeitems->size(); i++) {
+			auto itemtable = routeitems->get(i)->as_table();
+			NETADDR* myaka;
+			std::string myroute;
+			std::string myflavour;
+
+			auto addr = itemtable->get("aka");
+			if (addr != nullptr) {
+				std::string aka = addr->as_string()->value_or("");
+				myaka = parse_fido_addr(aka.c_str());
+				if (!myaka) {
+					continue;
+				}
+			}
+			else {
+				continue;
+			}
+
+			auto route = itemtable->get("pattern");
+			if (route != nullptr) {
+				myroute = route->as_string()->value_or("");
+			}
+			else {
+				myroute = "";
+			}
+
+			auto flavour = itemtable->get("flavour");
+			if (flavour != nullptr) {
+				myflavour = flavour->as_string()->value_or("normal");
+			}
+			else {
+				myflavour = "normal";
+			}
+
+			if (myroute == "") {
+				free(myaka);
+				continue;
+			}
+			struct route_conf_t r;
+
+			r.aka = myaka;
+			r.flavour = myflavour;
+			r.route = myroute;
+
+			routes.push_back(r);
+		}
+
 		auto linkitems = data.get_as<toml::array>("link");
 
 		for (size_t i = 0; i < linkitems->size(); i++) {
@@ -266,6 +315,46 @@ bool Config::load(std::string datapath) {
 			newlink.fptr = NULL;
 			links.push_back(newlink);
 		}
+		auto nareaitems = data.get_as<toml::array>("netarea");
+
+		for (size_t i = 0; i < nareaitems->size(); i++) {
+			auto itemtable = nareaitems->get(i)->as_table();
+
+			NETADDR* myaka;
+			std::string myfile;
+
+			auto addr = itemtable->get("aka");
+			if (addr != nullptr) {
+				std::string aka = addr->as_string()->value_or("");
+				myaka = parse_fido_addr(aka.c_str());
+				if (!myaka) {
+					continue;
+				}
+			}
+			else {
+				continue;
+			}
+			auto file = itemtable->get("file");
+			if (file != nullptr) {
+				myfile = file->as_string()->value_or("");
+			}
+			else {
+				myfile = "";
+			}
+			if (myfile == "") {
+				free(myaka);
+				continue;
+			}
+
+			struct netmail_area_conf_t nmarea;
+
+			nmarea.aka = myaka;
+			nmarea.file = myfile;
+
+			netmailareas.push_back(nmarea);
+
+		}
+
 		auto areaitems = data.get_as<toml::array>("area");
 
 		for (size_t i = 0; i < areaitems->size(); i++) {

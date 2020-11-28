@@ -10,6 +10,13 @@ struct address_conf_t {
 	NETADDR* aka;
 };
 
+struct route_conf_t {
+	NETADDR* aka;
+	std::string route;
+	std::string flavour;
+};
+
+
 struct link_conf_t {
 	NETADDR* aka;
 	NETADDR* ouraka;
@@ -18,6 +25,11 @@ struct link_conf_t {
 	std::string packetpwd;
 	std::filesystem::path packetpath;
 	FILE* fptr;
+};
+
+struct netmail_area_conf_t {
+	NETADDR* aka;
+	std::string file;
 };
 
 struct area_conf_t {
@@ -36,7 +48,8 @@ public:
 	std::vector<struct address_conf_t> addresses;
 	std::vector<struct link_conf_t> links;
 	std::vector<struct area_conf_t> areas;
-
+	std::vector<struct route_conf_t> routes;
+	std::vector<struct netmail_area_conf_t> netmailareas;
 	std::string packetdir() {
 		return __packetdir;
 	}

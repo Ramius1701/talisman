@@ -19,6 +19,8 @@ struct seenby_t {
 	uint16_t node;
 };
 
+
+
 std::string add_cr_to_kludges(sq_msg_t* msg) {
 	std::stringstream ss;
 
@@ -237,6 +239,70 @@ std::vector<struct seenby_t> parse_seenbys(std::string msgbuf) {
 	return seenbys;
 }
 
+bool Scanner::matchroute(std::string route, NETADDR* aka) {
+	int stage = 0;
+	bool match = true;
+	int number = 0;
+	bool wildcard = false;
+
+	for (size_t i = 0; i < route.size(); i++) {
+		if (route[i] == ':') {
+			if (wildcard == false) {
+				printf("%d %d", number, aka->zone);
+				if (number != aka->zone) {
+					match = false;
+					break;
+				}
+				number = 0;
+				wildcard = false;
+			}
+			stage = 1;
+			continue;
+		} 
+		if (route[i] == '/') {
+			if (wildcard == false) {
+				if (number != aka->net) {
+					match = false;
+					break;
+				}
+				number = 0;
+				wildcard = false;
+			}
+			stage = 2;
+			continue;
+		}
+		if (route[i] == '.') {
+			if (wildcard == false) {
+				if (number != aka->node) {
+					match = false;
+					break;
+				}
+				number = 0;
+				wildcard = false;
+			}
+			stage = 3;
+			continue;
+		}
+
+		if (route[i] != '*') {
+			number = number * 10 + (route[i] - '0');
+		}
+		else {
+			wildcard = true;
+		}
+	}
+
+	if (stage == 3) {
+		if (wildcard == false) {
+			if (number != aka->point) {
+				match = false;
+			}
+		}
+	}
+
+	return match;
+}
+
 void Scanner::initialize_packet(struct link_conf_t *link, std::string working_path, NETADDR *pktorig) {
 	time_t thetime = time(NULL);
 	struct tm thetimetm;
@@ -300,7 +366,84 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
 
 }
 
-void Scanner::write_msg_to_pkt(struct area_conf_t *area, struct link_conf_t *link, sq_msg_t *msg) {
+void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool local) {
+	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	std::stringstream ss;
+	for (size_t m = 0; m < msg->msg_len; m++) {
+		ss << msg->msg[m];
+	}
+	std::string msgbody = ss.str();
+
+	// write message
+	struct packed_message_t pmhdr;
+	memset(&pmhdr, 0, sizeof(struct packed_message_t));
+	pmhdr.orig_net = link->ouraka->net;
+	pmhdr.orig_node = link->ouraka->node;
+
+	pmhdr.dest_net = link->aka->net;
+	pmhdr.dest_node = link->aka->node;
+
+	pmhdr.cost = 0;
+
+	if (local) {
+		pmhdr.attribute = MSGLOCAL | MSGPRIVATE;
+	}
+	else {
+		pmhdr.attribute = MSGPRIVATE;
+	}
+	if (strcasecmp(link->flavour.c_str(), "crash") == 0) {
+		pmhdr.attribute |= MSGCRASH;
+	}
+
+	pmhdr.message_type = 2;
+
+	fwrite(&pmhdr, sizeof(struct packed_message_t), 1, link->fptr);
+
+	char buffer[256];
+
+	memset(buffer, 0, sizeof buffer);
+	snprintf(buffer, sizeof buffer, "%.2d %s %.2d  %02d:%02d:%02d", msg->xmsg.date_written.date & 31, months[((msg->xmsg.date_written.date >> 5) & 15) - 1], ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 2000, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg->xmsg.date_written.time & 31);
+	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+
+	// tousername 36 bytes
+	memset(buffer, 0, sizeof buffer);
+	snprintf(buffer, sizeof buffer, "%.35s", msg->xmsg.to);
+	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+
+	// fromusername 36 bytes
+	memset(buffer, 0, sizeof buffer);
+	snprintf(buffer, sizeof buffer, "%.35s", msg->xmsg.from);
+	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+
+	// subject 72 bytes
+	memset(buffer, 0, sizeof buffer);
+	snprintf(buffer, sizeof buffer, "%.71s", msg->xmsg.subject);
+	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+
+	std::string kludges = remove_tid(add_cr_to_kludges(msg));
+	fwrite(kludges.c_str(), kludges.size(), 1, link->fptr);
+	fprintf(link->fptr, "\001TID: Postie/%d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+
+	fwrite(msgbody.c_str(), msgbody.size(), 1, link->fptr);
+
+	// add via line
+	time_t now = time(NULL);
+	struct tm thetime;
+#ifdef _MSC_VER
+	gmtime_s(&thetime, &now);
+#else
+	gmtime_r(&now, &thetime);
+#endif
+	snprintf(buffer, sizeof buffer, "\001Via %d:%d/%d.%d @%04d%02d%02d.%02d%02d%02d.UTC Postie/%d.%d\r", link->ouraka->zone, link->ouraka->net, link->ouraka->node, link->ouraka->point, thetime.tm_year + 1900, thetime.tm_mon + 1, thetime.tm_mday, thetime.tm_hour, thetime.tm_min, thetime.tm_sec, VERSION_MAJOR, VERSION_MINOR);
+
+	fwrite(buffer, strlen(buffer), 1, link->fptr);
+
+	char null = '\0';
+
+	fwrite(&null, 1, 1, link->fptr);
+}
+
+void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* link, sq_msg_t* msg, bool local) {
 	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	std::stringstream ss;
 	for (size_t m = 0; m < msg->msg_len; m++) {
@@ -325,7 +468,12 @@ void Scanner::write_msg_to_pkt(struct area_conf_t *area, struct link_conf_t *lin
 	pmhdr.dest_node = link->aka->node;
 
 	pmhdr.cost = 0;
-	pmhdr.attribute = MSGLOCAL;
+	if (local) {
+		pmhdr.attribute = MSGLOCAL;
+	}
+	else {
+		pmhdr.attribute = 0;
+	}
 
 	if (strcasecmp(link->flavour.c_str(), "crash") == 0) {
 		pmhdr.attribute |= MSGCRASH;
@@ -524,7 +672,56 @@ bool Scanner::run() {
 						initialize_packet(c.areas.at(i).links.at(lid), std::string(_tmppath + "/postie-" + std::to_string(pid)), c.areas.at(i).links.at(lid)->ouraka);
 					}
 					// write message
-					write_msg_to_pkt(&c.areas.at(i), c.areas.at(i).links.at(lid), msg);
+					write_msg_to_pkt(&c.areas.at(i), c.areas.at(i).links.at(lid), msg, true);
+				}
+
+				msg->xmsg.attr |= MSGSENT;
+				SquishLockMsgBase(mb);
+				SquishUpdateHdr(mb, msg);
+				SquishUnlockMsgBase(mb);
+			}
+			SquishFreeMsg(msg);
+		}
+
+	}
+
+	for (size_t i = 0; i < c.netmailareas.size(); i++) {
+		sq_msg_base_t* mb;
+
+		mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(i).file).c_str());
+
+		if (!mb) {
+			log.log(LOG_ERROR, "Unable to open message base %s", std::string(_msgpath + "/" + c.netmailareas.at(i).file).c_str());
+			continue;
+		}
+		for (size_t mid = 1; mid <= mb->basehdr.num_msg; mid++) {
+			sq_msg_t* msg = SquishReadMsg(mb, mid);
+			if (!msg) {
+				log.log(LOG_ERROR, "Error Reading Message %d from %s", mid, std::string(_msgpath + "/" + c.netmailareas.at(i).file).c_str());
+				break;
+			}
+
+			if (msg->xmsg.attr & MSGLOCAL && !(msg->xmsg.attr & MSGSENT)) {
+				// export message.
+				// find route
+				printf("found netmail....\n");
+				for (size_t r = 0; r < c.routes.size(); r++) {
+					if (Scanner::matchroute(c.routes.at(r).route, &msg->xmsg.dest)) {
+						// found route
+						printf("found route....\n");
+
+						// find link relating to route
+						for (size_t l = 0; l < c.links.size(); l++) {
+							if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node && c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
+								if (c.links.at(l).fptr == NULL) {
+									Scanner::initialize_packet(&c.links.at(l), std::string(_tmppath + "/postie-" + std::to_string(pid)), &msg->xmsg.orig);
+								}
+								Scanner::write_netmail_to_pkt(&c.links.at(l), msg, true);
+								break;
+							}
+						}
+						break;
+					}
 				}
 
 				msg->xmsg.attr |= MSGSENT;

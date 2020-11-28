@@ -15,6 +15,7 @@
 #include "PacketStructs.h"
 #include "Scanner.h"
 
+
 bool Tosser::run() {
 	INIReader inir("talisman.ini");
 	Config c;
@@ -229,6 +230,7 @@ bool Tosser::run() {
 							sqmsg.xmsg.orig.point = 0;
 						}
 						sqmsg.xmsg.orig.node = phdr.orignode;
+
 						strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 72);
 						strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 36);
 						strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 36);
@@ -288,7 +290,7 @@ bool Tosser::run() {
 									if (c.areas.at(a).links.at(l)->fptr == NULL) {
 										Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), &pktorig);
 									}
-									Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg);
+									Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg, false);
 								}
 								// save to base
 
@@ -311,6 +313,215 @@ bool Tosser::run() {
 					}
 					else {
 						// it's a netmail...
+						// is it for us...
+						// look for intl kludge & topt kludge
+						std::stringstream kludge;
+
+						NETADDR* intldest = NULL;
+						NETADDR* intlorig = NULL;
+						int intlpoint = 0;
+						int intlfpoint = 0;
+
+
+						for (size_t z = 0; z < ctrlstr.str().size(); z++) {
+							if (ctrlstr.str().at(z) == '\001') {
+								if (kludge.str().size() > 0) {
+									if (kludge.str().find("\001INTL ") == 0) {
+										size_t addrsize = kludge.str().substr(7).find(" ");
+
+										if (intldest != NULL) {
+											free(intldest); // incase there is more than one intl line :O
+										}
+
+										intldest = parse_fido_addr(kludge.str().substr(7, addrsize).c_str());
+										intlorig = parse_fido_addr(kludge.str().substr(7 + addrsize + 1).c_str());
+
+										log.log(LOG_INFO, "Found intl line \"%s\"", kludge.str().substr(1));
+									}
+									else if (kludge.str().find("\001TOPT ") == 0) {
+										try {
+											intlpoint = stoi(kludge.str().substr(7));
+										}
+										catch (std::invalid_argument) {
+
+										}
+										catch (std::out_of_range) {
+
+										}
+									}
+									else if (kludge.str().find("\001FMPT ") == 0) {
+										try {
+											intlfpoint = stoi(kludge.str().substr(7));
+										}
+										catch (std::invalid_argument) {
+
+										}
+										catch (std::out_of_range) {
+
+										}
+									}
+								}
+								kludge.str("");
+							}
+							kludge << ctrlstr.str().at(z);
+						}
+
+						if (intldest != NULL) {
+							intldest->point = intlpoint;
+							if (intlorig != NULL) {
+								intlorig->point = intlfpoint;
+							}
+						}
+						else {
+							// assume it's based on net / node
+							intldest = (NETADDR*)malloc(sizeof(NETADDR));
+							if (!intldest) {
+								// panic!
+								// oom?
+								continue;
+							}
+							intldest->zone = phdr.destZone;
+							intldest->net = pmsg.dest_net;
+							intldest->node = pmsg.dest_node;
+							intldest->point = intlpoint;
+							if (intlorig == NULL) {
+								intlorig = (NETADDR*)malloc(sizeof(NETADDR));
+								if (!intlorig) {
+									// panic!
+									// oom?
+									continue;
+								}
+								intlorig->zone = phdr.origZone;
+								intlorig->net = pmsg.orig_net;
+								intlorig->node = pmsg.orig_node;
+								intlorig->point = intlfpoint;
+							}
+						}
+
+						// if it is, import it
+						// to me?
+						bool found = false;
+						size_t nmarea = 0;
+
+						for (size_t a = 0; a < c.addresses.size(); a++) {
+							if (intldest->zone == c.addresses.at(a).aka->zone && intldest->net == c.addresses.at(a).aka->net && intldest->node == c.addresses.at(a).aka->node && intldest->point == c.addresses.at(a).aka->point) {
+								// it's for us!
+								found = true;
+								for (size_t ar = 0; ar < c.netmailareas.size(); ar++) {
+									if (intldest->zone == c.netmailareas.at(ar).aka->zone && intldest->net == c.netmailareas.at(ar).aka->net && intldest->node == c.netmailareas.at(ar).aka->node && intldest->point == c.netmailareas.at(ar).aka->point) {
+										// put it in this netmail area
+										nmarea = ar;
+										break;
+									}
+								}
+								break;
+							}
+						}
+						sq_msg_t sqmsg;
+
+						memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+						sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
+						if (!sqmsg.ctrl) {
+							continue;
+						}
+						memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+						sqmsg.ctrl_len = ctrlstr.str().size();
+
+						sqmsg.msg = (char*)malloc(msgstr.str().size());
+						if (!sqmsg.msg) {
+							continue;
+						}
+						memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+						sqmsg.msg_len = msgstr.str().size();
+
+						sqmsg.xmsg.orig.zone = intlorig->zone;
+						sqmsg.xmsg.orig.net = intlorig->net;
+						sqmsg.xmsg.orig.point = intlorig->point;
+						sqmsg.xmsg.orig.node = intlorig->node;
+
+
+						sqmsg.xmsg.dest.zone = intldest->zone;
+						sqmsg.xmsg.dest.net = intldest->net;
+						sqmsg.xmsg.dest.point = intldest->point;
+						sqmsg.xmsg.dest.node = intldest->node;
+
+						strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 72);
+						strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 36);
+						strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 36);
+
+						std::tm lt;
+
+						datestr >> std::get_time(&lt, "%d %b %y  %H:%M:%S");
+						if (lt.tm_year < 68) {
+							lt.tm_year += 100;
+						}
+
+						sqmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
+						sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
+						sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
+
+						sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
+						sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
+						sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
+
+						std::tm at;
+
+						time_t now = time(NULL);
+#ifdef _MSC_VER
+						localtime_s(&at, &now);
+#else
+						localtime_r(&now, &at);
+#endif
+
+						sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
+						sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+						sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+						sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
+						sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
+						sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+						strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+
+						sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+
+						if (found) {
+							sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+
+							if (mb != NULL) {
+								SquishLockMsgBase(mb);
+								SquishWriteMsg(mb, &sqmsg);
+								SquishUnlockMsgBase(mb);
+								SquishCloseMsgBase(mb);
+							}
+
+						}
+						else {
+							// if not send it on
+							bool matchedroute = false;
+							for (size_t r = 0; r < c.routes.size(); r++) {
+								if (Scanner::matchroute(c.routes.at(r).route, intldest)) {
+									// found route
+									matchedroute = true;
+									// find link relating to route
+									for (size_t l = 0; l < c.links.size(); l++) {
+										if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node && c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
+											if (c.links.at(l).fptr == NULL) {
+												Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), &pktorig);
+											}
+											Scanner::write_netmail_to_pkt(&c.links.at(l), &sqmsg, false);
+											break;
+										}
+									}
+									break;
+								}
+							}
+
+							if (!matchedroute) {
+								log.log(LOG_ERROR, "Got netmail with no matching routes..");
+							}
+						}
 					}
 				}
 				fclose(fptr);
