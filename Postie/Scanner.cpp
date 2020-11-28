@@ -108,6 +108,7 @@ std::string remove_seenby_path(std::string msgbuf) {
 	while (getline(ss, buff, '\r')) {
 		if (buff.substr(0, 11) == " * Origin: ") {
 			gotorigin = true;
+			ss2 << buff << '\r';
 			continue;
 		}
 		if (gotorigin) {
