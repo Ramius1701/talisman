@@ -385,13 +385,13 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 	pmhdr.cost = 0;
 
 	if (local) {
-		pmhdr.attribute = MSGLOCAL | MSGPRIVATE;
+		pmhdr.attribute = PKT_MSGLOCAL | PKT_MSGPRIVATE;
 	}
 	else {
-		pmhdr.attribute = MSGPRIVATE;
+		pmhdr.attribute = PKT_MSGPRIVATE;
 	}
 	if (strcasecmp(link->flavour.c_str(), "crash") == 0) {
-		pmhdr.attribute |= MSGCRASH;
+		pmhdr.attribute |= PKT_MSGCRASH;
 	}
 
 	pmhdr.message_type = 2;
@@ -468,14 +468,14 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 
 	pmhdr.cost = 0;
 	if (local) {
-		pmhdr.attribute = MSGLOCAL;
+		pmhdr.attribute = PKT_MSGLOCAL;
 	}
 	else {
 		pmhdr.attribute = 0;
 	}
 
 	if (strcasecmp(link->flavour.c_str(), "crash") == 0) {
-		pmhdr.attribute |= MSGCRASH;
+		pmhdr.attribute |= PKT_MSGCRASH;
 	}
 
 	pmhdr.message_type = 2;

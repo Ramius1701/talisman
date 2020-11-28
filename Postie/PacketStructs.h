@@ -53,34 +53,34 @@ struct packed_message_t {
 #pragma pack(pop)
 
 // Private message
-#define MSGPRIVATE 0x0001
+#define PKT_MSGPRIVATE 0x0001
 // High priority
-#define MSGCRASH 0x0002
+#define PKT_MSGCRASH 0x0002
 // Read by addressee
-#define MSGREAD 0x0004
+#define PKT_MSGREAD 0x0004
 // Has been sent
-#define MSGSENT 0x0008
+#define PKT_MSGSENT 0x0008
 // File attached to msg
-#define MSGFILE 0x0010
+#define PKT_MSGFILE 0x0010
 // In transit
-#define MSGTRANSIT 0x0020
+#define PKT_MSGTRANSIT 0x0020
 // Unknown node
-#define MSGORPHAN 0x0040
+#define PKT_MSGORPHAN 0x0040
 // Kill after mailing
-#define MSGKILL 0x0080
+#define PKT_MSGKILL 0x0080
 // Message was entered here
-#define MSGLOCAL 0x0100
+#define PKT_MSGLOCAL 0x0100
 // Hold for pickup
-#define MSGHOLD 0x0200
+#define PKT_MSGHOLD 0x0200
 // Unused
-#define MSGUNUSED 0x0400
+#define PKT_MSGUNUSED 0x0400
 // File req uest
-#define MSGFREQ 0x0800
+#define PKT_MSGFREQ 0x0800
 // Return receipt request
-#define MSGRRREQ 0x1000
+#define PKT_MSGRRREQ 0x1000
 // Is return receipt
-#define MSGISRR 0x2000
+#define PKT_MSGISRR 0x2000
 // Audit request
-#define MSGAREQ 0x4000
+#define PKT_MSGAREQ 0x4000
 // File update request
-#define MSGFUPDREQ 0x8000
+#define PKT_MSGFUPDREQ 0x8000
