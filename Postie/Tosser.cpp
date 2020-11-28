@@ -59,7 +59,7 @@ bool Tosser::run() {
 		std::filesystem::create_directories(tempdir);
 
 		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
-			std::filesystem::copy(packetpth, std::filesystem::path(tempdir.u8string() + packetpth.filename().u8string()));
+			std::filesystem::copy(packetpth, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
 			removelist.push_back(packetpth);
 		}
 		else {
