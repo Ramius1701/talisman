@@ -499,11 +499,14 @@ bool Tosser::run() {
 						}
 						else {
 							// if not send it on
+							log.log(LOG_INFO, "Netmail not to us... forwarding.");
+
 							bool matchedroute = false;
 							for (size_t r = 0; r < c.routes.size(); r++) {
 								if (Scanner::matchroute(c.routes.at(r).route, intldest)) {
 									// found route
 									matchedroute = true;
+									log.log(LOG_INFO, "Netmail not to us... matched route.");
 									// find link relating to route
 									for (size_t l = 0; l < c.links.size(); l++) {
 										if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node && c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
@@ -511,6 +514,7 @@ bool Tosser::run() {
 												Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), &pktorig);
 											}
 											Scanner::write_netmail_to_pkt(&c.links.at(l), &sqmsg, false);
+											log.log(LOG_INFO, "Netmail not to us... wrote packet.");
 											break;
 										}
 									}
