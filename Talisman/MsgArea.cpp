@@ -1569,6 +1569,13 @@ int MsgArea::list_messages_full(int start) {
 		return 0;
 	}
 
+	if (pos >= msgs.size()) {
+		pos = msgs.size() - 1;
+	}
+	else if (pos < 0) {
+		pos = 0;
+	}
+
 	while (true) {
 		if (redraw) {
 			n->cls();
