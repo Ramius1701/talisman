@@ -1569,6 +1569,13 @@ int MsgArea::list_messages_full(int start) {
 		return 0;
 	}
 
+	if (selected >= msgs.size()) {
+		selected = msgs.size() - 1;
+	}
+	else if (selected < 0) {
+		selected = 0;
+	}
+
 	if (pos >= msgs.size()) {
 		pos = msgs.size() - 1;
 	}
