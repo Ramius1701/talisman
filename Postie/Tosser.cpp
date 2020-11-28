@@ -335,10 +335,14 @@ bool Tosser::run() {
 										free(intldest); // incase there is more than one intl line :O
 									}
 
-									intldest = parse_fido_addr(kludge.str().substr(7, addrsize).c_str());
-									intlorig = parse_fido_addr(kludge.str().substr(7 + addrsize + 1).c_str());
+									std::string intl = kludge.str().substr(1);
+									std::string intld = kludge.str().substr(7, addrsize);
+									std::string intlo = kludge.str().substr(7 + addrsize + 1);
 
-									log.log(LOG_INFO, "Found intl line \"%s\"", kludge.str().substr(1));
+									intldest = parse_fido_addr(intld.c_str());
+									intlorig = parse_fido_addr(intlo.c_str());
+
+									log.log(LOG_INFO, "Found intl line \"%s\"", intl.c_str());
 								}
 								else if (kludge.str().find("\001TOPT ") == 0) {
 									try {
