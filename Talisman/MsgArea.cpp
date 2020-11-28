@@ -1562,6 +1562,10 @@ int MsgArea::list_messages_full(int start) {
 	}
 	SquishCloseMsgBase(mb);
 
+	if (msgs.size() == 0) {
+		return 0;
+	}
+
 	while (true) {
 		if (redraw) {
 			n->cls();
