@@ -515,12 +515,12 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 	fwrite(msgbody.c_str(), msgbody.size(), 1, link->fptr);
 
 	// add seenby
-	if (area->aka->point != 0) {
+	if (area->aka->point == 0) {
 		add_seenby(&seenbys, area->aka);
 	}
 
 	for (size_t lid2 = 0; lid2 < area->links.size(); lid2++) {
-		if (area->links.at(lid2)->aka->point != 0) {
+		if (area->links.at(lid2)->aka->point == 0) {
 			add_seenby(&seenbys, area->links.at(lid2)->aka);
 		}
 	}
@@ -530,6 +530,7 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 	std::stringstream sbline;
 	bool first = true;
 	for (size_t sb = 0; sb < seenbys.size(); ) {
+		
 		if (first == true) {
 			sbline.str("");
 			sbline << "SEEN-BY: " << seenbys.at(sb).net << "/" << seenbys.at(sb).node;
