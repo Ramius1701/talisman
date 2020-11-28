@@ -102,6 +102,7 @@ void add_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
 
 std::string remove_seenby_path(std::string msgbuf) {
 	std::stringstream ss(msgbuf);
+	std::stringstream ss2;
 	std::string buff;
 	bool gotorigin = false;
 	while (getline(ss, buff, '\r')) {
@@ -116,11 +117,11 @@ std::string remove_seenby_path(std::string msgbuf) {
 			if (buff.find("\001PATH: ") == 0) {
 				continue;
 			}
-			ss << buff << '\r';
 		}
+		ss2 << buff << '\r';
 	}
 
-	return ss.str();
+	return ss2.str();
 }
 
 std::vector<struct seenby_t> parse_path(std::string msgbuf) {

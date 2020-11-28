@@ -132,8 +132,6 @@ bool Tosser::run() {
 			}
 
 			while (fread(&pmsg, sizeof(struct packed_message_t), 1, fptr) == 1) {
-				bool isnetmail;
-				bool isdupe;
 				char ch;
 				std::stringstream datestr;
 
