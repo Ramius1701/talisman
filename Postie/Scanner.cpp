@@ -548,7 +548,8 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 		if (sbline.str().size() + addr2d.size() + 2 >= 79) {
 			sbline << "\r";
 			first = true;
-			fwrite(sbline.str().c_str(), sbline.str().size(), 1, link->fptr);
+			std::string sbl = sbline.str();
+			fwrite(sbl.c_str(), sbl.size(), 1, link->fptr);
 			continue;
 		}
 		sbline << " " << addr2d;
@@ -557,7 +558,8 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 
 	if (sbline.str().size() > 0) {
 		sbline << "\r";
-		fwrite(sbline.str().c_str(), sbline.str().size(), 1, link->fptr);
+		std::string sbl = sbline.str();
+		fwrite(sbl.c_str(), sbl.size(), 1, link->fptr);
 	}
 
 	// add path
@@ -590,7 +592,8 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 		if (sbline.str().size() + addr2d.size() + 2 >= 79) {
 			sbline << "\r";
 			first = true;
-			fwrite(sbline.str().c_str(), sbline.str().size(), 1, link->fptr);
+			std::string sbl = sbline.str();
+			fwrite(sbl.c_str(), sbl.size(), 1, link->fptr);
 			continue;
 		}
 		sbline << " " << addr2d;
@@ -599,7 +602,8 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 
 	if (sbline.str().size() > 0) {
 		sbline << "\r";
-		fwrite(sbline.str().c_str(), sbline.str().size(), 1, link->fptr);
+		std::string sbl = sbline.str();
+		fwrite(sbl.c_str(), sbl.size(), 1, link->fptr);
 	}
 	char null = '\0';
 
