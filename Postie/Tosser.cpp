@@ -323,8 +323,8 @@ bool Tosser::run() {
 						int intlfpoint = 0;
 
 
-						for (size_t z = 0; z < ctrlstr.str().size(); z++) {
-							if (ctrlstr.str().at(z) == '\001') {
+						for (size_t z = 0; z < msgstr.str().size(); z++) {
+							if (msgstr.str().at(z) == '\001') {
 								if (kludge.str().size() > 0) {
 									if (kludge.str().find("\001INTL ") == 0) {
 										size_t addrsize = kludge.str().substr(7).find(" ");
@@ -363,7 +363,7 @@ bool Tosser::run() {
 								}
 								kludge.str("");
 							}
-							kludge << ctrlstr.str().at(z);
+							kludge << msgstr.str().at(z);
 						}
 
 						if (intldest != NULL) {
