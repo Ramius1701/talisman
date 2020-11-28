@@ -382,15 +382,15 @@ bool Tosser::run() {
 						if (ctrlstr.str().at(z) == '\001') {
 							if (kludge.str().size() > 0) {
 								if (kludge.str().find("INTL ") == 0) {
-									size_t addrsize = kludge.str().substr(6).find(" ");
+									size_t addrsize = kludge.str().substr(5).find(" ");
 
 									if (intldest != NULL) {
 										free(intldest); // incase there is more than one intl line :O
 									}
 
-									std::string intl = kludge.str().substr(1);
-									std::string intld = kludge.str().substr(6, addrsize);
-									std::string intlo = kludge.str().substr(6 + addrsize + 1);
+									std::string intl = kludge.str();
+									std::string intld = kludge.str().substr(5, addrsize);
+									std::string intlo = kludge.str().substr(5 + addrsize + 1);
 
 									intldest = parse_fido_addr(intld.c_str());
 									intlorig = parse_fido_addr(intlo.c_str());
@@ -399,7 +399,7 @@ bool Tosser::run() {
 								}
 								else if (kludge.str().find("TOPT ") == 0) {
 									try {
-										intlpoint = stoi(kludge.str().substr(6));
+										intlpoint = stoi(kludge.str().substr(5));
 									}
 									catch (std::invalid_argument) {
 
@@ -410,7 +410,7 @@ bool Tosser::run() {
 								}
 								else if (kludge.str().find("FMPT ") == 0) {
 									try {
-										intlfpoint = stoi(kludge.str().substr(6));
+										intlfpoint = stoi(kludge.str().substr(5));
 									}
 									catch (std::invalid_argument) {
 
@@ -428,15 +428,15 @@ bool Tosser::run() {
 
 					if (kludge.str().size() > 0) {
 						if (kludge.str().find("INTL ") == 0) {
-							size_t addrsize = kludge.str().substr(6).find(" ");
+							size_t addrsize = kludge.str().substr(5).find(" ");
 
 							if (intldest != NULL) {
 								free(intldest); // incase there is more than one intl line :O
 							}
 
-							std::string intl = kludge.str().substr(1);
-							std::string intld = kludge.str().substr(6, addrsize);
-							std::string intlo = kludge.str().substr(6 + addrsize + 1);
+							std::string intl = kludge.str();
+							std::string intld = kludge.str().substr(5, addrsize);
+							std::string intlo = kludge.str().substr(5 + addrsize + 1);
 
 							intldest = parse_fido_addr(intld.c_str());
 							intlorig = parse_fido_addr(intlo.c_str());
@@ -445,7 +445,7 @@ bool Tosser::run() {
 						}
 						else if (kludge.str().find("TOPT ") == 0) {
 							try {
-								intlpoint = stoi(kludge.str().substr(6));
+								intlpoint = stoi(kludge.str().substr(5));
 							}
 							catch (std::invalid_argument) {
 
@@ -456,7 +456,7 @@ bool Tosser::run() {
 						}
 						else if (kludge.str().find("FMPT ") == 0) {
 							try {
-								intlfpoint = stoi(kludge.str().substr(6));
+								intlfpoint = stoi(kludge.str().substr(5));
 							}
 							catch (std::invalid_argument) {
 
