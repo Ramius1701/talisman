@@ -248,7 +248,6 @@ bool Scanner::matchroute(std::string route, NETADDR* aka) {
 	for (size_t i = 0; i < route.size(); i++) {
 		if (route[i] == ':') {
 			if (wildcard == false) {
-				printf("%d %d", number, aka->zone);
 				if (number != aka->zone) {
 					match = false;
 					break;
@@ -704,11 +703,9 @@ bool Scanner::run() {
 			if (msg->xmsg.attr & MSGLOCAL && !(msg->xmsg.attr & MSGSENT)) {
 				// export message.
 				// find route
-				printf("found netmail....\n");
 				for (size_t r = 0; r < c.routes.size(); r++) {
 					if (Scanner::matchroute(c.routes.at(r).route, &msg->xmsg.dest)) {
 						// found route
-						printf("found route....\n");
 
 						// find link relating to route
 						for (size_t l = 0; l < c.links.size(); l++) {
