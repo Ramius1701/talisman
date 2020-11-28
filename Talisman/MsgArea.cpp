@@ -1543,6 +1543,9 @@ int MsgArea::list_messages_full(int start) {
 	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
 		struct msg_list_t mli;
 		sq_msg_t* msg = SquishReadMsg(mb, i);
+		if (msg == NULL) {
+			continue;
+		}
 		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
