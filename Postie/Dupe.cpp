@@ -1,4 +1,5 @@
 #include <string>
+#include <filesystem>
 #include "Dupe.h"
 
 /* Crc - 32 BIT ANSI X3.66 CRC checksum files */
@@ -137,18 +138,38 @@ bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
     uint32_t crc = crc32buf(msgid.c_str(), msgid.size());
     uint32_t checkcrc;
     FILE* fptr = fopen(crcfile.c_str(), "rb");
-
+    int dupcount = 0;
     if (fptr) {
         while (fread(&checkcrc, sizeof(uint32_t), 1, fptr) == 1) {
             if (checkcrc == crc) {
                 fclose(fptr);
                 return true;
             }
+            dupcount++;
         }
     }
-    fptr = fopen(crcfile.c_str(), "ab");
-    fwrite(&crc, sizeof(uint32_t), 1, fptr);
-    fclose(fptr);
+
+    if (dupcount == 1000) {
+        FILE *fptr1 = fopen(crcfile.c_str(), "rb");
+        FILE* fptr2 = fopen(std::string(crcfile + ".copy").c_str(), "wb");
+
+        fseek(fptr1, sizeof(uint32_t) * 300, SEEK_SET);
+
+        while (fread(&checkcrc, sizeof(uint32_t), 1, fptr1) == 1) {
+            fwrite(&checkcrc, sizeof(uint32_t), 1, fptr2);
+        }
+        fwrite(&crc, sizeof(uint32_t), 1, fptr2);
+        fclose(fptr1);
+        fclose(fptr2);
+        std::filesystem::remove(std::filesystem::path(crcfile));
+        std::filesystem::copy(std::filesystem::path(std::string(crcfile + ".copy")), std::filesystem::path(crcfile));
+        std::filesystem::remove(std::filesystem::path(std::string(crcfile + ".copy")));
+    }
+    else {
+        fptr = fopen(crcfile.c_str(), "ab");
+        fwrite(&crc, sizeof(uint32_t), 1, fptr);
+        fclose(fptr);
+    }
 
     return false;
 }
