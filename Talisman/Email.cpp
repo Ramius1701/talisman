@@ -308,7 +308,7 @@ int Email::view_email(Node* n, Email e) {
 			n->print_f("|15%s\r\n", e.msg.at(i).c_str());
 		}
 		lines++;
-		if (lines == n->term_width - 2) {
+		if (lines == n->term_height - 2) {
 			n->print_f("|14Continue (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				n->print_f("\r\n");
