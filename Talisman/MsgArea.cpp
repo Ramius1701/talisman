@@ -1429,7 +1429,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 									n->getch();
 								}
 								top = top + (n->term_height - 8);
-								if (top >= linesv2.size() - (n->term_height - 8)) {
+								if (top >= linesv2.size()) {
 									top = linesv2.size() - (n->term_height - 8) - 1;
 									if (top < 0) {
 										top = 0;
@@ -1718,7 +1718,7 @@ int MsgArea::list_messages_full(int start) {
 						n->getch();
 					}
 					pos = pos + (n->term_height - 3);
-					if (pos >= msgs.size() - (n->term_height - 3)) {
+					if (pos >= msgs.size()) {
 						pos = msgs.size() - (n->term_height - 3) - 1;
 						if (pos < 0) {
 							pos = 0;
