@@ -1,8 +1,12 @@
 #pragma once
+
+#include "Squish.h"
+
 class Tosser
 {
 public:
 	bool run();
+	NETADDR* get_echomail_addr(std::string ctrlbody, std::string msgbody);
 private:
 	std::string _datapath;
 	std::string _logpath;

@@ -16,6 +16,61 @@
 #include "Scanner.h"
 
 
+NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
+	// first try getting address from origin line
+	std::stringstream ss(msgbody);
+	std::string line;
+	NETADDR* ftnaddr = NULL;
+
+	while (getline(ss, line, '\r')) {
+		if (line.find(" * Origin: ") == 0) {
+			// found origin line.
+
+			int start = line.rfind("(") + 1;
+			int size = line.substr(start).find(")");
+
+			std::string addr = line.substr(start, size);
+			if (ftnaddr != NULL) {
+				free(ftnaddr);
+			}
+
+			ftnaddr = parse_fido_addr(addr.c_str());
+		
+		}
+	}
+
+	if (ftnaddr != NULL) {
+		
+		return ftnaddr;
+	}
+
+	// next try MSGID
+	std::stringstream kludge;
+
+	for (size_t z = 0; z < ctrlbody.size(); z++) {
+		if (ctrlbody.at(z) == '\001') {
+			if (kludge.str().size() > 0) {
+				if (kludge.str().find("MSGID: ") == 0) {
+					int start = 7;
+					int size = kludge.str().substr(start).find(" ");
+
+					std::string addr = kludge.str().substr(start, size - 1);
+					ftnaddr = parse_fido_addr(addr.c_str());
+
+					if (ftnaddr != NULL) {
+						return ftnaddr;
+					}
+				}
+			}
+			kludge.str("");
+			continue;
+		}
+		kludge << ctrlbody.at(z);
+	}
+	// next fail
+	return NULL;
+}
+
 bool Tosser::run() {
 	INIReader inir("talisman.ini");
 	Config c;
@@ -219,16 +274,16 @@ bool Tosser::run() {
 					memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
 					sqmsg.msg_len = msgstr.str().size();
 
-					sqmsg.xmsg.orig.zone = phdr.origZone;
-					if (phdr.origNet == 0xffff) {
-						sqmsg.xmsg.orig.net = phdr.auxNet;
-						sqmsg.xmsg.orig.point = phdr.origPoint;
+					NETADDR* emaddr = get_echomail_addr(ctrlstr.str(), msgstr.str());
+
+					if (emaddr != NULL) {
+						log.log(LOG_INFO, "Found echomail address %d:%d/%d.%d", emaddr->zone, emaddr->net, emaddr->node, emaddr->point);
+						sqmsg.xmsg.orig.zone = emaddr->zone;
+						sqmsg.xmsg.orig.node = emaddr->node;
+						sqmsg.xmsg.orig.net = emaddr->net;
+						sqmsg.xmsg.orig.point = emaddr->point;
+						free(emaddr);
 					}
-					else {
-						sqmsg.xmsg.orig.net = phdr.origNet;
-						sqmsg.xmsg.orig.point = 0;
-					}
-					sqmsg.xmsg.orig.node = phdr.orignode;
 
 					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 72);
 					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 36);
@@ -326,7 +381,7 @@ bool Tosser::run() {
 					for (size_t z = 0; z < ctrlstr.str().size(); z++) {
 						if (ctrlstr.str().at(z) == '\001') {
 							if (kludge.str().size() > 0) {
-								if (kludge.str().find("\001INTL ") == 0) {
+								if (kludge.str().find("INTL ") == 0) {
 									size_t addrsize = kludge.str().substr(6).find(" ");
 
 									if (intldest != NULL) {
@@ -342,7 +397,7 @@ bool Tosser::run() {
 
 									log.log(LOG_INFO, "Found intl line \"%s\" -> dest \"%s\"  orig \"%s\"", intl.c_str(), intld.c_str(), intlo.c_str());
 								}
-								else if (kludge.str().find("\001TOPT ") == 0) {
+								else if (kludge.str().find("TOPT ") == 0) {
 									try {
 										intlpoint = stoi(kludge.str().substr(6));
 									}
@@ -353,7 +408,7 @@ bool Tosser::run() {
 
 									}
 								}
-								else if (kludge.str().find("\001FMPT ") == 0) {
+								else if (kludge.str().find("FMPT ") == 0) {
 									try {
 										intlfpoint = stoi(kludge.str().substr(6));
 									}
@@ -366,12 +421,13 @@ bool Tosser::run() {
 								}
 							}
 							kludge.str("");
+							continue;
 						}
 						kludge << ctrlstr.str().at(z);
 					}
 
 					if (kludge.str().size() > 0) {
-						if (kludge.str().find("\001INTL ") == 0) {
+						if (kludge.str().find("INTL ") == 0) {
 							size_t addrsize = kludge.str().substr(6).find(" ");
 
 							if (intldest != NULL) {
@@ -387,7 +443,7 @@ bool Tosser::run() {
 
 							log.log(LOG_INFO, "Found intl line \"%s\" -> dest \"%s\"  orig \"%s\"", intl.c_str(), intld.c_str(), intlo.c_str());
 						}
-						else if (kludge.str().find("\001TOPT ") == 0) {
+						else if (kludge.str().find("TOPT ") == 0) {
 							try {
 								intlpoint = stoi(kludge.str().substr(6));
 							}
@@ -398,7 +454,7 @@ bool Tosser::run() {
 
 							}
 						}
-						else if (kludge.str().find("\001FMPT ") == 0) {
+						else if (kludge.str().find("FMPT ") == 0) {
 							try {
 								intlfpoint = stoi(kludge.str().substr(6));
 							}
