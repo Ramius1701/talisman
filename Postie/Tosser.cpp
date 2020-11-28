@@ -287,7 +287,7 @@ bool Tosser::run() {
 									}
 								}
 								if (c.areas.at(a).links.at(l)->fptr == NULL) {
-									Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), &pktorig);
+									Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
 								}
 								Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg, false);
 							}
@@ -556,7 +556,7 @@ bool Tosser::run() {
 								for (size_t l = 0; l < c.links.size(); l++) {
 									if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node && c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
 										if (c.links.at(l).fptr == NULL) {
-											Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), &pktorig);
+											Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), c.links.at(1).ouraka);
 										}
 										Scanner::write_netmail_to_pkt(&c.links.at(l), &sqmsg, false);
 										log.log(LOG_INFO, "Netmail not to us... wrote packet.");
