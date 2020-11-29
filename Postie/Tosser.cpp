@@ -94,7 +94,7 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 	return NULL;
 }
 
-bool Tosser::run() {
+bool Tosser::run(bool protinbound) {
 	INIReader inir("talisman.ini");
 	Config c;
 	unsigned long pid;
@@ -131,7 +131,7 @@ bool Tosser::run() {
 	static const char* fileext3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
 	// toss each file one at a time
-	std::filesystem::path inbound(c.protinbound());
+	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
 	std::filesystem::path tempdir(_tmppath + "/postie-" + std::to_string(pid));
 
 	std::vector<std::filesystem::path> removelist;
@@ -282,7 +282,7 @@ bool Tosser::run() {
 
 				bool msgprocessed = false;
 
-				if (areatag != "") {
+				if (areatag != "" && protinbound) {
 
 
 					// it's an echomail
@@ -425,8 +425,13 @@ bool Tosser::run() {
 						log.log(LOG_ERROR, "Message for area %s not processed!", areatag.c_str());
 					}
 				}
-				else {
+				else if (areatag == "") {
 					// it's a netmail...
+					// delete empty mail
+					if (bodystr.str().size() == 0) {
+						log.log(LOG_INFO, "Got an empty netmail, discarding...");
+						continue;
+					}
 					// is it for us...
 					// look for intl kludge & topt kludge
 					std::stringstream kludge;
@@ -662,7 +667,7 @@ bool Tosser::run() {
 						}
 
 					}
-					else {
+					else if (protinbound) {
 						// if not send it on
 						log.log(LOG_INFO, "Netmail not to us... forwarding.");
 
@@ -678,7 +683,7 @@ bool Tosser::run() {
 										if (c.links.at(l).fptr == NULL) {
 											Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), c.links.at(1).ouraka);
 										}
-										Scanner::write_netmail_to_pkt(&c.links.at(l), &sqmsg, false);
+										Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, &sqmsg, false, c.links.at(l).fptr, c.links.at(l).flavour);
 										log.log(LOG_INFO, "Netmail not to us... wrote packet.");
 										break;
 									}
@@ -691,8 +696,14 @@ bool Tosser::run() {
 							log.log(LOG_ERROR, "Got netmail with no matching routes..");
 						}
 					}
+					else {
+						log.log(LOG_ERROR, "Got netmail not for me in unprotected inbound! Discarding...");
+					}
 					free(sqmsg.msg);
 					free(sqmsg.ctrl);
+				}
+				else if (areatag != "" && !protinbound) {
+					log.log(LOG_ERROR, "Got echomail in unprotected inbound! Discarding...");
 				}
 			}
 			fclose(fptr);
@@ -710,7 +721,7 @@ bool Tosser::run() {
 			fclose(c.links.at(lid).fptr);
 			c.links.at(lid).fptr = NULL;
 			// create bundle
-			std::string bundlename = Scanner::get_bundle_name(&c.links.at(lid), c.packetdir());
+			std::string bundlename = Scanner::get_bundle_name(c.links.at(lid).ouraka, c.links.at(lid).aka, c.packetdir());
 			if (bundlename == "") {
 				log.log(LOG_ERROR, "Unable to get bundle name");
 				continue;

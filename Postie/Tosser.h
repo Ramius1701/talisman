@@ -5,7 +5,7 @@
 class Tosser
 {
 public:
-	bool run();
+	bool run(bool protinbound);
 	NETADDR* get_echomail_addr(std::string ctrlbody, std::string msgbody);
 private:
 	std::string get_msgid(std::string ctrlbody);

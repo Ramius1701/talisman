@@ -304,6 +304,69 @@ bool Scanner::matchroute(std::string route, NETADDR* aka) {
 	return match;
 }
 
+std::string Scanner::initialize_netmail_packet(NETADDR* dest, std::string working_path, NETADDR* myaka, FILE **fptr) {
+	time_t thetime = time(NULL);
+	struct tm thetimetm;
+	struct packet_t phdr;
+
+	std::filesystem::path packetpath;
+
+#ifdef _MSC_VER
+	localtime_s(&thetimetm, &thetime);
+#else
+	localtime_r(&thetime, &thetimetm);
+#endif
+	char packetname[9];
+
+	sprintf(packetname, "%02d%02d%02d%02d", thetimetm.tm_mday, thetimetm.tm_hour, thetimetm.tm_min, thetimetm.tm_sec);
+	packetpath = working_path;
+	packetpath.append(std::to_string(dest->zone) + "." + std::to_string(dest->net) + "." + std::to_string(dest->node) + "." + std::to_string(dest->point));
+	if (std::filesystem::exists(packetpath)) {
+		std::filesystem::remove_all(packetpath);
+	}
+	std::filesystem::create_directories(packetpath);
+	
+	packetpath.append(std::string(packetname) + ".pkt");
+	*fptr = fopen(packetpath.u8string().c_str(), "wb");
+	memset(&phdr, 0, sizeof(struct packet_t));
+
+	phdr.orignode = myaka->node;
+	phdr.destnode = dest->node;
+	phdr.year = thetimetm.tm_year + 1900;
+	phdr.month = thetimetm.tm_mon;
+	phdr.day = thetimetm.tm_mday;
+	phdr.hour = thetimetm.tm_hour;
+	phdr.minute = thetimetm.tm_min;
+	phdr.second = thetimetm.tm_sec;
+	phdr.baud = 0;
+	phdr.version = 2;
+	if (myaka->point != 0) {
+		phdr.origNet = 0xffff;
+		phdr.auxNet = myaka->net;
+	}
+	else {
+		phdr.origNet = myaka->net;
+		phdr.auxNet = 0;
+	}
+	phdr.destNet = dest->net;
+	phdr.prodCode = 0xfe;
+	phdr.prodVersionMajor = 1;
+
+	phdr.origZone = myaka->zone;
+	phdr.destZone = dest->zone;
+	phdr.capWord = 0x0001;
+	phdr.capValid = ((phdr.capWord & 0xff) << 8) | ((phdr.capWord >> 8) & 0xff);
+	phdr.origZone2 = myaka->zone;
+	phdr.destZone2 = dest->zone;
+	phdr.origPoint = myaka->point;
+	phdr.destPoint = dest->point;
+	phdr.prodData = 0x45545350;
+
+	fwrite(&phdr, sizeof(struct packet_t), 1, *fptr);
+
+	return packetpath.u8string();
+}
+
 void Scanner::initialize_packet(struct link_conf_t *link, std::string working_path, NETADDR *pktorig) {
 	time_t thetime = time(NULL);
 	struct tm thetimetm;
@@ -367,7 +430,7 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
 
 }
 
-void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool local) {
+void Scanner::write_netmail_to_pkt(NETADDR *orig, NETADDR *dest, sq_msg_t *msg, bool local, FILE *fptr, std::string flavour) {
 	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	std::stringstream ss;
 	for (size_t m = 0; m < msg->msg_len; m++) {
@@ -378,11 +441,11 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 	// write message
 	struct packed_message_t pmhdr;
 	memset(&pmhdr, 0, sizeof(struct packed_message_t));
-	pmhdr.orig_net = link->ouraka->net;
-	pmhdr.orig_node = link->ouraka->node;
+	pmhdr.orig_net = orig->net;
+	pmhdr.orig_node = orig->node;
 
-	pmhdr.dest_net = link->aka->net;
-	pmhdr.dest_node = link->aka->node;
+	pmhdr.dest_net = dest->net;
+	pmhdr.dest_node = dest->node;
 
 	pmhdr.cost = 0;
 
@@ -392,34 +455,34 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 	else {
 		pmhdr.attribute = PKT_MSGPRIVATE;
 	}
-	if (strcasecmp(link->flavour.c_str(), "crash") == 0) {
+	if (strcasecmp(flavour.c_str(), "crash") == 0) {
 		pmhdr.attribute |= PKT_MSGCRASH;
 	}
 
 	pmhdr.message_type = 2;
 
-	fwrite(&pmhdr, sizeof(struct packed_message_t), 1, link->fptr);
+	fwrite(&pmhdr, sizeof(struct packed_message_t), 1, fptr);
 
 	char buffer[256];
 
 	memset(buffer, 0, sizeof buffer);
 	snprintf(buffer, sizeof buffer, "%.2d %s %.2d  %02d:%02d:%02d", msg->xmsg.date_written.date & 31, months[((msg->xmsg.date_written.date >> 5) & 15) - 1], ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 2000, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg->xmsg.date_written.time & 31);
-	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+	fwrite(buffer, strlen(buffer) + 1, 1, fptr);
 
 	// tousername 36 bytes
 	memset(buffer, 0, sizeof buffer);
 	snprintf(buffer, sizeof buffer, "%.35s", msg->xmsg.to);
-	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+	fwrite(buffer, strlen(buffer) + 1, 1, fptr);
 
 	// fromusername 36 bytes
 	memset(buffer, 0, sizeof buffer);
 	snprintf(buffer, sizeof buffer, "%.35s", msg->xmsg.from);
-	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+	fwrite(buffer, strlen(buffer) + 1, 1, fptr);
 
 	// subject 72 bytes
 	memset(buffer, 0, sizeof buffer);
 	snprintf(buffer, sizeof buffer, "%.71s", msg->xmsg.subject);
-	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
+	fwrite(buffer, strlen(buffer) + 1, 1, fptr);
 
 	std::string kludges;
 	if (local) {
@@ -429,13 +492,13 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 		kludges = add_cr_to_kludges(msg);
 	}
 
-	fwrite(kludges.c_str(), kludges.size(), 1, link->fptr);
+	fwrite(kludges.c_str(), kludges.size(), 1, fptr);
 	if (local) {
-		fprintf(link->fptr, "\001TID: Postie %d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+		fprintf(fptr, "\001TID: Postie %d.%d\r", VERSION_MAJOR, VERSION_MINOR);
 	}
 
 
-	fwrite(msgbody.c_str(), msgbody.size(), 1, link->fptr);
+	fwrite(msgbody.c_str(), msgbody.size(), 1, fptr);
 
 	// add via line
 	time_t now = time(NULL);
@@ -445,13 +508,13 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 #else
 	gmtime_r(&now, &thetime);
 #endif
-	snprintf(buffer, sizeof buffer, "\001Via %d:%d/%d.%d @%04d%02d%02d.%02d%02d%02d.UTC Postie/%d.%d\r", link->ouraka->zone, link->ouraka->net, link->ouraka->node, link->ouraka->point, thetime.tm_year + 1900, thetime.tm_mon + 1, thetime.tm_mday, thetime.tm_hour, thetime.tm_min, thetime.tm_sec, VERSION_MAJOR, VERSION_MINOR);
+	snprintf(buffer, sizeof buffer, "\001Via %d:%d/%d.%d @%04d%02d%02d.%02d%02d%02d.UTC Postie/%d.%d\r", orig->zone, orig->net, orig->node, orig->point, thetime.tm_year + 1900, thetime.tm_mon + 1, thetime.tm_mday, thetime.tm_hour, thetime.tm_min, thetime.tm_sec, VERSION_MAJOR, VERSION_MINOR);
 
-	fwrite(buffer, strlen(buffer), 1, link->fptr);
+	fwrite(buffer, strlen(buffer), 1, fptr);
 
 	char null = '\0';
 
-	fwrite(&null, 1, 1, link->fptr);
+	fwrite(&null, 1, 1, fptr);
 }
 
 void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* link, sq_msg_t* msg, bool local) {
@@ -732,6 +795,8 @@ bool Scanner::run() {
 				break;
 			}
 
+			bool matched_route = false;
+
 			if (msg->xmsg.attr & MSGLOCAL && !(msg->xmsg.attr & MSGSENT)) {
 				// export message.
 				// find route
@@ -745,11 +810,51 @@ bool Scanner::run() {
 								if (c.links.at(l).fptr == NULL) {
 									Scanner::initialize_packet(&c.links.at(l), std::string(_tmppath + "/postie-" + std::to_string(pid)), &msg->xmsg.orig);
 								}
-								Scanner::write_netmail_to_pkt(&c.links.at(l), msg, true);
+								Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, msg, true, c.links.at(l).fptr, c.links.at(l).flavour);
 								break;
 							}
 						}
+						matched_route = true;
 						break;
+					}
+				}
+
+				if (!matched_route) {
+					// no route for netmail...? send directly..
+					FILE* fptr;
+					std::string packetname = initialize_netmail_packet(&msg->xmsg.dest, std::string(_tmppath + "/postie-" + std::to_string(pid)), c.netmailareas.at(i).aka, &fptr);
+					if (fptr != NULL) {
+						Scanner::write_netmail_to_pkt(c.netmailareas.at(i).aka, &msg->xmsg.dest, msg, true, fptr, "normal");
+						fclose(fptr);
+						// copy packet to outbound
+						std::string outb;
+						std::filesystem::path outf;
+
+						char buffer[13];
+						if (c.addresses.at(0).aka->zone != msg->xmsg.dest.zone) {
+							sprintf(buffer, ".%03x", msg->xmsg.dest.zone);
+							outb = c.outbound() + buffer;
+						}
+						else {
+							outb = c.outbound();
+						}
+						outf = outb;
+						if (msg->xmsg.dest.point != 0) {
+							snprintf(buffer, sizeof buffer, "%04x%04x.pnt", msg->xmsg.dest.net, msg->xmsg.dest.node);
+							outf.append(buffer);
+							std::filesystem::create_directories(outf);
+							snprintf(buffer, sizeof buffer, "%08x.cut", msg->xmsg.dest.point);
+							outf.append(buffer);
+						}
+						else {
+							std::filesystem::create_directories(outf);
+							snprintf(buffer, sizeof buffer, "%04x%04x.cut", msg->xmsg.dest.net, msg->xmsg.dest.node);
+							outf.append(buffer);
+						}
+
+						std::filesystem::path inf(packetname);
+
+						std::filesystem::copy_file(inf, outf);
 					}
 				}
 
@@ -773,7 +878,7 @@ bool Scanner::run() {
 			fclose(c.links.at(fil).fptr);
 
 			// create bundle
-			std::string bundlename = get_bundle_name(&c.links.at(fil), c.packetdir());
+			std::string bundlename = c.packetdir() + "/" + get_bundle_name(c.links.at(fil).ouraka, c.links.at(fil).aka, c.packetdir());
 			if (bundlename == "") {
 				log.log(LOG_ERROR, "Unable to get bundle name");
 				continue;
@@ -852,7 +957,7 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
 	}
 	else {
 		
-		sprintf(buffer, ".%03x", link->ouraka->zone);
+		sprintf(buffer, ".%03x", link->aka->zone);
 
 
 		fpath = std::string(c->outbound() + buffer);
@@ -877,7 +982,7 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
 	return true;
 }
 
-std::string Scanner::get_bundle_name(struct link_conf_t *link, std::string packetpath) {
+std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath) {
 	time_t ttime;
 	struct tm thetm;
 	static const char* days[] = { "su", "mo", "tu", "we", "th", "fr", "sa" };
@@ -888,11 +993,11 @@ std::string Scanner::get_bundle_name(struct link_conf_t *link, std::string packe
 
 	char buffer[9];
 
-	if (link->aka->point != 0) {
-		snprintf(buffer, sizeof buffer, "0000p%03x", link->aka->point);
+	if (dest->point != 0) {
+		snprintf(buffer, sizeof buffer, "0000p%03x", dest->point);
 	}
 	else {
-		snprintf(buffer, sizeof buffer, "%04x%04x", abs(link->ouraka->net - link->aka->net), abs(link->ouraka->node - link->aka->node));
+		snprintf(buffer, sizeof buffer, "%04x%04x", abs(orig->net - dest->net), abs(orig->node - dest->node));
 	}
 
 	ttime = time(NULL);
@@ -915,7 +1020,7 @@ std::string Scanner::get_bundle_name(struct link_conf_t *link, std::string packe
 		ss.seekp(-1, ss.cur);
 	}
 	if (found) {
-		return finalpath.u8string();
+		return ss.str();
 	}
 	return "";
 }

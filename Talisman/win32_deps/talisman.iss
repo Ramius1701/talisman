@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.6"
+#define MyAppVersion "0.7"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
@@ -36,6 +36,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Servo.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Talisman.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Release\Toolbelt.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Release\Postie.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
@@ -49,6 +50,7 @@ Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fileconfs.toml"; Des
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
@@ -69,6 +71,7 @@ Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fileconfs.toml"; Des
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\source\repos\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\source\repos\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

@@ -2,22 +2,26 @@
 inbound = "ftn/in"
 protinbound = "ftn/in_sec"
 outbound = "ftn/out"
-msgbasedir = "msgs"
+packetdir = "ftn/packets"
 
-[[Address]]
-aka = "21:1/126.1"
+[[address]]
+aka = "21:1/126.2"
 
-[[Link]]
+[[link]]
 aka = "21:1/126"
-ouraka = "21:1/126.1"
+ouraka = "21:1/126.2"
 archiver = "zip"
 
-[[Route]]
+[[route]]
 aka = "21:1/126"
 pattern = "21:*"
 
-[[Area]]
-aka = "21:1/126.1"
+[[area]]
+aka = "21:1/126.2"
 file = "fsx/tst"
 tag = "FSX_TST"
 links = "21:1/126"
+
+[[netarea]]
+aka = "21:1/126.2"
+file = "fsx/netmail"

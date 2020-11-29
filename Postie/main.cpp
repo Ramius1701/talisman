@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
 	}
 	else if (strcasecmp(argv[1], "toss") == 0) {
 		Tosser t;
-		t.run();
+		t.run(true);
+		t.run(false);
 	}
 	else {
 		std::cout << "Usage: " << argv[0] << " [scan|toss]" << std::endl;
