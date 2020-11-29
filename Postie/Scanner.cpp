@@ -638,8 +638,13 @@ bool Scanner::run() {
 
 	log.load(_logpath + "/postie.log");
 
-	c.load(_datapath);
-	c.load_archivers(_datapath);
+	if (!c.load(_datapath)) {
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+		return false;
+	}
 
 	for (size_t i = 0; i < c.areas.size(); i++) {
 		sq_msg_base_t* mb;

@@ -112,8 +112,13 @@ bool Tosser::run() {
 
 	log.load(_logpath + "/postie.log");
 
-	c.load(_datapath);
-	c.load_archivers(_datapath);
+	if (!c.load(_datapath)) {
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+		return false;
+	}
 
 #ifdef _MSC_VER
 	pid = GetCurrentProcessId();

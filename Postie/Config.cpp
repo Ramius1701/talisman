@@ -439,6 +439,7 @@ bool Config::load(std::string datapath) {
 		}
 	}
 	catch (toml::parse_error) {
+		std::cerr << "Error parsing config file!!!" << std::endl;
 		return false;
 	}
 	return true;
