@@ -160,10 +160,17 @@
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="PacketStructs.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="Squish.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="Tosser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Postie.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\postie_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

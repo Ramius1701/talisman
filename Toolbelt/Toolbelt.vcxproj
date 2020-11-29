@@ -158,8 +158,15 @@
     <ClInclude Include="Files.h" />
     <ClInclude Include="INIReader.h" />
     <ClInclude Include="Nodelist.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Toolbelt.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\toolbelt_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
