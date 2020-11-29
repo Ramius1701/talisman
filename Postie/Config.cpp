@@ -182,14 +182,6 @@ bool Config::load(std::string datapath) {
 			__packetdir = _packetdir->value_or("");
 		}
 
-		auto _msgbasedir = data["postie"]["msgbasedir"].as_string();
-
-		if (_msgbasedir == nullptr) {
-			__msgbasedir = "";
-		}
-		else {
-			__msgbasedir = _msgbasedir->value_or("");
-		}
 		auto addressitems = data.get_as<toml::array>("address");
 
 		for (size_t i = 0; i < addressitems->size(); i++) {
