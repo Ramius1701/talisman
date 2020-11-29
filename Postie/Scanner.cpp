@@ -64,12 +64,12 @@ void sort_seenby(std::vector<struct seenby_t> *seenbys)
 }
 
 std::string remove_tid(std::string ctrlbuf) {
-	int pos = ctrlbuf.find("\001TID: ");
+	size_t pos = ctrlbuf.find("\001TID: ");
 	if (pos == std::string::npos) {
 		return ctrlbuf;
 	}
 	
-	int endoftid = ctrlbuf.substr(pos).find("\r");
+	size_t endoftid = ctrlbuf.substr(pos).find("\r");
 	if (endoftid != std::string::npos) {
 		return ctrlbuf.substr(0, pos) + ctrlbuf.substr(endoftid + 1);
 		
@@ -421,9 +421,19 @@ void Scanner::write_netmail_to_pkt(struct link_conf_t* link, sq_msg_t* msg, bool
 	snprintf(buffer, sizeof buffer, "%.71s", msg->xmsg.subject);
 	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
 
-	std::string kludges = remove_tid(add_cr_to_kludges(msg));
+	std::string kludges;
+	if (local) {
+		kludges = remove_tid(add_cr_to_kludges(msg));
+	}
+	else {
+		kludges = add_cr_to_kludges(msg);
+	}
+
 	fwrite(kludges.c_str(), kludges.size(), 1, link->fptr);
-	fprintf(link->fptr, "\001TID: Postie/%d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+	if (local) {
+		fprintf(link->fptr, "\001TID: Postie %d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+	}
+
 
 	fwrite(msgbody.c_str(), msgbody.size(), 1, link->fptr);
 
@@ -506,9 +516,19 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 	fwrite(buffer, strlen(buffer) + 1, 1, link->fptr);
 
 	fprintf(link->fptr, "AREA:%s\r", area->areatag.c_str());
-	std::string kludges = remove_tid(add_cr_to_kludges(msg));
+	
+	std::string kludges;
+	if (local) {
+		kludges = remove_tid(add_cr_to_kludges(msg));
+	}
+	else {
+		kludges = add_cr_to_kludges(msg);
+	}
+	
 	fwrite(kludges.c_str(), kludges.size(), 1, link->fptr);
-	fprintf(link->fptr, "\001TID: Postie/%d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+	if (local) {
+		fprintf(link->fptr, "\001TID: Postie %d.%d\r", VERSION_MAJOR, VERSION_MINOR);
+	}
 
 
 

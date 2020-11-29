@@ -649,6 +649,9 @@ bool Tosser::run() {
 					sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 
 					if (found) {
+						// TODO: it's to me, is it for areafix?
+
+
 						sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
 
 						if (mb != NULL) {
