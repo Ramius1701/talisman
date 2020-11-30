@@ -181,84 +181,88 @@ void Email::list_email(Node* n) {
 	sqlite3_close(db);
 
 	int lines = 1;
-	n->cls();
-	n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
-	for (size_t i = 0; i < emails.size(); i++) {
-		struct tm time_tm;
+	while (true) {
+		n->cls();
+		n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
+		for (size_t i = 0; i < emails.size(); i++) {
+			struct tm time_tm;
 #ifdef _MSC_VER
-		localtime_s(&time_tm, &emails.at(i).date);
+			localtime_s(&time_tm, &emails.at(i).date);
 #else
-		localtime_r(&emails.at(i).date, &time_tm);
+			localtime_r(&emails.at(i).date, &time_tm);
 #endif
 
-		if (emails.at(i).seen) {
-			n->print_f("|08[|15%6d|08] |14%-32.32s |13%-16.16s |11%02d:%02d %s %02d\r\n", i + 1, emails.at(i).subject.c_str(), emails.at(i).sender.c_str(), time_tm.tm_hour, time_tm.tm_min, months[time_tm.tm_mon], time_tm.tm_mday);
-		}
-		else {
-			n->print_f("|08[|15%6d|08]|12*|14%-32.32s |13%-16.16s |11%02d:%02d %s %02d\r\n", i + 1, emails.at(i).subject.c_str(), emails.at(i).sender.c_str(), time_tm.tm_hour, time_tm.tm_min, months[time_tm.tm_mon], time_tm.tm_mday);
-		}
-		
-		lines++;
-		if (lines == n->term_height - 2) {
-			n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", 1, emails.size());
-
-			std::string res = n->get_string(6, false);
-
-			if (res.size() == 0) {
-				lines = 1;
-				n->cls();
-				n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
-				continue;
-			}
-			else if (tolower(res[0]) == 'q') {
-				return;
+			if (emails.at(i).seen) {
+				n->print_f("|08[|15%6d|08] |14%-32.32s |13%-16.16s |11%02d:%02d %s %02d\r\n", i + 1, emails.at(i).subject.c_str(), emails.at(i).sender.c_str(), time_tm.tm_hour, time_tm.tm_min, months[time_tm.tm_mon], time_tm.tm_mday);
 			}
 			else {
-				int emailno;
-				try {
-					emailno = std::stoi(res) - 1;
-					while (emailno >= 0 && emailno < emails.size()) {
-						int ret = view_email(n, emails.at(emailno));
-						if (ret == 0) {
-							break;
-						}
-						else {
-							emailno += ret;
+				n->print_f("|08[|15%6d|08]|12*|14%-32.32s |13%-16.16s |11%02d:%02d %s %02d\r\n", i + 1, emails.at(i).subject.c_str(), emails.at(i).sender.c_str(), time_tm.tm_hour, time_tm.tm_min, months[time_tm.tm_mon], time_tm.tm_mday);
+			}
+
+			lines++;
+			if (lines == n->term_height - 2) {
+				n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", 1, emails.size());
+
+				std::string res = n->get_string(6, false);
+
+				if (res.size() == 0) {
+					lines = 1;
+					n->cls();
+					n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
+					continue;
+				}
+				else if (tolower(res[0]) == 'q') {
+					return;
+				}
+				else {
+					int emailno;
+					try {
+						emailno = std::stoi(res) - 1;
+						while (emailno >= 0 && emailno < emails.size()) {
+							int ret = view_email(n, emails.at(emailno));
+							
+							emails.at(emailno).seen = true;
+							
+							if (ret == 0) {
+								break;
+							}
+							else {
+								emailno += ret;
+							}
 						}
 					}
-					return;
-				}
-				catch (std::invalid_argument) {
-					return;
-				}
-				catch (std::out_of_range) {
-					return;
+					catch (std::invalid_argument) {
+						return;
+					}
+					catch (std::out_of_range) {
+						return;
+					}
 				}
 			}
 		}
-	}
 
-	n->print_f("|14Select |08[|15%d|08-|15%d|08], |15ENTER|08=|14Quit |07", 1, emails.size());
-	std::string res = n->get_string(6, false);
+		n->print_f("|14Select |08[|15%d|08-|15%d|08], |15ENTER|08=|14Quit |07", 1, emails.size());
+		std::string res = n->get_string(6, false);
 
-	if (res.size() == 0) {
-		return;
-	}
-	else {
-		int emailno;
-		try {
-			emailno = std::stoi(res) - 1;
-			// view email
-			if (emailno >= 0 && emailno < emails.size()) {
-				view_email(n, emails.at(emailno));
+		if (res.size() == 0) {
+			return;
+		}
+		else {
+			int emailno;
+			try {
+				emailno = std::stoi(res) - 1;
+				// view email
+				if (emailno >= 0 && emailno < emails.size()) {
+					view_email(n, emails.at(emailno));
+					emails.at(emailno).seen = true;
+				}
 			}
-			return;
-		}
-		catch (std::invalid_argument) {
-			return;
-		}
-		catch (std::out_of_range) {
-			return;
+			catch (std::invalid_argument) {
+				return;
+			}
+			catch (std::out_of_range) {
+				return;
+			}
 		}
 	}
 }
@@ -332,8 +336,8 @@ int Email::view_email(Node* n, Email e) {
 			std::vector<std::string> quotemsg;
 
 			for (size_t i = 0; i < e.msg.size(); i++) {
-				if (e.msg.at(i).size() > 75) {
-					std::vector<std::string> newline = MsgArea::word_wrap(e.msg.at(i), 75);
+				if (e.msg.at(i).size() > 70) {
+					std::vector<std::string> newline = MsgArea::word_wrap(e.msg.at(i), 70);
 					for (size_t y = 0; y < newline.size(); y++) {
 						quotemsg.push_back(" > " + newline.at(y));
 					}
@@ -345,6 +349,7 @@ int Email::view_email(Node* n, Email e) {
 
 			std::vector<std::string> newmsg = Editor::enter_message(n, e.sender, e.subject, "E-Mail", true, &quotemsg);
 			if (newmsg.size() > 0) {
+				MsgArea::attach_sig(&newmsg, n->get_user().get_attribute("signature", ""));
 				Email::save_message(n, e.sender, n->get_user().get_username(), e.subject, newmsg);
 			}
 

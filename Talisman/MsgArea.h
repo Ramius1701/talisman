@@ -49,6 +49,7 @@ public:
 	int get_qwk_id() {
 		return qwk_base_no;
 	}
+	static void attach_sig(std::vector<std::string> *msg, std::string sig);
 private:
 	bool prepare_msg(sq_msg_t* msg, std::vector<struct line_t>* linesv, std::vector<std::string>* quotebuffer);
 	void reply_to_msg(sq_msg_t* msg, std::vector<std::string>* quotebuffer);

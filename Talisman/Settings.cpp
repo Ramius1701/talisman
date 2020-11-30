@@ -1,6 +1,8 @@
+#include <sstream>
 #include "Settings.h"
 #include "Node.h"
 #include "Archiver.h"
+#include "Editor.h"
 
 void Settings::do_settings(Node* n) {
 	const char* yesnoask[] = { "ASK", "YES", "NO" };
@@ -21,7 +23,7 @@ void Settings::do_settings(Node* n) {
 			myarc = -1;
 		}
 		n->print_f(" |15A |14Default Archiver for QWK |08(|15%s|08)\r\n", ( myarc == -1 ? "NONE" : n->get_config()->archivers.at(myarc)->name.c_str()));
-
+		n->print_f(" |15S |14Edit your signature |08(|15%s|08)\r\n", (n->get_user().get_attribute("signature", "").size() > 0 ? "Set" : "Not Set"));
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
@@ -109,6 +111,24 @@ void Settings::do_settings(Node* n) {
 				if (arc != -1) {
 					n->get_user().set_attribute("archiver", std::to_string(arc));
 				}
+			}
+				break;
+			case 's':
+			{
+				if (n->get_user().get_attribute("signature", "").size() > 0) {
+					n->print_f("\r\n\r\n|14(|15C|14) Clear & disable your signature.\r\n");
+					n->print_f("|14(|15M|14) Modify your signature.\r\n\r\n");
+					if (tolower(n->getch()) == 'c') {
+						n->get_user().set_attribute("signature", "");
+						break;
+					}
+				}
+				std::vector<std::string> sig = Editor::enter_message(n, "No-One", "Signature Editor", "Signature Editor", true, nullptr);
+				std::stringstream ss;
+				for (size_t i = 0; i < sig.size(); i++) {
+					ss << sig.at(i) << "\r";
+				}
+				n->get_user().set_attribute("signature", ss.str());
 			}
 				break;
 			case 'q':

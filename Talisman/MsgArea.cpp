@@ -1027,6 +1027,17 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 	return ansimsg;
 }
 
+void MsgArea::attach_sig(std::vector<std::string> *msg, std::string sig) {
+	std::stringstream ss(sig);
+	std::string line;
+
+	if (sig.size() > 0) {
+		while (getline(ss, line, '\r')) {
+			msg->push_back(line);
+		}
+	}
+}
+
 void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer) {
 	if (_is_netmail) {
 		std::stringstream netaddr;
@@ -1062,6 +1073,9 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 		if (subject.size() > 0 && !doabort) {
 			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, quotebuffer);
 			if (nmsg.size() > 0) {
+				// attach signature
+				attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+
 				if (real_names) {
 					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
 				}
@@ -1085,6 +1099,7 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 		if (subject.size() > 0) {
 			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, quotebuffer);
 			if (nmsg.size() > 0) {
+				attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
 				if (real_names) {
 					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, "", msg->xmsg.umsgid);
 				}

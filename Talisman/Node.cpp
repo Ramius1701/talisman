@@ -338,6 +338,32 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				else if (ss.str() == "NOPAUSE") {
 					pause = false;
 				}
+				else if (ss.str() == "PAUSE") {
+					if (hasANSI) {
+						print_f("\x1b[s|14More (Y/N/C) ? |07");
+					}
+					else {
+						print_f("|14More (Y/N/C) ? |07");
+					}
+
+					switch (tolower(getche())) {
+					case 'n':
+						stop = true;
+						break;
+					case 'c':
+						pause = false;
+						break;
+					default:
+						break;
+					}
+					if (hasANSI) {
+						print_f("\x1b[u\x1b[K");
+					}
+					else {
+						print_f("\r\n");
+					}
+					lines = 0;
+				}
 				else {
 					if (socket) {
 						send(socket, "@", 1, 0);
@@ -428,12 +454,25 @@ void Node::send_gfile(std::string filename, bool pause) {
 }
 
 void Node::send_gfile(std::string filename, bool pause, bool script) {
+	std::vector<std::filesystem::path> gfiles;
 
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
-		p.append(filename + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans");
+		p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans");
 		if (std::filesystem::exists(p)) {
-			send_file(p, pause, script);
+			// got one ansi
+			gfiles.push_back(p);
+			p = config.gfile_path();
+			p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans.1");
+			int count = 2;
+			while (std::filesystem::exists(p)) {
+				gfiles.push_back(p);
+				p = config.gfile_path();
+				p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans." + std::to_string(count));
+				count++;
+			}
+
+			send_file(gfiles.at(rand() % gfiles.size()), pause, script);
 			print_f("\x1b[0m");
 			return;
 		}
@@ -442,7 +481,18 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 			p.assign(config.gfile_path());
 			p.append(filename + ".ans");
 			if (std::filesystem::exists(p)) {
-				send_file(p, pause, script);
+				gfiles.push_back(p);
+				p = config.gfile_path();
+				p.append(filename + ".ans.1");
+				int count = 2;
+				while (std::filesystem::exists(p)) {
+					gfiles.push_back(p);
+					p = config.gfile_path();
+					p.append(filename + ".ans." + std::to_string(count));
+					count++;
+				}
+
+				send_file(gfiles.at(rand() % gfiles.size()), pause, script);
 				print_f("\x1b[0m");
 				return;
 			}
@@ -451,9 +501,20 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 	p.clear();
 	p.assign(config.gfile_path());
-	p.append(filename + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc");
+	p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc");
 	if (std::filesystem::exists(p)) {
-		send_file(p, pause, script);
+		gfiles.push_back(p);
+		p = config.gfile_path();
+		p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc.1");
+		int count = 2;
+		while (std::filesystem::exists(p)) {
+			gfiles.push_back(p);
+			p = config.gfile_path();
+			p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc." + std::to_string(count));
+			count++;
+		}
+
+		send_file(gfiles.at(rand() % gfiles.size()), pause, script);
 	}
 	else {
 		p.clear();
@@ -461,7 +522,18 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 		p.append(filename + ".asc");
 		if (std::filesystem::exists(p)) {
-			send_file(p, pause, script);
+			gfiles.push_back(p);
+			p = config.gfile_path();
+			p.append(filename + ".asc.1");
+			int count = 2;
+			while (std::filesystem::exists(p)) {
+				gfiles.push_back(p);
+				p = config.gfile_path();
+				p.append(filename + ".asc." + std::to_string(count));
+				count++;
+			}
+
+			send_file(gfiles.at(rand() % gfiles.size()), pause, script);
 		}
 	}
 }
@@ -1137,7 +1209,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		return 0;
 	}
 	log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
-
+	srand(time(NULL));
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
 	update_node_use("Logging in.");

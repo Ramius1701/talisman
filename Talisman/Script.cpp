@@ -217,6 +217,13 @@ extern "C" int lua_BBSDisplayTextfileP(lua_State *L) {
 	return 0;
 }
 
+extern "C" int lua_Pause(lua_State * L) {
+	Node* n = lua_getNode(L);
+	n->pause();
+
+	return 0;
+}
+
 void Script::exec(Node *n, std::string script) {
 	lua_State *l = luaL_newstate();
 	luaL_openlibs(l);
@@ -260,6 +267,9 @@ void Script::exec(Node *n, std::string script) {
 	
 	lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
+
+	lua_pushcfunction(l, lua_Pause);
+	lua_setglobal(l, "bbs_pause");
 
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){
