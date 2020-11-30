@@ -117,7 +117,7 @@ void Settings::do_settings(Node* n) {
 			{
 				if (n->get_user().get_attribute("signature", "").size() > 0) {
 					n->print_f("\r\n\r\n|14(|15C|14) Clear & disable your signature.\r\n");
-					n->print_f("|14(|15M|14) Modify your signature.\r\n\r\n");
+					n->print_f("|14(|15M|14) Enter a new signature.\r\n\r\n");
 					if (tolower(n->getch()) == 'c') {
 						n->get_user().set_attribute("signature", "");
 						break;
