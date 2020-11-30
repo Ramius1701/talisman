@@ -27,7 +27,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
-		n->print_f("|14Command |08[|15L|08,|15E|08,|15P|08,|15F|08,|15R|08,|15Q|08]: |07");
+		n->print_f("|14Command |08[|15L|08,|15E|08,|15P|08,|15F|08,|15R|08,|15K|08,|15N|08,|15A|08,|15S|08,|15Q|08]: |07");
 		std::string cmd = n->get_string(1, false);
 		n->print_f("\r\n\r\n");
 		if (cmd.size() > 0) {
