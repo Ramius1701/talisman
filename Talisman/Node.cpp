@@ -338,6 +338,19 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				else if (ss.str() == "NOPAUSE") {
 					pause = false;
 				}
+				else if (ss.str() == "SECLEVEL") {
+					struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
+					print_f("%s", sl->name.c_str());
+				}
+				else if (ss.str() == "ULOCATION") {
+					print_f("%s", u.get_attribute("location", "Somewhere, The World").c_str());
+				}
+				else if (ss.str() == "UNAME") {
+					print_f("%s", u.get_username().c_str());
+				}
+				else if (ss.str() == "UFULLNAME") {
+					print_f("%s", u.get_attribute("fullname", "Some User").c_str());
+				}
 				else if (ss.str() == "PAUSE") {
 					if (hasANSI) {
 						print_f("\x1b[s|14More (Y/N/C) ? |07");

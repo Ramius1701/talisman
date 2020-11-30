@@ -104,6 +104,7 @@ public:
 	std::vector<Archiver*> archivers;
 	Protocol* select_protocol(Node* n);
 	int select_archiver(Node* n);
+	
 
 private:
 	int _max_nodes;
@@ -124,6 +125,7 @@ private:
 	std::string _scriptpath;
 	std::string _location;
 	std::string _qwk_id;
+
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;
