@@ -755,7 +755,6 @@ bool Menu::run() {
 							}
 						}
 					}
-					n->pause();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "msgupdatelr") == 0) {
 					n->update_node_use("Updating Message Pointers");
