@@ -97,6 +97,10 @@ public:
 		return _new_user_sec_level;
 	}
 
+	bool new_user_feedback() {
+		return _new_user_feedback;
+	}
+
 	const char* get_prompt_colour();
 
 	std::vector<MsgConf> msgconfs;
@@ -125,7 +129,7 @@ private:
 	std::string _scriptpath;
 	std::string _location;
 	std::string _qwk_id;
-
+	bool _new_user_feedback;
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;

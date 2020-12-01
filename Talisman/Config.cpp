@@ -42,6 +42,7 @@ bool Config::load(Node *n, std::string filename) {
 	_fg_colour = inir.Get("Main", "Input Foreground", "bright white");
 	_max_nodes = inir.GetInteger("Main", "Max Nodes", 4);
 	_new_user_sec_level = inir.GetInteger("Main", "New User Sec Level", 10);
+	_new_user_feedback = inir.GetBoolean("Main", "New User Feedback", false);
 
 	try {
 		auto data = toml::parse_file(_datapath + "/msgconfs.toml");

@@ -252,9 +252,15 @@ void Email::list_email(Node* n) {
 			try {
 				emailno = std::stoi(res) - 1;
 				// view email
-				if (emailno >= 0 && emailno < emails.size()) {
-					view_email(n, emails.at(emailno));
+				while (emailno >= 0 && emailno < emails.size()) {
+					int ret = view_email(n, emails.at(emailno));
 					emails.at(emailno).seen = true;
+					if (ret == 0) {
+						break;
+					}
+					else {
+						emailno += ret;
+					}
 				}
 			}
 			catch (std::invalid_argument) {

@@ -378,6 +378,99 @@ int Files::trim(std::string dbname) {
 	return ret;
 }
 
+bool Files::move_file(std::string datapath, std::string srcfile, std::string destfile, std::string srcdb, std::string destdb) {
+	std::filesystem::path srcp(srcfile);
+	std::filesystem::path destp(destfile);
+
+	if (!std::filesystem::is_regular_file(srcp)) {
+		std::cout << srcfile << " is not a regular file!" << std::endl;
+
+		return false;
+	}
+
+	if (!std::filesystem::is_directory(destp)) {
+		std::cout << destfile << " is not a directory!" << std::endl;
+		return false;
+	}
+
+	destp.append(srcp.filename().u8string());
+
+	sqlite3* sdb;
+	sqlite3* ddb;
+
+	sqlite3_stmt* stmt;
+	static const char* sql = "SELECT filename, filesize, dlcount, uldate, ulname, descr, id FROM files WHERE filename LIKE ?";
+	static const char* sql2 = "DELETE FROM files WHERE id = ?";
+	static const char* sql3 = "INSERT INTO files (filename, filesize, dlcount, uldate, ulname, descr) VALUES(?, ?, ?, ?, ?, ?)";
+
+	if (!open_database(srcdb, &sdb)) {
+		std::cerr << "Unable to open source database " << srcdb << std::endl;
+		return false;
+	}
+	if (!open_database(destdb, &ddb)) {
+		std::cerr << "Unable to open destination database " << destdb << std::endl;
+		sqlite3_close(sdb);
+		return false;
+	}
+
+	if (sqlite3_prepare_v2(sdb, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(sdb);
+		sqlite3_close(ddb);
+		return false;
+	}
+	std::string srcend = std::string("%" + srcp.filename().u8string());
+
+	sqlite3_bind_text(stmt, 1, srcend.c_str(), -1, NULL);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		std::filesystem::path fp = std::string((const char *)sqlite3_column_text(stmt, 0));
+		if (fp.filename() == srcp.filename()) {
+			int fsize = sqlite3_column_int(stmt, 1);
+			int dlcount = sqlite3_column_int(stmt, 2);
+			time_t uldate = sqlite3_column_int64(stmt, 3);
+			std::string ulname((const char*)sqlite3_column_text(stmt, 4));
+			std::string desc((const char*)sqlite3_column_text(stmt, 5));
+			int id = sqlite3_column_int(stmt, 6);
+			sqlite3_finalize(stmt);
+			if (sqlite3_prepare_v2(sdb, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
+				sqlite3_close(sdb);
+				sqlite3_close(ddb);
+				return false;
+			}
+
+			sqlite3_bind_int(stmt, 1, id);
+			sqlite3_step(stmt);
+			sqlite3_finalize(stmt);
+
+			std::filesystem::copy_file(srcp, destp);
+			std::filesystem::remove(srcp);
+			sqlite3_close(sdb);
+
+			if (sqlite3_prepare_v2(ddb, sql3, strlen(sql3), &stmt, NULL) != SQLITE_OK) {
+				sqlite3_close(ddb);
+				return false;
+			}
+
+			std::string filefullp = std::filesystem::absolute(destp).u8string();
+
+			sqlite3_bind_text(stmt, 1, filefullp.c_str(), -1, NULL);
+			sqlite3_bind_int(stmt, 2, fsize);
+			sqlite3_bind_int(stmt, 3, dlcount);
+			sqlite3_bind_int64(stmt, 4, uldate);
+			sqlite3_bind_text(stmt, 5, ulname.c_str(), -1, NULL);
+			sqlite3_bind_text(stmt, 6, desc.c_str(), -1, NULL);
+
+			sqlite3_step(stmt);
+			sqlite3_finalize(stmt);
+			sqlite3_close(ddb);
+			return true;
+		}
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(sdb);
+	return false;
+}
+
 int Files::all_files(std::string datapath, int sec_level, time_t date, std::string output) {
 	int tot_files = 0;
 	time_t now;

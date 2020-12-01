@@ -30,6 +30,7 @@
 #include "Bulletins.h"
 #include "Script.h"
 #include "Door.h"
+#include "Editor.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -1101,7 +1102,25 @@ bool Node::newuser() {
 					}
 					if (found) break;
 				}
-				
+
+				if (config.new_user_feedback()) {
+					cls();
+					send_gfile("feedback");
+					pause();
+
+					std::string to = User::user_exists(&config, config.op_name());
+
+					if (to.size() == 0) {
+						print_f("|12No such user!|07\r\n");
+					}
+					else {
+						print_f("\r\n|14Sending mail to |15%s\r\n", to.c_str());
+						std::vector<std::string> newemail = Editor::enter_message(this, to, "New User Feedback", "E-Mail", true, nullptr);
+						if (newemail.size() > 0) {
+							Email::save_message(this, to, u.get_username(), "New User Feedback", newemail);
+						}
+					}
+				}
 				return true;
 			}
 			else {

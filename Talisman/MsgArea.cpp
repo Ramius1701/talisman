@@ -1119,7 +1119,7 @@ void MsgArea::read_message(int start, int *last) {
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
 	sq_msg_base_t* mb;
 	int lr = 0; // TODO set last read
-	bool fsr = n->get_user().get_attribute("fullscreenreader", "false") == "true";
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		n->print_f("|14Unable to open message base!|07\r\n");
@@ -1454,6 +1454,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							}
 						}
 					}
+					if (c == '\r') {
+						msg_to_read++;
+						done = true;
+						break;
+					}
 					if (tolower(c) == 'q') {
 						SquishCloseMsgBase(mb);
 						return false;
@@ -1523,7 +1528,7 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 }
 
 int MsgArea::list_messages(int start) {
-	bool fsr = n->get_user().get_attribute("fullscreenreader", "false") == "true";
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
 
 	if (fsr == false || !n->hasANSI) {
 		return list_messages_old(start);

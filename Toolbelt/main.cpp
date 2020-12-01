@@ -128,6 +128,23 @@ int main(int argc, char** argv) {
 			std::cout << "All files list " << argv[3] << " created listing " << tot << " total files." << std::endl;
 		}
 		}
+		else if (strcasecmp(argv[1], "movefile") == 0) {
+			if (argc == 6) {
+				std::string srcfile(argv[2]);
+				std::string destfile(argv[3]);
+				std::string srcdb(argv[4]);
+				std::string destdb(argv[5]);
+
+				Files files;
+
+				if (!files.move_file(inir.Get("paths", "data path", "data"), srcfile, destfile, srcdb, destdb)) {
+					std::cout << "Failed to move file!" << std::endl;
+				}
+				else {
+					std::cout << "Successfully moved file!" << std::endl;
+				}
+			}
+		}
 		else if (strcasecmp(argv[1], "newfiles") == 0) {
 			if (argc == 5) {
 				int seclevel;
@@ -173,6 +190,7 @@ int main(int argc, char** argv) {
 		std::cerr << "   COMMAND seclevel   ARGS username newlevel" << std::endl;
 		std::cerr << "   COMMAND uploadbulk ARGS folder database [uploadedby]" << std::endl;
 		std::cerr << "   COMMAND filetrim   ARGS database" << std::endl;
+		std::cerr << "   COMMAND movefile   ARGS srcfilename destdir srcdatabase destdatabase" << std::endl;
 		std::cerr << "   COMMAND allfiles   ARGS sec_level outfile" << std::endl;
 		std::cerr << "   COMMAND newfiles   ARGS sec_level yyyy.mm.dd outfile" << std::endl;
 		std::cerr << "   COMMAND nodelistp  ARGS domain nodelist database" << std::endl;

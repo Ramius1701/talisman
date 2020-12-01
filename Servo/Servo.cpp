@@ -55,6 +55,16 @@ bool should_pass(std::string ip) {
 	return true;
 }
 
+bool in_multiallowed(std::vector<std::string>* list, std::string item) {
+	for (size_t i = 0; i < list->size(); i++) {
+		if (list->at(i) == item) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int main()
 {
 	int sshport;
@@ -66,6 +76,7 @@ int main()
 	size_t i;
 	char str[INET6_ADDRSTRLEN];
 	std::vector<struct node_t> nodes;
+	std::vector<std::string> multiallowed;
 #ifdef _MSC_VER
 	WSADATA wsaData;
 
@@ -113,6 +124,12 @@ int main()
 		blocklist->push_back(item);
 	}
 	blocklistf.close();
+
+	std::ifstream multiallowf(datapath + "/multiallow.ip");
+	while (std::getline(multiallowf, line)) {
+		multiallowed.push_back(line);
+	}
+	multiallowf.close();
 
 	for (i = 0; i < max_nodes; i++) {
 		struct node_t n;
@@ -264,7 +281,7 @@ int main()
 				}
 			}
 
-			if (alreadyloggedin) {
+			if (alreadyloggedin && !in_multiallowed(&multiallowed, ipaddr)) {
 				std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
 				closesocket(csockfd);
 				continue;
