@@ -27,6 +27,9 @@
 
 #ifndef _MSC_VER
 #define _stricmp strcasecmp
+#define LINE_END "\r\n"
+#else
+#define LINE_END "\n"
 #endif
 
 #ifndef _MSC_VER
@@ -78,38 +81,38 @@ void Door::createDropfiles(Node *n) {
 
 	std::ofstream f3(chaintxt);
 
-	f3 << n->get_user().get_uid() << "\r\n";
-	f3 << n->get_user().get_username() << "\r\n";
-	f3 << n->get_user().get_attribute("fullname", "UNKNOWN") << "\r\n";
-	f3 << "NONE" << "\r\n";
-	f3 << "21" << "\r\n";
-	f3 << "M" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "01/01/71" << "\r\n";
-	f3 << "80" << "\r\n";
-	f3 << "25" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "1" << "\r\n";
-	f3 << "1" << "\r\n";
-	f3 << std::to_string(n->get_timeleft()) << "\r\n";
-	f3 << n->get_config()->gfile_path() << "\r\n";
-	f3 << n->get_config()->tmp_path() << "\r\n";
-	f3 << "NOLOG" << "\r\n";
-	f3 << "115200" << "\r\n";
-	f3 << "1" << "\r\n";
-	f3 << n->get_config()->sys_name() << "\r\n";
-	f3 << n->get_config()->op_name() << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "0" << "\r\n";
-	f3 << "8N1" << "\r\n";
-	f3 << "115200" << "\r\n";
-	f3 << "0" << "\r\n";			
+	f3 << n->get_user().get_uid() << LINE_END;
+	f3 << n->get_user().get_username() << LINE_END;
+	f3 << n->get_user().get_attribute("fullname", "UNKNOWN") << LINE_END;
+	f3 << "NONE" << LINE_END;
+	f3 << "21" << LINE_END;
+	f3 << "M" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "01/01/71" << LINE_END;
+	f3 << "80" << LINE_END;
+	f3 << "25" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "1" << LINE_END;
+	f3 << "1" << LINE_END;
+	f3 << std::to_string(n->get_timeleft()) << LINE_END;
+	f3 << n->get_config()->gfile_path() << LINE_END;
+	f3 << n->get_config()->tmp_path() << LINE_END;
+	f3 << "NOLOG" << LINE_END;
+	f3 << "115200" << LINE_END;
+	f3 << "1" << LINE_END;
+	f3 << n->get_config()->sys_name() << LINE_END;
+	f3 << n->get_config()->op_name() << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "0" << LINE_END;
+	f3 << "8N1" << LINE_END;
+	f3 << "115200" << LINE_END;
+	f3 << "0" << LINE_END;			
 	f3.close();
 
 	std::filesystem::path d32path(fpath);
@@ -118,17 +121,17 @@ void Door::createDropfiles(Node *n) {
 
 	std::ofstream f(d32path);
 
-	f << "2" << "\r\n";
-	f << n->get_socket() << "\r\n";
-	f << "38400" << "\r\n";
-	f << "Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << "\r\n"; // TODO: Add version
-	f << n->get_user().get_uid() << "\r\n";
-	f << n->get_user().get_attribute("fullname", "UNKNOWN") << "\r\n";
-	f << n->get_user().get_username() << "\r\n";
-	f << n->get_user().get_sec_level() << "\r\n";
-	f << std::to_string(n->get_timeleft() / 60) << "\r\n"; // TODO: Time left
-	f << (n->hasANSI ? "1" : "0") << "\r\n";
-	f << n->getnodenum() << "\r\n";
+	f << "2" << LINE_END;
+	f << n->get_socket() << LINE_END;
+	f << "38400" << LINE_END;
+	f << "Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << LINE_END; // TODO: Add version
+	f << n->get_user().get_uid() << LINE_END;
+	f << n->get_user().get_attribute("fullname", "UNKNOWN") << LINE_END;
+	f << n->get_user().get_username() << LINE_END;
+	f << n->get_user().get_sec_level() << LINE_END;
+	f << std::to_string(n->get_timeleft() / 60) << LINE_END; // TODO: Time left
+	f << (n->hasANSI ? "1" : "0") << LINE_END;
+	f << n->getnodenum() << LINE_END;
 
 	f.close();
 
@@ -137,58 +140,58 @@ void Door::createDropfiles(Node *n) {
 
 	std::ofstream f2(doorsyspath);
 
-	f2 << "COM1:" << "\r\n";
-	f2 << "38400" << "\r\n";
-	f2 << "8" << "\r\n";
-	f2 << n->getnodenum() << "\r\n";
-	f2 << "38400" << "\r\n";
-	f2 << "Y" << "\r\n";
-	f2 << "N" << "\r\n";
-	f2 << "Y" << "\r\n";
-	f2 << "Y" << "\r\n";
-	f2 << n->get_user().get_attribute("fullname", "UNKNOWN") << "\r\n";
-	f2 << n->get_user().get_attribute("location", "Somewhere, The World") << "\r\n";
-	f2 << "00-0000-0000" << "\r\n";
-	f2 << "00-0000-0000" << "\r\n";
-	f2 << "SECRET" << "\r\n";
-	f2 << n->get_user().get_sec_level() << "\r\n"; // TODO: Security Level
-	f2 << n->clog->total_calls(n->get_user().get_username()) << "\r\n";
-	f2 << "01-01-1971" << "\r\n";
-	f2 << std::to_string(n->get_timeleft()) << "\r\n";
-	f2 << "999" << "\r\n";
-	f2 << "GR" << "\r\n";
-	f2 << "25" << "\r\n";
-	f2 << "N" << "\r\n";
-	f2 << "\r\n";
-	f2 << "\r\n";
-	f2 << "\r\n";
-	f2 << n->get_user().get_uid() << "\r\n";
-	f2 << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "99999" << "\r\n";
-	f2 << "01-01-1971" << "\r\n";
-	f2 << "\r\n";
-	f2 << "\r\n";
-	f2 << n->get_config()->op_name() << "\r\n";
-	f2 << n->get_user().get_username() << "\r\n";
-	f2 << "none" << "\r\n";
-	f2 << "Y" << "\r\n";
-	f2 << "N" << "\r\n";
-	f2 << "Y" << "\r\n";
-	f2 << "7" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "01-01-1971" << "\r\n";
-	f2 << "00:00" << "\r\n";
-	f2 << "00:00" << "\r\n";
-	f2 << "32768" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "None." << "\r\n";
-	f2 << "0" << "\r\n";
-	f2 << "0" << "\r\n";
+	f2 << "COM1:" << LINE_END;
+	f2 << "38400" << LINE_END;
+	f2 << "8" << LINE_END;
+	f2 << n->getnodenum() << LINE_END;
+	f2 << "38400" << LINE_END;
+	f2 << "Y" << LINE_END;
+	f2 << "N" << LINE_END;
+	f2 << "Y" << LINE_END;
+	f2 << "Y" << LINE_END;
+	f2 << n->get_user().get_attribute("fullname", "UNKNOWN") << LINE_END;
+	f2 << n->get_user().get_attribute("location", "Somewhere, The World") << LINE_END;
+	f2 << "00-0000-0000" << LINE_END;
+	f2 << "00-0000-0000" << LINE_END;
+	f2 << "SECRET" << LINE_END;
+	f2 << n->get_user().get_sec_level() << LINE_END; // TODO: Security Level
+	f2 << n->clog->total_calls(n->get_user().get_username()) << LINE_END;
+	f2 << "01-01-1971" << LINE_END;
+	f2 << std::to_string(n->get_timeleft()) << LINE_END;
+	f2 << "999" << LINE_END;
+	f2 << "GR" << LINE_END;
+	f2 << "25" << LINE_END;
+	f2 << "N" << LINE_END;
+	f2 << LINE_END;
+	f2 << LINE_END;
+	f2 << LINE_END;
+	f2 << n->get_user().get_uid() << LINE_END;
+	f2 << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "99999" << LINE_END;
+	f2 << "01-01-1971" << LINE_END;
+	f2 << LINE_END;
+	f2 << LINE_END;
+	f2 << n->get_config()->op_name() << LINE_END;
+	f2 << n->get_user().get_username() << LINE_END;
+	f2 << "none" << LINE_END;
+	f2 << "Y" << LINE_END;
+	f2 << "N" << LINE_END;
+	f2 << "Y" << LINE_END;
+	f2 << "7" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "01-01-1971" << LINE_END;
+	f2 << "00:00" << LINE_END;
+	f2 << "00:00" << LINE_END;
+	f2 << "32768" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "None." << LINE_END;
+	f2 << "0" << LINE_END;
+	f2 << "0" << LINE_END;
 
 	f2.close();
 }

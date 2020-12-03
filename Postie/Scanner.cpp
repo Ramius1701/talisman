@@ -600,11 +600,11 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 	// add seenby
 	if (area->aka->point == 0) {
 		add_seenby(&seenbys, area->aka);
-	}
 
-	for (size_t lid2 = 0; lid2 < area->links.size(); lid2++) {
-		if (area->links.at(lid2)->aka->point == 0) {
-			add_seenby(&seenbys, area->links.at(lid2)->aka);
+		for (size_t lid2 = 0; lid2 < area->links.size(); lid2++) {
+			if (area->links.at(lid2)->aka->point == 0) {
+				add_seenby(&seenbys, area->links.at(lid2)->aka);
+			}
 		}
 	}
 	// - sort seenby
