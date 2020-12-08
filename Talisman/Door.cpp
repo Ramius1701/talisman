@@ -3,7 +3,7 @@
 #else
 #include <unistd.h>
 #include <sys/wait.h>
-#ifdef __OpenBSD__
+#if defined (__OpenBSD__) || defined (__NetBSD__)
 #include <libgen.h>
 #include <termios.h>
 #include <util.h>
