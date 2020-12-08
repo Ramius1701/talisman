@@ -490,7 +490,7 @@ bool Config::load(std::string datapath) {
 				mylinklist = "";
 			}
 
-			if (mytag == "" || myfile == "") {
+			if (mytag == "" || mydir == "" || mydb == "") {
 				free(myaka);
 				continue;
 			}
@@ -506,7 +506,7 @@ bool Config::load(std::string datapath) {
 				if (laddr) {
 					for (size_t y = 0; y < links.size(); y++) {
 						if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
-							aconf.links.push_back(&links.at(y));
+							faconf.links.push_back(&links.at(y));
 							break;
 						} 
 					}
