@@ -439,6 +439,88 @@ bool Config::load(std::string datapath) {
 			aconf.file = myfile;
 			areas.push_back(aconf);
 		}
+		auto fareaitems = data.get_as<toml::array>("filearea");
+
+		for (size_t i = 0; i < fareaitems->size(); i++) {
+			auto itemtable = fareaitems->get(i)->as_table();
+
+			NETADDR* myaka;
+			std::string mydir;
+			std::string mytag;
+			std::string mydb;
+			std::string mylinklist;
+			auto addr = itemtable->get("aka");
+			if (addr != nullptr) {
+				std::string aka = addr->as_string()->value_or("");
+				myaka = parse_fido_addr(aka.c_str());
+				if (!myaka) {
+					continue;
+				}
+			}
+			else {
+				continue;
+			}
+			auto dir = itemtable->get("directory");
+			if (dir != nullptr) {
+				mydir = dir->as_string()->value_or("");
+			}
+			else {
+				mydir = "";
+			}
+			
+			auto dbase = itemtable->get("database");
+			if (dbase != nullptr) {
+				mydb = dbase->as_string()->value_or("");
+			}
+			else {
+				mydb = "";
+			}			
+			auto areatag = itemtable->get("tag");
+			if (areatag != nullptr) {
+				mytag = areatag->as_string()->value_or("");
+			}
+			else {
+				mytag = "";
+			}
+			auto linklist = itemtable->get("links");
+			if (linklist != nullptr) {
+				mylinklist = linklist->as_string()->value_or("");
+			}
+			else {
+				mylinklist = "";
+			}
+
+			if (mytag == "" || myfile == "") {
+				free(myaka);
+				continue;
+			}
+
+			struct farea_conf_t faconf;
+
+			std::stringstream ss(mylinklist);
+			std::string buff;
+
+			while (getline(ss, buff, ',')) {
+				trim(buff);
+				NETADDR* laddr = parse_fido_addr(buff.c_str());
+				if (laddr) {
+					for (size_t y = 0; y < links.size(); y++) {
+						if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
+							aconf.links.push_back(&links.at(y));
+							break;
+						} 
+					}
+
+					free(laddr);
+				}
+			}
+
+			faconf.aka = myaka;
+			faconf.areatag = mytag;
+			faconf.directory = mydir;
+			faconf.database = mydb;
+			fileareas.push_back(faconf);
+		}		
 	}
 	catch (toml::parse_error) {
 		std::cerr << "Error parsing config file!!!" << std::endl;

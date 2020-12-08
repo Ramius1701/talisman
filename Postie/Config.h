@@ -40,6 +40,14 @@ struct area_conf_t {
 	std::vector <struct link_conf_t*> links;
 };
 
+struct farea_conf_t {
+	NETADDR *aka;
+	std::string database;
+	std::string directory;
+	std::string areatag;
+	std::vector <struct link_conf_t*> links;
+};
+
 class Config
 {
 public:
@@ -51,6 +59,8 @@ public:
 	std::vector<struct area_conf_t> areas;
 	std::vector<struct route_conf_t> routes;
 	std::vector<struct netmail_area_conf_t> netmailareas;
+	std::vector<struct farea_conf_t> fileareas;
+	
 	std::string packetdir() {
 		return __packetdir;
 	}

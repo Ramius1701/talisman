@@ -20,6 +20,7 @@ class TicProc
 public:
 	bool run();
 private:
+	bool check_crc(std::string filename);
 	std::string _datapath;
 	std::string _logpath;
 	std::string _tmppath;

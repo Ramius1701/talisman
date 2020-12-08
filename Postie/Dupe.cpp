@@ -134,6 +134,36 @@ uint32_t Dupe::crc32buf(const char* buf, size_t len)
     return ~oldcrc32;
 }
 
+bool Dupe::crc32file(char *name, uint32_t *crc)
+{
+      FILE *fin;
+      uint32_t oldcrc32;
+      int c;
+
+      oldcrc32 = 0xFFFFFFFF; *charcnt = 0;
+
+      if ((fin=fopen(name, "rb"))==NULL)
+      {
+            perror(name);
+            return false;
+      }
+      while ((c=getc(fin))!=EOF)
+      {
+            oldcrc32 = UPDC32(c, oldcrc32);
+      }
+
+      if (ferror(fin))
+      {
+            perror(name);
+      }
+      fclose(fin);
+
+      *crc = oldcrc32 = ~oldcrc32;
+
+      return true;
+}
+
+
 bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
     uint32_t crc = crc32buf(msgid.c_str(), msgid.size());
     uint32_t checkcrc;

@@ -10,6 +10,16 @@
 #include "TicProc.h"
 #include "Logger.h"
 
+bool TicProc::check_crc(std::string filename, uint32_t crc_chk) {
+	uint32_t crc;
+	
+	if (!Dupe::crc32file(filename.c_str(), &crc) {
+		return false;
+	}
+
+	return (crc == crc_chk);
+}
+
 bool TicProc::run() {
 	INIReader inir("talisman.ini");
 	Config c;
@@ -75,12 +85,18 @@ bool TicProc::run() {
 					tic.replaces = line.substr(9);
 				}
 				if (line.find("crc") == 0) {
-					tic.crc = strtol(line.substr(4).c_str(), NULL, 16);
+					tic.crc = strtoul(line.substr(4).c_str(), NULL, 16);
 				}
 				if (line.find("pw") == 0) {
 					tic.password = line.substr(3);
 				}
 			}
+			//    check crc of file
+			if (!check_crc(c.inbound() + "/" + tic.file, tic.crc)) {
+				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
+				continue;
+			}
+			
 			//    add file to area
 			//    forward any files to downlinks
 		}
