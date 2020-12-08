@@ -150,6 +150,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Squish.cpp" />
+    <ClCompile Include="TicProc.cpp" />
     <ClCompile Include="Tosser.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +164,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="Squish.h" />
+    <ClInclude Include="TicProc.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="Tosser.h" />
   </ItemGroup>

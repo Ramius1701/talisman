@@ -21,6 +21,7 @@ struct link_conf_t {
 	NETADDR* aka;
 	NETADDR* ouraka;
 	std::string flavour;
+	std::string filebox;
 	std::string archiver;
 	std::string packetpwd;
 	std::filesystem::path packetpath;

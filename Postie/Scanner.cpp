@@ -14,10 +14,6 @@
 #include "GenDefs.h"
 #include "Archiver.h"
 
-struct seenby_t {
-	uint16_t net;
-	uint16_t node;
-};
 
 
 
@@ -79,7 +75,7 @@ std::string remove_tid(std::string ctrlbuf) {
 	}
 }
 
-bool check_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
+bool Scanner::check_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
 	for (size_t i = 0; i < seenbys->size(); i++) {
 		if (seenbys->at(i).net == node->net && seenbys->at(i).node == node->node) {
 			return true;
@@ -89,7 +85,7 @@ bool check_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
 	return false;
 }
 
-void add_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
+void Scanner::add_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node) {
 	if (!check_seenby(seenbys, node)) {
 		struct seenby_t newseenby;
 
@@ -184,7 +180,7 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
 	return seenbys;
 }
 
-std::vector<struct seenby_t> parse_seenbys(std::string msgbuf) {
+std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
 	std::vector<struct seenby_t> seenbys;
 
 	std::stringstream ss(msgbuf);

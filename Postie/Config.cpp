@@ -257,6 +257,7 @@ bool Config::load(std::string datapath) {
 			std::string myflavour;
 			std::string myarchiver;
 			std::string mypacketpwd;
+			std::string myfilebox;
 
 			auto addr = itemtable->get("aka");
 			if (addr != nullptr) {
@@ -291,6 +292,14 @@ bool Config::load(std::string datapath) {
 				continue;
 			}
 
+			auto filebox = itemtable->get("filebox");
+			if (filebox != nullptr) {
+				myfilebox = filebox->as_string()->value_or("");
+			}
+			else {
+				myfilebox = "";
+			}
+
 			auto archiver = itemtable->get("archiver");
 			if (archiver != nullptr) {
 				myarchiver = archiver->as_string()->value_or("");
@@ -315,6 +324,7 @@ bool Config::load(std::string datapath) {
 			newlink.packetpwd = mypacketpwd;
 			newlink.flavour = myflavour;
 			newlink.fptr = NULL;
+			newlink.filebox = myfilebox;
 			links.push_back(newlink);
 		}
 		auto nareaitems = data.get_as<toml::array>("netarea");

@@ -3,6 +3,12 @@
 #include <string>
 #include "Config.h"
 
+struct seenby_t {
+	uint16_t net;
+	uint16_t node;
+};
+
+
 class Scanner
 {
 public:
@@ -14,7 +20,10 @@ public:
 	static void initialize_packet(struct link_conf_t* link, std::string working_path, NETADDR* pktorig);
 	static bool matchroute(std::string route, NETADDR* aka);
 	static std::string initialize_netmail_packet(NETADDR* dest, std::string working_path, NETADDR* myaka, FILE** fptr);
+	static std::vector<struct seenby_t> parse_seenbys(std::string msgbuf);
+	static bool check_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node);
 private:
+	static void add_seenby(std::vector<struct seenby_t>* seenbys, NETADDR* node);
 	std::string _datapath;
 	std::string _logpath;
 	std::string _msgpath;

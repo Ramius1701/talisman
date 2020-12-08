@@ -388,8 +388,9 @@ bool Tosser::run(bool protinbound) {
 					for (size_t a = 0; a < c.areas.size(); a++) {
 						if (areatag == c.areas.at(a).areatag) {
 							// process message
-							// TODO: check if dupe
 							// send to downlinks
+							std::vector<struct seenby_t> seenbys = Scanner::parse_seenbys(msgstr.str());
+
 							for (size_t l = 0; l < c.areas.at(a).links.size(); l++) {
 								if (phdr.origNet == 0xffff) {
 									if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
@@ -401,6 +402,13 @@ bool Tosser::run(bool protinbound) {
 										continue;
 									}
 								}
+
+								// check seenbys
+								
+								if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka) && c.areas.at(a).links.at(l)->aka->point == 0) {
+									continue;
+								}
+
 								if (c.areas.at(a).links.at(l)->fptr == NULL) {
 									Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
 								}
