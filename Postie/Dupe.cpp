@@ -140,7 +140,7 @@ bool Dupe::crc32file(char *name, uint32_t *crc)
       uint32_t oldcrc32;
       int c;
 
-      oldcrc32 = 0xFFFFFFFF; *charcnt = 0;
+      oldcrc32 = 0xFFFFFFFF;
 
       if ((fin=fopen(name, "rb"))==NULL)
       {
