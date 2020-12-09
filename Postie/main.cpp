@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 		tp.run();
 	}
 	else {
-		std::cout << "Usage: " << argv[0] << " [scan|toss]" << std::endl;
+		std::cout << "Usage: " << argv[0] << " [scan|toss|ticproc]" << std::endl;
 		return -1;
 	}
 	return 0;
