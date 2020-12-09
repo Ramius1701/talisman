@@ -258,6 +258,7 @@ bool Config::load(std::string datapath) {
 			std::string myarchiver;
 			std::string mypacketpwd;
 			std::string myfilebox;
+			std::string myticpwd;
 
 			auto addr = itemtable->get("aka");
 			if (addr != nullptr) {
@@ -316,6 +317,14 @@ bool Config::load(std::string datapath) {
 				mypacketpwd = "";
 			}
 
+			auto ticpwd = itemtable->get("ticpwd");
+			if (ticpwd != nullptr) {
+				myticpwd = ticpwd->as_string()->value_or("");
+			}
+			else {
+				myticpwd = "";
+			}
+
 			struct link_conf_t newlink;
 
 			newlink.aka = myaka;
@@ -325,6 +334,7 @@ bool Config::load(std::string datapath) {
 			newlink.flavour = myflavour;
 			newlink.fptr = NULL;
 			newlink.filebox = myfilebox;
+			newlink.ticpwd = myticpwd;
 			links.push_back(newlink);
 		}
 		auto nareaitems = data.get_as<toml::array>("netarea");

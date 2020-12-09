@@ -134,7 +134,7 @@ uint32_t Dupe::crc32buf(const char* buf, size_t len)
     return ~oldcrc32;
 }
 
-bool Dupe::crc32file(char *name, uint32_t *crc)
+bool Dupe::crc32file(const char *name, uint32_t *crc)
 {
       FILE *fin;
       uint32_t oldcrc32;

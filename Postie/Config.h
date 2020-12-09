@@ -24,6 +24,7 @@ struct link_conf_t {
 	std::string filebox;
 	std::string archiver;
 	std::string packetpwd;
+	std::string ticpwd;
 	std::filesystem::path packetpath;
 	FILE* fptr;
 };

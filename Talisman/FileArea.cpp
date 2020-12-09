@@ -471,7 +471,7 @@ bool FileArea::upload_file(Node *n) {
 				continue;
 			}
 			// add to database
-			std::filesystem::path newp(file_path);
+			std::filesystem::path newp(std::filesystem::absolute(std::filesystem::path(file_path)));
 			newp.append(f.path().filename().u8string());
 			if (!insert_file(n, newp.u8string(), descr)) {
 				n->print_f("|12Failed to add to the database!|07\r\n");

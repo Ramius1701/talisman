@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
 	int node = 0;
 	int sock = 0;
 	bool telnet = false;
-	int ret;
+	int ret = 0;
 	bool ssh = false;
 
 #ifdef _MSC_VER

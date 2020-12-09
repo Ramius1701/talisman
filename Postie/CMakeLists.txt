@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH ${toolbelt_SOURCE_DIR}/../cmake/)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -ggdb -std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -std=c++17")
 
-add_executable(postie main.cpp Archiver.cpp Config.cpp Logger.cpp Scanner.cpp Squish.cpp Tosser.cpp Dupe.cpp)
+add_executable(postie main.cpp Archiver.cpp Config.cpp Logger.cpp Scanner.cpp Squish.cpp Tosser.cpp Dupe.cpp TicProc.cpp)
 include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries (postie -lstdc++fs)

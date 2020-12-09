@@ -3,6 +3,7 @@
 
 #include "Scanner.h"
 #include "Tosser.h"
+#include "TicProc.h"
 
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -22,6 +23,10 @@ int main(int argc, char** argv) {
 		Tosser t;
 		t.run(true);
 		t.run(false);
+	}
+	else if (strcasecmp(argv[1], "ticproc") == 0) {
+		TicProc tp;
+		tp.run();
 	}
 	else {
 		std::cout << "Usage: " << argv[0] << " [scan|toss]" << std::endl;
