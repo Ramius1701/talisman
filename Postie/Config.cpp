@@ -184,353 +184,369 @@ bool Config::load(std::string datapath) {
 
 		auto addressitems = data.get_as<toml::array>("address");
 
-		for (size_t i = 0; i < addressitems->size(); i++) {
-			auto itemtable = addressitems->get(i)->as_table();
-			std::string myaka;
+		if (addressitems != nullptr) {
 
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				myaka = addr->as_string()->value_or("");
-				
-				struct address_conf_t naddr;
-				naddr.aka = parse_fido_addr(myaka.c_str());
-				if (naddr.aka != NULL) {
-					addresses.push_back(naddr);
+			for (size_t i = 0; i < addressitems->size(); i++) {
+				auto itemtable = addressitems->get(i)->as_table();
+				std::string myaka;
+
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					myaka = addr->as_string()->value_or("");
+
+					struct address_conf_t naddr;
+					naddr.aka = parse_fido_addr(myaka.c_str());
+					if (naddr.aka != NULL) {
+						addresses.push_back(naddr);
+					}
 				}
 			}
 		}
-
 		auto routeitems = data.get_as<toml::array>("route");
-		for (size_t i = 0; i < routeitems->size(); i++) {
-			auto itemtable = routeitems->get(i)->as_table();
-			NETADDR* myaka;
-			std::string myroute;
-			std::string myflavour;
 
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				std::string aka = addr->as_string()->value_or("");
-				myaka = parse_fido_addr(aka.c_str());
-				if (!myaka) {
+		if (routeitems != nullptr) {
+
+			for (size_t i = 0; i < routeitems->size(); i++) {
+				auto itemtable = routeitems->get(i)->as_table();
+				NETADDR* myaka;
+				std::string myroute;
+				std::string myflavour;
+
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					std::string aka = addr->as_string()->value_or("");
+					myaka = parse_fido_addr(aka.c_str());
+					if (!myaka) {
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
 
-			auto route = itemtable->get("pattern");
-			if (route != nullptr) {
-				myroute = route->as_string()->value_or("");
-			}
-			else {
-				myroute = "";
-			}
+				auto route = itemtable->get("pattern");
+				if (route != nullptr) {
+					myroute = route->as_string()->value_or("");
+				}
+				else {
+					myroute = "";
+				}
 
-			auto flavour = itemtable->get("flavour");
-			if (flavour != nullptr) {
-				myflavour = flavour->as_string()->value_or("normal");
-			}
-			else {
-				myflavour = "normal";
-			}
+				auto flavour = itemtable->get("flavour");
+				if (flavour != nullptr) {
+					myflavour = flavour->as_string()->value_or("normal");
+				}
+				else {
+					myflavour = "normal";
+				}
 
-			if (myroute == "") {
-				free(myaka);
-				continue;
+				if (myroute == "") {
+					free(myaka);
+					continue;
+				}
+				struct route_conf_t r;
+
+				r.aka = myaka;
+				r.flavour = myflavour;
+				r.route = myroute;
+
+				routes.push_back(r);
 			}
-			struct route_conf_t r;
-
-			r.aka = myaka;
-			r.flavour = myflavour;
-			r.route = myroute;
-
-			routes.push_back(r);
 		}
 
 		auto linkitems = data.get_as<toml::array>("link");
 
-		for (size_t i = 0; i < linkitems->size(); i++) {
-			auto itemtable = linkitems->get(i)->as_table();
-			NETADDR *myaka;
-			NETADDR *myouraka;
-			std::string myflavour;
-			std::string myarchiver;
-			std::string mypacketpwd;
-			std::string myfilebox;
-			std::string myticpwd;
+		if (linkitems != nullptr) {
 
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				std::string aka = addr->as_string()->value_or("");
-				myaka = parse_fido_addr(aka.c_str());
-				if (!myaka) {
+			for (size_t i = 0; i < linkitems->size(); i++) {
+				auto itemtable = linkitems->get(i)->as_table();
+				NETADDR* myaka;
+				NETADDR* myouraka;
+				std::string myflavour;
+				std::string myarchiver;
+				std::string mypacketpwd;
+				std::string myfilebox;
+				std::string myticpwd;
+
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					std::string aka = addr->as_string()->value_or("");
+					myaka = parse_fido_addr(aka.c_str());
+					if (!myaka) {
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
 
-			auto flavour = itemtable->get("flavour");
-			if (flavour != nullptr) {
-				myflavour = flavour->as_string()->value_or("normal");
-			}
-			else {
-				myflavour = "normal";
-			}
+				auto flavour = itemtable->get("flavour");
+				if (flavour != nullptr) {
+					myflavour = flavour->as_string()->value_or("normal");
+				}
+				else {
+					myflavour = "normal";
+				}
 
-			auto ouraddr = itemtable->get("ouraka");
-			if (ouraddr != nullptr) {
-				std::string aka = ouraddr->as_string()->value_or("");
-				myouraka = parse_fido_addr(aka.c_str());
-				if (!myouraka) {
-					free(myaka);
+				auto ouraddr = itemtable->get("ouraka");
+				if (ouraddr != nullptr) {
+					std::string aka = ouraddr->as_string()->value_or("");
+					myouraka = parse_fido_addr(aka.c_str());
+					if (!myouraka) {
+						free(myaka);
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
 
-			auto filebox = itemtable->get("filebox");
-			if (filebox != nullptr) {
-				myfilebox = filebox->as_string()->value_or("");
-			}
-			else {
-				myfilebox = "";
-			}
+				auto filebox = itemtable->get("filebox");
+				if (filebox != nullptr) {
+					myfilebox = filebox->as_string()->value_or("");
+				}
+				else {
+					myfilebox = "";
+				}
 
-			auto archiver = itemtable->get("archiver");
-			if (archiver != nullptr) {
-				myarchiver = archiver->as_string()->value_or("");
-			}
-			else {
-				myarchiver = "";
-			}
+				auto archiver = itemtable->get("archiver");
+				if (archiver != nullptr) {
+					myarchiver = archiver->as_string()->value_or("");
+				}
+				else {
+					myarchiver = "";
+				}
 
-			auto packetpwd = itemtable->get("packetpwd");
-			if (packetpwd != nullptr) {
-				mypacketpwd = packetpwd->as_string()->value_or("");
-			}
-			else {
-				mypacketpwd = "";
-			}
+				auto packetpwd = itemtable->get("packetpwd");
+				if (packetpwd != nullptr) {
+					mypacketpwd = packetpwd->as_string()->value_or("");
+				}
+				else {
+					mypacketpwd = "";
+				}
 
-			auto ticpwd = itemtable->get("ticpwd");
-			if (ticpwd != nullptr) {
-				myticpwd = ticpwd->as_string()->value_or("");
-			}
-			else {
-				myticpwd = "";
-			}
+				auto ticpwd = itemtable->get("ticpwd");
+				if (ticpwd != nullptr) {
+					myticpwd = ticpwd->as_string()->value_or("");
+				}
+				else {
+					myticpwd = "";
+				}
 
-			struct link_conf_t newlink;
+				struct link_conf_t newlink;
 
-			newlink.aka = myaka;
-			newlink.ouraka = myouraka;
-			newlink.archiver = myarchiver;
-			newlink.packetpwd = mypacketpwd;
-			newlink.flavour = myflavour;
-			newlink.fptr = NULL;
-			newlink.filebox = myfilebox;
-			newlink.ticpwd = myticpwd;
-			links.push_back(newlink);
+				newlink.aka = myaka;
+				newlink.ouraka = myouraka;
+				newlink.archiver = myarchiver;
+				newlink.packetpwd = mypacketpwd;
+				newlink.flavour = myflavour;
+				newlink.fptr = NULL;
+				newlink.filebox = myfilebox;
+				newlink.ticpwd = myticpwd;
+				links.push_back(newlink);
+			}
 		}
 		auto nareaitems = data.get_as<toml::array>("netarea");
 
-		for (size_t i = 0; i < nareaitems->size(); i++) {
-			auto itemtable = nareaitems->get(i)->as_table();
+		if (nareaitems != nullptr) {
 
-			NETADDR* myaka;
-			std::string myfile;
+			for (size_t i = 0; i < nareaitems->size(); i++) {
+				auto itemtable = nareaitems->get(i)->as_table();
 
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				std::string aka = addr->as_string()->value_or("");
-				myaka = parse_fido_addr(aka.c_str());
-				if (!myaka) {
+				NETADDR* myaka;
+				std::string myfile;
+
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					std::string aka = addr->as_string()->value_or("");
+					myaka = parse_fido_addr(aka.c_str());
+					if (!myaka) {
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
-			auto file = itemtable->get("file");
-			if (file != nullptr) {
-				myfile = file->as_string()->value_or("");
-			}
-			else {
-				myfile = "";
-			}
-			if (myfile == "") {
-				free(myaka);
-				continue;
-			}
+				auto file = itemtable->get("file");
+				if (file != nullptr) {
+					myfile = file->as_string()->value_or("");
+				}
+				else {
+					myfile = "";
+				}
+				if (myfile == "") {
+					free(myaka);
+					continue;
+				}
 
-			struct netmail_area_conf_t nmarea;
+				struct netmail_area_conf_t nmarea;
 
-			nmarea.aka = myaka;
-			nmarea.file = myfile;
+				nmarea.aka = myaka;
+				nmarea.file = myfile;
 
-			netmailareas.push_back(nmarea);
+				netmailareas.push_back(nmarea);
 
+			}
 		}
-
 		auto areaitems = data.get_as<toml::array>("area");
 
-		for (size_t i = 0; i < areaitems->size(); i++) {
-			auto itemtable = areaitems->get(i)->as_table();
+		if (areaitems != nullptr) {
 
-			NETADDR* myaka;
-			std::string myfile;
-			std::string mytag;
-			std::string mylinklist;
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				std::string aka = addr->as_string()->value_or("");
-				myaka = parse_fido_addr(aka.c_str());
-				if (!myaka) {
+			for (size_t i = 0; i < areaitems->size(); i++) {
+				auto itemtable = areaitems->get(i)->as_table();
+
+				NETADDR* myaka;
+				std::string myfile;
+				std::string mytag;
+				std::string mylinklist;
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					std::string aka = addr->as_string()->value_or("");
+					myaka = parse_fido_addr(aka.c_str());
+					if (!myaka) {
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
-			auto file = itemtable->get("file");
-			if (file != nullptr) {
-				myfile = file->as_string()->value_or("");
-			}
-			else {
-				myfile = "";
-			}
-			auto areatag = itemtable->get("tag");
-			if (areatag != nullptr) {
-				mytag = areatag->as_string()->value_or("");
-			}
-			else {
-				mytag = "";
-			}
-			auto linklist = itemtable->get("links");
-			if (linklist != nullptr) {
-				mylinklist = linklist->as_string()->value_or("");
-			}
-			else {
-				mylinklist = "";
-			}
-
-			if (mytag == "" || myfile == "") {
-				free(myaka);
-				continue;
-			}
-
-			struct area_conf_t aconf;
-
-			std::stringstream ss(mylinklist);
-			std::string buff;
-
-			while (getline(ss, buff, ',')) {
-				trim(buff);
-				NETADDR* laddr = parse_fido_addr(buff.c_str());
-				if (laddr) {
-					for (size_t y = 0; y < links.size(); y++) {
-						if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
-							aconf.links.push_back(&links.at(y));
-							break;
-						} 
-					}
-
-					free(laddr);
+				auto file = itemtable->get("file");
+				if (file != nullptr) {
+					myfile = file->as_string()->value_or("");
 				}
-			}
+				else {
+					myfile = "";
+				}
+				auto areatag = itemtable->get("tag");
+				if (areatag != nullptr) {
+					mytag = areatag->as_string()->value_or("");
+				}
+				else {
+					mytag = "";
+				}
+				auto linklist = itemtable->get("links");
+				if (linklist != nullptr) {
+					mylinklist = linklist->as_string()->value_or("");
+				}
+				else {
+					mylinklist = "";
+				}
 
-			aconf.aka = myaka;
-			aconf.areatag = mytag;
-			aconf.file = myfile;
-			areas.push_back(aconf);
+				if (mytag == "" || myfile == "") {
+					free(myaka);
+					continue;
+				}
+
+				struct area_conf_t aconf;
+
+				std::stringstream ss(mylinklist);
+				std::string buff;
+
+				while (getline(ss, buff, ',')) {
+					trim(buff);
+					NETADDR* laddr = parse_fido_addr(buff.c_str());
+					if (laddr) {
+						for (size_t y = 0; y < links.size(); y++) {
+							if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
+								aconf.links.push_back(&links.at(y));
+								break;
+							}
+						}
+
+						free(laddr);
+					}
+				}
+
+				aconf.aka = myaka;
+				aconf.areatag = mytag;
+				aconf.file = myfile;
+				areas.push_back(aconf);
+			}
 		}
 		auto fareaitems = data.get_as<toml::array>("filearea");
 
-		for (size_t i = 0; i < fareaitems->size(); i++) {
-			auto itemtable = fareaitems->get(i)->as_table();
+		if (fareaitems != nullptr) {
+			for (size_t i = 0; i < fareaitems->size(); i++) {
+				auto itemtable = fareaitems->get(i)->as_table();
 
-			NETADDR* myaka;
-			std::string mydir;
-			std::string mytag;
-			std::string mydb;
-			std::string mylinklist;
-			auto addr = itemtable->get("aka");
-			if (addr != nullptr) {
-				std::string aka = addr->as_string()->value_or("");
-				myaka = parse_fido_addr(aka.c_str());
-				if (!myaka) {
+				NETADDR* myaka;
+				std::string mydir;
+				std::string mytag;
+				std::string mydb;
+				std::string mylinklist;
+				auto addr = itemtable->get("aka");
+				if (addr != nullptr) {
+					std::string aka = addr->as_string()->value_or("");
+					myaka = parse_fido_addr(aka.c_str());
+					if (!myaka) {
+						continue;
+					}
+				}
+				else {
 					continue;
 				}
-			}
-			else {
-				continue;
-			}
-			auto dir = itemtable->get("directory");
-			if (dir != nullptr) {
-				mydir = dir->as_string()->value_or("");
-			}
-			else {
-				mydir = "";
-			}
-			
-			auto dbase = itemtable->get("database");
-			if (dbase != nullptr) {
-				mydb = dbase->as_string()->value_or("");
-			}
-			else {
-				mydb = "";
-			}			
-			auto areatag = itemtable->get("tag");
-			if (areatag != nullptr) {
-				mytag = areatag->as_string()->value_or("");
-			}
-			else {
-				mytag = "";
-			}
-			auto linklist = itemtable->get("links");
-			if (linklist != nullptr) {
-				mylinklist = linklist->as_string()->value_or("");
-			}
-			else {
-				mylinklist = "";
-			}
-
-			if (mytag == "" || mydir == "" || mydb == "") {
-				free(myaka);
-				continue;
-			}
-
-			struct farea_conf_t faconf;
-
-			std::stringstream ss(mylinklist);
-			std::string buff;
-
-			while (getline(ss, buff, ',')) {
-				trim(buff);
-				NETADDR* laddr = parse_fido_addr(buff.c_str());
-				if (laddr) {
-					for (size_t y = 0; y < links.size(); y++) {
-						if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
-							faconf.links.push_back(&links.at(y));
-							break;
-						} 
-					}
-
-					free(laddr);
+				auto dir = itemtable->get("directory");
+				if (dir != nullptr) {
+					mydir = dir->as_string()->value_or("");
 				}
-			}
+				else {
+					mydir = "";
+				}
 
-			faconf.aka = myaka;
-			faconf.areatag = mytag;
-			faconf.directory = mydir;
-			faconf.database = mydb;
-			fileareas.push_back(faconf);
-		}		
+				auto dbase = itemtable->get("database");
+				if (dbase != nullptr) {
+					mydb = dbase->as_string()->value_or("");
+				}
+				else {
+					mydb = "";
+				}
+				auto areatag = itemtable->get("tag");
+				if (areatag != nullptr) {
+					mytag = areatag->as_string()->value_or("");
+				}
+				else {
+					mytag = "";
+				}
+				auto linklist = itemtable->get("links");
+				if (linklist != nullptr) {
+					mylinklist = linklist->as_string()->value_or("");
+				}
+				else {
+					mylinklist = "";
+				}
+
+				if (mytag == "" || mydir == "" || mydb == "") {
+					free(myaka);
+					continue;
+				}
+
+				struct farea_conf_t faconf;
+
+				std::stringstream ss(mylinklist);
+				std::string buff;
+
+				while (getline(ss, buff, ',')) {
+					trim(buff);
+					NETADDR* laddr = parse_fido_addr(buff.c_str());
+					if (laddr) {
+						for (size_t y = 0; y < links.size(); y++) {
+							if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
+								faconf.links.push_back(&links.at(y));
+								break;
+							}
+						}
+
+						free(laddr);
+					}
+				}
+
+				faconf.aka = myaka;
+				faconf.areatag = mytag;
+				faconf.directory = mydir;
+				faconf.database = mydb;
+				fileareas.push_back(faconf);
+			}
+		}
 	}
 	catch (toml::parse_error) {
 		std::cerr << "Error parsing config file!!!" << std::endl;
