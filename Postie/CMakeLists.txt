@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (postie)
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_MODULE_PATH ${toolbelt_SOURCE_DIR}/../cmake/)
+set(CMAKE_MODULE_PATH ${postie_SOURCE_DIR}/../cmake/)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -ggdb -std=c++17")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -std=c++17")
 find_package(SQLite3 REQUIRED)
