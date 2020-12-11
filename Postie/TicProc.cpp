@@ -65,7 +65,9 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 			}
 		}
 	}
-
+	if (std::filesystem::exists(destfile)) {
+		std::filesystem::remove(destfile);
+	}
 	if (!std::filesystem::copy_file(srcfile, destfile)) {
 		sqlite3_close(db);
 		return false;
