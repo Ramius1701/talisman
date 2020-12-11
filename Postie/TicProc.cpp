@@ -39,14 +39,19 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 		return false;
 	}
 	
+	std::string filename;
+	std::string pattern;
+
 	if (tic->replaces != "") {
 		// remove file that this file replaces
 		std::filesystem::path dir = destfile.parent_path();
 		for (auto& p : std::filesystem::directory_iterator(dir)) {
+			pattern = tic->replaces;
+			filename = p.path().filename().u8string();
 #ifdef _MSC_VER
-			if (PathMatchSpecA(p.path().filename().u8string().c_str(), tic->replaces.c_str())) {
+			if (PathMatchSpecA(filename.c_str(), pattern.c_str())) {
 #else
-			if (fnmatch(tic->replaces.c_str(), p.path().filename().u8string().c_str(), FNM_CASEFOLD)) {
+			if (fnmatch(pattern.c_str(), filename.c_str(), FNM_CASEFOLD)) {
 #endif
 				// remove from database
 				if (sqlite3_prepare_v2(db, dsql, strlen(dsql), &stmt, NULL) != SQLITE_OK) {
