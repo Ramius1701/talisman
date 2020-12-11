@@ -218,7 +218,7 @@ bool TicProc::run() {
 			ifs.close();
 
 			//    check crc of file
-			fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file));
+			fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file).c_str());
 			if (!check_crc(c.protinbound() + "/" + tic.file, tic.crc)) {
 				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
 				for (NETADDR* addr : tic.seenbys) {
