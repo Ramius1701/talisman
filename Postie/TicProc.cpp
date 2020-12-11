@@ -218,6 +218,7 @@ bool TicProc::run() {
 			ifs.close();
 
 			//    check crc of file
+			fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file));
 			if (!check_crc(c.protinbound() + "/" + tic.file, tic.crc)) {
 				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
 				for (NETADDR* addr : tic.seenbys) {
@@ -329,6 +330,9 @@ bool TicProc::run() {
 					for (size_t ln = 0; ln < ticlines.size(); ln++) {
 						if (strncasecmp(ticlines.at(ln).c_str(), "Pw ", 3) == 0) {
 							fprintf(fptr, "Pw %s\r\n", downlinks.at(l)->ticpwd.c_str());
+						}
+						else if (strncasecmp(ticlines.at(ln).c_str(), "To ", 3) == 0) {
+							fprintf(fptr, "To %d:%d/%d.%d\r\n", downlinks.at(l)->aka->zone, downlinks.at(l)->aka->net, downlinks.at(l)->aka->node, downlinks.at(l)->aka->point);
 						}
 						else if (strncasecmp(ticlines.at(ln).c_str(), "From ", 5) == 0) {
 							fprintf(fptr, "From %d:%d/%d.%d\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point);
