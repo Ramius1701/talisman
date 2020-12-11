@@ -266,7 +266,7 @@ bool TicProc::run() {
 
 			//    add file to area
 			for (size_t i = 0; i < c.fileareas.size(); i++) {
-				if (c.fileareas.at(i).areatag == tic.area) {
+				if (strcasecmp(c.fileareas.at(i).areatag.c_str(), tic.area.c_str()) == 0) {
 					filearea = &c.fileareas.at(i);
 					break;
 				}
