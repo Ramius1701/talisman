@@ -380,6 +380,10 @@ bool TicProc::run() {
 					destfile.append(tic.file);
 
 					std::filesystem::copy(newtic, desttic);
+
+					if (std::filesystem::exists(destfile)) {
+						std::filesystem::remove(destfile);
+					}
 					std::filesystem::copy(fsrc, destfile);
 
 					std::filesystem::remove(newtic);
