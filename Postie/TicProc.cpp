@@ -78,6 +78,7 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 
 	std::string fname = std::filesystem::absolute(destfile).u8string();
 	std::string ulname = "Tic Processor";
+	std::string descr;
 	sqlite3_bind_text(stmt, 1, fname.c_str(), -1, NULL);
 	sqlite3_bind_int64(stmt, 2, std::filesystem::file_size(destfile));
 	sqlite3_bind_int64(stmt, 3, now);
@@ -89,11 +90,13 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 			ss << tic->desc.at(i) << "\n";
 		}
 
-		std::string descr = ss.str();
+		descr = ss.str();
+		
 		sqlite3_bind_text(stmt, 5, descr.c_str(), -1, NULL);
 	}
 	else {
-		sqlite3_bind_text(stmt, 5, tic->shortdesc.c_str(), -1, NULL);
+		descr = tic->shortdesc;
+		sqlite3_bind_text(stmt, 5, descr.c_str(), -1, NULL);
 	}
 
 	sqlite3_step(stmt);
