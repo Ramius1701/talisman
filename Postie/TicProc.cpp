@@ -51,7 +51,7 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 #ifdef _MSC_VER
 			if (PathMatchSpecA(filename.c_str(), pattern.c_str())) {
 #else
-			if (fnmatch(pattern.c_str(), filename.c_str(), FNM_CASEFOLD)) {
+			if (fnmatch(pattern.c_str(), filename.c_str(), FNM_CASEFOLD) == 0) {
 #endif
 				// remove from database
 				if (sqlite3_prepare_v2(db, dsql, strlen(dsql), &stmt, NULL) != SQLITE_OK) {
