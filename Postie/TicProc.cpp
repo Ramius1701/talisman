@@ -18,10 +18,10 @@
 #include "Dupe.h"
 
 
-bool TicProc::check_crc(std::string filename, uint32_t crc_chk) {
+bool TicProc::check_crc(const char * filename, uint32_t crc_chk) {
 	uint32_t crc;
 	
-	if (!Dupe::crc32file(filename.c_str(), &crc)) {
+	if (!Dupe::crc32file(filename, &crc)) {
 		return false;
 	}
 
@@ -174,6 +174,9 @@ bool TicProc::run() {
 			std::string line;
 			while (std::getline(ifs, line))
 			{
+				if (line[line.size() - 1] == '\r') {
+					line = line.substr(0, line.size() - 1);
+				}
 				if (strncasecmp(line.c_str(), "area ", 5) == 0) {
 					tic.area = line.substr(5);
 				}
@@ -219,7 +222,7 @@ bool TicProc::run() {
 
 			//    check crc of file
 			fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file).c_str());
-			if (!check_crc(std::string(c.protinbound() + "/" + tic.file), tic.crc)) {
+			if (!check_crc(std::string(c.protinbound() + "/" + tic.file).c_str(), tic.crc)) {
 				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
 				for (NETADDR* addr : tic.seenbys) {
 					free(addr);
