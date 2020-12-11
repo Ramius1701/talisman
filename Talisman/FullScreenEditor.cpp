@@ -98,7 +98,7 @@ public:
 	}
 
 	void move_cursor_end() {
-		col_at = lines.at(line_at).size() - 1;
+		col_at = lines.at(line_at).size();
 		update_cursor();
 	}
 
