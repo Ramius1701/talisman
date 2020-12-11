@@ -25,7 +25,7 @@ class TicProc
 public:
 	bool run();
 private:
-	bool check_crc(std::string filename, uint32_t crc);
+	bool check_crc(const char *, uint32_t crc);
 	bool add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcfile, std::filesystem::path destfile, std::string database);
 	bool open_database(std::string filename, sqlite3** db);
 	std::string _datapath;
