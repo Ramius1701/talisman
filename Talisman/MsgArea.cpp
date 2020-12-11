@@ -878,7 +878,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 					ss.str("");
 				}
 
-				else {
+				else if (msg->msg[i] != '\n') {
 					ss << msg->msg[i];
 				}
 			}
