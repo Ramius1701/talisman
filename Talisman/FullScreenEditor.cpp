@@ -97,6 +97,16 @@ public:
 		update_cursor();
 	}
 
+	void move_cursor_end() {
+		col_at = lines.at(line_at).size() - 1;
+		update_cursor();
+	}
+
+	void move_cursor_home() {
+		col_at = 0;
+		update_cursor();
+	}
+
 	void move_cursor_left() {
 		if (col_at == 0) {
 			if (line_at > 0) {
@@ -553,6 +563,13 @@ std::vector<std::string> FullScreenEditor::edit() {
 				}
 				else if (c == 'D') {
 					fsb.move_cursor_left();
+				}
+				else if (c == 'K') {
+					// END Key
+					fsb.move_cursor_end();
+				}
+				else if (c == 'H') {
+					fsb.move_cursor_home();
 				}
 				continue;
 			}

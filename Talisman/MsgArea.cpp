@@ -1711,7 +1711,7 @@ int MsgArea::list_messages_full(int start) {
 					if (pos < 0) {
 						pos = 0;
 					}
-					selected = pos;
+					selected = msgs.size() - 1;
 					redraw = true;
 				}
 				else if (c == 'H') {
