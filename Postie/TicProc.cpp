@@ -163,7 +163,7 @@ bool TicProc::run() {
 	std::vector<std::filesystem::path> removelist;
 
 	// foreach tic file
-	for (auto& p : std::filesystem::directory_iterator(c.inbound())) {
+	for (auto& p : std::filesystem::directory_iterator(c.protinbound())) {
 		std::filesystem::path filepth = p.path();
 
 		if (strcasecmp(filepth.extension().u8string().c_str(), ".tic") == 0) {
@@ -218,7 +218,7 @@ bool TicProc::run() {
 			ifs.close();
 
 			//    check crc of file
-			if (!check_crc(c.inbound() + "/" + tic.file, tic.crc)) {
+			if (!check_crc(c.protinbound() + "/" + tic.file, tic.crc)) {
 				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
 				for (NETADDR* addr : tic.seenbys) {
 					free(addr);
@@ -275,7 +275,7 @@ bool TicProc::run() {
 				}
 				continue;
 			}
-			std::filesystem::path fsrc(c.inbound() + "/" + tic.file);
+			std::filesystem::path fsrc(c.protinbound() + "/" + tic.file);
 			std::filesystem::path fdest(filearea->directory);
 
 			if (tic.lname != "") {
