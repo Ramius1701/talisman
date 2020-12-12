@@ -440,6 +440,10 @@ bool Tosser::run(bool protinbound) {
 						log.log(LOG_INFO, "Got an empty netmail, discarding...");
 						continue;
 					}
+					if (fromstr.str() == "ARCmail") {
+						log.log(LOG_INFO, "Got a message from ARCmail, discarding...");
+						continue;
+					}
 					// is it for us...
 					// look for intl kludge & topt kludge
 					std::stringstream kludge;
