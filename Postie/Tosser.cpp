@@ -201,7 +201,7 @@ bool Tosser::run(bool protinbound) {
 			struct packed_message_t pmsg;
 
 			fread(&phdr, sizeof(struct packet_t), 1, fptr);
-
+/*
 			NETADDR pktorig;
 			pktorig.zone = phdr.origZone;
 			pktorig.node = phdr.orignode;
@@ -213,7 +213,7 @@ bool Tosser::run(bool protinbound) {
 				pktorig.net = phdr.origNet;
 				pktorig.point = 0;
 			}
-
+*/
 			while (fread(&pmsg, sizeof(struct packed_message_t), 1, fptr) == 1) {
 				char ch;
 				std::stringstream datestr;
