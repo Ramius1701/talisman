@@ -386,7 +386,7 @@ bool Tosser::run(bool protinbound) {
 					}
 
 					for (size_t a = 0; a < c.areas.size(); a++) {
-						if (areatag == c.areas.at(a).areatag) {
+						if (strcasecmp(areatag.c_str(), c.areas.at(a).areatag.c_str()) == 0) {
 							// process message
 							// send to downlinks
 							std::vector<struct seenby_t> seenbys = Scanner::parse_seenbys(msgstr.str());
