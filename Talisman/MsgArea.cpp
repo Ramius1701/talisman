@@ -1847,6 +1847,9 @@ void MsgArea::update_lr(time_t date) {
 
 	for (size_t i = 1; i <= totmsgs; i++) {
 		sq_msg_t* msg = SquishReadMsg(mb, i);
+		if (!msg) {
+			continue;
+		}
 		struct tm msg_tm;
 		memset(&msg_tm, 0, sizeof(struct tm));
 		msg_tm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 80;

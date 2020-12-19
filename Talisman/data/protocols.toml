@@ -8,7 +8,7 @@ prompt = false
 [[protocol]]
 name = "Xmodem"
 upload_command = "rx -R @UPPATH@"
-download_command = "sx -Y @FILELIST@"
+download_command = "sx -Y @FILENAME@"
 batch = false
 prompt = true
 
