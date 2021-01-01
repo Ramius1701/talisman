@@ -1306,7 +1306,7 @@ void Menu::qwk_down(Node* n) {
 			if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 
 			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
 					fprintf(fptr, "%d\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
 					fprintf(fptr, "%s\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
 				}
