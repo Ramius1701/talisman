@@ -3,10 +3,14 @@
 #else
 #include <unistd.h>
 #include <sys/wait.h>
-#if defined (__OpenBSD__) || defined (__NetBSD__)
+#if defined (__OpenBSD__) || defined (__NetBSD__) || defined(__FreeBSD__)
 #include <libgen.h>
 #include <termios.h>
+#if defined(__FreeBSD__)
+#include <libutil.h>
+#else
 #include <util.h>
+#endif
 #include <sys/ioctl.h>
 #else
 #include <pty.h>

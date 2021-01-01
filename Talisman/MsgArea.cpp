@@ -492,8 +492,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					else {
 						col_at++;
 					}
-					if (col_at > n->term_width) {
-						col_at = n->term_width;
+					if (col_at > n->get_term_width()) {
+						col_at = n->get_term_width();
 					}
 					break;
 				case 'D':
@@ -517,8 +517,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					if (line_at > lines) {
 						lines = line_at;
 					}
-					if (col_at > n->term_width) {
-						col_at = n->term_width;
+					if (col_at > n->get_term_width()) {
+						col_at = n->get_term_width();
 					}
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
@@ -543,7 +543,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 		else if (msg[i] != '\n') {
 			col_at++;
 			
-			if (col_at >= n->term_width) {
+			if (col_at >= n->get_term_width()) {
 				col_at = 0;
 				line_at++;
 				if (line_at > lines) {
@@ -561,9 +561,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 
 
 	for (int i = 0; i <= lines; i++) {
-		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->term_width + 1));
+		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->get_term_width() + 1));
 		if (!fakescreen[i]) return new_msg;
-		for (int x = 0; x <= n->term_width; x++) {
+		for (int x = 0; x <= n->get_term_width(); x++) {
 			fakescreen[i][x].c = ' ';
 			fakescreen[i][x].fg_color = 7;
 			fakescreen[i][x].bg_color = 0;
@@ -626,8 +626,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					else {
 						col_at++;
 					}
-					if (col_at > n->term_width) {
-						col_at = n->term_width;
+					if (col_at > n->get_term_width()) {
+						col_at = n->get_term_width();
 					}
 					break;
 				case 'D':
@@ -649,7 +649,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 					col_at = params[1];
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
-					if (col_at > n->term_width) col_at = n->term_width;
+					if (col_at > n->get_term_width()) col_at = n->get_term_width();
 					break;
 				case 'm':
 					for (int z = 0; z < param_count; z++) {
@@ -690,7 +690,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			fakescreen[line_at][col_at].fg_color = fg_color;
 			fakescreen[line_at][col_at].bg_color = bg_color;
 			col_at++;
-			if (col_at >= n->term_width) {
+			if (col_at >= n->get_term_width()) {
 				line_at++;
 				col_at = 0;
 			}
@@ -698,7 +698,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	}
 
 	for (int i = 0; i < lines; i++) {
-		for (int j = n->term_width - 1; j >= 0; j--) {
+		for (int j = n->get_term_width() - 1; j >= 0; j--) {
 			if (fakescreen[i][j].c == ' ') {
 				fakescreen[i][j].c = '\0';
 			}
@@ -737,7 +737,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 				ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
 			}
 		}
-		for (j = 0; j < n->term_width; j++) {
+		for (j = 0; j < n->get_term_width(); j++) {
 			if (fakescreen[i][j].c == '\0') {
 				break;
 			}
@@ -763,7 +763,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 			}
 			ss << fakescreen[i][j].c;
 		}
-		if (j < n->term_width) {
+		if (j < n->get_term_width()) {
 			if (!got_tearline) {
 				ss << "\r\n";
 			}
@@ -790,9 +790,9 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 	ss.str("");
 	for (int i = 0; i < msg->ctrl_len; i++) {
 		if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
-			if (ss.str().size() > n->term_width - 1) {
+			if (ss.str().size() > n->get_term_width() - 1) {
 				int type = 2;
-				std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), n->term_width - 1);
+				std::vector<std::string> newvec = word_wrap("\x01" + ss.str(), n->get_term_width() - 1);
 
 				for (size_t z = 0; z < newvec.size(); z++) {
 					struct line_t nline;
@@ -885,7 +885,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 			new_msg.push_back(ss.str());
 		}
 		for (size_t i = 0; i < new_msg.size(); i++) {
-			if (new_msg.at(i).size() > n->term_width - 1) {
+			if (new_msg.at(i).size() > n->get_term_width() - 1) {
 				int type = 0;
 				if (!got_tearline) {
 					if (new_msg.at(i).find('>') < 5) {
@@ -911,7 +911,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 					}
 				}
 
-				std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->term_width - 1);
+				std::vector<std::string> newvec = word_wrap(new_msg.at(i), n->get_term_width() - 1);
 
 				for (size_t z = 0; z < newvec.size(); z++) {
 					struct line_t nline;
@@ -1229,7 +1229,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					n->print_f("|13%s\r\n", linesv.at(lno).line.c_str());
 					lines++;
 				}
-				if (lines == n->term_height - 2) {
+				if (lines == n->get_term_height() - 2) {
 					if (n->hasANSI) {
 						n->print_f("\x1b[s|14Continue (Y/N) : |07");
 					}
@@ -1342,20 +1342,20 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				}
 			}
 			n->print_f("\x1b[6;1H\x1b[1;41;37m\x1b[K\x1b[0;40;37m");
-			n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->term_height - 1);
+			n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1);
 
 			bool done = false;
 			while (!done) {
 
-				if (top + n->term_height - 8 < linesv2.size()) {
-					n->print_f("\x1b[%d;%dH\x1b[1;41;33mMORE\x1b[0;40;37m", n->term_height - 1, n->term_width - 5);
+				if (top + n->get_term_height() - 8 < linesv2.size()) {
+					n->print_f("\x1b[%d;%dH\x1b[1;41;33mMORE\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5);
 				}
 				else {
-					n->print_f("\x1b[%d;%dH\x1b[1;41;33m END\x1b[0;40;37m", n->term_height - 1, n->term_width - 5);
+					n->print_f("\x1b[%d;%dH\x1b[1;41;33m END\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5);
 				}
 				
 
-				for (size_t i = 0; i < n->term_height - 8; i++) {
+				for (size_t i = 0; i < n->get_term_height() - 8; i++) {
 					if (i + top < linesv2.size()) {
 						if (ansimsg) {
 							n->print_f("\x1b[%d;1H", i + 7);
@@ -1397,7 +1397,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							}
 							else if (c == 'B') {
 								// down
-								if (top + n->term_height - 8 < linesv2.size()) {
+								if (top + n->get_term_height() - 8 < linesv2.size()) {
 									top++;
 									break;
 								}
@@ -1416,7 +1416,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							}
 							else if (c == 'K') {
 								// end
-								top = linesv2.size() - (n->term_height - 8);
+								top = linesv2.size() - (n->get_term_height() - 8);
 								if (top < 0) {
 									top = 0;
 								}
@@ -1432,7 +1432,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 								if (c == '5') {
 									n->getch();
 								}
-								top = top - (n->term_height - 8);
+								top = top - (n->get_term_height() - 8);
 								if (top < 0) {
 									top = 0;
 								}
@@ -1443,9 +1443,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 								if (c == '6') {
 									n->getch();
 								}
-								top = top + (n->term_height - 8);
+								top = top + (n->get_term_height() - 8);
 								if (top >= linesv2.size()) {
-									top = linesv2.size() - (n->term_height - 8);
+									top = linesv2.size() - (n->get_term_height() - 8);
 									if (top < 0) {
 										top = 0;
 									}
@@ -1476,23 +1476,23 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 						break;
 					}
 					if (c == '?') {
-						n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->term_height - 8) / 2 + 4);
-						n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 1);
-						n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->term_height - 8) / 2 + 4) + 2);
-						n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->term_height - 8) / 2 + 4) + 3);
+						n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->get_term_height() - 8) / 2 + 4);
+						n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 1);
+						n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->get_term_height() - 8) / 2 + 4) + 2);
+						n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->get_term_height() - 8) / 2 + 4) + 3);
 						if (unread) {
-							n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->term_height - 8) / 2 + 4) + 4);
+							n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->get_term_height() - 8) / 2 + 4) + 4);
 						}
 						else if (search) {
-							n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->term_height - 8) / 2 + 4) + 4);
+							n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->get_term_height() - 8) / 2 + 4) + 4);
 						}
 						else {
-							n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 4);
+							n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 4);
 						}
 						
-						n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->term_height - 8) / 2 + 4) + 5);
-						n->print_f("\x1b[%d;20H|                            |", ((n->term_height - 8) / 2 + 4) + 6);
-						n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->term_height - 8) / 2 + 4) + 7);
+						n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 8) / 2 + 4) + 5);
+						n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 6);
+						n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 8) / 2 + 4) + 7);
 						n->getch();
 						break;
 					}
@@ -1614,7 +1614,7 @@ int MsgArea::list_messages_full(int start) {
 			n->cls();
 			n->print_f("\x1b[1;1H\x1b[1;41;37m Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m");
 
-			for (int i = pos; i - pos < n->term_height - 3 && i < msgs.size(); i++) {
+			for (int i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
 				if (msgs.at(i).msgno <= lr) {
 					if (i == selected) {
 						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
@@ -1633,7 +1633,7 @@ int MsgArea::list_messages_full(int start) {
 				}
 			}
 
-			n->print_f("\x1b[%d;1H\x1b[1;41;37mUp/Down to Move, Enter to Select, Q to Quit\x1b[K\x1b[0;40;37m", n->term_height - 1);
+			n->print_f("\x1b[%d;1H\x1b[1;41;37mUp/Down to Move, Enter to Select, Q to Quit\x1b[K\x1b[0;40;37m", n->get_term_height() - 1);
 			redraw = false;
 		}
 
@@ -1658,7 +1658,7 @@ int MsgArea::list_messages_full(int start) {
 					if (selected > 0) {
 						selected--;
 						if (selected - pos < 0) {
-							pos -= n->term_height - 3;
+							pos -= n->get_term_height() - 3;
 							if (pos < 0) {
 								pos = 0;
 							}
@@ -1685,8 +1685,8 @@ int MsgArea::list_messages_full(int start) {
 					if (selected < msgs.size() - 1) {
 						selected++;
 
-						if (selected - pos >= n->term_height - 3 && pos + n->term_height - 3 < msgs.size()) {
-							pos += n->term_height - 3;
+						if (selected - pos >= n->get_term_height() - 3 && pos + n->get_term_height() - 3 < msgs.size()) {
+							pos += n->get_term_height() - 3;
 							redraw = true;
 						}
 						else {
@@ -1707,7 +1707,7 @@ int MsgArea::list_messages_full(int start) {
 				}
 				else if (c == 'K') {
 					// end
-					pos = msgs.size() - (n->term_height - 3);
+					pos = msgs.size() - (n->get_term_height() - 3);
 					if (pos < 0) {
 						pos = 0;
 					}
@@ -1725,7 +1725,7 @@ int MsgArea::list_messages_full(int start) {
 					if (c == '5') {
 						n->getch();
 					}
-					pos = pos - (n->term_height - 3);
+					pos = pos - (n->get_term_height() - 3);
 					if (pos < 0) {
 						pos = 0;
 					}
@@ -1737,9 +1737,9 @@ int MsgArea::list_messages_full(int start) {
 					if (c == '6') {
 						n->getch();
 					}
-					pos = pos + (n->term_height - 3);
+					pos = pos + (n->get_term_height() - 3);
 					if (pos >= msgs.size()) {
-						pos = msgs.size() - (n->term_height - 3);
+						pos = msgs.size() - (n->get_term_height() - 3);
 						if (pos < 0) {
 							pos = 0;
 						}
@@ -1783,7 +1783,7 @@ int MsgArea::list_messages_old(int start) {
 			}
 		}
 		lines++;
-		if (lines == n->term_height - 2) {
+		if (lines == n->get_term_height() - 2) {
 			n->print_f("|14Select |08[|15%d|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", start, mb->basehdr.num_msg);
 
 			std::string res = n->get_string(6, false);

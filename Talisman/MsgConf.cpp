@@ -131,7 +131,7 @@ int MsgConf::list_areas(Node* n, int sec)
 				}
 			}
 			lines++;
-			if (lines == n->term_height - 2 && i != areas.size() - 1) {
+			if (lines == n->get_term_height() - 2 && i != areas.size() - 1) {
 				n->print_f("|14Select |08[|151|08-|15%d|08] |15Q|08=|14quit|08, |15ENTER|08=|14Continue |07", cur_area - 1);
 				std::string res = n->get_string(3, false);
 
@@ -241,7 +241,7 @@ void MsgConf::scan(Node* n) {
 		if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).get_sec_level()) {
 			continue;
 		}
-		if (lines >= n->term_height - 5) {
+		if (lines >= n->get_term_height() - 5) {
 			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
@@ -253,7 +253,7 @@ void MsgConf::scan(Node* n) {
 		n->print_f("|14CONFERENCE: |15%s\r\n", n->get_config()->msgconfs.at(conf).get_name().c_str());
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
 		lines += 3;
-		if (lines >= n->term_height - 2) {
+		if (lines >= n->get_term_height() - 2) {
 			n->print_f("|14Continue? (Y/N) : |07");
 			if (tolower(n->getche()) == 'n') {
 				return;
@@ -273,7 +273,7 @@ void MsgConf::scan(Node* n) {
 				n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
 			}
 			lines++;
-			if (lines >= n->term_height - 2) {
+			if (lines >= n->get_term_height() - 2) {
 				n->print_f("|14Continue? (Y/N) : |07");
 				if (tolower(n->getche()) == 'n') {
 					return;

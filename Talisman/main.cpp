@@ -217,8 +217,8 @@ int main(int argc, char** argv) {
 						close(listener);
 #endif
 						Node n(node, new_sock, false);
-						n.term_width = sshc->term_width;
-						n.term_height = sshc->term_height;
+						n.set_term_width(sshc->term_width);
+						n.set_term_height(sshc->term_height);
 						ret = n.run(&sshc->username, &sshc->password);
 					}
 				}

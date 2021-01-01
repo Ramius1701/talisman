@@ -83,6 +83,32 @@ Node::~Node() {
 	}
 }
 
+int Node::get_term_width() {
+	if (u.get_uid() != 0) {
+		if (u.get_attribute("screen_override", "false") == "true") {
+			return stoi(u.get_attribute("screen_override_width", "80"));
+		}
+	}
+	return term_width;
+}
+
+int Node::get_term_height() {
+	if (u.get_uid() != 0) {
+		if (u.get_attribute("screen_override", "false") == "true") {
+			return stoi(u.get_attribute("screen_override_height", "24"));
+		}
+	}
+	return term_height;
+}
+
+void Node::set_term_width(int w) {
+	term_width = w;
+}
+
+void Node::set_term_height(int h) {
+	term_height = h;
+}
+
 void Node::update_node_use(std::string usage) {
 	std::filesystem::path nusep(config.tmp_path());
 	nusep.append(std::to_string(node));
@@ -424,7 +450,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 #ifdef _MSC_VER
 				WriteConsoleA(hOutput, &c, 1, NULL, NULL);
 #endif
-				if (lines == term_height - 2 && pause) {
+				if (lines == get_term_height() - 2 && pause) {
 					if (hasANSI) {
 						print_f("\x1b[s|14More (Y/N/C) ? |07");
 					}
@@ -472,17 +498,17 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 	std::filesystem::path p(config.gfile_path());
 	if (hasANSI) {
-		p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans");
+		p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans");
 		if (std::filesystem::exists(p)) {
 			// got one ansi
 			gfiles.push_back(p);
 			p = config.gfile_path();
-			p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans.1");
+			p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans.1");
 			int count = 2;
 			while (std::filesystem::exists(p)) {
 				gfiles.push_back(p);
 				p = config.gfile_path();
-				p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".ans." + std::to_string(count));
+				p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans." + std::to_string(count));
 				count++;
 			}
 
@@ -515,16 +541,16 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 	p.clear();
 	p.assign(config.gfile_path());
-	p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc");
+	p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc");
 	if (std::filesystem::exists(p)) {
 		gfiles.push_back(p);
 		p = config.gfile_path();
-		p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc.1");
+		p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc.1");
 		int count = 2;
 		while (std::filesystem::exists(p)) {
 			gfiles.push_back(p);
 			p = config.gfile_path();
-			p.append(filename + "." + std::to_string(term_width) + "x" + std::to_string(term_height) + ".asc." + std::to_string(count));
+			p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc." + std::to_string(count));
 			count++;
 		}
 
