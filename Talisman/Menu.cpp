@@ -1472,7 +1472,7 @@ void Menu::qwk_up(Node *n) {
 		return;
 	}
 
-	p->upload(n, n->get_socket(), fpath.u8string());
+	p->upload(n, n->get_socket(), std::filesystem::absolute(fpath).u8string());
 
 	std::filesystem::path qwkfile(fpath);
 	std::stringstream ss;

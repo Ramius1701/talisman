@@ -399,9 +399,11 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 }
 
 bool FileArea::upload_file(Node *n) {
-	std::filesystem::path p(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/upload/");
+	std::filesystem::path p1(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/upload/");
 	std::vector<std::string> file_id;
 	std::vector<std::string> descr;
+	std::filesystem::path p = std::filesystem::absolute(p1);
+
 
 	bool ret = false;
 
