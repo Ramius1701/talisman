@@ -63,6 +63,9 @@ Node::Node(int node, int socket, bool telnet) {
 	last_time_check = 0;
 	timeleft = 120;
 	log = new Logger();
+	override_on = -1;
+	override_width = 0;
+	override_height = 0;
 #ifdef _MSC_VER
 	hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
@@ -85,8 +88,13 @@ Node::~Node() {
 
 int Node::get_term_width() {
 	if (u.get_uid() != 0) {
-		if (u.get_attribute("screen_override", "false") == "true") {
-			return stoi(u.get_attribute("screen_override_width", "80"));
+		if (override_on == -1) {
+			override_on = u.get_attribute("screen_override", "false") == "true";
+			override_width = stoi(u.get_attribute("screen_override_width", "80"));
+			override_height = stoi(u.get_attribute("screen_override_height", "25"));
+		}
+		if (override_on) {
+			return override_width;
 		}
 	}
 	return term_width;
@@ -94,8 +102,13 @@ int Node::get_term_width() {
 
 int Node::get_term_height() {
 	if (u.get_uid() != 0) {
-		if (u.get_attribute("screen_override", "false") == "true") {
-			return stoi(u.get_attribute("screen_override_height", "24"));
+		if (override_on == -1) {
+			override_on = u.get_attribute("screen_override", "false") == "true";
+			override_width = stoi(u.get_attribute("screen_override_width", "80"));
+			override_height = stoi(u.get_attribute("screen_override_height", "25"));
+		}
+		if (override_on) {
+			return override_height;
 		}
 	}
 	return term_height;

@@ -106,6 +106,12 @@ void Settings::do_settings(Node* n) {
 			{
 				bool screen_override = n->get_user().get_attribute("screen_override", "false") == "false";
 				n->get_user().set_attribute("screen_override", (screen_override ? "true" : "false"));
+				if (screen_override) {
+					n->override_on = 1;
+				}
+				else {
+					n->override_on = 0;
+				}
 			}
 			break;
 			case 'n':
@@ -152,6 +158,7 @@ void Settings::do_settings(Node* n) {
 				}
 				if (stringok) {
 					n->get_user().set_attribute("screen_override_width", newwidth);
+					n->override_width = stoi(newwidth);
 				} else {
 					n->print_f("\r\n\r\n|12Invalid Argument!\r\n");
 				}
@@ -169,6 +176,7 @@ void Settings::do_settings(Node* n) {
 				}
 				if (stringok) {
 					n->get_user().set_attribute("screen_override_height", newheight);
+					n->override_height = stoi(newheight);
 				} else {
 					n->print_f("\r\n\r\n|12Invalid Argument!\r\n");
 				}

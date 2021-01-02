@@ -80,6 +80,10 @@ public:
 	void set_term_height(int h);
 	void set_term_width(int w);
 
+	int override_width;
+	int override_height;
+	int override_on;
+
 	std::vector<struct tagged_file_t> tagged_files;
 private:
 	int node;
