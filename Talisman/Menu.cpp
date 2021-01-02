@@ -978,7 +978,7 @@ bool Menu::run() {
 						for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 							if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
 								n->print_f("|15%3d|08. |14%s\r\n", confcounter + 1, n->get_config()->msgconfs.at(i).get_name().c_str());
-								if (lines >= n->term_height -2) {
+								if (lines >= n->get_term_height() -2) {
 									n->print_f("|14Continue (Y/N) : ");
 									if (tolower(n->getch()) == 'n') {
 										break;
@@ -1029,7 +1029,7 @@ bool Menu::run() {
 											for (size_t i = 0; i < n->get_config()->msgconfs.at(actualconf).areas.size(); i++) {
 												if (n->get_config()->msgconfs.at(actualconf).areas.at(i).get_r_sec_level() <= n->get_user().get_sec_level()) {
 													n->print_f("|15%3d|08. |14%-48.48s |08[|14%s|08]\r\n", areacounter + 1, n->get_config()->msgconfs.at(actualconf).areas.at(i).get_name().c_str(), n->get_user().is_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(i).get_file()) ? "ON" : "OFF");
-													if (lines >= n->term_height - 2) {
+													if (lines >= n->get_term_height() - 2) {
 														n->print_f("|14Continue (Y/N) : ");
 														if (tolower(n->getch()) == 'n') {
 															break;
@@ -1306,7 +1306,7 @@ void Menu::qwk_down(Node* n) {
 			if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 
 			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() != 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
 					fprintf(fptr, "%d\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
 					fprintf(fptr, "%s\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
 				}

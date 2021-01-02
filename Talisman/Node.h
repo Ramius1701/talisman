@@ -75,8 +75,11 @@ public:
 	bool stop_timeout;
 	Logger* log;
 	void tag_file(std::string filename, FileArea* fa);
-	int term_width;
-	int term_height;
+	int get_term_width();
+	int get_term_height();
+	void set_term_height(int h);
+	void set_term_width(int w);
+
 	std::vector<struct tagged_file_t> tagged_files;
 private:
 	int node;
@@ -95,7 +98,8 @@ private:
 	int timeout;
 
 	int timeoutmax;
-
+	int term_width;
+	int term_height;
 #ifdef _MSC_VER
 	HANDLE hOutput;
 #endif

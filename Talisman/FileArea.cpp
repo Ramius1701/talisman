@@ -299,19 +299,19 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 
 		if (filelist.at(i).desc.size() > 0) {
 			if (tagged) {
-				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->term_width - 37).c_str());
+				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 			}
 			else {
 				if (filelist.at(i).missing) {
-					n->print_f("|14%4d. |15%-16.16s |12MISSING |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->term_width - 37).c_str());
+					n->print_f("|14%4d. |15%-16.16s |12MISSING |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 				}
 				else {
-					n->print_f("|14%4d. |15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->term_width - 37).c_str());
+					n->print_f("|14%4d. |15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 				}
 			}
 			lines++;
 			for (size_t z = 1; z < filelist.at(i).desc.size(); z++) {
-				if (lines == n->term_height -2) {
+				if (lines == n->get_term_height() -2) {
 					n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist.size());
 					std::string res = n->get_string(5, false);
 					if (res.size() > 0) {
@@ -338,7 +338,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 					lines = 0;
 				}
 
-				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).substr(0, n->term_width - 37).c_str());
+				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).substr(0, n->get_term_width() - 37).c_str());
 				lines++;
 			}
 		}
@@ -346,7 +346,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 			n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07No Description\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount);
 			lines++;
 		}
-		if (lines == n->term_height -2) {
+		if (lines == n->get_term_height() -2) {
 			n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist.size());
 			std::string res = n->get_string(5, false);
 			if (res.size() > 0) {

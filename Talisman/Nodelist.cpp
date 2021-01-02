@@ -124,7 +124,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
             n->print_f("|14 Location: |15 %s\r\n\r\n", entries.at(i).location.c_str());
             lines += 4;
 
-            if (lines + 4 > n->term_height - 2) {
+            if (lines + 4 > n->get_term_height() - 2) {
                 n->print_f("|14Continue (Y/N) : ");
                 if (tolower(n->getch()) == 'n') {
                     n->print_f("\r\n");
