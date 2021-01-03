@@ -196,6 +196,11 @@ bool Tosser::run(bool protinbound) {
 
 		for (auto& pkt : std::filesystem::directory_iterator(tempdir)) {
 			FILE* fptr = fopen(pkt.path().u8string().c_str(), "rb");
+
+			if (!fptr) {
+				log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
+				continue;
+			}
 			// read packet header
 			struct packet_t phdr;
 			struct packed_message_t pmsg;
@@ -404,7 +409,7 @@ bool Tosser::run(bool protinbound) {
 								}
 
 								// check seenbys
-								
+
 								if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka) && c.areas.at(a).links.at(l)->aka->point == 0) {
 									continue;
 								}
@@ -423,6 +428,9 @@ bool Tosser::run(bool protinbound) {
 								SquishWriteMsg(mb, &sqmsg);
 								SquishUnlockMsgBase(mb);
 								SquishCloseMsgBase(mb);
+							}
+							else {
+								log.log(LOG_ERROR, "Unable to open message base! : %s", std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
 							}
 
 							msgprocessed = true;
@@ -676,6 +684,9 @@ bool Tosser::run(bool protinbound) {
 							SquishWriteMsg(mb, &sqmsg);
 							SquishUnlockMsgBase(mb);
 							SquishCloseMsgBase(mb);
+						}
+						else {
+							log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
 						}
 
 					}
