@@ -522,9 +522,9 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 
 	std::vector<struct seenby_t> seenbys = parse_seenbys(ss.str());
 	std::vector<struct seenby_t> path = parse_path(ss.str());
-	if (check_seenby(&seenbys, link->aka)) {
-		return;
-	}
+//	if (check_seenby(&seenbys, link->aka)) {
+//		return;
+///	}
 
 	// trim off seenbys & path
 	std::string msgbody = remove_seenby_path(ss.str());

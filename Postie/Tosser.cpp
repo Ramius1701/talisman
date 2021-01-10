@@ -397,21 +397,25 @@ bool Tosser::run(bool protinbound) {
 							std::vector<struct seenby_t> seenbys = Scanner::parse_seenbys(msgstr.str());
 
 							for (size_t l = 0; l < c.areas.at(a).links.size(); l++) {
-								if (phdr.origNet == 0xffff) {
-									if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+								// if it's to a point
+								if (c.areas.at(a).links.at(l)->aka->point != 0) {
+									if (phdr.origNet == 0xffff) {
+										if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+											continue;
+										}
+									}
+									else {
+										if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.origNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+											continue;
+										}
+									}
+								} else {
+	
+									// check seenbys
+	
+									if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka)) {
 										continue;
 									}
-								}
-								else {
-									if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.origNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
-										continue;
-									}
-								}
-
-								// check seenbys
-
-								if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka) && c.areas.at(a).links.at(l)->aka->point == 0) {
-									continue;
 								}
 
 								if (c.areas.at(a).links.at(l)->fptr == NULL) {
