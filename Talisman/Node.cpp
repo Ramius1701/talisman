@@ -1234,6 +1234,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
 	int tries = 0;
 
+	bool login_pause = false;
+
 	if (sshusername == nullptr || sshpassword == nullptr) {
 		while (!logged_in) {
 			print_f("\r\nEnter USERNAME or NEW\r\n");
@@ -1273,7 +1275,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		}
 		if (strcasecmp(login.c_str(), "NEW") != 0) {
 			print_f("\r\n|14Welcome back |15%s!|07\r\n", login.c_str());
-			pause();
+			login_pause = true;
 		}
 	}
 	else {
@@ -1327,6 +1329,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	}
 
 	u.set_attribute("last_on", std::to_string(time(NULL)));
+
+	if (login_pause) {
+		pause();
+	}
 
 	bulletins = new Bulletins();
 	bulletins->load(this);
