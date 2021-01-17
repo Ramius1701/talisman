@@ -225,6 +225,7 @@ bool Tosser::run(bool protinbound) {
 
 				datestr.str("");
 				while ((ch = fgetc(fptr)) != '\0') {
+					if (feof(fptr)) break;
 					datestr << ch;
 				}
 
@@ -232,18 +233,21 @@ bool Tosser::run(bool protinbound) {
 
 				tostr.str("");
 				while ((ch = fgetc(fptr)) != '\0') {
+					if (feof(fptr)) break;
 					tostr << ch;
 				}
 				std::stringstream fromstr;
 
 				fromstr.str("");
 				while ((ch = fgetc(fptr)) != '\0') {
+					if (feof(fptr)) break;
 					fromstr << ch;
 				}
 				std::stringstream subjstr;
 
 				subjstr.str("");
 				while ((ch = fgetc(fptr)) != '\0') {
+					if (feof(fptr)) break;
 					subjstr << ch;
 				}
 
@@ -259,6 +263,7 @@ bool Tosser::run(bool protinbound) {
 				bodystr.str("");
 
 				while ((ch = fgetc(fptr)) != '\0') {
+					if (feof(fptr)) break;
 					// onto body
 					bodystr << ch;
 				}
