@@ -174,7 +174,7 @@ bool Menu::run() {
 		n->print_f("\r\n");
 
 		for (size_t i = 0; i < items.size(); i++) {
-			if (strcasecmp(cmd.c_str(), items[i].hotkey.c_str()) == 0) {
+			if (strcasecmp(cmd.c_str(), items[i].hotkey.c_str()) == 0 && items[i].sec_level <= n->get_user().get_sec_level()) {
 				if (strcasecmp(items[i].command.c_str(), "goodbye") == 0) {
 					return true;
 				}

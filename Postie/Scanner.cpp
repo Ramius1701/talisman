@@ -216,17 +216,19 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
 						}
 					}
 					else {
-						struct seenby_t nsb;
-						nsb.net = last_net;
-						try {
-							nsb.node = stoi(sb);
-							seenbys.push_back(nsb);
-						}
-						catch (std::invalid_argument) {
+						if (sb.size() > 0) {
+							struct seenby_t nsb;
+							nsb.net = last_net;
+							try {
+								nsb.node = stoi(sb);
+								seenbys.push_back(nsb);
+							}
+							catch (std::invalid_argument) {
 
-						}
-						catch (std::out_of_range) {
+							}
+							catch (std::out_of_range) {
 
+							}
 						}
 					}
 				}
