@@ -168,7 +168,15 @@ bool Menu::run() {
 			n->print_f("\r\n|14Command %s|08: ", ss.str().c_str());
 		}
 		else {
-			n->print_f("\r\n%s ", prompt.c_str());
+			if (strncasecmp(prompt.c_str(), "@@GFILE:", 8) == 0) {
+				std::string promptfile;
+
+				promptfile = prompt.substr(8, prompt.size() - 10);
+				n->send_gfile(promptfile);
+			}
+			else {
+				n->print_f("\r\n%s ", prompt.c_str());
+			}
 		}
 
 		std::string cmd = n->get_string(longest_hotkey, false);
