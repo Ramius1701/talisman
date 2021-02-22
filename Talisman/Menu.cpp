@@ -172,6 +172,7 @@ bool Menu::run() {
 				std::string promptfile;
 
 				promptfile = prompt.substr(8, prompt.size() - 10);
+				n->print_f("\r\n");
 				n->send_gfile(promptfile);
 			}
 			else {
