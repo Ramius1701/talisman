@@ -742,7 +742,7 @@ bool Menu::run() {
 
 					bool subonly = false;
 					n->print_f("\r\n|14Read only subscribed areas? (Y/N) : |07");
-					subonly = (tolower(n->getch()) == 'y');
+					subonly = (tolower(n->getch()) != 'n');
 
 					bool done = false;
 					for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
