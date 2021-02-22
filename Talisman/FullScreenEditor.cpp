@@ -537,6 +537,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
 std::vector<std::string> FullScreenEditor::edit() {
 	FullScreenBuffer fsb(n);
+	n->print_f("\x1b[?25h");
 	n->cls();
 	n->print_f_nc("\x1b[1;37;41mTalisman/FSE CTRL-Z for Menu\x1b[K\r\n");
 	n->print_f_nc("\x1b[0;30;47m  Subject: %s\x1b[K\r\n", subject.c_str());
