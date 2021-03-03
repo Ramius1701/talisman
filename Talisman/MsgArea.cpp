@@ -1116,6 +1116,96 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 void MsgArea::read_message(int start, int *last) {
 	read_message(start, false, false, true, last);
 }
+
+bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
+	char lastc = 'x';
+	bool gottag = false;
+	std::stringstream ss;
+	std::ifstream in(n->get_config()->gfile_path() + "/fsr_header.ans");
+	int lines = 1;
+	char c;
+	if (in.is_open()) {
+		while (in.get(c)) {
+			if (c == 0x1a) break;
+			if (c == '@' && gottag == false) {
+				gottag = true;
+				continue;
+			}
+			if (c == '@' && gottag == true) {
+				// parse tags
+				if (n->compare_token(ss.str(), "MSGAREA")) {
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), name.c_str());
+				}
+				else if (n->compare_token(ss.str(), "MSGSUBJ")) {
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.subject);
+				}
+				else if (n->compare_token(ss.str(), "MSGFROM")) {
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.from);
+				}
+				else if (n->compare_token(ss.str(), "MSGTO")) {
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.to);
+				}
+				else if (n->compare_token(ss.str(), "FROMBBS")) {
+					if (msg->xmsg.orig.point == 0) {
+						std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
+						n->print_f("%-*.*s", ss.str().size(), ss.str().size(), node.c_str());
+					}
+					else {
+						n->print_f("%-*.*s", ss.str().size(), ss.str().size(), "A Point System");
+					}
+				}
+				else if (n->compare_token(ss.str(), "FROMADDR")) {
+					std::stringstream ss2;
+					ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+				}
+				else if (n->compare_token(ss.str(), "MSGDATE")) {
+					char datebuf[17];
+					snprintf(datebuf, 17, "%04d-%02d-%02d %02d:%02d", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63);
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), datebuf);
+				}
+				else if (n->compare_token(ss.str(), "MSGN")) {
+					std::stringstream ss2;
+					ss2 << msgno;
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+				}
+				else if (n->compare_token(ss.str(), "TOTN")) {
+					std::stringstream ss2;
+					ss2 << totmsg;
+					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+				}
+			}
+			if (gottag == true) {
+				if (c == '\r' || c == '\n') {
+					n->print_f("@%s", ss.str().c_str());
+					lastc = ss.str().at(ss.str().size() - 1);
+					ss.str("");
+					gottag = false;
+				}
+				else {
+					ss << c;
+					continue;
+				}
+			}
+			if (c == '\n') {
+				if (lastc != '\r') {
+					n->putch('\r');
+				}
+				lines++;
+				if (lines == 5) {
+					break;
+				}
+			}
+			lastc = c;
+			n->putch(c);
+		}
+		in.close();
+		return true;
+	}
+
+	return false;
+}
+
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
 	sq_msg_base_t* mb;
 	int lr = 0; // TODO set last read
@@ -1174,28 +1264,30 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		
 
 		n->cls();
-		n->print_f("|14   Area: |15%-46.46s\r\n", name.c_str());
-		n->print_f("|14Subject: |15%-65.65s\r\n", msg->xmsg.subject);
-		
-		if (msg->xmsg.orig.zone == 0 && msg->xmsg.orig.net == 0 && msg->xmsg.orig.node == 0) {
-			n->print_f("|14   From: |15%-41.41s\r\n", msg->xmsg.from);
-			n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
-		}
-		else {
-			n->print_f("|14   From: |15%-32.32s |14Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
 
-			std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
+		if (fsr == false || print_msg_header(msg_to_read, total_msgs, msg) == false) {
+			n->print_f("|14   Area: |15%-46.46s\r\n", name.c_str());
+			n->print_f("|14Subject: |15%-65.65s\r\n", msg->xmsg.subject);
 
-			if (msg->xmsg.orig.point == 0) {
-				n->print_f("|14     To: |15%-32.32s |14Host: |15%-30.30s\r\n", msg->xmsg.to, node.c_str());
+			if (msg->xmsg.orig.zone == 0 && msg->xmsg.orig.net == 0 && msg->xmsg.orig.node == 0) {
+				n->print_f("|14   From: |15%-41.41s\r\n", msg->xmsg.from);
+				n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
 			}
 			else {
-				n->print_f("|14     To: |15%-32.32s |14Host: |15A Point System\r\n", msg->xmsg.to);
+				n->print_f("|14   From: |15%-32.32s |14Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+
+				std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
+
+				if (msg->xmsg.orig.point == 0) {
+					n->print_f("|14     To: |15%-32.32s |14Host: |15%-30.30s\r\n", msg->xmsg.to, node.c_str());
+				}
+				else {
+					n->print_f("|14     To: |15%-32.32s |14Host: |15A Point System\r\n", msg->xmsg.to);
+				}
 			}
+			n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d                 |14Msg#: |15%6d of %6d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg_to_read, total_msgs);
+
 		}
-		n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d                 |14Msg#: |15%6d of %6d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg_to_read, total_msgs);
-
-
 		if (fsr == false || !n->hasANSI) {
 			n->print_f("|08------------------------------------------------------------------------------\r\n");
 			lines = 6;
@@ -1341,8 +1433,8 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 					}
 				}
 			}
-			n->print_f("\x1b[6;1H\x1b[1;41;37m\x1b[K\x1b[0;40;37m");
-			n->print_f("\x1b[%d;1H\x1b[1;41;37m ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1);
+			n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
+			n->print_f("\x1b[%d;1H%s ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
 			bool done = false;
 			while (!done) {

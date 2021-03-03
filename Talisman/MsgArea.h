@@ -51,6 +51,8 @@ public:
 	}
 	static void attach_sig(std::vector<std::string> *msg, std::string sig);
 private:
+	bool print_msg_header(int msgno, int totmsg, sq_msg_t* msg);
+
 	bool prepare_msg(sq_msg_t* msg, std::vector<struct line_t>* linesv, std::vector<std::string>* quotebuffer);
 	void reply_to_msg(sq_msg_t* msg, std::vector<std::string>* quotebuffer);
 	std::string name;

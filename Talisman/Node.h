@@ -39,6 +39,7 @@ public:
 	void cls();
 	void update_node_use(std::string usage);
 	void display_nodes();
+	bool compare_token(std::string field, std::string token);
 	std::string get_string(int maxlen, bool masked);
 	std::string get_string(int maxlen, bool masked, bool clear);
 	std::string get_string(int maxlen, bool masked, bool clear, std::string def);

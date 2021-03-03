@@ -215,6 +215,18 @@ bool Node::detectANSI() {
 	return false;
 }
 
+bool Node::compare_token(std::string field, std::string token) {
+	if (field.substr(0, token.size()) == token) {
+		for (size_t i = token.size(); i < field.substr(token.size()).size(); i++) {
+			if (field[i] != '#') {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	return false;
+}
 
 void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 	char lastc = 'x';
@@ -233,141 +245,53 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 			}
 			if (c == '@' && gottag == true) {
 				//deal with tag
-				if (ss.str() == "MAILCONF") {
+				if (compare_token(ss.str(), "MAILCONF")) {
 					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
-					if (socket) {
-						if (mailconf != -1) {
-							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), NULL, NULL);
-#endif
-						}
-						else {
-							send(socket, "None.", 5, 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
-#endif
-
-						}
+					if (mailconf != -1) {
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.msgconfs.at(mailconf).get_name().c_str());
 					}
 					else {
-						if (mailconf != -1) {
-							std::cout << config.msgconfs.at(mailconf).get_name();
-						}
-						else {
-							std::cout << "None.";
-						}
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
 					}
 				}
-				else if (ss.str() == "MAILAREA") {
+				else if (compare_token(ss.str(), "MAILAREA")) {
 					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
 					int mailarea = stoi(u.get_attribute("cur_msg_area", "-1"));
-
-					if (socket) {
-						if (mailconf != -1 && mailarea != -1) {
-							send(socket, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().size(), 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().size(), NULL, NULL);
-#endif
-						}
-						else {
-							send(socket, "None.", 5, 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
-#endif
-						}
+					if (mailconf != -1 && mailarea != -1) {
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str());
 					}
 					else {
-						if (mailconf != -1 && mailarea != -1) {
-							std::cout << config.msgconfs.at(mailconf).areas.at(mailarea).get_name();
-						}
-						else {
-							std::cout << "None.";
-						}
-					}
-				} else if (ss.str() == "MAILCONF") {
-					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
-					if (socket) {
-						if (mailconf != -1) {
-							send(socket, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, config.msgconfs.at(mailconf).get_name().c_str(), config.msgconfs.at(mailconf).get_name().size(), NULL, NULL);
-#endif
-
-						}
-						else {
-							send(socket, "None.", 5, 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
-#endif
-						}
-					}
-					else {
-						if (mailconf != -1) {
-							std::cout << config.msgconfs.at(mailconf).get_name();
-						}
-						else {
-							std::cout << "None.";
-						}
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
 					}
 				}
-				else if (ss.str() == "FILEAREA") {
+				else if (compare_token(ss.str(), "FILEAREA")) {
 					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
 					int filearea = stoi(u.get_attribute("cur_file_area", "-1"));
-
-					if (socket) {
-						if (fileconf != -1 && filearea != -1) {
-							send(socket, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().size(), 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().size(), NULL, NULL);
-#endif
-						}
-						else {
-							send(socket, "None.", 5, 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
-#endif
-						}
+					if (fileconf != -1 && filearea != -1) {
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 					}
 					else {
-						if (fileconf != -1 && filearea != -1) {
-							std::cout << config.fileconfs.at(fileconf).areas.at(filearea).get_name();
-						}
-						else {
-							std::cout << "None.";
-						}
+						print_f("%-.*s", ss.str().size(), ss.str().size(), "None.");
 					}
 				}
-				else if (ss.str() == "FILECONF") {
+				else if (compare_token(ss.str(), "FILECONF")) {
 					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
-					if (socket) {
-						if (fileconf != -1) {
-							send(socket, config.fileconfs.at(fileconf).get_name().c_str(), config.fileconfs.at(fileconf).get_name().size(), 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, config.fileconfs.at(fileconf).get_name().c_str(), config.fileconfs.at(fileconf).get_name().size(), NULL, NULL);
-#endif
-						}
-						else {
-							send(socket, "None.", 5, 0);
-#ifdef _MSC_VER
-							WriteConsoleA(hOutput, "None.", 5, NULL, NULL);
-#endif
-						}
+					if (fileconf != -1) {
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.fileconfs.at(fileconf).get_name().c_str());
 					}
 					else {
-						if (fileconf != -1) {
-							std::cout << config.fileconfs.at(fileconf).get_name();
-						}
-						else {
-							std::cout << "None.";
-						}
+						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
 					}
 				}
-				else if (ss.str() == "VERSION") {
-					print_f("%d.%d-%s", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+				else if (compare_token(ss.str(), "VERSION")) {
+					std::stringstream ss2;
+					ss2 << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR;
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
 				}
-				else if (ss.str() == "TIMELEFT") {
-					print_f("%d mins", timeleft / 60);
+				else if (compare_token(ss.str(), "TIMELEFT")) {
+					std::stringstream ss2;
+					ss2 << (timeleft / 60) << " mins";
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
 				}
 				else if (ss.str().substr(0, 10) == "RUNSCRIPT:" && !script) {
 					std::stringstream ss2;
@@ -378,18 +302,18 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				else if (ss.str() == "NOPAUSE") {
 					pause = false;
 				}
-				else if (ss.str() == "SECLEVEL") {
+				else if (compare_token(ss.str(), "SECLEVEL")) {
 					struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
-					print_f("%s", sl->name.c_str());
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), sl->name.c_str());
 				}
-				else if (ss.str() == "ULOCATION") {
-					print_f("%s", u.get_attribute("location", "Somewhere, The World").c_str());
+				else if (compare_token(ss.str(), "ULOCATION")) {
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_attribute("location", "Somewhere, The World").c_str());
 				}
-				else if (ss.str() == "UNAME") {
-					print_f("%s", u.get_username().c_str());
+				else if (compare_token(ss.str(), "UNAME")) {
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_username().c_str());
 				}
-				else if (ss.str() == "UFULLNAME") {
-					print_f("%s", u.get_attribute("fullname", "Some User").c_str());
+				else if (compare_token(ss.str(), "UFULLNAME")) {
+					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_attribute("fullname", "Some User").c_str());
 				}
 				else if (ss.str() == "PAUSE") {
 					if (hasANSI) {
