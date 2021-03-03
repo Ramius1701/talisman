@@ -1195,7 +1195,7 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 					n->putch('\r');
 				}
 				lines++;
-				if (lines == 5) {
+				if (lines == 6) {
 					break;
 				}
 			}
