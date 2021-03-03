@@ -1174,6 +1174,9 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 					ss2 << totmsg;
 					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
 				}
+				ss.str("");
+				gottag = false;
+				continue;
 			}
 			if (gottag == true) {
 				if (c == '\r' || c == '\n') {
