@@ -1440,10 +1440,10 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			while (!done) {
 
 				if (top + n->get_term_height() - 8 < linesv2.size()) {
-					n->print_f("\x1b[%d;%dH\x1b[1;41;33mMORE\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5);
+					n->print_f("\x1b[%d;%dH%sMORE\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5, n->get_config()->get_prompt_colour());
 				}
 				else {
-					n->print_f("\x1b[%d;%dH\x1b[1;41;33m END\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5);
+					n->print_f("\x1b[%d;%dH%s END\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5, n->get_config()->get_prompt_colour());
 				}
 				
 
