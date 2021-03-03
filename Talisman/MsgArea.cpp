@@ -1134,45 +1134,45 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 			if (c == '@' && gottag == true) {
 				// parse tags
 				if (n->compare_token(ss.str(), "MSGAREA")) {
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), name.c_str());
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, name.c_str());
 				}
 				else if (n->compare_token(ss.str(), "MSGSUBJ")) {
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.subject);
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.subject);
 				}
 				else if (n->compare_token(ss.str(), "MSGFROM")) {
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.from);
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.from);
 				}
 				else if (n->compare_token(ss.str(), "MSGTO")) {
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), msg->xmsg.to);
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.to);
 				}
 				else if (n->compare_token(ss.str(), "FROMBBS")) {
 					if (msg->xmsg.orig.point == 0) {
 						std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
-						n->print_f("%-*.*s", ss.str().size(), ss.str().size(), node.c_str());
+						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
 					}
 					else {
-						n->print_f("%-*.*s", ss.str().size(), ss.str().size(), "A Point System");
+						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
 					}
 				}
 				else if (n->compare_token(ss.str(), "FROMADDR")) {
 					std::stringstream ss2;
 					ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				else if (n->compare_token(ss.str(), "MSGDATE")) {
 					char datebuf[17];
 					snprintf(datebuf, 17, "%04d-%02d-%02d %02d:%02d", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63);
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), datebuf);
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, datebuf);
 				}
 				else if (n->compare_token(ss.str(), "MSGN")) {
 					std::stringstream ss2;
 					ss2 << msgno;
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				else if (n->compare_token(ss.str(), "TOTN")) {
 					std::stringstream ss2;
 					ss2 << totmsg;
-					n->print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				ss.str("");
 				gottag = false;
