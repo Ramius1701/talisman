@@ -248,50 +248,50 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				if (compare_token(ss.str(), "MAILCONF")) {
 					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
 					if (mailconf != -1) {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.msgconfs.at(mailconf).get_name().c_str());
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, config.msgconfs.at(mailconf).get_name().c_str());
 					}
 					else {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
 				else if (compare_token(ss.str(), "MAILAREA")) {
 					int mailconf = stoi(u.get_attribute("cur_msg_conf", "-1"));
 					int mailarea = stoi(u.get_attribute("cur_msg_area", "-1"));
 					if (mailconf != -1 && mailarea != -1) {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str());
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, config.msgconfs.at(mailconf).areas.at(mailarea).get_name().c_str());
 					}
 					else {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
 				else if (compare_token(ss.str(), "FILEAREA")) {
 					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
 					int filearea = stoi(u.get_attribute("cur_file_area", "-1"));
 					if (fileconf != -1 && filearea != -1) {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 					}
 					else {
-						print_f("%-.*s", ss.str().size(), ss.str().size(), "None.");
+						print_f("%-.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
 				else if (compare_token(ss.str(), "FILECONF")) {
 					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
 					if (fileconf != -1) {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), config.fileconfs.at(fileconf).get_name().c_str());
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, config.fileconfs.at(fileconf).get_name().c_str());
 					}
 					else {
-						print_f("%-*.*s", ss.str().size(), ss.str().size(), "None.");
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
 				else if (compare_token(ss.str(), "VERSION")) {
 					std::stringstream ss2;
 					ss2 << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR;
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				else if (compare_token(ss.str(), "TIMELEFT")) {
 					std::stringstream ss2;
 					ss2 << (timeleft / 60) << " mins";
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), ss2.str().c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				else if (ss.str().substr(0, 10) == "RUNSCRIPT:" && !script) {
 					std::stringstream ss2;
@@ -304,16 +304,16 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 				}
 				else if (compare_token(ss.str(), "SECLEVEL")) {
 					struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), sl->name.c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, sl->name.c_str());
 				}
 				else if (compare_token(ss.str(), "ULOCATION")) {
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_attribute("location", "Somewhere, The World").c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, u.get_attribute("location", "Somewhere, The World").c_str());
 				}
 				else if (compare_token(ss.str(), "UNAME")) {
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_username().c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, u.get_username().c_str());
 				}
 				else if (compare_token(ss.str(), "UFULLNAME")) {
-					print_f("%-*.*s", ss.str().size(), ss.str().size(), u.get_attribute("fullname", "Some User").c_str());
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, u.get_attribute("fullname", "Some User").c_str());
 				}
 				else if (ss.str() == "PAUSE") {
 					if (hasANSI) {
