@@ -1121,9 +1121,17 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 	char lastc = 'x';
 	bool gottag = false;
 	std::stringstream ss;
-	std::ifstream in(n->get_config()->gfile_path() + "/fsr_header.ans");
+	std::ifstream in;
 	int lines = 1;
 	char c;
+
+	if (orig_addr == "") {
+		in.open(n->get_config()->gfile_path() + "/fsr_header_local.ans");
+	}
+	else {
+		in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
+	}
+
 	if (in.is_open()) {
 		while (in.get(c)) {
 			if (c == 0x1a) break;
