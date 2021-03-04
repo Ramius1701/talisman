@@ -3,7 +3,7 @@
 #else
 #include <unistd.h>
 #include <sys/wait.h>
-#if defined (__OpenBSD__) || defined (__NetBSD__) || defined(__FreeBSD__)
+#if defined (__OpenBSD__) || defined (__NetBSD__) || defined(__FreeBSD__) || defined(__APPLE__)
 #include <libgen.h>
 #include <termios.h>
 #if defined(__FreeBSD__)

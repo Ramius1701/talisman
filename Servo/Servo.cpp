@@ -15,6 +15,9 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <limits.h>
+#ifdef __APPLE__
+#include <libproc.h>
+#endif
 #endif
 #include <iostream>
 #include <fstream>
@@ -336,6 +339,16 @@ int main()
 
 			for (i = 0; i < max_nodes; i++) {
 				if (nodes.at(i).pid != 0) {
+#ifdef __APPLE__
+                    char buffer[PROC_PIDPATHINFO_MAXSIZE];
+                    if (proc_name(nodes.at(i).pid, buffer, sizeof(buffer)) == -1) {
+                        std::cerr << "ERROR getting proc_name" << std::endl;
+                    }
+                                       
+                    if (strncmp(buffer, "talisman", 8) == 0) {
+                        continue;
+                    }
+#else
 					char buffer[PATH_MAX];
 					snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i).pid);
 					FILE* fptr = fopen(buffer, "r");
@@ -348,6 +361,7 @@ int main()
 							continue;
 						}
 					}
+#endif
 					nodes.at(i).pid = 0;
 					nodes.at(i).ip = "";
 				}
