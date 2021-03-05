@@ -38,21 +38,11 @@ static int ssh_copy_fd_to_chan(socket_t fd, int revents, void* userdata) {
 		}
 		else {
 			ssh_channel_close(chan);
-#ifdef _MSC_VER
-			closesocket(fd);
-#else
-			close(fd);
-#endif
 			sz = -1;
 		}
 	}
 	if (revents & POLLHUP) {
 		ssh_channel_close(chan);
-#ifdef _MSC_VER
-		closesocket(fd);
-#else
-		close(fd);
-#endif
 		sz = -1;
 	}
 	return sz;
@@ -220,11 +210,16 @@ void SshClient::do_run() {
 
 	do {
 		ssh_event_dopoll(ev, 1000);
-	} while (!ssh_channel_is_closed(chan));
+	} while (!ssh_channel_is_closed(chan) && ssh_is_connected(p_ssh_session));
 
 	ssh_event_remove_fd(ev, rsock);
 
 	ssh_event_remove_session(ev, p_ssh_session);
 
 	ssh_event_free(ev);
+#ifdef _MSC_VER
+	closesocket(rsock);
+#else
+	close(rsock);
+#endif
 }
