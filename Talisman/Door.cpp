@@ -341,7 +341,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 				if (ret > 0) {
 					if (FD_ISSET(door_in, &fdset)) {
 						len = read(door_in, inbuf, 256);
-						if (len == 0) {
+						if (len <= 0) {
 							close(master);
 							for (int i=0;i<args.size() + 1;i++) {
 								free(argv[i]);
