@@ -323,7 +323,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		} else {
 			flush = false;
 			gotiac = 0;
-			while(running_door || !flush) {
+			while(running_door || flush) {
 				FD_ZERO(&fdset);
 				FD_SET(master, &fdset);
 				FD_SET(door_in, &fdset);
@@ -341,7 +341,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 				if (ret > 0) {
 					if (FD_ISSET(door_in, &fdset)) {
 						len = read(door_in, inbuf, 256);
-						if (len <= 0) {
+						if (len == 0) {
 							close(master);
 							for (int i=0;i<args.size() + 1;i++) {
 								free(argv[i]);
@@ -356,9 +356,6 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 								if (c == '\n' || c == '\0') {
 									continue;
 								}
-							}
-							if (!running_door) {
-								continue;
 							}
 
 							if (c == 255 && n->is_telnet()) {
@@ -434,7 +431,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 					}
 				} else {
 					if (!running_door) {
-						flush = true;
+						flush = !flush;
 					}
 				}
 			}

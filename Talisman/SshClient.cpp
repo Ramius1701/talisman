@@ -217,4 +217,10 @@ void SshClient::do_run() {
 	ssh_event_remove_session(ev, p_ssh_session);
 
 	ssh_event_free(ev);
+
+#ifdef _MSC_VER
+	closesocket(rsock);
+#else
+	close(rsock);
+#endif
 }
