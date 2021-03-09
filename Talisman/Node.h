@@ -4,6 +4,7 @@
 #endif
 #include <string>
 #include <filesystem>
+#include <thread>
 #include "Config.h"
 #include "User.h"
 
@@ -11,6 +12,7 @@ class Bulletins;
 class Logger;
 class CallLog;
 class FileArea;
+class SshClient;
 
 struct tagged_file_t {
 	std::string filename;
@@ -84,6 +86,8 @@ public:
 	int override_width;
 	int override_height;
 	int override_on;
+	SshClient* sshc;
+	std::thread* ssht;
 
 	std::vector<struct tagged_file_t> tagged_files;
 private:
@@ -105,6 +109,8 @@ private:
 	int timeoutmax;
 	int term_width;
 	int term_height;
+
+
 #ifdef _MSC_VER
 	HANDLE hOutput;
 #endif

@@ -209,7 +209,6 @@ int main(int argc, char** argv) {
 						std::thread t([&sshc, rsock]() {
 							sshc->run(rsock);
 							});
-						t.detach();
 						int new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
 #ifdef _MSC_VER
 						closesocket(listener);
@@ -219,6 +218,8 @@ int main(int argc, char** argv) {
 						Node n(node, new_sock, false);
 						n.set_term_width(sshc->term_width);
 						n.set_term_height(sshc->term_height);
+						n.sshc = sshc;
+						n.ssht = &t;
 						ret = n.run(&sshc->username, &sshc->password);
 					}
 				}
@@ -229,12 +230,6 @@ int main(int argc, char** argv) {
 		Node n(node, sock, telnet);
 		ret = n.run();
 	}
-#ifdef _MSC_VER
-	SetConsoleMode(hInput, in_prev_mode);
-	closesocket(sock);
-#else
-	close(sock);
-#endif
-	
+
 	return ret;
 }

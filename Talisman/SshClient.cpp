@@ -94,7 +94,6 @@ void SshClient::run(int rsock) {
 #else
 	close(csock);
 #endif
-	delete this;
 }
 
 bool SshClient::do_auth() {

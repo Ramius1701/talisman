@@ -66,6 +66,8 @@ Node::Node(int node, int socket, bool telnet) {
 	override_on = -1;
 	override_width = 0;
 	override_height = 0;
+	sshc = nullptr;
+	ssht = nullptr;
 #ifdef _MSC_VER
 	hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
@@ -1397,13 +1399,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	cls();
 	send_gfile("goodbye");
 	log->log(LOG_INFO, "Node %d logged off (graceful)", node);
-	clog->log_off();
-	std::filesystem::path nusep(config.tmp_path());
 
-	nusep.append(std::to_string(node));
-	nusep.append("node.use");
-
-	std::filesystem::remove(nusep);
+	disconnected();
 
 	return 0;
 }
@@ -1413,6 +1410,21 @@ void Node::disconnected() {
 		clog->log_off();
 	}
 
+	if (sshc != nullptr) {
+#ifdef _MSC_VER
+		closesocket(socket);
+#else
+		close(socket);
+#endif
+		ssht->join();
+	}
+	else {
+#ifdef _MSC_VER
+		closesocket(socket);
+#else
+		close(socket);
+#endif
+	}
 	std::filesystem::path nusep(config.tmp_path());
 
 	nusep.append(std::to_string(node));
