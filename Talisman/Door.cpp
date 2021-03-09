@@ -250,7 +250,6 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 	int door_out;
 	struct winsize ws;
 	struct sigaction sa;
-	bool flush;
 	int t;
 	fd_set fdset;
 	int master;
@@ -321,9 +320,8 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 			execvp(command.c_str(), argv);
 			exit(0);
 		} else {
-			flush = false;
 			gotiac = 0;
-			while(running_door || flush) {
+			while(running_door) {
 				FD_ZERO(&fdset);
 				FD_SET(master, &fdset);
 				FD_SET(door_in, &fdset);
@@ -428,10 +426,6 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 							outbuf[g++] = c;
 						}
 						write(door_out, outbuf, g);
-					}
-				} else {
-					if (!running_door) {
-						flush = !flush;
 					}
 				}
 			}

@@ -41,10 +41,11 @@ static int ssh_copy_fd_to_chan(socket_t fd, int revents, void* userdata) {
 			sz = -1;
 		}
 	}
-	if (revents & POLLHUP) {
+	if (revents & (POLLHUP | POLLERR | POLLNVAL)) {
 		ssh_channel_close(chan);
 		sz = -1;
 	}
+
 	return sz;
 }
 
@@ -210,7 +211,7 @@ void SshClient::do_run() {
 
 	do {
 		ssh_event_dopoll(ev, 1000);
-	} while (!ssh_channel_is_closed(chan) && ssh_is_connected(p_ssh_session));
+	} while (!ssh_channel_is_closed(chan));
 
 	ssh_event_remove_fd(ev, rsock);
 
