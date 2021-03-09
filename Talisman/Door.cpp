@@ -322,6 +322,11 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 		} else {
 			gotiac = 0;
 			while(running_door) {
+				if (door_in == -1) {
+					// ssh client disconnected, closed the socket on us.
+					return false;
+				}
+
 				FD_ZERO(&fdset);
 				FD_SET(master, &fdset);
 				FD_SET(door_in, &fdset);
@@ -430,7 +435,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 				} else {
 					if (ret == -1) {
 						if (errno != EINTR) {
-							n->disconnected();
+							return false;
 						}
 					}
 				}
