@@ -206,10 +206,12 @@ int main(int argc, char** argv) {
 #endif
 							return -1;
 						}
-						std::thread t([&sshc, rsock]() {
+						int new_sock = -1;
+						std::thread t([&sshc, rsock, &new_sock]() {
 							sshc->run(rsock);
+							close(new_sock);	
 							});
-						int new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
+						new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
 #ifdef _MSC_VER
 						closesocket(listener);
 #else

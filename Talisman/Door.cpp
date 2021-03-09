@@ -427,6 +427,12 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 						}
 						write(door_out, outbuf, g);
 					}
+				} else {
+					if (ret == -1) {
+						if (errno != EINTR) {
+							n->disconnected();
+						}
+					}
 				}
 			}
 		}
