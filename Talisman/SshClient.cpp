@@ -24,11 +24,6 @@ static int ssh_copy_fd_to_chan(socket_t fd, int revents, void* userdata) {
 	int sz = 0;
 
 	if (!chan) {
-#ifdef _MSC_VER
-		closesocket(fd);
-#else
-		close(fd);
-#endif
 		return -1;
 	}
 	if (revents & POLLIN) {
@@ -69,21 +64,18 @@ static void ssh_chan_close(ssh_session session, ssh_channel channel, void* userd
 	SshClient* sshc = (SshClient*)userdata;
 	(void)session;
 	(void)channel;
-#ifdef _MSC_VER
-	closesocket(sshc->rsock);
-#else
-	close(sshc->rsock);
-#endif
 }
 
-void SshClient::run(int rsock) {
-	this->rsock = rsock;
+void SshClient::run() {
 	do_run();
 
 	if (rsock != -1) {
+		
 #ifdef _MSC_VER
+		shutdown(rsock, SD_BOTH);
 		closesocket(rsock);
 #else
+		shutdown(rsock, SHUT_RDWR)
 		close(rsock);
 #endif
 	}
@@ -98,7 +90,6 @@ void SshClient::run(int rsock) {
 
 bool SshClient::do_auth() {
 	ssh_message msg;
-	struct sockaddr_in serv_addr;
 
 	if (ssh_handle_key_exchange(p_ssh_session)) {
 		return false;
@@ -217,9 +208,4 @@ void SshClient::do_run() {
 	ssh_event_remove_session(ev, p_ssh_session);
 
 	ssh_event_free(ev);
-#ifdef _MSC_VER
-	closesocket(rsock);
-#else
-	close(rsock);
-#endif
 }

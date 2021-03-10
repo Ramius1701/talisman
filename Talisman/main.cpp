@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
 							return -1;
 						}
 
-						if (listen(listener, 5) < 0) {
+						if (listen(listener, 2) < 0) {
 #ifdef _MSC_VER
 							SetConsoleMode(hInput, in_prev_mode);
 							closesocket(sock);
@@ -197,26 +197,34 @@ int main(int argc, char** argv) {
 							return -1;
 						}
 						int rsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-						if (connect(rsock, (sockaddr*)&sa, addr_len) < 0) {
-#ifdef _MSC_VER
-							SetConsoleMode(hInput, in_prev_mode);
-							closesocket(sock);
-#else
-							close(sock);
-#endif
-							return -1;
-						}
+
 						int new_sock = -1;
-						std::thread t([&sshc, rsock, &new_sock]() {
-							sshc->run(rsock);
-							close(new_sock);	
-							});
+
+						sshc->rsock = rsock;
+						sshc->csock = sock;
+
+						std::thread t([&sshc, &sa, addr_len]() {
+							if (connect(sshc->rsock, (sockaddr*)&sa, addr_len) < 0) {
+#ifdef _MSC_VER
+								closesocket(sshc->csock);
+#else
+								close(sshc->csock);
+#endif
+								return;
+							}
+							sshc->run();
+							std::cout << "Thread finished" << std::endl;
+						});
+						t.detach();
 						new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
 #ifdef _MSC_VER
 						closesocket(listener);
 #else
 						close(listener);
 #endif
+						if (new_sock == -1) {
+							return -1;
+						}
 						Node n(node, new_sock, false);
 						n.set_term_width(sshc->term_width);
 						n.set_term_height(sshc->term_height);

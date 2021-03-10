@@ -1409,22 +1409,11 @@ void Node::disconnected() {
 	if (clog != nullptr) {
 		clog->log_off();
 	}
-
-	if (sshc != nullptr) {
 #ifdef _MSC_VER
-		closesocket(socket);
+	closesocket(socket);
 #else
-		close(socket);
+	close(socket);
 #endif
-		ssht->join();
-	}
-	else {
-#ifdef _MSC_VER
-		closesocket(socket);
-#else
-		close(socket);
-#endif
-	}
 	std::filesystem::path nusep(config.tmp_path());
 
 	nusep.append(std::to_string(node));

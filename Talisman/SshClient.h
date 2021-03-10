@@ -19,7 +19,7 @@ public:
 	int term_width;
 	int term_height;
 
-	void run(int rsock);
+	void run();
 	SshClient();
 	~SshClient();
 	bool do_auth();
