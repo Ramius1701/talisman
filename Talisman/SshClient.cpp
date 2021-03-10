@@ -75,7 +75,7 @@ void SshClient::run() {
 		shutdown(rsock, SD_BOTH);
 		closesocket(rsock);
 #else
-		shutdown(rsock, SHUT_RDWR)
+		shutdown(rsock, SHUT_RDWR);
 		close(rsock);
 #endif
 	}
