@@ -213,7 +213,6 @@ int main(int argc, char** argv) {
 								return;
 							}
 							sshc->run();
-							std::cout << "Thread finished" << std::endl;
 						});
 						t.detach();
 						new_sock = accept(listener, (sockaddr*)&sa, &addr_len);
