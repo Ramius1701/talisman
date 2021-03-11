@@ -503,7 +503,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		}
 	}
 
-	n->print_f_nc("\x1b[22;1H\x1b[K\x1b[1;37mQuote From Line #: \x1b[0m");
+	n->print_f_nc("\x1b[%d;1H\x1b[K\x1b[1;37mQuote From Line #: \x1b[0m", n->get_term_height() - 3);
 	std::string from = n->get_string(5, false);
 	int from_num;
 	try {
@@ -513,7 +513,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		return content;
 	}
 
-	n->print_f_nc("\x1b[23;1H\x1b[K\x1b[1;37m  Quote To Line #: \x1b[0m");
+	n->print_f_nc("\x1b[%d;1H\x1b[K\x1b[1;37m  Quote To Line #: \x1b[0m", n->get_term_height() - 2);
 	std::string to = n->get_string(5, false);
 	int to_num;
 	try {
@@ -539,7 +539,7 @@ std::vector<std::string> FullScreenEditor::edit() {
 	FullScreenBuffer fsb(n);
 	n->print_f("\x1b[?25h");
 	n->cls();
-	n->print_f_nc("\x1b[1;37;41mTalisman/FSE CTRL-Z for Menu\x1b[K\r\n");
+	n->print_f_nc("%sTalisman/FSE CTRL-Z for Menu\x1b[K\r\n", n->get_config()->get_prompt_colour());
 	n->print_f_nc("\x1b[0;30;47m  Subject: %s\x1b[K\r\n", subject.c_str());
 	n->print_f_nc("\x1b[0;30;47m       To: %s\x1b[K\x1b[0m\r\n", to.c_str());
 

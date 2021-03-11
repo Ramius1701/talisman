@@ -98,9 +98,9 @@ Name: "{app}\dist\scripts"
 
 [Icons]
 Name: "{group}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"
+Name: "{group}\{#MyAppName} (Documentation)"; Filename: "https://talismandocs.com/docs/"
 Name: "{commondesktop}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{commondesktop}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName} (Documentation)"; Filename: "https://talismandocs.com/docs/"; Tasks: desktopicon
 
 [Code]
 var

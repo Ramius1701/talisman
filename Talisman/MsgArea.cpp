@@ -1715,7 +1715,7 @@ int MsgArea::list_messages_full(int start) {
 	while (true) {
 		if (redraw) {
 			n->cls();
-			n->print_f("\x1b[1;1H\x1b[1;41;37m Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m");
+			n->print_f("\x1b[1;1H%s Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
 
 			for (int i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
 				if (msgs.at(i).msgno <= lr) {
@@ -1736,7 +1736,7 @@ int MsgArea::list_messages_full(int start) {
 				}
 			}
 
-			n->print_f("\x1b[%d;1H\x1b[1;41;37mUp/Down to Move, Enter to Select, Q to Quit\x1b[K\x1b[0;40;37m", n->get_term_height() - 1);
+			n->print_f("\x1b[%d;1H%sUp/Down to Move, Enter to Select, Q to Quit\x1b[K\x1b[0;40;37m", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 			redraw = false;
 		}
 
