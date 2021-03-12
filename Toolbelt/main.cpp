@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <algorithm>
 #include "INIReader.h"
 #include "User.h"
 #include "Files.h"
@@ -9,6 +11,25 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
+
+static inline void ltrim(std::string& s) {
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string& s) {
+	ltrim(s);
+	rtrim(s);
+}
 
 int main(int argc, char** argv) {
 	INIReader inir("talisman.ini");
@@ -55,6 +76,67 @@ int main(int argc, char** argv) {
 					std::cout << "Done." << std::endl;
 				}
 				return 0;
+			}
+		}
+		else if (strcasecmp(argv[1], "uploadindex") == 0) {
+			std::string uploaded_by = "Unknown";
+			if (argc == 6) {
+				uploaded_by = std::string(argv[5]);
+			}
+
+			if (argc >= 5) {
+				std::ifstream infile;
+				std::filesystem::path folder(argv[3]);
+				std::string database = std::string(argv[4]);
+				std::vector<std::string> descr;
+
+				infile.open(argv[2]);
+				std::string line;
+				std::string file = "";
+				Files files;
+
+				while (std::getline(infile, line))
+				{
+
+					if (line[0] == ' ' || line[0] == '\t') {
+						// description extended from last filename
+						std::string d = line;
+						trim(d);
+						descr.push_back(d);
+					}
+					else {
+						if (file != "") {
+							// add file
+							std::filesystem::path fpath = folder;
+							fpath.append(file);
+							if (std::filesystem::exists(fpath)) {
+								files.insert_file(database, std::filesystem::absolute(fpath).u8string(), descr, uploaded_by);
+								std::cout << "Added: " << file << std::endl;
+							}
+							else {
+								std::cout << "Skipped: " << file << " (Missing) " << std::endl;
+							}
+						}
+						file = line.substr(0, line.find(' '));
+						std::string d = line.substr(line.find(' '));
+						trim(d);
+						descr.clear();
+						descr.push_back(d);
+					}
+				}
+				if (file != "") {
+					// add file
+					std::filesystem::path fpath = folder;
+					fpath.append(file);
+					if (std::filesystem::exists(fpath)) {
+						files.insert_file(database, std::filesystem::absolute(fpath).u8string(), descr, uploaded_by);
+						std::cout << "Added: " << file << std::endl;
+					}
+					else {
+						std::cout << "Skipped: " << file << " (Missing) " << std::endl;
+					}
+				}
+				infile.close();
 			}
 		}
 		else if (strcasecmp(argv[1], "uploadbulk") == 0) {
@@ -186,13 +268,14 @@ int main(int argc, char** argv) {
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
-		std::cerr << "   COMMAND password   ARGS username newpassword" << std::endl;
-		std::cerr << "   COMMAND seclevel   ARGS username newlevel" << std::endl;
-		std::cerr << "   COMMAND uploadbulk ARGS folder database [uploadedby]" << std::endl;
-		std::cerr << "   COMMAND filetrim   ARGS database" << std::endl;
-		std::cerr << "   COMMAND movefile   ARGS srcfilename destdir srcdatabase destdatabase" << std::endl;
-		std::cerr << "   COMMAND allfiles   ARGS sec_level outfile" << std::endl;
-		std::cerr << "   COMMAND newfiles   ARGS sec_level yyyy.mm.dd outfile" << std::endl;
-		std::cerr << "   COMMAND nodelistp  ARGS domain nodelist database" << std::endl;
+		std::cerr << "   COMMAND password    ARGS username newpassword" << std::endl;
+		std::cerr << "   COMMAND seclevel    ARGS username newlevel" << std::endl;
+		std::cerr << "   COMMAND uploadindex ARGS indexfile folder database [uploadedby]" << std::endl;
+		std::cerr << "   COMMAND uploadbulk  ARGS folder database [uploadedby]" << std::endl;
+		std::cerr << "   COMMAND filetrim    ARGS database" << std::endl;
+		std::cerr << "   COMMAND movefile    ARGS srcfilename destdir srcdatabase destdatabase" << std::endl;
+		std::cerr << "   COMMAND allfiles    ARGS sec_level outfile" << std::endl;
+		std::cerr << "   COMMAND newfiles    ARGS sec_level yyyy.mm.dd outfile" << std::endl;
+		std::cerr << "   COMMAND nodelistp   ARGS domain nodelist database" << std::endl;
 	}
 }
