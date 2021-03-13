@@ -679,7 +679,8 @@ char Node::getch() {
 					else if (stage == 3) {
 						if ((unsigned char)ch == 240) {
 							if (buffer[0] == NAWS) {
-								if (buffer[2] != term_width) {
+								// try and detect dodgy netrunner NAWS
+								if (buffer[2] != term_width && buffer[4] != 0) {
 									term_width = buffer[2];
 								}
 								if (buffer[4] != term_height && buffer[4] != 0) {
