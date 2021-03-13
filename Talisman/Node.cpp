@@ -113,6 +113,10 @@ int Node::get_term_height() {
 			return override_height;
 		}
 	}
+	if (term_height == 0) {
+		// dodgy term height
+		term_height = 24;
+	}
 	return term_height;
 }
 
@@ -156,7 +160,7 @@ void Node::pause() {
 }
 
 bool Node::detectANSI() {
-	print_f("\x1b[6n");
+	print_f("\x1b[s\x1b[999;999H\x1b[6n\x1b[u");
 	char buffer[1024];
 	timeval t;
 	time_t then = time(NULL);
@@ -166,6 +170,8 @@ bool Node::detectANSI() {
 	int len;
 	int gotnum = 0;
 	int gotnum1 = 0;
+	int w = 0;
+	int h = 0;
 	do {
 		fd_set fds;
 		FD_ZERO(&fds);
@@ -194,6 +200,12 @@ bool Node::detectANSI() {
 						case '7':
 						case '8':
 						case '9':
+							if (gotnum1) {
+								w = w * 10 + (buffer[j] - 10);
+							}
+							else {
+								h = h * 10 + (buffer[j] - 10);
+							}
 							gotnum = 1;
 							break;
 						case ';':
@@ -202,6 +214,10 @@ bool Node::detectANSI() {
 							break;
 						case 'R':
 							if (gotnum && gotnum1) {
+								if (w != term_width || h != term_height) {
+									term_width = w;
+									term_height = h;
+								}
 								return true;
 							}
 							break;
@@ -663,7 +679,6 @@ char Node::getch() {
 					else if (stage == 3) {
 						if ((unsigned char)ch == 240) {
 							if (buffer[0] == NAWS) {
-
 								term_width = buffer[2];
 								term_height = buffer[4];
 							}
