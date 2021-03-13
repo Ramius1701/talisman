@@ -42,7 +42,11 @@ int running_door;
 
 
 void doorchld_handler(int s) {
+	int tmperrno = errno;
+
 	while (waitpid(-1, NULL, WNOHANG) > 0);
+
+	errno = tmperrno;
 
 	running_door = 0;
 }

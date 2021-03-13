@@ -85,11 +85,6 @@ void Protocol::upload(Node* n, int socket, std::string uploadpath)
 
 	chdir(buffer);
 	if (!ret) {
-#ifdef _MSC_VER
-		closesocket(n->get_socket());
-#else
-		close(n->get_socket());
-#endif
 		n->disconnected();
 	}
 }
@@ -129,11 +124,6 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 			}
 		}
 		if (!Door::runExternal(n, cmd, args, true)) {
-#ifdef _MSC_VER
-			closesocket(n->get_socket());
-#else
-			close(n->get_socket());
-#endif
 			n->disconnected();
 		}	
 	}
@@ -160,11 +150,6 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 				}
 			}
 			if (!Door::runExternal(n, cmd, args, true)) {
-#ifdef _MSC_VER
-				closesocket(n->get_socket());
-#else
-				close(n->get_socket());
-#endif
 				n->disconnected();
 			}
 		}

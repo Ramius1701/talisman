@@ -201,21 +201,21 @@ bool User::open_database(std::string filename, sqlite3** db)
 	rc = sqlite3_exec(*db, create_users_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create user table: " << err_msg << std::endl;
-		free(err_msg);
+		sqlite3_free(err_msg);
 		sqlite3_close(*db);
 		return false;
 	}
 	rc = sqlite3_exec(*db, create_details_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
-		free(err_msg);
+		sqlite3_free(err_msg);
 		sqlite3_close(*db);
 		return false;
 	}
 	rc = sqlite3_exec(*db, create_lastread_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
-		free(err_msg);
+		sqlite3_free(err_msg);
 		sqlite3_close(*db);
 		return false;
 	}
@@ -223,7 +223,7 @@ bool User::open_database(std::string filename, sqlite3** db)
 	rc = sqlite3_exec(*db, create_subscription_sql, 0, 0, &err_msg);
 	if (rc != SQLITE_OK) {
 		//std::cerr << "Unable to create details table: " << err_msg << std::endl;
-		free(err_msg);
+		sqlite3_free(err_msg);
 		sqlite3_close(*db);
 		return false;
 	}

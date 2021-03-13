@@ -528,14 +528,8 @@ bool Menu::run() {
 #endif
 					Door::createDropfiles(n);
 					if (!Door::runExternal(n, items[i].data, arguments, false)) {
-#ifdef _MSC_VER
-						closesocket(n->get_socket());
-#else
-						close(n->get_socket());
-#endif
 						n->disconnected();
 					}
-
 					n->clog->ran_door();
 				}
 				else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
