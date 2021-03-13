@@ -201,10 +201,10 @@ bool Node::detectANSI() {
 						case '8':
 						case '9':
 							if (gotnum1) {
-								w = w * 10 + (buffer[j] - 10);
+								w = w * 10 + (buffer[j] - '0');
 							}
 							else {
-								h = h * 10 + (buffer[j] - 10);
+								h = h * 10 + (buffer[j] - '0');
 							}
 							gotnum = 1;
 							break;
