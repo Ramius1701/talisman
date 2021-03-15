@@ -1274,6 +1274,47 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		timeoutmax = 10;
 	}
 
+	// check if user still has access to their current file / mail areas...
+
+	int cur_msg_conf = stoi(u.get_attribute("cur_msg_conf", "-1"));
+	int cur_msg_area = stoi(u.get_attribute("cur_msg_area", "-1"));
+
+	if (config.msgconfs.at(cur_msg_conf).get_sec_level() > u.get_sec_level() || config.msgconfs.at(cur_msg_conf).areas.at(cur_msg_area).get_r_sec_level() > u.get_sec_level()) {
+
+		bool found = false;
+
+		for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
+			if (config.msgconfs.at(msgconf).get_sec_level() > u.get_sec_level()) continue;
+			for (size_t msgarea = 0; msgarea < config.msgconfs.at(msgconf).areas.size(); msgarea++) {
+				if (config.msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() > u.get_sec_level()) continue;
+				u.set_attribute("cur_msg_conf", std::to_string(msgconf));
+				u.set_attribute("cur_msg_area", std::to_string(msgarea));
+				found = true;
+				break;
+			}
+			if (found) break;
+		}
+	}
+
+	int cur_file_conf = stoi(u.get_attribute("cur_file_conf", "-1"));
+	int cur_file_area = stoi(u.get_attribute("cur_file_area", "-1"));
+
+	if (config.fileconfs.at(cur_file_conf).get_sec_level() > u.get_sec_level() || config.fileconfs.at(cur_file_conf).areas.at(cur_file_area).get_d_sec_level() > u.get_sec_level()) {
+		bool found = false;
+
+		for (size_t fileconf = 0; fileconf < config.fileconfs.size(); fileconf++) {
+			if (config.fileconfs.at(fileconf).get_sec_level() > u.get_sec_level()) continue;
+			for (size_t filearea = 0; filearea < config.fileconfs.at(fileconf).areas.size(); filearea++) {
+				if (config.fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > u.get_sec_level()) continue;
+				u.set_attribute("cur_file_conf", std::to_string(fileconf));
+				u.set_attribute("cur_file_area", std::to_string(filearea));
+				found = true;
+				break;
+			}
+			if (found) break;
+		}
+	}
+
 	u.set_attribute("last_on", std::to_string(time(NULL)));
 
 	if (login_pause) {

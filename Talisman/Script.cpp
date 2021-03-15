@@ -158,6 +158,14 @@ extern "C" int lua_BBSGetString(lua_State *L) {
 	return 1;
 }
 
+extern "C" int lua_BBSGetMaskedString(lua_State * L) {
+	int length = lua_tonumber(L, -1);
+
+	std::string str = lua_getNode(L)->get_string(length, true, true);
+	lua_pushstring(L, str.c_str());
+	return 1;
+}
+
 extern "C" int lua_BBSGetChar(lua_State *L) {
 	char c = lua_getNode(L)->getch();
 	lua_pushlstring(L, &c, 1);
@@ -237,6 +245,9 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_BBSGetString);
 	lua_setglobal(l, "bbs_read_string");
+
+	lua_pushcfunction(l, lua_BBSGetMaskedString);
+	lua_setglobal(l, "bbs_read_password");
 
 	lua_pushcfunction(l, lua_BBSGetChar);
 	lua_setglobal(l, "bbs_getchar");
