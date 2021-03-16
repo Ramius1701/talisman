@@ -456,7 +456,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		size_t preview_start = 0;
 
 		for (size_t i = preview_start; i < to_quote.size(); i++) {
-			n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", i + 4, to_quote.at(i).c_str());
+			n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 4, to_quote.at(i).c_str());
 		}
 
 		for (size_t i = start; i < start + (n->get_term_height() - 4) / 2 - 1 && i < quotelines.size(); i++) {
@@ -504,7 +504,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 					start++;
 				}
 			}
-			if (to_quote.size() - preview_start > ((n->get_term_height() - 4) / 2)) {
+			if (to_quote.size() - preview_start > (((n->get_term_height() - 4) / 2) - 1) {
 				preview_start++;
 			}
 		}
