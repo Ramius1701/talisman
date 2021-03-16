@@ -486,7 +486,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 				if (selected < start) {
 					start = selected;
 				}
-				else if (selected > start + ((n->get_term_height() - 4) / 2) - 1) {
+				else if (selected >= start + ((n->get_term_height() - 4) / 2) - 1) {
 					start++;
 				}
 
