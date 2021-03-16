@@ -445,6 +445,7 @@ FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject,
 std::vector<std::string> FullScreenEditor::do_quote() {
 	size_t start = 0;
 	size_t selected = 0;
+	size_t preview_start = 0;
 
 	std::vector<std::string> to_quote;
 
@@ -452,8 +453,6 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		n->print_f_nc("\x1b[4;1H\x1b[J");
 
 		n->print_f_nc("\x1b[%d;1H%sSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K", ((n->get_term_height() - 4) / 2) + 4, n->get_config()->get_prompt_colour());
-
-		size_t preview_start = 0;
 
 		for (size_t i = preview_start; i < to_quote.size(); i++) {
 			n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - preview_start) + 4, to_quote.at(i).c_str());
