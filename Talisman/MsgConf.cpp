@@ -162,18 +162,18 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 			for (size_t i = start; i - start < n->get_term_height() - 2 && i < areas.size(); i++) {
 				if (i == selected) {
 					if (area_entries.at(i).new_msgs > 0) {
-						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12, area_entries.at(i).new_msgs);
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 10, area_entries.at(i).new_msgs);
 					}
 					else {
-						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12);
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs);
 					}
 				}
 				else {
 					if (area_entries.at(i).new_msgs > 0) {
-						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12, area_entries.at(i).new_msgs);
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 10, area_entries.at(i).new_msgs);
 					}
 					else {
-						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12);
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs);
 					}
 				}
 			}
@@ -188,35 +188,35 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 				if (c == 'A') {
 					if (selected > 0) {
 						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
 						}
 						selected--;
 						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
 						}
 					}
 				}
 				else if (c == 'B') {
 					if (selected < area_entries.size() - 1) {
 						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
 						}
 
 						selected++;
 						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
 						}
 					}
 
