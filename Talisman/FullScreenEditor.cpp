@@ -504,7 +504,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 					start++;
 				}
 			}
-			if (to_quote.size() - preview_start > (((n->get_term_height() - 4) / 2) - 1) {
+			if (to_quote.size() - preview_start > ((n->get_term_height() - 4) / 2) - 1) {
 				preview_start++;
 			}
 		}
