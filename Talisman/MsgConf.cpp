@@ -210,7 +210,7 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < area_entries.size() - 1) {
+					if (selected < area_entries.size() - 2) {
 						if (selected + 1 >= start + (n->get_term_height() - 2) - 1) {
 							selected++;
 							start++;
@@ -375,7 +375,7 @@ int MsgConf::list_fsr(Node* n, int sec) {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < n->get_config()->msgconfs.size() - 1) {
+					if (selected < n->get_config()->msgconfs.size() - 2) {
 						if (selected + 1>= start + (n->get_term_height() - 2) - 1) {
 							selected++;
 							start++;
