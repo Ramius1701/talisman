@@ -348,54 +348,54 @@ public:
 						std::stringstream ss3;
 
 
-						ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
+ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
 
-						lines.at(line_at + 1) = ss3.str();
-						rewrap(line_at + 1);
+lines.at(line_at + 1) = ss3.str();
+rewrap(line_at + 1);
 					}
 					else {
-						lines.insert(lines.begin() + line_at + 1, ss2.str());
+					lines.insert(lines.begin() + line_at + 1, ss2.str());
 					}
 					col_at -= last_space;
 					line_at++;
 				}
 				else {
-					ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at, last_space - col_at);
-					ss2 << lines.at(line_at).substr(last_space + 1);
+				ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at, last_space - col_at);
+				ss2 << lines.at(line_at).substr(last_space + 1);
 
-					lines.at(line_at) = ss.str();
+				lines.at(line_at) = ss.str();
 
-					if (line_at < lines.size() - 1 && lines.at(line_at + 1).size() > 0) {
-						std::stringstream ss3;
+				if (line_at < lines.size() - 1 && lines.at(line_at + 1).size() > 0) {
+					std::stringstream ss3;
 
 
-						ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
+					ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
 
-						lines.at(line_at + 1) = ss3.str();
-						rewrap(line_at + 1);
-					}
-					else {
-						lines.insert(lines.begin() + line_at + 1, ss2.str());
-					}
+					lines.at(line_at + 1) = ss3.str();
+					rewrap(line_at + 1);
+				}
+				else {
+					lines.insert(lines.begin() + line_at + 1, ss2.str());
+				}
 
-					col_at++;
+				col_at++;
 				}
 			}
 			else {
-				if (col_at > 74) {
-					ss << lines.at(line_at).substr(0, 74);
-					ss2 << lines.at(line_at).substr(74, col_at - 74) << c;
-					lines.at(line_at) = ss.str();
-					lines.insert(lines.begin() + line_at + 1, ss2.str());
-					col_at = col_at - 74;
-					line_at++;
-				}
-				else {
-					ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at, 74 - col_at);
-					ss2 << lines.at(line_at).substr(74);
-					lines.at(line_at) = ss.str();
-					lines.insert(lines.begin() + line_at + 1, ss2.str());
-				}
+			if (col_at > 74) {
+				ss << lines.at(line_at).substr(0, 74);
+				ss2 << lines.at(line_at).substr(74, col_at - 74) << c;
+				lines.at(line_at) = ss.str();
+				lines.insert(lines.begin() + line_at + 1, ss2.str());
+				col_at = col_at - 74;
+				line_at++;
+			}
+			else {
+				ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at, 74 - col_at);
+				ss2 << lines.at(line_at).substr(74);
+				lines.at(line_at) = ss.str();
+				lines.insert(lines.begin() + line_at + 1, ss2.str());
+			}
 			}
 			if (line_at > 0) {
 				if (line_at >= top + n->get_term_height() - 5) {
@@ -412,13 +412,13 @@ public:
 			update_cursor();
 		}
 		else {
-			ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at);
-			lines.at(line_at) = ss.str();
-			col_at++;
-			refresh_line(line_at);
-			update_cursor();
+		ss << lines.at(line_at).substr(0, col_at) << c << lines.at(line_at).substr(col_at);
+		lines.at(line_at) = ss.str();
+		col_at++;
+		refresh_line(line_at);
+		update_cursor();
 		}
-		
+
 	}
 
 private:
@@ -429,7 +429,7 @@ private:
 	int top = 0;
 };
 
-FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string> *quotelines) {
+FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines) {
 	reply = true;
 	this->to = to;
 	this->subject = subject;
@@ -442,6 +442,71 @@ FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject,
 	this->n = n;
 }
 
+std::vector<std::string> FullScreenEditor::do_quote() {
+	size_t start = 0;
+	size_t selected = 0;
+
+	std::vector<std::string> to_quote;
+
+	while (true) {
+		n->print_f_nc("\x1b[4;1H\x1b[J");
+
+		n->print_f_nc("\x1b[%d;1H%sSelect Quote with SPACE, C to Cancel, Q to Quit\x1b[K", ((n->get_term_height() - 4) / 2) + 4, n->get_config()->get_prompt_colour());
+
+		for (size_t i = 0; i < (n->get_term_height() - 4) / 2 && i < to_quote.size(); i++) {
+			n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", i + 4, to_quote.at(i).c_str());
+		}
+
+		for (size_t i = start; i < start + (n->get_term_height() - 4) / 2 - 1 && i < quotelines.size(); i++) {
+			if (i == selected) {
+				n->print_f_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K", i + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+			}
+			else {
+				n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", i + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+			}
+		}
+
+		char c = n->getch();
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					if (selected > 0) {
+						selected--;
+					}
+				}
+				else if (c == 'B') {
+					if (selected < quotelines.size() - 1) {
+						selected++;
+					}
+				}
+
+				if (selected < start) {
+					start = selected;
+				}
+				else if (selected > start + ((n->get_term_height() - 4) / 2) - 1) {
+					start++;
+				}
+
+
+				continue;
+			}
+		}
+		else if (c == ' ') {
+			to_quote.push_back(quotelines.at(selected));
+		}
+		else if (tolower(c) == 'q') {
+			return to_quote;
+		}
+		else if (tolower(c) == 'c') {
+			to_quote.clear();
+			return to_quote;
+		}
+	}
+}
+/*
 std::vector<std::string> FullScreenEditor::do_quote() {
 	std::vector<std::string> content;
 	bool stop = false;
@@ -534,6 +599,8 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
 	return content;
 }
+
+*/
 
 std::vector<std::string> FullScreenEditor::edit() {
 	FullScreenBuffer fsb(n);
