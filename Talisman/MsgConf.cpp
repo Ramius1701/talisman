@@ -102,7 +102,147 @@ bool MsgConf::load(Node *n, std::string filename) {
 	return true;
 }
 
-int MsgConf::list_areas(Node* n, int sec)
+struct area_list_entry_t {
+	std::string name;
+	int total_msgs;
+	int new_msgs;
+};
+
+
+int MsgConf::list_areas(Node* n, int sec) {
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
+	if (fsr == false || !n->hasANSI) {
+		return list_areas_old(n, sec);
+	}
+	else {
+		return list_areas_fsr(n, sec);
+	}
+}
+
+int MsgConf::list(Node* n, int sec) {
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
+	if (fsr == false || !n->hasANSI) {
+		return list_old(n, sec);
+	}
+	else {
+		return list_fsr(n, sec);
+	}
+}
+
+
+int MsgConf::list_areas_fsr(Node* n, int sec) {
+	std::vector<struct area_list_entry_t> area_entries;
+	uint32_t selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+	for (size_t i = 0; i < areas.size(); i++) {
+		if (areas.at(i).get_r_sec_level() > sec) continue;
+		struct area_list_entry_t entry;
+
+		int lr = n->get_user().user_get_lastread(areas.at(i).get_file());
+
+		entry.name = areas.at(i).get_name();
+		entry.total_msgs = areas.at(i).get_total_msgs();
+		entry.new_msgs = areas.at(i).get_total_msgs() - lr;
+
+		area_entries.push_back(entry);
+	}
+
+	if (selected == -1 || selected >= areas.size()) {
+		selected = 0;
+	}
+
+	bool redraw = true;
+	int start = 0;
+
+	while (true) {
+		if (redraw) {
+			n->cls();
+			n->print_f("\x1b[1;1H%sAreas in conference: %s\x1b[K", n->get_config()->get_prompt_colour(), name.c_str());
+			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
+
+			for (size_t i = start; i - start < n->get_term_height() - 2 && i < areas.size(); i++) {
+				if (i == selected) {
+					if (area_entries.at(i).new_msgs > 0) {
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12, area_entries.at(i).new_msgs);
+					}
+					else {
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12);
+					}
+				}
+				else {
+					if (area_entries.at(i).new_msgs > 0) {
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12, area_entries.at(i).new_msgs);
+					}
+					else {
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 12);
+					}
+				}
+			}
+			redraw = false;
+		}
+		char c = n->getch();
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					if (selected > 0) {
+						if (area_entries.at(selected).new_msgs > 0) {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+						}
+						selected--;
+						if (area_entries.at(selected).new_msgs > 0) {
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+						}
+					}
+				}
+				else if (c == 'B') {
+					if (selected < area_entries.size() - 1) {
+						if (area_entries.at(selected).new_msgs > 0) {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+						}
+
+						selected++;
+						if (area_entries.at(selected).new_msgs > 0) {
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12, area_entries.at(selected).new_msgs);
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 12);
+						}
+					}
+
+
+				}
+
+				if (selected < start) {
+					start = selected;
+					redraw = true;
+				}
+				else if (selected >= start + ((n->get_term_height() - 4) / 2) - 1) {
+					start++;
+					redraw = true;
+				}
+				continue;
+			}
+		}
+		else if (c == '\r') {
+			n->print_f("\x1b[0m");
+			return selected + 1;
+		}
+
+	}
+}
+
+int MsgConf::list_areas_old(Node* n, int sec)
 {
 	Config *c = n->get_config();
 	int cur_area = 1;
@@ -175,7 +315,78 @@ int MsgConf::list_areas(Node* n, int sec)
 	return 0;
 }
 
-int MsgConf::list(Node* n, int sec)
+
+int MsgConf::list_fsr(Node* n, int sec) {
+	uint32_t selected = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+
+	if (selected == -1 || selected >= n->get_config()->msgconfs.size()) {
+		selected = 0;
+	}
+
+	bool redraw = true;
+	int start = 0;
+
+	while (true) {
+		if (redraw) {
+			n->cls();
+			n->print_f("\x1b[1;1H%sConferences Available\x1b[K", n->get_config()->get_prompt_colour());
+			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
+
+			for (size_t i = start; i - start < n->get_term_height() - 2 && i < n->get_config()->msgconfs.size(); i++) {
+				if (i == selected) {
+					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
+				}
+				else {
+					n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
+				}
+			}
+			redraw = false;
+		}
+		char c = n->getch();
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					if (selected > 0) {
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+						selected--;
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+					}
+				}
+				else if (c == 'B') {
+					if (selected < n->get_config()->msgconfs.size() - 1) {
+						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+						selected++;
+						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+
+					}
+
+
+				}
+
+				if (selected < start) {
+					start = selected;
+					redraw = true;
+				}
+				else if (selected >= start + ((n->get_term_height() - 4) / 2) - 1) {
+					start++;
+					redraw = true;
+				}
+				continue;
+			}
+		}
+		else if (c == '\r') {
+			n->print_f("\x1b[0m");
+			return selected + 1;
+		}
+
+	}
+}
+
+
+int MsgConf::list_old(Node* n, int sec)
 {
 	Config *c = n->get_config();
 	int lines = 0;
