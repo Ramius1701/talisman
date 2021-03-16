@@ -187,47 +187,57 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 				c = n->getch();
 				if (c == 'A') {
 					if (selected > 0) {
-						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+						if (selected - 1 < start) {
+							selected--;
+							start = selected;
+							redraw = true;
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
-						}
-						selected--;
-						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
-						}
-						else {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							if (area_entries.at(selected).new_msgs > 0) {
+								n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							}
+							selected--;
+							if (area_entries.at(selected).new_msgs > 0) {
+								n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							}
 						}
 					}
 				}
 				else if (c == 'B') {
 					if (selected < area_entries.size() - 1) {
-						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+						if (selected + 1 >= start + (n->get_term_height() - 2) - 1) {
+							selected++;
+							start++;
+							redraw = true;
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							if (area_entries.at(selected).new_msgs > 0) {
+								n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d\x1b[%d;%dH\x1b[1;33mNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							}
+
+							selected++;
+							if (area_entries.at(selected).new_msgs > 0) {
+								n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
+							}
+							else {
+								n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
+							}
 						}
 
-						selected++;
-						if (area_entries.at(selected).new_msgs > 0) {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs, (selected - start) + 2, n->get_term_width() - 10, area_entries.at(selected).new_msgs);
-						}
-						else {
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_msgs);
-						}
 					}
-
-
 				}
 
-				if (selected < start) {
-					start = selected;
-					redraw = true;
-				}
-				else if (selected >= start + (n->get_term_height() - 2) - 1) {
+
+				if (selected >= start + (n->get_term_height() - 2) - 1) {
 					start++;
 					redraw = true;
 				}
@@ -238,7 +248,9 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 			n->print_f("\x1b[0m");
 			return selected + 1;
 		}
-
+		else if (c == 'q' || c == 'Q') {
+			return -1;
+		}
 	}
 }
 
@@ -350,29 +362,33 @@ int MsgConf::list_fsr(Node* n, int sec) {
 				c = n->getch();
 				if (c == 'A') {
 					if (selected > 0) {
-						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
-						selected--;
-						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+						if (selected -1 < start) {
+							selected--;
+							start = selected;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+							selected--;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+						}
 					}
 				}
 				else if (c == 'B') {
 					if (selected < n->get_config()->msgconfs.size() - 1) {
-						n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
-						selected++;
-						n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
-
+						if (selected + 1>= start + (n->get_term_height() - 2) - 1) {
+							selected++;
+							start++;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+							selected++;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+						}
 					}
 
 
-				}
-
-				if (selected < start) {
-					start = selected;
-					redraw = true;
-				}
-				else if (selected >= start + (n->get_term_height() - 2) - 1) {
-					start++;
-					redraw = true;
 				}
 				continue;
 			}
@@ -380,6 +396,9 @@ int MsgConf::list_fsr(Node* n, int sec) {
 		else if (c == '\r') {
 			n->print_f("\x1b[0m");
 			return selected + 1;
+		}
+		else if (c == 'q' || c == 'Q') {
+			return -1;
 		}
 
 	}
