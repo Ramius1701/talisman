@@ -459,10 +459,10 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
 		for (size_t i = start; i < start + (n->get_term_height() - 4) / 2 - 1 && i < quotelines.size(); i++) {
 			if (i == selected) {
-				n->print_f_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K", i + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+				n->print_f_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K\x1b[0m", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
 			}
 			else {
-				n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", i + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
+				n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
 			}
 		}
 
@@ -496,6 +496,9 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		}
 		else if (c == ' ') {
 			to_quote.push_back(quotelines.at(selected));
+			if (selected < quotelines.size() - 1) {
+				selected++;
+			}
 		}
 		else if (tolower(c) == 'q') {
 			return to_quote;
