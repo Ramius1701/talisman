@@ -266,7 +266,7 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 			n->print_f("\x1b[1;1H%sFile areas in conference: %s\x1b[K", n->get_config()->get_prompt_colour(), name.c_str());
 			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
-			for (size_t i = start; i - start < n->get_term_height() - 3 && i < areas.size(); i++) {
+			for (size_t i = start; i - start < n->get_term_height() - 3 && i < area_entries.size(); i++) {
 				if (i == selected) {
 					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_files);
 				}
