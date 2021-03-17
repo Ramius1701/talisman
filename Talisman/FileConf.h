@@ -20,7 +20,11 @@ public:
 		return name;
 	}
 	int list_areas(Node* n, int sec);
+	int list_areas_old(Node* n, int sec);
+	int list_areas_fsr(Node* n, int sec);
 	static int list(Node* n, int sec);
+	static int list_old(Node* n, int sec);
+	static int list_fsr(Node* n, int sec);
 	std::vector<FileArea> areas;
 private:
 	std::string name;

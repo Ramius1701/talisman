@@ -78,6 +78,94 @@ bool FileConf::load(Node* n)
 }
 
 int FileConf::list(Node* n, int sec) {
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
+	if (fsr == false || !n->hasANSI) {
+		return list_old(n, sec);
+	}
+	else {
+		return list_fsr(n, sec);
+	}
+}
+
+int FileConf::list_fsr(Node* n, int sec) {
+	uint32_t selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+
+	if (selected == -1 || selected >= n->get_config()->fileconfs.size()) {
+		selected = 0;
+	}
+
+	bool redraw = true;
+	int start = 0;
+
+	while (true) {
+		if (redraw) {
+			n->cls();
+			n->print_f("\x1b[1;1H%sFile Conferences Available\x1b[K", n->get_config()->get_prompt_colour());
+			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
+
+			for (size_t i = start; i - start < n->get_term_height() - 3 && i < n->get_config()->fileconfs.size(); i++) {
+				if (i == selected) {
+					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->fileconfs.at(i).name.c_str());
+				}
+				else {
+					n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->fileconfs.at(i).name.c_str());
+				}
+			}
+			redraw = false;
+		}
+		char c = n->getch();
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					if (selected > 0) {
+						if (selected - 1 < start) {
+							selected--;
+							start = selected;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							selected--;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+						}
+					}
+				}
+				else if (c == 'B') {
+					if (selected < n->get_config()->fileconfs.size() - 1) {
+						if (selected + 1 >= start + (n->get_term_height() - 3) - 1) {
+							selected++;
+							start++;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							selected++;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+						}
+					}
+
+
+				}
+				continue;
+			}
+		}
+		else if (c == '\r') {
+			n->print_f("\x1b[0;40;37m");
+			return selected + 1;
+		}
+		else if (c == 'q' || c == 'Q') {
+			n->print_f("\x1b[0;40;37m");
+			return -1;
+		}
+
+	}
+}
+
+
+int FileConf::list_old(Node* n, int sec) {
 	Config* c = n->get_config();
 	int lines = 0;
 	int cur_conf = 1;
@@ -135,8 +223,110 @@ int FileConf::list(Node* n, int sec) {
 	}
 }
 
+struct filearea_list_entry_t {
+	std::string name;
+	int total_files;
+};
 
-int FileConf::list_areas(Node* n, int sec)
+int FileConf::list_areas(Node* n, int sec) 
+{
+	bool fsr = n->get_user().get_attribute("fullscreenreader", "true") == "true";
+	if (fsr == false || !n->hasANSI) {
+		return list_areas_old(n, sec);
+	}
+	else {
+		return list_areas_fsr(n, sec);
+	}
+}
+
+int FileConf::list_areas_fsr(Node* n, int sec)
+{
+	std::vector<struct filearea_list_entry_t > area_entries;
+	uint32_t selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+	for (size_t i = 0; i < areas.size(); i++) {
+		if (areas.at(i).get_d_sec_level() > sec) continue;
+		struct filearea_list_entry_t entry;
+
+		entry.name = areas.at(i).get_name();
+		entry.total_files = areas.at(i).get_total_files(n);
+
+		area_entries.push_back(entry);
+	}
+
+	if (selected == -1 || selected >= areas.size()) {
+		selected = 0;
+	}
+
+	bool redraw = true;
+	int start = 0;
+
+	while (true) {
+		if (redraw) {
+			n->cls();
+			n->print_f("\x1b[1;1H%sFile areas in conference: %s\x1b[K", n->get_config()->get_prompt_colour(), name.c_str());
+			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
+
+			for (size_t i = start; i - start < n->get_term_height() - 3 && i < areas.size(); i++) {
+				if (i == selected) {
+					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_files);
+				}
+				else {
+					n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (i - start) + 2, area_entries.at(i).name.c_str(), (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_files);
+				}
+			}
+			redraw = false;
+		}
+		char c = n->getch();
+
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') {
+					if (selected > 0) {
+						if (selected - 1 < start) {
+							selected--;
+							start = selected;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_files);
+							selected--;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_files);
+						}
+					}
+				}
+				else if (c == 'B') {
+					if (selected < area_entries.size() - 1) {
+						if (selected + 1 >= start + (n->get_term_height() - 3) - 1) {
+							selected++;
+							start++;
+							redraw = true;
+						}
+						else {
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K\x1b[%d;%dH\x1b[1;32mTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_files);
+							selected++;
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d", (selected - start) + 2, area_entries.at(selected).name.c_str(), (selected - start) + 2, n->get_term_width() - 24, area_entries.at(selected).total_files);
+						}
+					}
+				}
+			}
+			continue;
+				
+		}
+		else if (c == '\r') {
+			n->print_f("\x1b[0;40;37m");
+			return selected + 1;
+		}
+		else if (c == 'q' || c == 'Q') {
+			n->print_f("\x1b[0;40;37m");
+			return -1;
+		}
+	}
+}
+
+
+int FileConf::list_areas_old(Node* n, int sec)
 {
 	Config* c = n->get_config();
 	int cur_area = 1;
