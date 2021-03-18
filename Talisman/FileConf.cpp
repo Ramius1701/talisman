@@ -124,7 +124,10 @@ int FileConf::list_fsr(Node* n, int sec) {
 					if (selected > 0) {
 						if (selected - 1 < start) {
 							selected--;
-							start = selected;
+							start = (selected - (n->get_term_height() - 3));
+							if (start < 0) {
+								start = 0;
+							}
 							redraw = true;
 						}
 						else {
@@ -288,7 +291,10 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 					if (selected > 0) {
 						if (selected - 1 < start) {
 							selected--;
-							start = selected;
+							start = (selected - (n->get_term_height() - 3));
+							if (start < 0) {
+								start = 0;
+							}
 							redraw = true;
 						}
 						else {
