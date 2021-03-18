@@ -147,17 +147,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Dupe.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Scanner.cpp" />
-    <ClCompile Include="Squish.cpp" />
     <ClCompile Include="TicProc.cpp" />
     <ClCompile Include="Tosser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Dupe.h" />
@@ -167,7 +168,6 @@
     <ClInclude Include="PacketStructs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
-    <ClInclude Include="Squish.h" />
     <ClInclude Include="TicProc.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="Tosser.h" />

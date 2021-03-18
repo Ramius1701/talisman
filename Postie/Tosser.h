@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Squish.h"
+#include "../Common/Squish.h"
 
 class Tosser
 {

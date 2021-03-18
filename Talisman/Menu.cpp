@@ -25,7 +25,7 @@
 #include "Archiver.h"
 #include "Qwk.h"
 #include "Nodelist.h"
-#include "Squish.h"
+#include "../Common/Squish.h"
 
 Menu::Menu(Node *n)
 {

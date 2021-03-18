@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-#include "Squish.h"
+#include "../Common/Squish.h"
 
 class Archiver;
 

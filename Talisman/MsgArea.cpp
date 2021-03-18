@@ -12,7 +12,7 @@
 
 #include "GenDefs.h"
 #include "MsgArea.h"
-#include "Squish.h"
+#include "../Common/Squish.h"
 #include "Node.h"
 #include "CallLog.h"
 #include "Door.h"

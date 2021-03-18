@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "Squish.h"
+#include "../Common/Squish.h"
 class Node;
 
 class MsgArea

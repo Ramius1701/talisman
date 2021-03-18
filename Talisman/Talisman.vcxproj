@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Bulletins.cpp" />
     <ClCompile Include="CallLog.cpp" />
@@ -167,11 +168,11 @@
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="Squish.cpp" />
     <ClCompile Include="SshClient.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Bulletins.h" />
     <ClInclude Include="CallLog.h" />
@@ -195,7 +196,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="Settings.h" />
-    <ClInclude Include="Squish.h" />
     <ClInclude Include="SshClient.h" />
     <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />

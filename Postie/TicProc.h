@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <sqlite3.h>
-#include "Squish.h"
+#include "../Common/Squish.h"
 
 struct ticfile_t {
 	std::string area;

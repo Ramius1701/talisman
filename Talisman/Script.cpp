@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "User.h"
 #include "Logger.h"
-#include "Squish.h"
+#include "../Common/Squish.h"
 
 extern "C" {
 #include "lua.h"
