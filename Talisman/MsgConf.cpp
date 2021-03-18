@@ -213,7 +213,7 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 					if (selected < area_entries.size() - 1) {
 						if (selected + 1 >= start + (n->get_term_height() - 3) - 1) {
 							selected++;
-							start++;
+							start = selected;
 							redraw = true;
 						}
 						else {
@@ -373,7 +373,7 @@ int MsgConf::list_fsr(Node* n, int sec) {
 					if (selected < n->get_config()->msgconfs.size() - 1) {
 						if (selected + 1>= start + (n->get_term_height() - 3) - 1) {
 							selected++;
-							start++;
+							start = selected;
 							redraw = true;
 						}
 						else {
