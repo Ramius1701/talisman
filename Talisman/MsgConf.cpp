@@ -364,7 +364,7 @@ int MsgConf::list_fsr(Node* n, int sec) {
 					if (selected > 0) {
 						if (selected -1 < start) {
 							selected--;
-							start = (selected - (n->get_term_height() - 3));
+							start = (selected - (n->get_term_height() - 2));
 							if (start < 0) {
 								start = 0;
 							}
@@ -379,7 +379,7 @@ int MsgConf::list_fsr(Node* n, int sec) {
 				}
 				else if (c == 'B') {
 					if (selected < n->get_config()->msgconfs.size() - 1) {
-						if (selected + 1>= start + (n->get_term_height() - 3) - 1) {
+						if (selected + 1>= start + (n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;
