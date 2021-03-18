@@ -99,6 +99,7 @@ int FileConf::list_fsr(Node* n, int sec) {
 
 	while (true) {
 		if (redraw) {
+			n->print_f("\x1b[0;40;37m");
 			n->cls();
 			n->print_f("\x1b[1;1H%sFile Conferences Available\x1b[K", n->get_config()->get_prompt_colour());
 			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
@@ -262,6 +263,7 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 
 	while (true) {
 		if (redraw) {
+			n->print_f("\x1b[0;40;37m");
 			n->cls();
 			n->print_f("\x1b[1;1H%sFile areas in conference: %s\x1b[K", n->get_config()->get_prompt_colour(), name.c_str());
 			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
