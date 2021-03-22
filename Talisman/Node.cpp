@@ -811,7 +811,7 @@ void Node::print_f(const char* fmt, ...)
 	vsnprintf(buffer, sizeof buffer, fmt, args);
 
 	for (size_t i = 0; i < strlen(buffer); i++) {
-		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
+		if (hasANSI && i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
 			int pipecolor = (buffer[i + 1] - '0') * 10 + (buffer[i + 2] - '0');
 			
 			switch (pipecolor) {
@@ -1166,6 +1166,11 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		}
 		else {
 			print_f("NOT DETECTED\r\n");
+			print_f("ANSI was not detected... Do you want to use it anyway? (Y/N) ");
+			char yn = tolower(getch());
+			if (yn == 'y') {
+				hasANSI = true;
+			}
 		}
 	}
 	else {
