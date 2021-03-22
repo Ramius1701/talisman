@@ -811,84 +811,84 @@ void Node::print_f(const char* fmt, ...)
 	vsnprintf(buffer, sizeof buffer, fmt, args);
 
 	for (size_t i = 0; i < strlen(buffer); i++) {
-		if (hasANSI && i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
+		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
 			int pipecolor = (buffer[i + 1] - '0') * 10 + (buffer[i + 2] - '0');
-			
-			switch (pipecolor) {
-			case 0:
-				send_str("\x1b[0;30m");
-				break;
-			case 1:
-				send_str("\x1b[0;34m");
-				break;
-			case 2:
-				send_str("\x1b[0;32m");
-				break;
-			case 3:
-				send_str("\x1b[0;36m");
-				break;
-			case 4:
-				send_str("\x1b[0;31m");
-				break;
-			case 5:
-				send_str("\x1b[0;35m");
-				break;
-			case 6:
-				send_str("\x1b[0;33m");
-				break;
-			case 7:
-				send_str("\x1b[0;37m");
-				break;
-			case 8:
-				send_str("\x1b[1;30m");
-				break;
-			case 9:
-				send_str("\x1b[1;34m");
-				break;
-			case 10:
-				send_str("\x1b[1;32m");
-				break;
-			case 11:
-				send_str("\x1b[1;36m");
-				break;
-			case 12:
-				send_str("\x1b[1;31m");
-				break;
-			case 13:
-				send_str("\x1b[1;35m");
-				break;
-			case 14:
-				send_str("\x1b[1;33m");
-				break;
-			case 15:
-				send_str("\x1b[1;37m");
-				break;
-			case 16:
-				send_str("\x1b[40m");
-				break;
-			case 17:
-				send_str("\x1b[44m");
-				break;
-			case 18:
-				send_str("\x1b[42m");
-				break;
-			case 19:
-				send_str("\x1b[46m");
-				break;
-			case 20:
-				send_str("\x1b[41m");
-				break;
-			case 21:
-				send_str("\x1b[45m");
-				break;
-			case 22:
-				send_str("\x1b[43m");
-				break;
-			case 23:
-				send_str("\x1b[47m");
-				break;
+			if (hasANSI) {
+				switch (pipecolor) {
+				case 0:
+					send_str("\x1b[0;30m");
+					break;
+				case 1:
+					send_str("\x1b[0;34m");
+					break;
+				case 2:
+					send_str("\x1b[0;32m");
+					break;
+				case 3:
+					send_str("\x1b[0;36m");
+					break;
+				case 4:
+					send_str("\x1b[0;31m");
+					break;
+				case 5:
+					send_str("\x1b[0;35m");
+					break;
+				case 6:
+					send_str("\x1b[0;33m");
+					break;
+				case 7:
+					send_str("\x1b[0;37m");
+					break;
+				case 8:
+					send_str("\x1b[1;30m");
+					break;
+				case 9:
+					send_str("\x1b[1;34m");
+					break;
+				case 10:
+					send_str("\x1b[1;32m");
+					break;
+				case 11:
+					send_str("\x1b[1;36m");
+					break;
+				case 12:
+					send_str("\x1b[1;31m");
+					break;
+				case 13:
+					send_str("\x1b[1;35m");
+					break;
+				case 14:
+					send_str("\x1b[1;33m");
+					break;
+				case 15:
+					send_str("\x1b[1;37m");
+					break;
+				case 16:
+					send_str("\x1b[40m");
+					break;
+				case 17:
+					send_str("\x1b[44m");
+					break;
+				case 18:
+					send_str("\x1b[42m");
+					break;
+				case 19:
+					send_str("\x1b[46m");
+					break;
+				case 20:
+					send_str("\x1b[41m");
+					break;
+				case 21:
+					send_str("\x1b[45m");
+					break;
+				case 22:
+					send_str("\x1b[43m");
+					break;
+				case 23:
+					send_str("\x1b[47m");
+					break;
+				}
 			}
-			
 			
 			i += 2;
 			continue;
