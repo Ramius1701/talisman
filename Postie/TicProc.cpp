@@ -16,6 +16,7 @@
 #include "TicProc.h"
 #include "Logger.h"
 #include "Dupe.h"
+#include "Archiver.h"
 
 
 bool TicProc::check_crc(const char * filename, uint32_t crc_chk) {
@@ -305,6 +306,14 @@ bool TicProc::run() {
 					free(addr);
 				}
 				continue;
+			}
+			else {
+				if (filearea->hook != "") {
+					std::stringstream ss;
+					ss << filearea->hook << " " << fdest.u8string();
+					log.log(LOG_INFO, "Running hook: %s", ss.str().c_str());
+					Archiver::runexec(ss.str());
+				}
 			}
 			std::vector<struct link_conf_t*> downlinks;
 

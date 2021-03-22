@@ -474,6 +474,8 @@ bool Config::load(std::string datapath) {
 				std::string mytag;
 				std::string mydb;
 				std::string mylinklist;
+				std::string myhook;
+
 				auto addr = itemtable->get("aka");
 				if (addr != nullptr) {
 					std::string aka = addr->as_string()->value_or("");
@@ -514,6 +516,13 @@ bool Config::load(std::string datapath) {
 				else {
 					mylinklist = "";
 				}
+				auto hook = itemtable->get("hook");
+				if (hook != nullptr) {
+					myhook = hook->as_string()->value_or("");
+				}
+				else {
+					myhook = "";
+				}
 
 				if (mytag == "" || mydir == "" || mydb == "") {
 					free(myaka);
@@ -544,6 +553,7 @@ bool Config::load(std::string datapath) {
 				faconf.areatag = mytag;
 				faconf.directory = mydir;
 				faconf.database = mydb;
+				faconf.hook = myhook;
 				fileareas.push_back(faconf);
 			}
 		}

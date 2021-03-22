@@ -46,6 +46,7 @@ struct farea_conf_t {
 	std::string database;
 	std::string directory;
 	std::string areatag;
+	std::string hook;
 	std::vector <struct link_conf_t*> links;
 };
 
