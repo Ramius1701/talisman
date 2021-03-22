@@ -1171,6 +1171,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 			if (yn == 'y') {
 				hasANSI = true;
 			}
+			print_f("\r\n");
 		}
 	}
 	else {
