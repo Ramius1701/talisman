@@ -135,7 +135,7 @@ void Request::dolistposts(int socket, std::string db_path, int uid) {
 	sqlite3_stmt* stmt;
 
 	static const char* lusql = "SELECT username FROM users WHERE id = ?";
-	static const char* lpsql = "SELECT id, subject, datestamp FROM phlog WHERE uid = ? ORDER BY datestamp DESC";
+	static const char* lpsql = "SELECT id, subject, datestamp FROM phlog WHERE uid = ? AND draft = 0 ORDER BY datestamp DESC";
 
 	std::stringstream ss;
 
@@ -212,7 +212,7 @@ void Request::doshowpost(int socket, std::string db_path, int uid, int id) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 
-	static const char* lpsql = "SELECT author, subject, datestamp, body FROM phlog WHERE id = ?";
+	static const char* lpsql = "SELECT author, subject, datestamp, body FROM phlog WHERE id = ? AND draft = 0";
 	std::stringstream ss;
 
 	if (!opendatabase(db_path + "/gopher.sqlite3", &db)) {

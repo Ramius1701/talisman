@@ -7,11 +7,12 @@ class Node;
 
 class FullScreenEditor {
 public:
-	FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string> *quotelines);
+	FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines, std::vector<std::string> *body);
 	~FullScreenEditor();
 
 	std::vector<std::string> edit();
 private:
+	std::vector<std::string>* initialbuffer;
 	std::string to;
 	std::string subject;
 	std::vector<std::string> quotelines;

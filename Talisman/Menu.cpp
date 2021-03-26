@@ -1106,6 +1106,9 @@ bool Menu::run() {
 						Phlog::save_article(n, subject, newphlog);
 					}
 				}
+				else if (strcasecmp(items[i].command.c_str(), "phlogmanage") == 0) {
+					Phlog::list_articles(n);
+				}
 				else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
 					n->update_node_use("Node Messaging");
 					n->cls();

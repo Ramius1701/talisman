@@ -7,9 +7,16 @@
 
 class FullScreenBuffer {
 public:
-	FullScreenBuffer(Node* n) {
+	FullScreenBuffer(Node* n, std::vector<std::string> *initialbuffer) {
 		this->n = n;
-		lines.push_back(std::string(""));
+		if (initialbuffer != nullptr) {
+			for (size_t i = 0; i < initialbuffer->size(); i++) {
+				lines.push_back(initialbuffer->at(i));
+			}
+		}
+		else {
+			lines.push_back(std::string(""));
+		}
 	}
 
 	void insert_content(std::vector<std::string> content) {
@@ -346,12 +353,10 @@ public:
 
 					if (line_at < lines.size() - 1 && lines.at(line_at + 1).size() > 0) {
 						std::stringstream ss3;
+						ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
 
-
-ss3 << ss2.str() << ' ' << lines.at(line_at + 1);
-
-lines.at(line_at + 1) = ss3.str();
-rewrap(line_at + 1);
+						lines.at(line_at + 1) = ss3.str();
+						rewrap(line_at + 1);
 					}
 					else {
 					lines.insert(lines.begin() + line_at + 1, ss2.str());
@@ -429,7 +434,7 @@ private:
 	int top = 0;
 };
 
-FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines) {
+FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines, std::vector<std::string>* body) {
 	reply = true;
 	this->to = to;
 	this->subject = subject;
@@ -439,6 +444,8 @@ FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject,
 	else {
 		this->quotelines = *quotelines;
 	}
+	initialbuffer = body;
+
 	this->n = n;
 }
 
@@ -613,7 +620,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 */
 
 std::vector<std::string> FullScreenEditor::edit() {
-	FullScreenBuffer fsb(n);
+	FullScreenBuffer fsb(n, initialbuffer);
 	n->print_f("\x1b[?25h");
 	n->cls();
 	n->print_f_nc("%sTalisman/FSE CTRL-Z for Menu\x1b[K\r\n", n->get_config()->get_prompt_colour());

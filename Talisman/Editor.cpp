@@ -77,14 +77,14 @@ std::vector<std::string> Editor::enter_message_ex(Node *n, std::string to, std::
 	}
 	return msg;
 }
-std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer) {
+std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer, std::vector<std::string>* body) {
 	int fse = stoi(n->get_user().get_attribute("fullscreeneditor", "0"));
 
 	if (fse == 0) {
-		if (n->get_config()->external_editor() != "" && n->hasANSI) {
+		if (n->get_config()->external_editor() != "" && n->hasANSI && body == nullptr) {
 			n->print_f("\r\n\r\n|14Use external editor (Y/N) : |07");
 			if (tolower(n->getch()) == 'n') {
-				return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
+				return enter_message_in(n, to, subject, areaname, priv, quotebuffer, nullptr);
 			}
 			else {
 				return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
@@ -93,36 +93,42 @@ std::vector<std::string> Editor::enter_message(Node* n, std::string to, std::str
 		else if (n->hasANSI) {
 			n->print_f("\r\n\r\n|14Use fullscreen editor (Y/N) : |07");
 			if (tolower(n->getch()) == 'n') {
-				return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
+				return enter_message_in(n, to, subject, areaname, priv, quotebuffer, body);
 			}
 			else {
-				FullScreenEditor fseditor(n, to, subject, quotebuffer);
+				FullScreenEditor fseditor(n, to, subject, quotebuffer, body);
 				return fseditor.edit();
 			}
 		} else {
-			return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
+			return enter_message_in(n, to, subject, areaname, priv, quotebuffer, body);
 		}
 	}
 	else if (fse == 1 && n->hasANSI) {
-		if (n->get_config()->external_editor() != "") {
+		if (n->get_config()->external_editor() != "" && body == nullptr) {
 			return enter_message_ex(n, to, subject, areaname, priv, quotebuffer);
 		}
 		else {
-			FullScreenEditor fseditor(n, to, subject, quotebuffer);
+			FullScreenEditor fseditor(n, to, subject, quotebuffer, body);
 			return fseditor.edit();
 		}
 	}
 	else {
-		return enter_message_in(n, to, subject, areaname, priv, quotebuffer);
+		return enter_message_in(n, to, subject, areaname, priv, quotebuffer, body);
 	}
 }
 
-std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer)
+std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::string subject, std::string areaname, bool priv, std::vector<std::string>* quotebuffer, std::vector<std::string> *body)
 {
 	std::vector<std::string> lines;
 	bool done = false;
 	std::string cur_line;
-	std::vector<std::string> msg;
+
+	if (body != nullptr) {
+		for (size_t i = 0; i < body->size(); i++) {
+			lines.push_back(body->at(i));
+		}
+	}
+
 	n->print_f("\r\n|08---------------------------------------------------------------------");
 	n->print_f("\r\n|14 Commands on a new line: /? for HELP /S to SAVE, /A to ABORT");
 	n->print_f("\r\n|08---------------------------------------------------------------------");
@@ -206,5 +212,5 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 			lines.push_back(cur_line);
 		}
 	}
-	return msg;
+	return lines;
 }
