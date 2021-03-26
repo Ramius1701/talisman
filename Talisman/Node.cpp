@@ -292,6 +292,23 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 						print_f("%-.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
+				else if (compare_token(ss.str(), "PHLOGURL")) {
+					std::stringstream phlogurl;
+
+					if (config.get_gopher_port() == -1) {
+						phlogurl << "Gopher not available here.";
+					}
+					else {
+						if (config.get_gopher_port() != 70) {
+							phlogurl << "gopher://" << config.get_hostname() << ":" << config.get_gopher_port() << "/users/" << u.get_uid();
+						}
+						else {
+							phlogurl << "gopher://" << config.get_hostname()  << "/users/" << u.get_uid();
+						}
+					}
+
+					print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, phlogurl.str().c_str());
+				}
 				else if (compare_token(ss.str(), "FILECONF")) {
 					int fileconf = stoi(u.get_attribute("cur_file_conf", "-1"));
 					if (fileconf != -1) {

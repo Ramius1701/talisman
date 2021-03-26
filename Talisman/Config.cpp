@@ -43,7 +43,8 @@ bool Config::load(Node *n, std::string filename) {
 	_max_nodes = inir.GetInteger("Main", "Max Nodes", 4);
 	_new_user_sec_level = inir.GetInteger("Main", "New User Sec Level", 10);
 	_new_user_feedback = inir.GetBoolean("Main", "New User Feedback", false);
-
+	_hostname = inir.Get("Main", "Hostname", "localhost");
+	_gopherport = inir.GetInteger("Main", "Gopher Port", -1);
 	try {
 		auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 

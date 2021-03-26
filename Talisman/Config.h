@@ -89,6 +89,14 @@ public:
 		return _location;
 	}
 
+	std::string get_hostname() {
+		return _hostname;
+	}
+
+	int get_gopher_port() {
+		return _gopherport;
+	}
+
 	std::vector<struct login_item_t>* get_login_items() {
 		return &loginitems;
 	}
@@ -129,11 +137,13 @@ private:
 	std::string _scriptpath;
 	std::string _location;
 	std::string _qwk_id;
+	std::string _hostname;
 	bool _new_user_feedback;
 	std::vector<struct sec_level_t> seclevels;
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;
 	std::string prompt_background_ansi;
 	int _new_user_sec_level;
+	int _gopherport;
 };
 
