@@ -6,7 +6,7 @@
 #include "../Common/Logger.h"
 
 bool Phlog::open_database(std::string db_path, sqlite3** db) {
-	static const char* create_gopher_sql = "CREATE TABLE IF NOT EXISTS phlog(id INTEGER PRIMARY KEY, uid INTEGER, author TEXT, subject TEXT, datestamp INTEGER, body TEXT)";
+	static const char* create_gopher_sql = "CREATE TABLE IF NOT EXISTS phlog(id INTEGER PRIMARY KEY, uid INTEGER, author TEXT, subject TEXT, datestamp INTEGER, body TEXT, draft INTEGER)";
 
 	int rc;
 	char* err_msg = NULL;
