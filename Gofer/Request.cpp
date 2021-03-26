@@ -110,6 +110,11 @@ void Request::dorequest(int socket, std::string request) {
 				std::filesystem::path dir(respath);
 				respath.append("gophermap");
 				if (!std::filesystem::exists(respath)) {
+					std::stringstream ss;
+
+					ss << "iIndex of '" << std::filesystem::relative(respath.parent_path(), fpath).generic_u8string() << "'\tfake\t" << hostname << "\t" << port << "\r\n";
+					send(socket, ss.str().c_str(), ss.str().size(), 0);
+
 					dodirlist(socket, fpath, dir);
 					return;
 				}
