@@ -88,35 +88,39 @@ void Request::dodirlist(int socket, std::filesystem::path base, std::filesystem:
 		if (filenameStr == "gophermap") continue;
 
 		try {
+			std::string respath = std::filesystem::relative(dir, base).generic_u8string();
+			if (respath.find("./") == 0) {
+				respath = respath.substr(2);
+			}
 			if (entry.is_directory()) {
-				ss << "1" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+				ss << "1" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 			}
 			else if (entry.is_regular_file()) {
 				if (compare_ext(entry.path(), ".txt") || compare_ext(entry.path(), ".md") || compare_ext(entry.path(), ".markdown")) {
-					ss << "0" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "0" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else if (compare_ext(entry.path(), ".gif")) {
-					ss << "g" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "g" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else if (compare_ext(entry.path(), ".htm") || compare_ext(entry.path(), ".html")) {
-					ss << "h" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "h" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else if (compare_ext(entry.path(), ".jpg") || compare_ext(entry.path(), ".jpeg") || compare_ext(entry.path(), ".png") ||
 					compare_ext(entry.path(), ".bmp") || compare_ext(entry.path(), ".pcx") || compare_ext(entry.path(), ".ico") ||
 					compare_ext(entry.path(), ".tif") || compare_ext(entry.path(), ".tiff") || compare_ext(entry.path(), ".svg") ||
 					compare_ext(entry.path(), ".eps")) {
-					ss << "I" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "I" << filenameStr << "\t" << respath  << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else if (compare_ext(entry.path(), ".mp3") || compare_ext(entry.path(), ".mp2") || compare_ext(entry.path(), ".wav")
 					|| compare_ext(entry.path(), ".mid") || compare_ext(entry.path(), ".wma") || compare_ext(entry.path(), ".flac")
 					|| compare_ext(entry.path(), ".mpc") || compare_ext(entry.path(), ".aiff") || compare_ext(entry.path(), ".aac")) {
-					ss << "s" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "s" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else if (compare_ext(entry.path(), ".pdf")) {
-					ss << "P" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "P" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 				else {
-					ss << "9" << filenameStr << "\t" << std::filesystem::relative(dir, base).generic_u8string() << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
+					ss << "9" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
 				}
 			}
 		}
@@ -386,6 +390,9 @@ void Request::dorequest(int socket, std::string request) {
 							std::string respath2;
 							if (tokens.at(1).size() > 0 && tokens.at(1).at(0) != '/') {
 								respath2 = std::filesystem::relative(respath.parent_path(), fpath).generic_u8string() + "/" + tokens.at(1);
+								if (respath2.find("./") == 0) {
+									respath2 = respath2.substr(2);
+								}
 							}
 							else {
 								respath2 = tokens.at(1);
