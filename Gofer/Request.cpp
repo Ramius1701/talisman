@@ -123,11 +123,12 @@ void Request::dorequest(int socket, std::string request) {
 			std::ifstream file(respath);
 			if (file.is_open()) {
 				while (!file.eof()) {
-					std::string line;
-					std::getline(file, line);
 
-					std::stringstream ss;
 					if (respath.filename().u8string() == "gophermap") {
+						std::string line;
+						std::getline(file, line);
+
+						std::stringstream ss;
 						if (line.size() > 0 && line.at(0) == '#') continue;
 						
 						if (line == "%FILES%") {
@@ -164,11 +165,14 @@ void Request::dorequest(int socket, std::string request) {
 								ss << tokens.at(0) << "\t" << respath2 << "\t" << tokens.at(2) << "\t" << tokens.at(3) << "\r\n";
 							}
 						}
+						send(socket, ss.str().c_str(), ss.str().size(), 0);
 					}
 					else {
-						ss << line << "\r\n";
+						char c;
+						file.read(&c, 1);
+						send(socket, &c, 1, 0);
 					}
-					send(socket, ss.str().c_str(), ss.str().size(), 0);
+					
 				}
 				file.close();
 				return;
