@@ -15,7 +15,7 @@
 #include "Config.h"
 #include "Node.h"
 #include "SshClient.h"
-#include "INIReader.h"
+#include "../Common/INIReader.h"
 
 #define RSA_KEYLEN 4096
 #define DSA_KEYLEN 1024

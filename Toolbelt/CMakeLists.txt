@@ -8,7 +8,7 @@ find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 add_executable(toolbelt main.cpp User.cpp Files.cpp Archiver.cpp Nodelist.cpp)
-include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
+include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ../Common)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries (toolbelt ${SQLITE3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
 else()

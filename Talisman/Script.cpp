@@ -5,7 +5,7 @@
 #include "Node.h"
 #include "Config.h"
 #include "User.h"
-#include "Logger.h"
+#include "../Common/Logger.h"
 #include "../Common/Squish.h"
 
 extern "C" {

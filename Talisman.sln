@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Toolbelt", "Toolbelt\Toolbe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Postie", "Postie\Postie.vcxproj", "{49911BAF-5E9A-4231-81DC-194C9509183D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gofer", "Gofer\Gofer.vcxproj", "{951D9B9E-8DDF-4DD7-A936-E348644B958E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -51,6 +53,14 @@ Global
 		{49911BAF-5E9A-4231-81DC-194C9509183D}.Release|x64.Build.0 = Release|x64
 		{49911BAF-5E9A-4231-81DC-194C9509183D}.Release|x86.ActiveCfg = Release|Win32
 		{49911BAF-5E9A-4231-81DC-194C9509183D}.Release|x86.Build.0 = Release|Win32
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Debug|x64.ActiveCfg = Debug|x64
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Debug|x64.Build.0 = Debug|x64
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Debug|x86.ActiveCfg = Debug|Win32
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Debug|x86.Build.0 = Debug|Win32
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Release|x64.ActiveCfg = Release|x64
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Release|x64.Build.0 = Release|x64
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Release|x86.ActiveCfg = Release|Win32
+		{951D9B9E-8DDF-4DD7-A936-E348644B958E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

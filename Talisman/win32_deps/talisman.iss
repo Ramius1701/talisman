@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.13"
+#define MyAppVersion "0.14"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
@@ -25,7 +25,7 @@ OutputBaseFilename=Talisman-v{#MyAppVersion}-Setup
 Compression=lzma
 SolidCompression=yes
 LicenseFile=..\..\LICENSE
-
+WizardSizePercent=120,140
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
@@ -37,11 +37,13 @@ Source: "C:\Users\apamm\Talisman\Release\Servo.exe"; DestDir: "{app}"; Flags: ig
 Source: "C:\Users\apamm\Talisman\Release\Talisman.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Toolbelt.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Postie.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\Talisman\Release\Gofer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\menus\*"; DestDir: "{app}\menus\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\scripts\*"; DestDir: "{app}\scripts"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\gopher"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
@@ -63,6 +65,7 @@ Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\menus\*"; DestDir: "{app}\dist\menus\"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\scripts\*"; DestDir: "{app}\dist\scripts"; Flags: ignoreversion
+Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\dist\gopher"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
@@ -85,6 +88,7 @@ Name: "{app}\menus"
 Name: "{app}\msgs"
 Name: "{app}\scripts\"
 Name: "{app}\scripts\data"
+Name: "{app}\gopher"
 Name: "{app}\dloads"
 Name: "{app}\dloads\general"
 Name: "{app}\dloads\general\uploads"
@@ -94,7 +98,7 @@ Name: "{app}\dist\gfiles"
 Name: "{app}\dist\data"
 Name: "{app}\dist\menus"
 Name: "{app}\dist\scripts"
-
+Name: "{app}\dist\gopher"
 
 [Icons]
 Name: "{group}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"
@@ -109,6 +113,7 @@ var
   SysopName : string;
   LocationStr : string;
   QwkIdStr : string;
+  HostnameStr : string;
   InstallPath : string;
   UpgradeBool : Boolean;
 function FileReplaceString(const FileName, SearchString, ReplaceString: string):boolean;
@@ -169,6 +174,7 @@ begin
     BBSDetailsPage.Add('Sysop Username', false);
     BBSDetailsPage.Add('Location', false);
     BBSDetailsPage.Add('QWK ID', false);
+    BBSDetailsPage.Add('BBS Hostname', false);
     UpgradeBool := false;
   end else
   begin;
@@ -200,6 +206,10 @@ begin
         QwkIdStr := Copy(Uppercase(BBSDetailsPage.Values[3]), 0, 8)
       else
         QwkIdStr := 'TALISMAN';
+      if (Length(BBSDetailsPage.Values[4]) > 0) then
+        HostnameStr := BBSDetailsPage.Values[4]
+      else
+        HostnameStr := 'localhost';
 
       InstallPath := ExpandConstant('{app}');
              
@@ -209,12 +219,14 @@ begin
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__SYSOP_NAME__', SysopName);
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__LOCATION__', LocationStr);
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__QWK_ID__', QwkIdStr);
+      FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__HOSTNAME__', HostnameStr);
       FileReplaceString(ExpandConstant('{app}\data\protocols.toml'), '__INST_PATH__', InstallPath);
       FileReplaceString(ExpandConstant('{app}\data\archivers.toml'), '__INST_PATH__', InstallPath);
       FileReplaceString(ExpandConstant('{app}\dist\talisman.ini'), '__BBS_NAME__', BBSName);
       FileReplaceString(ExpandConstant('{app}\dist\talisman.ini'), '__SYSOP_NAME__', SysopName);
       FileReplaceString(ExpandConstant('{app}\dist\talisman.ini'), '__LOCATION__', LocationStr);
       FileReplaceString(ExpandConstant('{app}\dist\talisman.ini'), '__QWK_ID__', QwkIdStr);
+      FileReplaceString(ExpandConstant('{app}\dist\talisman.ini'), '__HOSTNAME__', HostnameStr);
       FileReplaceString(ExpandConstant('{app}\dist\data\protocols.toml'), '__INST_PATH__', InstallPath);
       FileReplaceString(ExpandConstant('{app}\dist\data\archivers.toml'), '__INST_PATH__', InstallPath);
     end;

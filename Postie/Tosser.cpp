@@ -7,10 +7,10 @@
 #include <filesystem>
 #include <sstream>
 #include <iomanip>
-#include "INIReader.h"
+#include "../Common/INIReader.h"
 #include "Config.h"
 #include "Tosser.h"
-#include "Logger.h"
+#include "../Common/Logger.h"
 #include "Archiver.h"
 #include "PacketStructs.h"
 #include "Scanner.h"

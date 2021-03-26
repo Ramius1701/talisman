@@ -4,7 +4,7 @@
 #include <cstring>
 #include <sqlite3.h>
 #include "Node.h"
-#include "Logger.h"
+#include "../Common/Logger.h"
 #include "Email.h"
 #include "Editor.h"
 #include "Qwk.h"

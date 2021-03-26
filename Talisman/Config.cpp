@@ -6,7 +6,7 @@
 #define strcasecmp _stricmp
 #endif
 #include "toml.hpp"
-#include "INIReader.h"
+#include "../Common/INIReader.h"
 #include "Config.h"
 #include "Protocol.h"
 #include "FileConf.h"

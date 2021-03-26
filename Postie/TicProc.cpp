@@ -11,10 +11,11 @@
 #include <filesystem>
 #include <ctime>
 #include <sstream>
-#include "INIReader.h"
+#include <cinttypes>
+#include "../Common/INIReader.h"
 #include "Config.h"
 #include "TicProc.h"
-#include "Logger.h"
+#include "../Common/Logger.h"
 #include "Dupe.h"
 #include "Archiver.h"
 
@@ -376,7 +377,7 @@ bool TicProc::run() {
 					gmtime_r(&now, &ltime);
 #endif
 
-					fprintf(fptr, "Path %d:%d/%d.%d %ull %s %s %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
+					fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
 					
 					// print seenbys
 					for (size_t sb = 0; sb < tic.seenbys.size(); sb++) {

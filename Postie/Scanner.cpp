@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <sstream>
 #include "Scanner.h"
-#include "Logger.h"
-#include "INIReader.h"
+#include "../Common/Logger.h"
+#include "../Common/INIReader.h"
 #include "Config.h"
 #include "PacketStructs.h"
 #include "GenDefs.h"

@@ -24,7 +24,7 @@
 #include <sstream>
 #include <vector>
 #include <cstring>
-#include "INIReader.h"
+#include "../Common/INIReader.h"
 #include "IPBlockItem.h"
 
 #ifndef _MSC_VER
@@ -72,8 +72,9 @@ bool in_multiallowed(std::vector<std::string>* list, std::string item) {
 int main()
 {
 	int sshport;
+	int gopherport;
 	int port;
-	struct sockaddr_in ssh_serv_addr, serv_addr, client_addr;
+	struct sockaddr_in gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr;
 	int csockfd;
 	int on = 1;
 	int max_nodes = 4;
@@ -109,6 +110,7 @@ int main()
 	port = inir.GetInteger("main", "telnet port", 2323);
 	sshport = inir.GetInteger("main", "ssh port", -1);
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
+	gopherport = inir.GetInteger("main", "gopher port", -1);
 	datapath = inir.Get("paths", "data path", "data");
 
 	blocklist = new std::vector<IPBlockItem*>();
@@ -171,7 +173,7 @@ int main()
 	if (sshport != -1) {
 		sshfd = socket(AF_INET, SOCK_STREAM, 0);
 
-		memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+		memset(&ssh_serv_addr, 0, sizeof(struct sockaddr_in));
 
 		ssh_serv_addr.sin_family = AF_INET;
 		ssh_serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -192,23 +194,55 @@ int main()
 		listen(sshfd, 5);
 		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
 	}
+
+	int gopherfd;
+
+	if (gopherport != -1) {
+		gopherfd = socket(AF_INET, SOCK_STREAM, 0);
+
+		memset(&gopher_serv_addr, 0, sizeof(struct sockaddr_in));
+
+		gopher_serv_addr.sin_family = AF_INET;
+		gopher_serv_addr.sin_addr.s_addr = INADDR_ANY;
+		gopher_serv_addr.sin_port = htons(gopherport);
+		if (setsockopt(gopherfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << "Error setting SO_REUSEADDR (Gopher)" << std::endl;
+			return -1;
+		}
+		if (setsockopt(gopherfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << "Error setting TCP_NODELAY (Gopher)" << std::endl;
+			return -1;
+		}
+		if (bind(gopherfd, (struct sockaddr*)&gopher_serv_addr, sizeof(struct sockaddr_in)) < 0) {
+			std::cerr << "Error binding. (Gopher)" << std::endl;
+			return -1;
+		}
+
+		listen(gopherfd, 5);
+		std::cerr << "Listening on port " << gopherport << "(Gopher)" << std::endl;
+	}
+
 	int nfds;
+	int maxfd = telnetfd;
 	fd_set server_fds;
 	FD_ZERO(&server_fds);
 	FD_SET(telnetfd, &server_fds);
+	if (gopherport != -1) {
+		FD_SET(gopherfd, &server_fds);
+		if (gopherfd > maxfd) {
+			maxfd = gopherfd;
+		}
+	}
+
 	if (sshport != -1) {
 		FD_SET(sshfd, &server_fds);
 
-		if (telnetfd > sshfd) {
-			nfds = telnetfd;
-		}
-		else {
-			nfds = sshfd;
+		if (sshfd > maxfd) {
+			maxfd = sshfd;
 		}
 	}
-	else {
-		nfds = telnetfd;
-	}
+
+	nfds = maxfd;
 	nfds++;
 
 	while (1) {
@@ -236,6 +270,58 @@ int main()
 		if (sshport != -1) {
 			if (FD_ISSET(sshfd, &copy_fds)) {
 				csockfd = accept(sshfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+			}
+		}
+		if (gopherport != -1) {
+			if (FD_ISSET(gopherfd, &copy_fds)) {
+				csockfd = accept(gopherfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+#ifdef _MSC_VER
+				std::stringstream ss;
+				ss.str("");
+				ss << "\"gofer.exe\" " << csockfd;
+				
+				char* cmd = strdup(ss.str().c_str());
+
+				STARTUPINFOA si;
+				PROCESS_INFORMATION pi;
+
+				ZeroMemory(&si, sizeof(si));
+				si.cb = sizeof(si);
+				//	si.dwFlags = STARTF_USESTDHANDLES;
+				//	si.hStdInput = INVALID_HANDLE_VALUE;
+				//	si.hStdError = INVALID_HANDLE_VALUE;
+				//	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+				ZeroMemory(&pi, sizeof(pi));
+
+				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+					std::cerr << "Failed to create process!" << std::endl;
+					free(cmd);
+					closesocket(csockfd);
+					continue;
+				}
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+				free(cmd);
+				closesocket(csockfd);
+#else
+				pid_t pid = fork();
+				if (pid == 0) {
+					snprintf(sockstr, 10, "%d", csockfd);
+					if (execlp("./gofer", "./gofer", sockstr, NULL) == -1) {
+						perror("Execlp: ");
+						exit(-1);
+					}
+				}
+				else if (pid == -1) {
+					std::cerr << "Failed to create process!" << std::endl;
+					close(csockfd);
+				}
+				else {
+					close(csockfd);
+				}
+#endif
+				continue;
 			}
 		}
 		if (csockfd != -1) {

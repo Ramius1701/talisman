@@ -47,3 +47,5 @@
 /Talisman/temp
 /Postie/Postie.vcxproj.user
 /Talisman/lua5.4.2.dll
+/Gofer/Release
+/Gofer/Gofer.vcxproj.user

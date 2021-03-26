@@ -154,9 +154,9 @@
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\INIReader.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Files.h" />
-    <ClInclude Include="INIReader.h" />
     <ClInclude Include="Nodelist.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="toml.hpp" />

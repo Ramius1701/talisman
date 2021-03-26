@@ -8,10 +8,3 @@ find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 add_executable(servo Servo.cpp IPBlockItem.cpp)
-#include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR})
-#if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-#	target_link_libraries (servo)
-#else()
-#	target_link_libraries (talisman ${SQLITE3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY} stdc++fs util)
-#endif()
-

@@ -14,7 +14,7 @@
 #include "CallLog.h"
 #include "Door.h"
 #include "Settings.h"
-#include "Logger.h"
+#include "../Common/Logger.h"
 #include "Editor.h"
 #include "Email.h"
 #include "Bulletins.h"
