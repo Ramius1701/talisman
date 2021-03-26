@@ -41,13 +41,21 @@ int main(int argc, char** argv)
         int ret = recv(socket, &c, 1, NULL);
 
         if (ret == 0) {
+#ifdef _MSC_VER
             closesocket(socket);
             WSACleanup();
+#else
+            close(socket);
+#endif
             return 0;
         }
         else if (ret == -1) {
+#ifdef _MSC_VER
             closesocket(socket);
             WSACleanup();
+#else
+            close(socket);
+#endif
             return 0;
         }
         if (c == '\n') {
@@ -56,10 +64,10 @@ int main(int argc, char** argv)
             r.dorequest(socket, ss.str());
 #ifdef _MSC_VER
             closesocket(socket);
+            WSACleanup();
 #else
             close(socket);
 #endif
-            WSACleanup();
             exit(0);
         }
         else if (c != '\r') {
