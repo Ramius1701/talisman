@@ -77,7 +77,7 @@ void Request::dodirlist(int socket, std::filesystem::path base, std::filesystem:
 		}
 		catch (std::exception) {
 		}
-		send(socket, ss.str().c_str(), ss.str().size(), NULL);
+		send(socket, ss.str().c_str(), ss.str().size(), 0);
 	}
 }
 
@@ -163,7 +163,7 @@ void Request::dorequest(int socket, std::string request) {
 					else {
 						ss << line << "\r\n";
 					}
-					send(socket, ss.str().c_str(), ss.str().size(), NULL);
+					send(socket, ss.str().c_str(), ss.str().size(), 0);
 				}
 				file.close();
 				return;
@@ -176,5 +176,5 @@ void Request::dorequest(int socket, std::string request) {
 	std::stringstream errormsg;
 
 	errormsg << "3'" << request << "' Does not exist!\terror.host\t1" << std::endl;
-	send(socket, errormsg.str().c_str(), errormsg.str().size(), NULL);
+	send(socket, errormsg.str().c_str(), errormsg.str().size(), 0);
 }

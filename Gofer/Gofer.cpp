@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     while (true) {
         char c;
 
-        int ret = recv(socket, &c, 1, NULL);
+        int ret = recv(socket, &c, 1, 0);
 
         if (ret == 0) {
 #ifdef _MSC_VER
