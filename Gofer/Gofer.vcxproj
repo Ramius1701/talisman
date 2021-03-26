@@ -153,6 +153,13 @@
     <ClInclude Include="..\Common\INIReader.h" />
     <ClInclude Include="..\Common\Logger.h" />
     <ClInclude Include="Request.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Gofer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\gofer_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
