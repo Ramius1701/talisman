@@ -165,6 +165,7 @@
     <ClCompile Include="MsgConf.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Nodelist.cpp" />
+    <ClCompile Include="Phlog.cpp" />
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="MsgConf.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Nodelist.h" />
+    <ClInclude Include="Phlog.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Qwk.h" />
     <ClInclude Include="resource.h" />

@@ -25,6 +25,7 @@
 #include "Archiver.h"
 #include "Qwk.h"
 #include "Nodelist.h"
+#include "Phlog.h"
 #include "../Common/Squish.h"
 
 Menu::Menu(Node *n)
@@ -1095,6 +1096,15 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "qwkup") == 0) {
 					n->update_node_use("Uploading a QWK Packet");
 					qwk_up(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "phlognew") == 0) {
+					n->update_node_use("Writing Phlog Article");
+					n->print_f("\r\nArticle Subject: ");
+					std::string subject = n->get_string(60, false);
+					std::vector<std::string> newphlog = Editor::enter_message(n, "Gopher", subject, "My Phlog", true, nullptr);
+					if (newphlog.size() > 0) {
+						Phlog::save_article(n, subject, newphlog);
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
 					n->update_node_use("Node Messaging");
