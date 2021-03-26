@@ -142,8 +142,8 @@ void Request::dorequest(int socket, std::string request) {
 						}
 						else if (tokens.size() > 1) {
 							std::string respath2;
-							if (tokens.at(1).at(0) != '/') {
-								respath2 = respath.parent_path().u8string() + "/" + tokens.at(1);
+							if (tokens.at(1).size() > 0 && tokens.at(1).at(0) != '/') {
+								respath2 = request + "/" + tokens.at(1);
 							}
 							else {
 								respath2 = tokens.at(1);
