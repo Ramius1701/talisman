@@ -113,7 +113,10 @@ void Phlog::edit_article(Node* n, int id) {
 				ss2 << newbody.at(i) << "\r";
 			}
 			time_t now = time(NULL);
-			sqlite3_bind_text(stmt, 1, ss2.str().c_str(), -1, NULL);
+
+			std::string b = ss2.str();
+
+			sqlite3_bind_text(stmt, 1, b.c_str(), -1, NULL);
 			sqlite3_bind_int64(stmt, 2, now);
 			sqlite3_bind_int(stmt, 3, uid);
 			sqlite3_bind_int(stmt, 4, id);
