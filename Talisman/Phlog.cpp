@@ -31,7 +31,7 @@ bool Phlog::save_article(Node* n, std::string subject, std::vector<std::string> 
 {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
-	static const char sql[] = "INSERT INTO phlog (uid, author, subject, datestamp, body) VALUES(?, ?, ?, ?, ?)";
+	static const char sql[] = "INSERT INTO phlog (uid, author, subject, datestamp, body, draft) VALUES(?, ?, ?, ?, ?, 0)";
 
 
 	if (!open_database(n->get_config()->data_path() + "/gopher.sqlite3", &db)) {
