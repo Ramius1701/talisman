@@ -300,10 +300,10 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 					}
 					else {
 						if (config.get_gopher_port() != 70) {
-							phlogurl << "gopher://" << config.get_hostname() << ":" << config.get_gopher_port() << "/users/" << u.get_uid();
+							phlogurl << "gopher://" << config.get_hostname() << ":" << config.get_gopher_port() << "/1/users/" << u.get_uid();
 						}
 						else {
-							phlogurl << "gopher://" << config.get_hostname()  << "/users/" << u.get_uid();
+							phlogurl << "gopher://" << config.get_hostname()  << "/1/users/" << u.get_uid();
 						}
 					}
 
