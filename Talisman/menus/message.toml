@@ -74,6 +74,10 @@ command = "POSTEMAIL"
 hotkey = "E"
 
 [[menuitem]]
+command = "EDITSIG"
+hotkey = "Z"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 

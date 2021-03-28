@@ -9,7 +9,7 @@ class FullScreenBuffer {
 public:
 	FullScreenBuffer(Node* n, std::vector<std::string> *initialbuffer) {
 		this->n = n;
-		if (initialbuffer != nullptr) {
+		if (initialbuffer != nullptr && initialbuffer->size() > 0) {
 			for (size_t i = 0; i < initialbuffer->size(); i++) {
 				lines.push_back(initialbuffer->at(i));
 			}

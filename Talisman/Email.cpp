@@ -355,7 +355,9 @@ int Email::view_email(Node* n, Email e) {
 
 			std::vector<std::string> newmsg = Editor::enter_message(n, e.sender, e.subject, "E-Mail", true, &quotemsg);
 			if (newmsg.size() > 0) {
-				MsgArea::attach_sig(&newmsg, n->get_user().get_attribute("signature", ""));
+				if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+					MsgArea::attach_sig(&newmsg, n->get_user().get_attribute("signature", ""));
+				}
 				Email::save_message(n, e.sender, n->get_user().get_username(), e.subject, newmsg);
 			}
 

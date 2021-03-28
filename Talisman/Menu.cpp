@@ -491,7 +491,9 @@ bool Menu::run() {
 								else {
 									std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_name(), n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail(), nullptr);
 									if (nmsg.size() > 0) {
-										MsgArea::attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+										if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+											MsgArea::attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+										}
 										if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_real_names()) {
 											n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, netaddr, 0);
 										}
@@ -562,7 +564,9 @@ bool Menu::run() {
 
 						std::vector<std::string> newemail = Editor::enter_message(n, to, subject, "E-Mail", true, nullptr);
 						if (newemail.size() > 0) {
-							MsgArea::attach_sig(&newemail, n->get_user().get_attribute("signature", ""));
+							if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+								MsgArea::attach_sig(&newemail, n->get_user().get_attribute("signature", ""));
+							}
 							Email::save_message(n, to, n->get_user().get_username(), subject, newemail);
 						}
 					}
@@ -584,7 +588,9 @@ bool Menu::run() {
 						n->print_f("\r\n|14Sending mail to |15%s\r\n", to.c_str());
 						std::vector<std::string> newemail = Editor::enter_message(n, to, "Feedback", "E-Mail", true, nullptr);
 						if (newemail.size() > 0) {
-							MsgArea::attach_sig(&newemail, n->get_user().get_attribute("signature", ""));
+							if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+								MsgArea::attach_sig(&newemail, n->get_user().get_attribute("signature", ""));
+							}
 							Email::save_message(n, to, n->get_user().get_username(), "Feedback", newemail);
 						}
 					}
@@ -1108,6 +1114,25 @@ bool Menu::run() {
 				}
 				else if (strcasecmp(items[i].command.c_str(), "phlogmanage") == 0) {
 					Phlog::list_articles(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "editsig") == 0) {
+					std::vector<std::string> siglines;
+					std::string sig = n->get_user().get_attribute("signature", "");
+					std::string line;
+					std::istringstream iss(sig);
+					while (getline(iss, line, '\r')) {
+						siglines.push_back(line);
+					}
+
+					std::vector<std::string> newsig = Editor::enter_message(n, "Signature", "Signature Editor", "Signature", true, nullptr, &siglines);
+
+					if (newsig.size() > 0) {
+						std::stringstream ssig;
+						for (size_t s = 0; s < newsig.size(); s++) {
+							ssig << newsig.at(s) << "\r";
+						}
+						n->get_user().set_attribute("signature", ssig.str());
+					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
 					n->update_node_use("Node Messaging");

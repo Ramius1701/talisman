@@ -1074,7 +1074,9 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, quotebuffer);
 			if (nmsg.size() > 0) {
 				// attach signature
-				attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+				if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+					attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+				}
 
 				if (real_names) {
 					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
@@ -1099,7 +1101,9 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 		if (subject.size() > 0) {
 			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, false, quotebuffer);
 			if (nmsg.size() > 0) {
-				attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+				if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+					attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+				}
 				if (real_names) {
 					save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, "", msg->xmsg.umsgid);
 				}

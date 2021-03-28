@@ -206,7 +206,7 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 			n->print_f("/A Abort Message\r\n");
 			n->print_f("/Q Quote Message\r\n");
 			n->print_f("/L List Message\r\n");
-			n->print_f("/D Delete Lines\r\n\00170");
+			n->print_f("/D Delete Lines\r\n");
 		}
 		else {
 			lines.push_back(cur_line);
