@@ -11,7 +11,14 @@ public:
 		this->n = n;
 		if (initialbuffer != nullptr && initialbuffer->size() > 0) {
 			for (size_t i = 0; i < initialbuffer->size(); i++) {
-				lines.push_back(initialbuffer->at(i));
+				std::stringstream sanss;
+				for (size_t j = 0; j < initialbuffer->at(i).size(); j++) {
+					if (initialbuffer->at(i).at(j) != '\n') {
+						sanss << initialbuffer->at(i).at(j);
+					}
+				}
+
+				lines.push_back(sanss.str());
 			}
 		}
 		else {

@@ -125,7 +125,14 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 
 	if (body != nullptr) {
 		for (size_t i = 0; i < body->size(); i++) {
-			lines.push_back(body->at(i));
+			std::stringstream sanss;
+			for (size_t j = 0; j < body->at(i).size(); j++) {
+				if (body->at(i).at(j) != '\n') {
+					sanss << body->at(i).at(j);
+				}
+			}
+
+			lines.push_back(sanss.str());
 		}
 	}
 
