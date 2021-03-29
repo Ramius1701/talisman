@@ -60,6 +60,7 @@ bool Tosser::update(std::string tag, std::string links) {
 
 void Tosser::areafix(Config *c, sq_msg_t* msg) {
 	link_conf_t* link = NULL;
+	bool showhelp = false;
 
 	for (size_t i = 0; i < c->links.size(); i++) {
 		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
@@ -103,7 +104,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 					bool success = false;
 
 					for (size_t i = 0; i < c->areas.size(); i++) {
-						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0) {
+						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
 							std::stringstream ss2;
 							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
 								if (c->areas.at(i).links.at(j) == link) {
@@ -126,13 +127,27 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 								msgout.push_back("You have been removed from " + c->areas.at(i).areatag + " successfully.");
 								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
 							}
+							else {
+								msgout.push_back("You have NOT been removed from " + c->areas.at(i).areatag);
+							}
 							break;
 						}
 					}
 
 				}
 				else if (line.at(0) == '%') {
-
+					if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
+						msgout.push_back("Areas you have access to:");
+						msgout.push_back("");
+						for (size_t i = 0; i < c->areas.size(); i++) {
+							if (link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+								msgout.push_back(c->areas.at(i).areatag);
+							}
+						}
+					}
+					else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
+						showhelp = true;
+					}
 				}
 				else {
 					// add area
@@ -142,7 +157,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 						if (line.at(0) == '+') {
 							line = line.substr(1);
 						}
-						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0) {
+						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
 							std::stringstream ss2;
 							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
 								if (c->areas.at(i).links.at(j) == link) {
@@ -166,6 +181,9 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 								msgout.push_back("You have been added to " + c->areas.at(i).areatag + " successfully.");
 								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
 							}
+							else {
+								msgout.push_back("You have NOT been added to " + c->areas.at(i).areatag);
+							}
 							break;
 						}
 					}
@@ -174,12 +192,6 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		}
 
 		sq_msg_t sqmsg;
-
-
-
-		for (size_t i = 0; i < msgout.size(); i++) {
-
-		}
 
 		memset(&sqmsg, 0, sizeof(sq_msg_t));
 
@@ -214,9 +226,6 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
 		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-
-		// strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
-
 		sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 		
 		std::stringstream ctrlstr;
@@ -246,9 +255,20 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			}
 
 		}
-		else {
+		if (showhelp) {
 			// send help text
-			msgstr << "This would be a help message!\r";
+			msgstr << "\r\r----------------------------------------------------------\r";
+			msgstr << "AREAFIX HELP!\r";
+			msgstr << "----------------------------------------------------------\r";
+			msgstr << "+SOMEAREA\r\r";
+			msgstr << "This will add you to SOMEAREA\r\r";
+			msgstr << "-SOMEAREA\r\r";
+			msgstr << "This will remove you from SOMEAREA\r\r";
+			msgstr << "%LIST\r\r";
+			msgstr << "This will give you a list of everything available\r\r";
+			msgstr << "%HELP\r\r";
+			msgstr << "This will show you this help\r\r";
+			msgstr << "----------------------------------------------------------\r";
 		}
 
 		sqmsg.msg = (char*)malloc(msgstr.str().size());

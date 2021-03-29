@@ -26,6 +26,7 @@ struct link_conf_t {
 	std::string packetpwd;
 	std::string ticpwd;
 	std::string areafixpwd;
+	std::string allowedgroups;
 	std::filesystem::path packetpath;
 	FILE* fptr;
 };
@@ -39,6 +40,7 @@ struct area_conf_t {
 	NETADDR* aka;
 	std::string file;
 	std::string areatag;
+	char group;
 	std::vector <struct link_conf_t*> links;
 };
 
