@@ -1,6 +1,7 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #else
 #include <unistd.h>
 #endif
@@ -74,7 +75,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 	}
 
 	// first check password
-	if (link->areafixpwd != "" && strcasecmp(link->areafixpwd.c_str(), msg->xmsg.subject) == 0) {
+	if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
 		// password is good.
 		std::vector<std::string> smsg;
 		log.log(LOG_INFO, "1");
