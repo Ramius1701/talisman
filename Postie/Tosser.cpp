@@ -94,6 +94,8 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			smsg.push_back(ss.str());
 		}
 
+		std::vector<std::string> msgout;
+
 		for (std::string line : smsg) {
 			if (line.size() > 0) {
 				if (line.at(0) == '-') {
@@ -121,6 +123,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 								}
 							}
 							if (success) {
+								msgout.push_back("You have been removed from " + c->areas.at(i).areatag + " successfully.");
 								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
 							}
 							break;
@@ -160,6 +163,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 								success = update(c->areas.at(i).areatag, ss2.str());
 							}
 							if (success) {
+								msgout.push_back("You have been added to " + c->areas.at(i).areatag + " successfully.");
 								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
 							}
 							break;
@@ -168,6 +172,97 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 				}
 			}
 		}
+
+		sq_msg_t sqmsg;
+
+
+
+		for (size_t i = 0; i < msgout.size(); i++) {
+
+		}
+
+		memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+		sqmsg.xmsg.orig.zone = link->ouraka->zone;
+		sqmsg.xmsg.orig.net = link->ouraka->net;
+		sqmsg.xmsg.orig.point = link->ouraka->point;
+		sqmsg.xmsg.orig.node = link->ouraka->node;
+
+
+		sqmsg.xmsg.dest.zone = link->aka->zone;
+		sqmsg.xmsg.dest.net = link->aka->net;
+		sqmsg.xmsg.dest.point = link->aka->point;
+		sqmsg.xmsg.dest.node = link->aka->node;
+
+		strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 72);
+		strncpy(sqmsg.xmsg.to, "AREAFIX", 36);
+		strncpy(sqmsg.xmsg.from, msg->xmsg.from, 36);
+
+		std::tm at;
+
+		time_t now = time(NULL);
+#ifdef _MSC_VER
+		localtime_s(&at, &now);
+#else
+		localtime_r(&now, &at);
+#endif
+		sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
+		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+
+		// strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+
+		sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+		
+		std::stringstream ctrlstr;
+
+		ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/" << link->ouraka->node;
+		if (link->aka->point > 0) {
+			ctrlstr << "\x01TOPT " << link->aka->point;
+		}
+		if (link->ouraka->point > 0) {
+			ctrlstr << "\001FMPT " << link->ouraka->point;
+		}
+
+		sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
+		if (!sqmsg.ctrl) {
+			return;
+		}
+		memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+		sqmsg.ctrl_len = ctrlstr.str().size();
+
+		std::stringstream msgstr;
+
+		if (msgout.size() > 0) {
+			// send msgout
+
+			for (size_t i = 0; i < msgout.size(); i++) {
+				msgstr << msgout.at(i) << "\r";
+			}
+
+		}
+		else {
+			// send help text
+			msgstr << "This would be a help message!\r";
+		}
+
+		sqmsg.msg = (char*)malloc(msgstr.str().size());
+		if (!sqmsg.msg) {
+			free(sqmsg.ctrl);
+			return;
+		}
+		memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+		sqmsg.msg_len = msgstr.str().size();
+
+		if (link->fptr == NULL) {
+			Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
+		}
+		Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
 	}
 	else {
 		log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
@@ -290,7 +385,7 @@ bool Tosser::run(bool protinbound) {
 
 	// toss each file one at a time
 	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
-	std::filesystem::path tempdir(_tmppath + "/postie-" + std::to_string(pid));
+	tempdir = _tmppath + "/postie-" + std::to_string(pid);
 
 	std::vector<std::filesystem::path> removelist;
 

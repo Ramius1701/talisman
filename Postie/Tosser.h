@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include "../Common/Squish.h"
 #include "../Common/Logger.h"
 
@@ -15,6 +16,7 @@ private:
 	void areafix(Config *c, sq_msg_t* msg);
 	bool update(std::string tag, std::string links);
 	std::string get_msgid(std::string ctrlbody);
+	std::filesystem::path tempdir;
 	std::string _datapath;
 	std::string _logpath;
 	std::string _msgpath;
