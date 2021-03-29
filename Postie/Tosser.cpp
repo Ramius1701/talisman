@@ -78,7 +78,6 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 	if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
 		// password is good.
 		std::vector<std::string> smsg;
-		log.log(LOG_INFO, "1");
 		std::stringstream ss;
 		for (size_t i = 0; i < msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
@@ -92,75 +91,77 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		if (ss.str().size() > 0) {
 			smsg.push_back(ss.str());
 		}
-		log.log(LOG_INFO, "2");
+
 		for (std::string line : smsg) {
-			if (line.at(0) == '-') {
-				// remove area
-				bool success = false;
+			if (line.size() > 0) {
+				if (line.at(0) == '-') {
+					// remove area
+					bool success = false;
 
-				for (size_t i = 0; i < c->areas.size(); i++) {
-					if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0) {
-						std::stringstream ss2;
-						for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
-							if (c->areas.at(i).links.at(j) == link) {
-								success = true;
+					for (size_t i = 0; i < c->areas.size(); i++) {
+						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0) {
+							std::stringstream ss2;
+							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+								if (c->areas.at(i).links.at(j) == link) {
+									success = true;
+								}
+								else {
+									ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+								}
 							}
-							else {
-								ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+
+							if (success == true) {
+								if (ss2.str().size() > 1) {
+									success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1));
+								}
+								else {
+									success = update(c->areas.at(i).areatag, ss2.str());
+								}
 							}
+							if (success) {
+								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
+							}
+							break;
 						}
+					}
 
-						if (success == true) {
-							if (ss2.str().size() > 1) {
-								success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1));
+				}
+				else if (line.at(0) == '%') {
+
+				}
+				else {
+					// add area
+					bool success = false;
+
+					for (size_t i = 0; i < c->areas.size(); i++) {
+						if (line.at(0) == '+') {
+							line = line.substr(1);
+						}
+						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0) {
+							std::stringstream ss2;
+							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+								if (c->areas.at(i).links.at(j) == link) {
+									success = false;
+									break;
+								}
+								else {
+									ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+								}
 							}
-							else {
+
+							if (ss2.str().size() > 1 && success == true) {
+								ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
 								success = update(c->areas.at(i).areatag, ss2.str());
 							}
-						}
-						if (success) {
-							log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
-						}
-						break;
-					}
-				}
-
-			}
-			else if (line.at(0) == '%') {
-
-			}
-			else {
-				// add area
-				bool success = false;
-				log.log(LOG_INFO, "3");
-				for (size_t i = 0; i < c->areas.size(); i++) {
-					if (line.at(0) == '+') {
-						line = line.substr(1);
-					}
-					if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0) {
-						std::stringstream ss2;
-						for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
-							if (c->areas.at(i).links.at(j) == link) {
-								success = false;
-								break;
-							}
 							else {
-								ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+								ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+								success = update(c->areas.at(i).areatag, ss2.str());
 							}
+							if (success) {
+								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
+							}
+							break;
 						}
-						log.log(LOG_INFO, "4");
-						if (ss2.str().size() > 1 && success == true) {
-							ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-							success = update(c->areas.at(i).areatag, ss2.str());
-						}
-						else {
-							ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-							success = update(c->areas.at(i).areatag, ss2.str());
-						}
-						if (success) {
-							log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
-						}
-						break;
 					}
 				}
 			}
