@@ -59,7 +59,7 @@ bool Tosser::update(std::string tag, std::string links) {
 void Tosser::areafix(Config *c, sq_msg_t* msg) {
 	link_conf_t* link = NULL;
 
-	for (size_t i = 0; i < c->links.size(); c++) {
+	for (size_t i = 0; i < c->links.size(); i++) {
 		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
 			c->links.at(i).aka->net == msg->xmsg.orig.net &&
 			c->links.at(i).aka->node == msg->xmsg.orig.node &&
