@@ -77,7 +77,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 	if (link->areafixpwd != "" && strcasecmp(link->areafixpwd.c_str(), msg->xmsg.subject) == 0) {
 		// password is good.
 		std::vector<std::string> smsg;
-
+		log.log(LOG_INFO, "1");
 		std::stringstream ss;
 		for (size_t i = 0; i < msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
@@ -91,7 +91,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		if (ss.str().size() > 0) {
 			smsg.push_back(ss.str());
 		}
-
+		log.log(LOG_INFO, "2");
 		for (std::string line : smsg) {
 			if (line.at(0) == '-') {
 				// remove area
@@ -131,7 +131,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			else {
 				// add area
 				bool success = false;
-
+				log.log(LOG_INFO, "3");
 				for (size_t i = 0; i < c->areas.size(); i++) {
 					if (line.at(0) == '+') {
 						line = line.substr(1);
@@ -141,14 +141,19 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 						for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
 							if (c->areas.at(i).links.at(j) == link) {
 								success = false;
+								break;
 							}
 							else {
 								ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
 							}
 						}
-
+						log.log(LOG_INFO, "4");
 						if (ss2.str().size() > 1 && success == true) {
 							ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+							success = update(c->areas.at(i).areatag, ss2.str());
+						}
+						else {
+							ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
 							success = update(c->areas.at(i).areatag, ss2.str());
 						}
 						if (success) {
