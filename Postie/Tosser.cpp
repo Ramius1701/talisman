@@ -15,6 +15,152 @@
 #include "PacketStructs.h"
 #include "Scanner.h"
 #include "Dupe.h"
+#include "toml.hpp"
+#include <fstream>
+
+
+bool Tosser::update(std::string tag, std::string links) {
+	auto config = toml::parse_file(_datapath + "/postie.toml");
+
+	auto areaitems = config.get_as<toml::array>("area");
+	if (areaitems != nullptr) {
+
+		for (size_t k = 0; k < areaitems->size(); k++) {
+			auto itemtable = areaitems->get(k)->as_table();
+
+			auto areatag = itemtable->get("tag");
+
+			std::string mytag;
+
+			if (areatag != nullptr) {
+				mytag = areatag->as_string()->value_or("");
+			}
+			else {
+				mytag = "";
+			}
+
+			if (mytag == tag) {
+				std::stringstream ss2;
+
+				itemtable->insert_or_assign("links", links);
+				std::fstream file(_datapath + "/postie.toml");
+				file << config;
+				file.close();
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+void Tosser::areafix(Config *c, sq_msg_t* msg) {
+	link_conf_t* link = NULL;
+
+	for (size_t i = 0; i < c->links.size(); c++) {
+		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
+			c->links.at(i).aka->net == msg->xmsg.orig.net &&
+			c->links.at(i).aka->node == msg->xmsg.orig.node &&
+			c->links.at(i).aka->point == msg->xmsg.orig.point) {
+			link = &c->links.at(i);
+			break;
+		}
+	}
+
+	if (link == NULL) {
+		log.log(LOG_INFO, "Got areafix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+		return;
+	}
+
+	// first check password
+	if (link->areafixpwd != "" && strcasecmp(link->areafixpwd.c_str(), msg->xmsg.subject) == 0) {
+		// password is good.
+		std::vector<std::string> smsg;
+
+		std::stringstream ss;
+		for (size_t i = 0; i < msg->msg_len; i++) {
+			if (msg->msg[i] == '\r') {
+				smsg.push_back(ss.str());
+				ss.str("");
+			}
+			else if (msg->msg[i] != '\n') {
+				ss << msg->msg[i];
+			}
+ 		}
+		if (ss.str().size() > 0) {
+			smsg.push_back(ss.str());
+		}
+
+		for (std::string line : smsg) {
+			if (line.at(0) == '-') {
+				// remove area
+				bool success = false;
+
+				for (size_t i = 0; i < c->areas.size(); i++) {
+					if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0) {
+						std::stringstream ss2;
+						for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+							if (c->areas.at(i).links.at(j) == link) {
+								success = true;
+							}
+							else {
+								ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+							}
+						}
+
+						if (success == true) {
+							if (ss2.str().size() > 1) {
+								success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1));
+							}
+							else {
+								success = update(c->areas.at(i).areatag, ss2.str());
+							}
+						}
+						if (success) {
+							log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
+						}
+						break;
+					}
+				}
+
+			}
+			else if (line.at(0) == '%') {
+
+			}
+			else {
+				// add area
+				bool success = false;
+
+				for (size_t i = 0; i < c->areas.size(); i++) {
+					if (line.at(0) == '+') {
+						line = line.substr(1);
+					}
+					if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0) {
+						std::stringstream ss2;
+						for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+							if (c->areas.at(i).links.at(j) == link) {
+								success = false;
+							}
+							else {
+								ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+							}
+						}
+
+						if (ss2.str().size() > 1 && success == true) {
+							ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+							success = update(c->areas.at(i).areatag, ss2.str());
+						}
+						if (success) {
+							log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
 std::string Tosser::get_msgid(std::string ctrlbody) {
 	std::stringstream kludge;
@@ -108,7 +254,7 @@ bool Tosser::run(bool protinbound) {
 	_logpath = inir.Get("Paths", "Log Path", "logs");
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-	Logger log;
+
 
 	log.load(_logpath + "/postie.log");
 
@@ -684,18 +830,22 @@ bool Tosser::run(bool protinbound) {
 
 					if (found) {
 						// TODO: it's to me, is it for areafix?
-
-
-						sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
-
-						if (mb != NULL) {
-							SquishLockMsgBase(mb);
-							SquishWriteMsg(mb, &sqmsg);
-							SquishUnlockMsgBase(mb);
-							SquishCloseMsgBase(mb);
+						if (strcasecmp(sqmsg.xmsg.to, "areafix") == 0 && protinbound) {
+							areafix(&c, &sqmsg);
 						}
 						else {
-							log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+
+							sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+
+							if (mb != NULL) {
+								SquishLockMsgBase(mb);
+								SquishWriteMsg(mb, &sqmsg);
+								SquishUnlockMsgBase(mb);
+								SquishCloseMsgBase(mb);
+							}
+							else {
+								log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+							}
 						}
 
 					}
