@@ -44,9 +44,11 @@ bool Tosser::update(std::string tag, std::string links) {
 				std::stringstream ss2;
 
 				itemtable->insert_or_assign("links", links);
-				std::fstream file(_datapath + "/postie.toml");
+				std::fstream file(_datapath + "/postie_new.toml");
 				file << config;
 				file.close();
+
+				std::filesystem::rename(std::filesystem::path(_datapath + "/postie_new.toml"), std::filesystem::path(_datapath + "/postie.toml"));
 
 				return true;
 			}
