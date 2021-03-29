@@ -195,8 +195,8 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		sqmsg.xmsg.dest.node = link->aka->node;
 
 		strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 72);
-		strncpy(sqmsg.xmsg.to, "AREAFIX", 36);
-		strncpy(sqmsg.xmsg.from, msg->xmsg.from, 36);
+		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 36);
+		strncpy(sqmsg.xmsg.from, "AREAFIX", 36);
 
 		std::tm at;
 
