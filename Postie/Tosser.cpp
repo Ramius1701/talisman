@@ -160,6 +160,9 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			}
 		}
 	}
+	else {
+		log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+	}
 }
 
 std::string Tosser::get_msgid(std::string ctrlbody) {
