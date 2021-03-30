@@ -267,6 +267,8 @@ bool Config::load(std::string datapath) {
 				std::string mypacketpwd;
 				std::string myfilebox;
 				std::string myticpwd;
+				std::string myfixpwd;
+				std::string myallowedgroups;
 
 				auto addr = itemtable->get("aka");
 				if (addr != nullptr) {
@@ -333,6 +335,22 @@ bool Config::load(std::string datapath) {
 					myticpwd = "";
 				}
 
+				auto fixpwd = itemtable->get("areafixpwd");
+				if (fixpwd != nullptr) {
+					myfixpwd = fixpwd->as_string()->value_or("");
+				}
+				else {
+					myfixpwd = "";
+				}
+
+				auto allowedgr = itemtable->get("allowedgroups");
+				if (allowedgr != nullptr) {
+					myallowedgroups = allowedgr->as_string()->value_or("");
+				}
+				else {
+					myallowedgroups = "";
+				}
+
 				struct link_conf_t newlink;
 
 				newlink.aka = myaka;
@@ -343,6 +361,8 @@ bool Config::load(std::string datapath) {
 				newlink.fptr = NULL;
 				newlink.filebox = myfilebox;
 				newlink.ticpwd = myticpwd;
+				newlink.areafixpwd = myfixpwd;
+				newlink.allowedgroups = myallowedgroups;
 				links.push_back(newlink);
 			}
 		}
@@ -399,6 +419,8 @@ bool Config::load(std::string datapath) {
 				std::string myfile;
 				std::string mytag;
 				std::string mylinklist;
+				std::string mygroup;
+
 				auto addr = itemtable->get("aka");
 				if (addr != nullptr) {
 					std::string aka = addr->as_string()->value_or("");
@@ -424,6 +446,14 @@ bool Config::load(std::string datapath) {
 				else {
 					mytag = "";
 				}
+				auto group = itemtable->get("group");
+				if (group != nullptr) {
+					mygroup = group->as_string()->value_or("0");
+				}
+				else {
+					mygroup = "0";
+				}
+
 				auto linklist = itemtable->get("links");
 				if (linklist != nullptr) {
 					mylinklist = linklist->as_string()->value_or("");
@@ -460,6 +490,7 @@ bool Config::load(std::string datapath) {
 				aconf.aka = myaka;
 				aconf.areatag = mytag;
 				aconf.file = myfile;
+				aconf.group = mygroup.at(0);
 				areas.push_back(aconf);
 			}
 		}
