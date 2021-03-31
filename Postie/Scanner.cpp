@@ -876,7 +876,7 @@ bool Scanner::run() {
 			fclose(c.links.at(fil).fptr);
 
 			// create bundle
-			std::string bundlename = c.packetdir() + "/" + get_bundle_name(c.links.at(fil).ouraka, c.links.at(fil).aka, c.packetdir());
+			std::string bundlename = c.packetdir() + "/" + get_bundle_name(c.links.at(fil).ouraka, c.links.at(fil).aka, c.packetdir(), c.bundlename_ts());
 			if (bundlename == "") {
 				log.log(LOG_ERROR, "Unable to get bundle name");
 				continue;
@@ -980,7 +980,7 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
 	return true;
 }
 
-std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath) {
+std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath, bool bundle_ts) {
 	time_t ttime;
 	struct tm thetm;
 	static const char* days[] = { "su", "mo", "tu", "we", "th", "fr", "sa" };
@@ -991,15 +991,21 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 
 	char buffer[9];
 
-	if (dest->point != 0) {
-		snprintf(buffer, sizeof buffer, "0000p%03x", dest->point);
-	}
-	else {
-		snprintf(buffer, sizeof buffer, "%04x%04x", abs(orig->net - dest->net), abs(orig->node - dest->node));
-	}
-
 	ttime = time(NULL);
 
+
+	if (bundle_ts) {
+		snprintf(buffer, sizeof buffer, "%08" PRIx64 , ttime & 0xffffffff);
+	}
+	else {
+		if (dest->point != 0) {
+			snprintf(buffer, sizeof buffer, "0000p%03x", dest->point);
+		}
+		else {
+			snprintf(buffer, sizeof buffer, "%04x%04x", abs(orig->net - dest->net), abs(orig->node - dest->node));
+		}
+	}
+	
 #ifdef _MSC_VER
 	localtime_s(&thetm, &ttime);
 #else 

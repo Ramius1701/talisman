@@ -84,11 +84,16 @@ public:
 		return __dupebase;
 	}
 
+	bool bundlename_ts() {
+		return __bundlename_ts;
+	}
+
 private:
 	std::string __inbound;
 	std::string __protinbound;
 	std::string __outbound;
 	std::string __packetdir;
 	std::string __dupebase;
+	bool __bundlename_ts;
 };
 
