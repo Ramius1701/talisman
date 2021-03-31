@@ -142,7 +142,8 @@ bool Config::load(std::string datapath) {
 			__bundlename_ts = false;
 		}
 		else {
-			if (_bundlename_ts->value_or("nodediff") == "timestamp") {
+			std::string bnamet = _bundlename_ts->value_or("nodediff");
+			if (bnamet == "timestamp") {
 				__bundlename_ts = true;
 			}
 			else {
