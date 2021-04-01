@@ -114,9 +114,9 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 				args.push_back(std::to_string(socket));
 			}
 			else if (s == "@FILELIST@") {
-				for (int i = 0; i < files->size(); i++) {
+				for (size_t i = 0; i < files->size(); i++) {
 					args.push_back(files->at(i).u8string());
-					n->clog->down_bytes(std::filesystem::file_size(files->at(i)));
+					n->clog->down_bytes((uint32_t)std::filesystem::file_size(files->at(i)));
 				}
 			}
 			else {
@@ -128,7 +128,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 		}	
 	}
 	else {
-		for (int i = 0; i < files->size(); i++) {
+		for (size_t i = 0; i < files->size(); i++) {
 			args.clear();
 			n->print_f("Sending %s with %s\r\n", files->at(i).filename().u8string().c_str(), name.c_str());
 			gotcmd = false;
@@ -143,7 +143,7 @@ void Protocol::download(Node* n, int socket, std::vector<std::filesystem::path> 
 				}
 				else if (s == "@FILENAME@") {
 					args.push_back(files->at(i).u8string());
-					n->clog->down_bytes(std::filesystem::file_size(files->at(i)));
+					n->clog->down_bytes((uint32_t)std::filesystem::file_size(files->at(i)));
 				}
 				else {
 					args.push_back(s);

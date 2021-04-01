@@ -1,7 +1,7 @@
 #include <fstream>
 #include "Node.h"
 #include "MsgConf.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include "Config.h"
 
 MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline)
@@ -104,8 +104,8 @@ bool MsgConf::load(Node *n, std::string filename) {
 
 struct area_list_entry_t {
 	std::string name;
-	int total_msgs;
-	int new_msgs;
+	int total_msgs = 0;
+	int new_msgs = 0;
 };
 
 
@@ -132,7 +132,7 @@ int MsgConf::list(Node* n, int sec) {
 
 int MsgConf::list_areas_fsr(Node* n, int sec) {
 	std::vector<struct area_list_entry_t> area_entries;
-	uint32_t selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+	int selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
 	for (size_t i = 0; i < areas.size(); i++) {
 		if (areas.at(i).get_r_sec_level() > sec) continue;
 		struct area_list_entry_t entry;
@@ -146,7 +146,7 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 		area_entries.push_back(entry);
 	}
 
-	if (selected == -1 || selected >= areas.size()) {
+	if (selected == -1 || selected >= (int)areas.size()) {
 		selected = 0;
 	}
 
@@ -214,8 +214,8 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < area_entries.size() - 1) {
-						if (selected + 1 >= start + (n->get_term_height() - 2) - 1) {
+					if (selected < (int)area_entries.size() - 1) {
+						if (selected + 1 >= start + (int)(n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;
@@ -328,9 +328,9 @@ int MsgConf::list_areas_old(Node* n, int sec)
 
 
 int MsgConf::list_fsr(Node* n, int sec) {
-	uint32_t selected = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+	int selected = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 
-	if (selected == -1 || selected >= n->get_config()->msgconfs.size()) {
+	if (selected == -1 || selected >= (int)n->get_config()->msgconfs.size()) {
 		selected = 0;
 	}
 
@@ -378,8 +378,8 @@ int MsgConf::list_fsr(Node* n, int sec) {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < n->get_config()->msgconfs.size() - 1) {
-						if (selected + 1>= start + (n->get_term_height() - 2) - 1) {
+					if (selected < (int)n->get_config()->msgconfs.size() - 1) {
+						if (selected + 1>= start + ((int)n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;
@@ -469,7 +469,7 @@ int MsgConf::list_old(Node* n, int sec)
 }
 
 void MsgConf::scan(Node* n) {
-	int lines = 0;
+	size_t lines = 0;
 	n->print_f("\r\n");
 	for (size_t conf = 0; conf < n->get_config()->msgconfs.size(); conf++) {
 		if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).get_sec_level()) {

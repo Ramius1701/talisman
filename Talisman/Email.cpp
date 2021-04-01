@@ -215,9 +215,9 @@ void Email::list_email(Node* n) {
 					return;
 				}
 				else {
-					int emailno;
+					size_t emailno;
 					try {
-						emailno = std::stoi(res) - 1;
+						emailno = (size_t)(std::stoi(res) - 1);
 						while (emailno >= 0 && emailno < emails.size()) {
 							int ret = view_email(n, emails.at(emailno));
 							
@@ -248,9 +248,9 @@ void Email::list_email(Node* n) {
 			return;
 		}
 		else {
-			int emailno;
+			size_t emailno;
 			try {
-				emailno = std::stoi(res) - 1;
+				emailno = (size_t)(std::stoi(res) - 1);
 				// view email
 				while (emailno >= 0 && emailno < emails.size()) {
 					int ret = view_email(n, emails.at(emailno));
@@ -523,7 +523,7 @@ int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* con
 
 		std::stringstream mbody2;
 		mbody2.str("");
-		for (int i = 0; i < msgbody.length(); i++) {
+		for (size_t i = 0; i < msgbody.length(); i++) {
 			if (msgbody.at(i) != '\n') {
 				mbody2 << msgbody.at(i);
 			}
@@ -565,7 +565,7 @@ int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* con
 
 
 
-		int len = msgbody.length() / 128;
+		size_t len = msgbody.length() / 128;
 
 		if (len * 128 < msgbody.length()) {
 			len++;
@@ -583,7 +583,7 @@ int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* con
 
 		memset(msgbuf, ' ', lenbytes);
 
-		for (int i = 0; i < msgbody.length(); i++) {
+		for (size_t i = 0; i < msgbody.length(); i++) {
 			if (msgbody.c_str()[i] == '\r') {
 				msgbuf[i] = '\xe3';
 			}

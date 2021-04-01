@@ -35,8 +35,8 @@ public:
 
 		line_at += content.size();
 
-		if (line_at > top + n->get_term_height() - 5) {
-			top += line_at - (top + n->get_term_height() - 5) + 1;
+		if (line_at > top + (int)n->get_term_height() - 5) {
+			top += line_at - (top + (int)n->get_term_height() - 5) + 1;
 		}
 	}
 
@@ -49,7 +49,7 @@ public:
 			top--;
 		}
 
-		if (line_at > top + n->get_term_height() - 5) {
+		if (line_at > top + (int)n->get_term_height() - 5) {
 			top++;
 		}
 
@@ -57,7 +57,7 @@ public:
 	}
 
 	void refresh_line(int lineno) {
-		if (lineno >= top && lineno <= top + n->get_term_height() - 5) {
+		if (lineno >= (int)top && lineno <= (int)top + (int)n->get_term_height() - 5) {
 			n->print_f_nc("\x1b[%d;%dH\x1b[0m%s\x1b[K", lineno - top + 4, 1, lines.at(lineno).c_str());
 		}
 	}
@@ -348,7 +348,7 @@ public:
 	void add_char(char c) {
 		std::stringstream ss, ss2;
 		
-		int last_space = lines.at(line_at).rfind(' ');
+		size_t last_space = lines.at(line_at).rfind(' ');
 
 		if (lines.at(line_at).size() >= 74) {
 			if (last_space != std::string::npos) {
@@ -435,10 +435,10 @@ public:
 
 private:
 	Node* n;
-	int col_at = 0;
-	int line_at = 0;
+	size_t col_at = 0;
+	size_t line_at = 0;
 	std::vector<std::string> lines;
-	int top = 0;
+	size_t top = 0;
 };
 
 FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines, std::vector<std::string>* body) {

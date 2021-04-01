@@ -199,7 +199,6 @@
     <ClInclude Include="Script.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SshClient.h" />
-    <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>

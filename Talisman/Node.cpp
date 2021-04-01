@@ -68,6 +68,8 @@ Node::Node(int node, int socket, bool telnet) {
 	override_height = 0;
 	sshc = nullptr;
 	ssht = nullptr;
+	last_on = 0;
+	timeoutmax = 0;
 #ifdef _MSC_VER
 	hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
@@ -88,12 +90,12 @@ Node::~Node() {
 	}
 }
 
-int Node::get_term_width() {
+size_t Node::get_term_width() {
 	if (u.get_uid() != 0) {
 		if (override_on == -1) {
 			override_on = u.get_attribute("screen_override", "false") == "true";
-			override_width = stoi(u.get_attribute("screen_override_width", "80"));
-			override_height = stoi(u.get_attribute("screen_override_height", "25"));
+			override_width = (size_t)stoi(u.get_attribute("screen_override_width", "80"));
+			override_height = (size_t)stoi(u.get_attribute("screen_override_height", "25"));
 		}
 		if (override_on) {
 			return override_width;
@@ -102,12 +104,12 @@ int Node::get_term_width() {
 	return term_width;
 }
 
-int Node::get_term_height() {
+size_t Node::get_term_height() {
 	if (u.get_uid() != 0) {
 		if (override_on == -1) {
 			override_on = u.get_attribute("screen_override", "false") == "true";
-			override_width = stoi(u.get_attribute("screen_override_width", "80"));
-			override_height = stoi(u.get_attribute("screen_override_height", "25"));
+			override_width = (size_t)stoi(u.get_attribute("screen_override_width", "80"));
+			override_height = (size_t)stoi(u.get_attribute("screen_override_height", "25"));
 		}
 		if (override_on) {
 			return override_height;
@@ -120,11 +122,11 @@ int Node::get_term_height() {
 	return term_height;
 }
 
-void Node::set_term_width(int w) {
+void Node::set_term_width(size_t w) {
 	term_width = w;
 }
 
-void Node::set_term_height(int h) {
+void Node::set_term_height(size_t h) {
 	term_height = h;
 }
 
@@ -737,18 +739,18 @@ char Node::getch() {
 	}
 	return ch;
 }
-std::string Node::get_string(int maxlen, bool masked, bool clear) {
+std::string Node::get_string(size_t maxlen, bool masked, bool clear) {
 	return get_string(maxlen, masked, clear, "");
 }
 
-std::string Node::get_string(int maxlen, bool masked, bool clear, std::string def) {
+std::string Node::get_string(size_t maxlen, bool masked, bool clear, std::string def) {
 	std::stringstream ss;
 
 	ss << def;
 
 	if (hasANSI && !clear) {
 		print_f("%s%s\x1b[s", config.get_prompt_colour(), def.c_str());
-		for (int i = def.size(); i < maxlen; i++) {
+		for (size_t i = def.size(); i < maxlen; i++) {
 			print_f(" ");
 		}
 		print_f("\x1b[u");
@@ -786,7 +788,7 @@ std::string Node::get_string(int maxlen, bool masked, bool clear, std::string de
 	return ss.str();
 }
 
-std::string Node::get_string(int maxlen, bool masked)
+std::string Node::get_string(size_t maxlen, bool masked)
 {
 	return get_string(maxlen, masked, false);
 }
@@ -1251,7 +1253,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		return 0;
 	}
 	log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
-	srand(time(NULL));
+	srand((uint32_t)time(NULL));
 	clog = new CallLog(&config);
 	clog->log_on(u.get_username(), node);
 	update_node_use("Logging in.");

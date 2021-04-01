@@ -179,10 +179,10 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 
 struct file_list_t {
 	std::string filename;
-	size_t filesize;
-	int dlcount;
-	time_t uldate;
-	bool missing;
+	size_t filesize = 0;
+	int dlcount = 0;
+	time_t uldate = 0;
+	bool missing = false;
 	std::string ulname;
 	std::vector<std::string> desc;
 };
@@ -244,7 +244,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 		struct file_list_t f;
 
 		f.filename = std::string((const char*)sqlite3_column_text(stmt, 0));
-		f.filesize = sqlite3_column_int64(stmt, 1);
+		f.filesize = sqlite3_column_int(stmt, 1);
 		f.dlcount = sqlite3_column_int(stmt, 2);
 		f.uldate = sqlite3_column_int64(stmt, 3);
 		f.ulname = std::string((const char*)sqlite3_column_text(stmt, 4));
@@ -318,9 +318,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 						if (tolower(res.at(0) == 'q')) {
 							return;
 						}
-						int ftag;
+						size_t ftag;
 						try {
-							ftag = stoi(res);
+							ftag = (size_t)stoi(res);
 						}
 						catch (std::invalid_argument) {
 							ftag = 0;
@@ -353,9 +353,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 				if (tolower(res.at(0) == 'q')) {
 					return;
 				}
-				int ftag;
+				size_t ftag;
 				try {
-					ftag = stoi(res);
+					ftag = (size_t)stoi(res);
 				}
 				catch (std::invalid_argument) {
 					ftag = 0;
@@ -378,9 +378,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 		n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15ENTER|08=|14Quit: ", filelist.size());
 		std::string res = n->get_string(5, false);
 		if (res.size() > 0) {
-			int ftag;
+			size_t ftag;
 			try {
-				ftag = stoi(res);
+				ftag = (size_t)stoi(res);
 			}
 			catch (std::invalid_argument) {
 				ftag = 0;
@@ -479,7 +479,7 @@ bool FileArea::upload_file(Node *n) {
 				n->print_f("|12Failed to add to the database!|07\r\n");
 			}
 			else {
-				n->clog->up_bytes(std::filesystem::file_size(newp));
+				n->clog->up_bytes((uint32_t)std::filesystem::file_size(newp));
 				n->print_f("|10Thankyou for your upload!|07\r\n");
 				ret = true;
 			}

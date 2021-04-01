@@ -47,7 +47,7 @@ int MsgArea::get_total_msgs()
 	return tot;
 }
 
-std::vector<std::string> MsgArea::word_wrap(std::string str, int len) {
+std::vector<std::string> MsgArea::word_wrap(std::string str, size_t len) {
 	std::vector<std::string> strvec;
 	size_t line_start = 0;
 	size_t last_space = 0;
@@ -390,7 +390,7 @@ void MsgArea::do_semaphore(std::string sem)
 	}
 }
 
-std::vector<std::string> MsgArea::strip_ansi(const char* msg, int len) {
+std::vector<std::string> MsgArea::strip_ansi(const char* msg, size_t len) {
 	std::stringstream output;
 	std::vector<std::string> ansi_msg = demangle_ansi(msg, len);
 	std::vector<std::string> new_msg;
@@ -419,11 +419,11 @@ struct character_t {
 	bool bold;
 };
 
-std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
+std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 	std::vector<std::string> new_msg;
-	int lines = 0;
-	int line_at = 0;
-	int col_at = 0;
+	size_t lines = 0;
+	size_t line_at = 0;
+	size_t col_at = 0;
 	int params[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int param_count = 0;
 	int fg_color = 7;
@@ -560,10 +560,10 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	}
 
 
-	for (int i = 0; i <= lines; i++) {
+	for (size_t i = 0; i <= lines; i++) {
 		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->get_term_width() + 1));
 		if (!fakescreen[i]) return new_msg;
-		for (int x = 0; x <= n->get_term_width(); x++) {
+		for (size_t x = 0; x <= n->get_term_width(); x++) {
 			fakescreen[i][x].c = ' ';
 			fakescreen[i][x].fg_color = 7;
 			fakescreen[i][x].bg_color = 0;
@@ -697,8 +697,8 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 		}
 	}
 
-	for (int i = 0; i < lines; i++) {
-		for (int j = n->get_term_width() - 1; j >= 0; j--) {
+	for (size_t i = 0; i < lines; i++) {
+		for (size_t j = n->get_term_width() - 1; j >= 0; j--) {
 			if (fakescreen[i][j].c == ' ') {
 				fakescreen[i][j].c = '\0';
 			}
@@ -714,9 +714,9 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 	bg_color = 0;
 	bold = false;
 	bool got_tearline = false;
-	for (int i = 0; i < lines; i++) {
+	for (size_t i = 0; i < lines; i++) {
 		ss.str("");
-		int j;
+		size_t j;
 
 		if ((fakescreen[i][0].c == '-' &&
 			fakescreen[i][1].c == '-' &&
@@ -771,7 +771,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, int len) {
 		new_msg.push_back(ss.str());
 	}
 
-	for (int i = 0; i <= lines; i++) {
+	for (size_t i = 0; i <= lines; i++) {
 		free(fakescreen[i]);
 	}
 	free(fakescreen);
@@ -872,7 +872,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 		}
 		else {
 			std::stringstream ss;
-			for (size_t i = 0; i < msg->msg_len; i++) {
+			for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
 				if (msg->msg[i] == '\r') {
 					new_msg.push_back(ss.str());
 					ss.str("");
@@ -986,7 +986,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
 	}
 	else {
 		std::stringstream ss;
-		for (size_t m = 0; m < msg->msg_len; m++) {
+		for (size_t m = 0; m < (size_t)msg->msg_len; m++) {
 			if (msg->msg[m] == '\r') {
 				q_msg.push_back(ss.str());
 				ss.str("");
@@ -1230,7 +1230,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		n->print_f("|14Unable to open message base!|07\r\n");
 		return false;
 	}
-	if (start > mb->basehdr.num_msg) {
+	if (start > (int)mb->basehdr.num_msg) {
 		n->print_f("|14Empty message base!|07\r\n");
 		SquishCloseMsgBase(mb);
 		return false;
@@ -1411,7 +1411,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 		else if (fsr == true) {
-			int top = 0;
+			size_t top = 0;
 			std::vector<std::string> linesv2;
 			bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true";
 			for (size_t i = 0; i < linesv.size(); i++) {
@@ -1655,8 +1655,8 @@ struct msg_list_t {
 
 int MsgArea::list_messages_full(int start) {
 	bool redraw = true;
-	int pos = 0;
-	int selected = 0;
+	size_t pos = 0;
+	size_t selected = 0;
 
 	std::vector<struct msg_list_t> msgs;
 
@@ -1667,7 +1667,7 @@ int MsgArea::list_messages_full(int start) {
 		n->print_f("|14Unable to open message base!|07\r\n");
 		return 0;
 	}
-	if (start > mb->basehdr.num_msg) {
+	if (start > (int)mb->basehdr.num_msg) {
 		n->print_f("|14Empty message base!|07\r\n");
 		SquishCloseMsgBase(mb);
 		return 0;
@@ -1721,7 +1721,7 @@ int MsgArea::list_messages_full(int start) {
 			n->cls();
 			n->print_f("\x1b[1;1H%s Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
 
-			for (int i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
+			for (size_t i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
 				if (msgs.at(i).msgno <= lr) {
 					if (i == selected) {
 						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
@@ -1867,7 +1867,7 @@ int MsgArea::list_messages_old(int start) {
 		n->print_f("|14Unable to open message base!|07\r\n");
 		return 0;
 	}
-	if (start > mb->basehdr.num_msg) {
+	if (start > (int)mb->basehdr.num_msg) {
 		n->print_f("|14Empty message base!|07\r\n");
 		SquishCloseMsgBase(mb);
 		return 0;
@@ -1882,7 +1882,7 @@ int MsgArea::list_messages_old(int start) {
 			continue;
 		}
 		else {
-			if (i <= lr) {
+			if ((int)i <= lr) {
 				n->print_f("|08[|15%6d|08] |14%-32.32s |13%-16.16s |11%-16.16s\r\n", i, msg->xmsg.subject, msg->xmsg.from, msg->xmsg.to);
 			}
 			else {
@@ -2116,21 +2116,21 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 		int year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980;
 
 		std::stringstream msgss;
-		for (size_t i = 0; i < msg->msg_len; i++) {
+		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
-				if (i < msg->msg_len - 1) {
+				if (i < (size_t)msg->msg_len - 1) {
 					if (msg->msg[i] == '\001') {
 						i++;
-						while (i < msg->msg_len && msg->msg[i] != '\r') {
+						while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
 							i++;
 						}
 						continue;
 					}
 				}
-				else if (i < msg->msg_len - 9) {
+				else if (i < (size_t)msg->msg_len - 9) {
 					if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' &&
 						msg->msg[i + 4] == '-' && msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
-						while (i < msg->msg_len && msg->msg[i] != '\r') {
+						while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
 							i++;
 						}
 						continue;
@@ -2174,7 +2174,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 		std::stringstream mbody2;
 		mbody2.str("");
-		for (int i = 0; i < msgbody.length(); i++) {
+		for (size_t i = 0; i < msgbody.length(); i++) {
 			if (msgbody.at(i) != '\n') {
 				mbody2 << msgbody.at(i);
 			}
@@ -2216,13 +2216,13 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 
 
-		int len = msgbody.length() / 128;
+		size_t len = msgbody.length() / 128;
 
 		if (len * 128 < msgbody.length()) {
 			len++;
 		}
 
-		int lenbytes = len * 128;
+		size_t lenbytes = len * 128;
 
 		char* msgbuf = (char*)malloc(lenbytes);
 
@@ -2233,7 +2233,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 		memset(msgbuf, ' ', lenbytes);
 
-		for (int i = 0; i < msgbody.length(); i++) {
+		for (size_t i = 0; i < msgbody.length(); i++) {
 			if (msgbody.c_str()[i] == '\r') {
 				msgbuf[i] = '\xe3';
 			}

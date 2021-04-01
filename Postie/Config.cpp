@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iomanip>
 #include "Config.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include "Archiver.h"
 
 static inline void ltrim(std::string& s) {
@@ -93,7 +93,7 @@ bool Config::load_archivers(std::string datapath)
 
 			uint8_t *signature;
 
-			if (mysig == "") {
+			if (mysig.size() % 2 != 0) {
 				signature = NULL;
 			}
 			else {

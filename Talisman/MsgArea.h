@@ -38,9 +38,9 @@ public:
 	void read_message(int start, int *last);
 	bool is_to_me(Node* n, sq_msg_t *msg);
 	bool read_message(int start, bool search, bool unread, bool set_last_read, int *last);
-	std::vector<std::string> demangle_ansi(const char* msg, int len);
-	std::vector<std::string> strip_ansi(const char* msg, int len);
-	static std::vector<std::string> word_wrap(std::string str, int len);
+	std::vector<std::string> demangle_ansi(const char* msg, size_t len);
+	std::vector<std::string> strip_ansi(const char* msg, size_t len);
+	static std::vector<std::string> word_wrap(std::string str, size_t len);
 	bool save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date);
 	bool save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to);
 	bool search(std::vector<std::string> keywords, int type, bool newonly);

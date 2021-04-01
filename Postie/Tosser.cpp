@@ -16,7 +16,7 @@
 #include "PacketStructs.h"
 #include "Scanner.h"
 #include "Dupe.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include <fstream>
 
 
@@ -82,7 +82,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		// password is good.
 		std::vector<std::string> smsg;
 		std::stringstream ss;
-		for (size_t i = 0; i < msg->msg_len; i++) {
+		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
 			if (msg->msg[i] == '\r') {
 				smsg.push_back(ss.str());
 				ss.str("");

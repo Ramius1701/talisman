@@ -4,7 +4,7 @@
 #include "FileConf.h"
 #include "Config.h"
 #include "Node.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include "FileArea.h"
 
 bool FileConf::load(Node* n)
@@ -88,9 +88,9 @@ int FileConf::list(Node* n, int sec) {
 }
 
 int FileConf::list_fsr(Node* n, int sec) {
-	uint32_t selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+	int selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
 
-	if (selected == -1 || selected >= n->get_config()->fileconfs.size()) {
+	if (selected == -1 || selected >= (int)n->get_config()->fileconfs.size()) {
 		selected = 0;
 	}
 
@@ -138,8 +138,8 @@ int FileConf::list_fsr(Node* n, int sec) {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < n->get_config()->fileconfs.size() - 1) {
-						if (selected + 1 >= start + (n->get_term_height() - 2) - 1) {
+					if (selected < (int)n->get_config()->fileconfs.size() - 1) {
+						if (selected + 1 >= start + ((int)n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;
@@ -246,7 +246,7 @@ int FileConf::list_areas(Node* n, int sec)
 int FileConf::list_areas_fsr(Node* n, int sec)
 {
 	std::vector<struct filearea_list_entry_t > area_entries;
-	uint32_t selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+	int selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
 	for (size_t i = 0; i < areas.size(); i++) {
 		if (areas.at(i).get_d_sec_level() > sec) continue;
 		struct filearea_list_entry_t entry;
@@ -257,7 +257,7 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 		area_entries.push_back(entry);
 	}
 
-	if (selected == -1 || selected >= areas.size()) {
+	if (selected == -1 || selected >= (int)areas.size()) {
 		selected = 0;
 	}
 
@@ -305,8 +305,8 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 					}
 				}
 				else if (c == 'B') {
-					if (selected < area_entries.size() - 1) {
-						if (selected + 1 >= start + (n->get_term_height() - 2) - 1) {
+					if (selected < (int)area_entries.size() - 1) {
+						if (selected + 1 >= start + ((int)n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;

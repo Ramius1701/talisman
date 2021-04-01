@@ -15,7 +15,7 @@ std::string User::hash_sha256(std::string pass, std::string salt) {
 	char* shash = NULL;
 	unsigned char hash[EVP_MAX_MD_SIZE];
 	unsigned int length_of_hash = 0;
-	int i;
+	unsigned int i;
 
 	ss.str("");
 	ss << pass << salt;

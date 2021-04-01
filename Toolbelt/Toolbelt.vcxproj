@@ -159,7 +159,6 @@
     <ClInclude Include="Files.h" />
     <ClInclude Include="Nodelist.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="toml.hpp" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>

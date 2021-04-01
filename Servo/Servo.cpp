@@ -78,7 +78,7 @@ int main()
 	int csockfd;
 	int on = 1;
 	int max_nodes = 4;
-	size_t i;
+	int i;
 	char str[INET6_ADDRSTRLEN];
 	std::vector<struct node_t> nodes;
 	std::vector<std::string> multiallowed;
@@ -364,8 +364,8 @@ int main()
 			}
 
 			bool alreadyloggedin = false;
-			for (i = 0; i < nodes.size(); i++) {
-				if (nodes.at(i).ip == ipaddr) {
+			for (size_t n = 0; n < nodes.size(); n++) {
+				if (nodes.at(n).ip == ipaddr) {
 					alreadyloggedin = true;
 					break;
 				}

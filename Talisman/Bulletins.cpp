@@ -9,10 +9,10 @@
 #include "Bulletins.h"
 #include "Config.h"
 #include "Node.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 
 void Bulletins::display(Node* n) {
-	int hotkeylen = 0;
+	size_t hotkeylen = 0;
 	struct tm ftm;
 	struct stat s;
 	std::stringstream ss;

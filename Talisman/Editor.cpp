@@ -152,7 +152,7 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 		else if ((cur_line == "/Q" || cur_line == "/q") && quotebuffer != nullptr) {
 			n->print_f("\r\n\r\n");
 			int qlinec = 0;
-			for (int i = 0; i < quotebuffer->size(); i++) {
+			for (size_t i = 0; i < quotebuffer->size(); i++) {
 				n->print_f("[%.4d]: %s\r\n", i, quotebuffer->at(i).c_str());
 				qlinec++;
 				if (qlinec == 23) {
@@ -166,11 +166,11 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 
 			try {
 				n->print_f("\r\n|15Quote From Line: |07");
-				int qfrom = std::stoi(n->get_string(5, false));
+				size_t qfrom = (size_t)std::stoi(n->get_string(5, false));
 				n->print_f("\r\n  |15Quote To Line: |07");
-				int qto = std::stoi(n->get_string(5, false));
+				size_t qto = (size_t)std::stoi(n->get_string(5, false));
 				if (!(qfrom > qto || qfrom < 0 || qto >= quotebuffer->size())) {
-					for (int i = qfrom; i <= qto; i++) {
+					for (size_t i = qfrom; i <= qto; i++) {
 						lines.push_back(quotebuffer->at(i));
 					}
 				}
@@ -185,11 +185,11 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 		else if ((cur_line == "/D" || cur_line == "/d") && lines.size() > 0) {
 			try {
 				n->print_f("\r\n|14Delete From Line: |07");
-				int dfrom = std::stoi(n->get_string(5, false));
+				size_t dfrom = (size_t)std::stoi(n->get_string(5, false));
 				n->print_f("\r\n  |14Delete To Line: |07");
-				int dto = std::stoi(n->get_string(5, false));
+				size_t dto = (size_t)std::stoi(n->get_string(5, false));
 				if (!(dfrom > dto || dfrom < 0 || dto >= lines.size())) {
-					for (int i = dto; i >= dfrom; i--) {
+					for (size_t i = dto; i >= dfrom; i--) {
 						lines.erase(lines.begin() + i);
 					}
 				}
@@ -202,7 +202,7 @@ std::vector<std::string> Editor::enter_message_in(Node *n, std::string to, std::
 			}
 		}
 		else if (cur_line == "/L" || cur_line == "/l") {
-			for (int i = 0; i < lines.size(); i++) {
+			for (size_t i = 0; i < lines.size(); i++) {
 				n->print_f("\r\n|08[|14%.4d|08]: |07%s", i, lines.at(i).c_str());
 			}
 			n->print_f("\r\n");

@@ -22,7 +22,7 @@ extern "C" Node *lua_getNode(lua_State *L) {
 
 extern "C" int lua_getBBSMsg(lua_State * L) {
 	const char* mbfile = lua_tostring(L, 1);
-	int mid = lua_tonumber(L, 2);
+	uint32_t mid = (uint32_t)lua_tonumber(L, 2);
 	Node* n = lua_getNode(L);
 
 	sq_msg_base_t* mb;
@@ -151,7 +151,7 @@ extern "C" int lua_BBSWrite(lua_State *L) {
 }
 
 extern "C" int lua_BBSGetString(lua_State *L) {
-	int length = lua_tonumber(L, -1);
+	uint32_t length = (uint32_t)lua_tonumber(L, -1);
 
 	std::string str = lua_getNode(L)->get_string(length, false, true);
 	lua_pushstring(L, str.c_str());
@@ -159,7 +159,7 @@ extern "C" int lua_BBSGetString(lua_State *L) {
 }
 
 extern "C" int lua_BBSGetMaskedString(lua_State * L) {
-	int length = lua_tonumber(L, -1);
+	uint32_t length = (uint32_t)lua_tonumber(L, -1);
 
 	std::string str = lua_getNode(L)->get_string(length, true, true);
 	lua_pushstring(L, str.c_str());

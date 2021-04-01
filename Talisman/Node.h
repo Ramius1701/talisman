@@ -42,9 +42,9 @@ public:
 	void update_node_use(std::string usage);
 	void display_nodes();
 	bool compare_token(std::string field, std::string token);
-	std::string get_string(int maxlen, bool masked);
-	std::string get_string(int maxlen, bool masked, bool clear);
-	std::string get_string(int maxlen, bool masked, bool clear, std::string def);
+	std::string get_string(size_t maxlen, bool masked);
+	std::string get_string(size_t maxlen, bool masked, bool clear);
+	std::string get_string(size_t maxlen, bool masked, bool clear, std::string def);
 	Config *get_config() {
 		return &config;
 	}
@@ -60,7 +60,7 @@ public:
 		return socket;
 	}
 
-	int get_timeleft() {
+	time_t get_timeleft() {
 		return timeleft;
 	}
 
@@ -78,13 +78,13 @@ public:
 	bool stop_timeout;
 	Logger* log;
 	void tag_file(std::string filename, FileArea* fa);
-	int get_term_width();
-	int get_term_height();
-	void set_term_height(int h);
-	void set_term_width(int w);
+	size_t get_term_width();
+	size_t get_term_height();
+	void set_term_height(size_t h);
+	void set_term_width(size_t w);
 
-	int override_width;
-	int override_height;
+	size_t override_width;
+	size_t override_height;
 	int override_on;
 	SshClient* sshc;
 	std::thread* ssht;
@@ -103,12 +103,12 @@ private:
 	time_t last_time_check;
 	bool time_check();
 
-	int timeleft;
+	time_t timeleft;
 	int timeout;
 
 	int timeoutmax;
-	int term_width;
-	int term_height;
+	size_t term_width;
+	size_t term_height;
 
 
 #ifdef _MSC_VER

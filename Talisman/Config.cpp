@@ -5,7 +5,7 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include "../Common/INIReader.h"
 #include "Config.h"
 #include "Protocol.h"
@@ -426,7 +426,7 @@ Protocol* Config::select_protocol(Node* n) {
 			return nullptr;
 		}
 		try {
-			int prot = stoi(res);
+			size_t prot = (size_t)stoi(res);
 			if (prot > 0 && prot <= protocols.size()) {
 				return protocols.at(prot - 1);
 			}
@@ -455,7 +455,7 @@ int Config::select_archiver(Node* n) {
 			return -1;
 		}
 		try {
-			int arc = stoi(res);
+			size_t arc = (size_t)stoi(res);
 			if (arc > 0 && arc <= archivers.size()) {
 				return arc - 1;
 			}

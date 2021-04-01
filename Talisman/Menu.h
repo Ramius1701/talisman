@@ -9,7 +9,7 @@ struct menuitem_t {
 	std::string command;
 	std::string data;
 	std::string hotkey;
-	int sec_level;
+	int sec_level = 0;
 };
 
 class Menu

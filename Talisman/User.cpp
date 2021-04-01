@@ -196,7 +196,7 @@ std::string User::hash_sha256(std::string pass, std::string salt) {
 	char* shash = NULL;
 	unsigned char hash[EVP_MAX_MD_SIZE];
 	unsigned int length_of_hash = 0;
-	int i;
+	unsigned int i;
 
 	ss.str("");
 	ss << pass << salt;
@@ -329,7 +329,7 @@ bool User::inst_user(std::string username, std::string password, std::string fir
 	sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
 
-	uid = sqlite3_last_insert_rowid(db);
+	uid = (int)sqlite3_last_insert_rowid(db);
 
 	sqlite3_close(db);
 

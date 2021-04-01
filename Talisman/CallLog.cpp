@@ -53,7 +53,7 @@ void CallLog::log_on(std::string username, int node) {
 
 	sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
 	sqlite3_bind_int(stmt, 2, node);
-	sqlite3_bind_int(stmt, 3, thetime);
+	sqlite3_bind_int64(stmt, 3, thetime);
 	sqlite3_step(stmt);
 	id = (int)sqlite3_last_insert_rowid(db);
 
@@ -78,7 +78,7 @@ void CallLog::log_off() {
 		return;
 	}
 
-	sqlite3_bind_int(stmt, 1, thetime);
+	sqlite3_bind_int64(stmt, 1, thetime);
 	sqlite3_bind_int(stmt, 2, id);
 
 	sqlite3_step(stmt);
@@ -115,7 +115,7 @@ void CallLog::ran_door() {
 	sqlite3_close(db);
 }
 
-void CallLog::up_bytes(int bytes) {
+void CallLog::up_bytes(uint32_t bytes) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 
@@ -143,7 +143,7 @@ void CallLog::up_bytes(int bytes) {
 	sqlite3_close(db);
 }
 
-void CallLog::down_bytes(int bytes) {
+void CallLog::down_bytes(uint32_t bytes) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 

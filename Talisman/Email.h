@@ -9,9 +9,9 @@ public:
 	std::string sender;
 	std::string subject;
 	std::vector<std::string> msg;
-	bool seen;
-	time_t date;
-	int id;
+	bool seen = false;
+	time_t date = 0;
+	int id = 0;
 	static int count_email(Node* n);
 	static int unread_email(Node* n);
 	static int view_email(Node* n, Email e);

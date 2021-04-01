@@ -144,8 +144,6 @@ void SquishCloseMsgBase(sq_msg_base_t* mb) {
 }
 
 bool SquishLockMsgBase(sq_msg_base_t* mb) {
-	FILE* fptr;
-
 	if (mb->ihavelock++) {
 		return true;
 	}
@@ -447,7 +445,7 @@ NETADDR *parse_fido_addr(const char* str) {
 	}
 	NETADDR* ret = (NETADDR*)malloc(sizeof(NETADDR));
 	if (!ret) return NULL;
-	int c;
+	size_t c;
 	int state = 0;
 
 	ret->zone = 0;

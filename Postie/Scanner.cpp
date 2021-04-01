@@ -20,7 +20,7 @@
 std::string add_cr_to_kludges(sq_msg_t* msg) {
 	std::stringstream ss;
 
-	for (size_t i = 0; i < msg->ctrl_len; i++) {
+	for (size_t i = 0; i < (size_t)msg->ctrl_len; i++) {
 		if (i > 0 && msg->ctrl[i] == '\001') {
 			ss << "\r";
 		}
@@ -411,7 +411,7 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
 	phdr.prodCode = 0xfe;
 	phdr.prodVersionMajor = 1;
 
-	for (int j = 0; j < 8 && j < link->packetpwd.size(); j++) {
+	for (size_t j = 0; j < 8 && j < link->packetpwd.size(); j++) {
 		phdr.password[j] = link->packetpwd.at(j);
 	}
 	phdr.origZone = pktorig->zone;
@@ -431,7 +431,7 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
 void Scanner::write_netmail_to_pkt(NETADDR *orig, NETADDR *dest, sq_msg_t *msg, bool local, FILE *fptr, std::string flavour) {
 	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	std::stringstream ss;
-	for (size_t m = 0; m < msg->msg_len; m++) {
+	for (size_t m = 0; m < (size_t)msg->msg_len; m++) {
 		ss << msg->msg[m];
 	}
 	std::string msgbody = ss.str();
@@ -518,7 +518,7 @@ void Scanner::write_netmail_to_pkt(NETADDR *orig, NETADDR *dest, sq_msg_t *msg, 
 void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* link, sq_msg_t* msg, bool local) {
 	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 	std::stringstream ss;
-	for (size_t m = 0; m < msg->msg_len; m++) {
+	for (size_t m = 0; m < (size_t)msg->msg_len; m++) {
 		ss << msg->msg[m];
 	}
 
@@ -747,7 +747,7 @@ bool Scanner::run() {
 				// export message.
 				for (size_t lid = 0; lid < c.areas.at(i).links.size(); lid++) {
 					std::stringstream ss;
-					for (size_t m = 0; m < msg->msg_len; m++) {
+					for (size_t m = 0; m < (size_t)msg->msg_len; m++) {
 						ss << msg->msg[m];
 					}
 

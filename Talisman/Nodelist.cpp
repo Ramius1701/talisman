@@ -96,7 +96,7 @@ void Nodelist::browse_nodelist(Node* n, std::string domain) {
     n->print_f("|14Enter a keyword to filter by, or nothing for all : ");
     std::string filter = n->get_string(24, false);
     n->print_f("\r\n\r\n");
-    int lines = 0;
+    size_t lines = 0;
 
     for (size_t i = 0; i < entries.size(); i++) {
         bool show = false;
@@ -184,7 +184,7 @@ void Nodelist::browse_nodelist(Node* n) {
             return;
         }
         try {
-            int i = stoi(inp) - 1;
+            size_t i = stoi(inp) - 1;
 
             if (i >= 0 && i < domains.size()) {
                 browse_nodelist(n, domains.at(i));

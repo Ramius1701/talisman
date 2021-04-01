@@ -35,7 +35,7 @@ void Archiver::extract(std::string archive, std::vector<std::string> filelist, s
 
 	for (std::string s; iss >> s; ) {
 		if (s == "@FILELIST@") {
-			for (int i = 0; i < filelist.size(); i++) {
+			for (size_t i = 0; i < filelist.size(); i++) {
 				ss << filelist.at(i) << " ";
 			}
 		}
@@ -59,7 +59,7 @@ void Archiver::compress(std::string archive, std::vector<std::string> filelist)
 
 	for (std::string s; iss >> s; ) {
 		if (s == "@FILELIST@") {
-			for (int i = 0; i < filelist.size(); i++) {
+			for (size_t i = 0; i < filelist.size(); i++) {
 				ss << filelist.at(i) << " ";
 			}
 		}

@@ -19,7 +19,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15K |14Show Message Kludge Lines |08(|15%s|08)\r\n", (n->get_user().get_attribute("viewkludges", "false") == "false" ? "NO" : "YES"));
 		n->print_f(" |15N |14Allow Node Messages |08(|15%s|08)\r\n", (n->get_user().get_attribute("nodemsgs", "true") == "false" ? "NO" : "YES"));
 		int myarc = stoi(n->get_user().get_attribute("archiver", "-1"));
-		if (myarc >= n->get_config()->archivers.size()) {
+		if (myarc >= (int)n->get_config()->archivers.size()) {
 			myarc = -1;
 		}
 		n->print_f(" |15A |14Default Archiver for QWK |08(|15%s|08)\r\n", ( myarc == -1 ? "NONE" : n->get_config()->archivers.at(myarc)->name.c_str()));

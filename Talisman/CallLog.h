@@ -12,8 +12,8 @@ public:
 	void log_on(std::string username, int node);
 	void log_off();
 	void ran_door();
-	void up_bytes(int bytes);
-	void down_bytes(int bytes);
+	void up_bytes(uint32_t bytes);
+	void down_bytes(uint32_t bytes);
 	void post_msg();
 	int total_calls(std::string username);
 	time_t last_call(std::string username);

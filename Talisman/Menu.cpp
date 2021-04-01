@@ -18,7 +18,7 @@
 #include "Editor.h"
 #include "Email.h"
 #include "Bulletins.h"
-#include "toml.hpp"
+#include "../Common/toml.hpp"
 #include "Protocol.h"
 #include "Config.h"
 #include "Script.h"
@@ -151,7 +151,7 @@ bool Menu::run() {
 
 		ss << "|08[";
 
-		int longest_hotkey = 0;
+		size_t longest_hotkey = 0;
 
 		for (size_t i = 0; i < items.size(); i++) {
 			ss << "|15" << items[i].hotkey;
@@ -245,7 +245,7 @@ bool Menu::run() {
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nextmailconf") == 0) {
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
-					if (msgconf < n->get_config()->msgconfs.size() - 1) {
+					if (msgconf < (int)(n->get_config()->msgconfs.size() - 1)) {
 						for (size_t nmc = msgconf + 1; nmc < n->get_config()->msgconfs.size(); nmc++) {
 							if (n->get_config()->msgconfs.at(nmc).get_sec_level() <= n->get_user().get_sec_level()) {
 								msgconf = nmc;
@@ -284,7 +284,7 @@ bool Menu::run() {
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nextfileconf") == 0) {
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
-					if (fileconf < n->get_config()->fileconfs.size() - 1) {
+					if (fileconf < (int)(n->get_config()->fileconfs.size() - 1)) {
 						for (size_t nfc = fileconf + 1; nfc < n->get_config()->fileconfs.size(); nfc++) {
 							if (n->get_config()->fileconfs.at(nfc).get_sec_level() <= n->get_user().get_sec_level()) {
 								fileconf = nfc;
@@ -325,7 +325,7 @@ bool Menu::run() {
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf != -1) {
 						int msgarea = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
-						if (msgarea < n->get_config()->msgconfs.at(msgconf).areas.size() - 1) {
+						if (msgarea < (int)(n->get_config()->msgconfs.at(msgconf).areas.size() - 1)) {
 							for (size_t nma = msgarea + 1; nma < n->get_config()->msgconfs.at(msgconf).areas.size(); nma++) {
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(nma).get_r_sec_level() <= n->get_user().get_sec_level()) {
 									msgarea = nma;
@@ -355,7 +355,7 @@ bool Menu::run() {
 					int fileconf = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
 					if (fileconf != -1) {
 						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
-						if (filearea < n->get_config()->fileconfs.at(fileconf).areas.size() - 1) {
+						if (filearea < (int)(n->get_config()->fileconfs.at(fileconf).areas.size() - 1)) {
 							for (size_t nfa = filearea + 1; nfa < n->get_config()->fileconfs.at(fileconf).areas.size(); nfa++) {
 								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
 									filearea = nfa;
@@ -983,7 +983,7 @@ bool Menu::run() {
 
 					while (true) {
 						int confcounter = 0;
-						int lines = 3;
+						size_t lines = 3;
 						std::string res = "";
 						n->cls();
 						n->print_f("|14Message Conferences|07\r\n\r\n");
@@ -1032,7 +1032,7 @@ bool Menu::run() {
 											confcounter++;
 										}
 									}
-									if (actualconf >= 0 && actualconf < n->get_config()->msgconfs.size()) {
+									if (actualconf >= 0 && actualconf < (int)n->get_config()->msgconfs.size()) {
 										while (true) {
 											n->cls();
 											n->print_f("|14Message Areas|07\r\n\r\n");
@@ -1081,7 +1081,7 @@ bool Menu::run() {
 															}
 														}
 
-														if (actualarea >= 0 && actualarea < n->get_config()->msgconfs.at(actualconf).areas.size()) {
+														if (actualarea >= 0 && actualarea < (int)n->get_config()->msgconfs.at(actualconf).areas.size()) {
 															n->get_user().set_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(actualarea).get_file(), !n->get_user().is_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(actualarea).get_file()));
 														}
 													}
@@ -1434,7 +1434,7 @@ void Menu::qwk_down(Node* n) {
 
 		if (arc == -1) arc = 0;
 
-		if (arc < 0 || arc >= n->get_config()->archivers.size()) {
+		if (arc < 0 || arc >= (int)n->get_config()->archivers.size()) {
 			n->print_f("|12Invalid Archiver!|07\r\n\r\n");
 			return;
 		}
@@ -1521,7 +1521,7 @@ void Menu::qwk_up(Node *n) {
 	std::stringstream ss;
 
 	ss.str("");
-	for (int i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
+	for (size_t i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
 		ss << (char)tolower(n->get_config()->qwk_id().at(i));
 	}
 
@@ -1545,7 +1545,7 @@ void Menu::qwk_up(Node *n) {
 		arc = n->get_config()->select_archiver(n);
 	}
 
-	if (arc < 0 || arc >= n->get_config()->archivers.size()) {
+	if (arc < 0 || arc >= (int)n->get_config()->archivers.size()) {
 		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
 		n->pause();
 		return;
@@ -1558,7 +1558,7 @@ void Menu::qwk_up(Node *n) {
 
 	ss.str("");
 
-	for (int i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
+	for (size_t i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
 		ss << (char)tolower(n->get_config()->qwk_id().at(i));
 	}
 	ss << ".msg";
@@ -1633,7 +1633,7 @@ void Menu::qwk_up(Node *n) {
 				break;
 			}
 		}
-		for (int i = 0; i < strlen(msgcontent); i++) {
+		for (size_t i = 0; i < strlen(msgcontent); i++) {
 			if (msgcontent[i] == '\xe3') {
 				msgcontent[i] = '\r';
 			}
@@ -1676,7 +1676,7 @@ void Menu::qwk_up(Node *n) {
 			msgbody.str("");
 
 			bool gotkludge = false;
-			int i = 0;
+			size_t i = 0;
 			std::vector<std::string> text;
 			while (true) {
 				ss.str("");
@@ -1690,7 +1690,7 @@ void Menu::qwk_up(Node *n) {
 
 				if (strcasecmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
 					gotkludge = true;
-					int j;
+					size_t j;
 					for (j = 8; j < ss.str().length(); j++) {
 						if (ss.str().at(j) != ' ') break;
 					}
@@ -1698,7 +1698,7 @@ void Menu::qwk_up(Node *n) {
 				}
 				else if (strcasecmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
 					gotkludge = true;
-					int j;
+					size_t j;
 					for (j = 3; j < ss.str().length(); j++) {
 						if (ss.str().at(j) != ' ') break;
 					}
@@ -1706,7 +1706,7 @@ void Menu::qwk_up(Node *n) {
 				}
 				else if (strcasecmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
 					gotkludge = true;
-					int j;
+					size_t j;
 					for (j = 5; j < ss.str().length(); j++) {
 						if (ss.str().at(j) != ' ') break;
 					}

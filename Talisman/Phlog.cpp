@@ -216,7 +216,7 @@ void Phlog::list_articles(Node* n) {
 				return;
 			}
 			else {
-				int choice = 0;
+				size_t choice = 0;
 				try {
 					choice = std::stoi(res);
 				}
@@ -269,7 +269,7 @@ void Phlog::list_articles(Node* n) {
 		return;
 	}
 	else {
-		int choice = 0;
+		size_t choice = 0;
 		try {
 			choice = std::stoi(res);
 		}
