@@ -136,7 +136,7 @@ bool Config::load(std::string datapath) {
 	try {
 		auto data = toml::parse_file(datapath + "/postie.toml");
 
-		auto _bundlename_ts = data["postie"]["bundlenamestyle"].as_string();
+		auto _bundlename_ts = data["postie"]["bundlename"].as_string();
 
 		if (_bundlename_ts == nullptr) {
 			__bundlename_ts = false;
