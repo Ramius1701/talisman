@@ -457,9 +457,9 @@ FullScreenEditor::FullScreenEditor(Node* n, std::string to, std::string subject,
 }
 
 std::vector<std::string> FullScreenEditor::do_quote() {
-	size_t start = 0;
-	size_t selected = 0;
-	size_t preview_start = 0;
+	int start = 0;
+	int selected = 0;
+	int preview_start = 0;
 
 	std::vector<std::string> to_quote;
 
@@ -493,7 +493,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 					}
 				}
 				else if (c == 'B') {
-					if (selected < quotelines.size() - 1) {
+					if (selected < (int)quotelines.size() - 1) {
 						selected++;
 					}
 				}
@@ -501,7 +501,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 				if (selected < start) {
 					start = selected;
 				}
-				else if (selected >= start + ((n->get_term_height() - 4) / 2) - 1) {
+				else if (selected >= start + (((int)n->get_term_height() - 4) / 2) - 1) {
 					start++;
 				}
 
@@ -511,9 +511,9 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 		}
 		else if (c == ' ') {
 			to_quote.push_back(quotelines.at(selected));
-			if (selected < quotelines.size() - 1) {
+			if (selected < (int)quotelines.size() - 1) {
 				selected++;
-				if (selected >= start + ((n->get_term_height() - 4) / 2) - 1) {
+				if (selected >= start + (((int)n->get_term_height() - 4) / 2) - 1) {
 					start++;
 				}
 			}

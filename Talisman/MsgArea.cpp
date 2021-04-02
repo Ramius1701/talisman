@@ -1655,8 +1655,8 @@ struct msg_list_t {
 
 int MsgArea::list_messages_full(int start) {
 	bool redraw = true;
-	size_t pos = 0;
-	size_t selected = 0;
+	int pos = 0;
+	int selected = 0;
 
 	std::vector<struct msg_list_t> msgs;
 
@@ -1702,14 +1702,14 @@ int MsgArea::list_messages_full(int start) {
 		return 0;
 	}
 
-	if (selected >= msgs.size()) {
+	if (selected >= (int)msgs.size()) {
 		selected = msgs.size() - 1;
 	}
 	else if (selected < 0) {
 		selected = 0;
 	}
 
-	if (pos >= msgs.size()) {
+	if (pos >= (int)msgs.size()) {
 		pos = msgs.size() - 1;
 	}
 	else if (pos < 0) {
@@ -1789,10 +1789,10 @@ int MsgArea::list_messages_full(int start) {
 				}
 				else if (c == 'B') {
 					// down
-					if (selected < msgs.size() - 1) {
+					if (selected < (int)msgs.size() - 1) {
 						selected++;
 
-						if (selected - pos >= n->get_term_height() - 3 && pos + n->get_term_height() - 3 < msgs.size()) {
+						if (selected - pos >= (int)n->get_term_height() - 3 && pos + n->get_term_height() - 3 < msgs.size()) {
 							pos += n->get_term_height() - 3;
 							redraw = true;
 						}
