@@ -421,9 +421,9 @@ struct character_t {
 
 std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 	std::vector<std::string> new_msg;
-	size_t lines = 0;
-	size_t line_at = 0;
-	size_t col_at = 0;
+	int lines = 0;
+	int line_at = 0;
+	int col_at = 0;
 	int params[9] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int param_count = 0;
 	int fg_color = 7;
@@ -492,7 +492,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 					else {
 						col_at++;
 					}
-					if (col_at > n->get_term_width()) {
+					if (col_at > (int)n->get_term_width()) {
 						col_at = n->get_term_width();
 					}
 					break;
@@ -517,7 +517,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 					if (line_at > lines) {
 						lines = line_at;
 					}
-					if (col_at > n->get_term_width()) {
+					if (col_at > (int)n->get_term_width()) {
 						col_at = n->get_term_width();
 					}
 					if (line_at < 0) line_at = 0;
@@ -543,7 +543,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 		else if (msg[i] != '\n') {
 			col_at++;
 			
-			if (col_at >= n->get_term_width()) {
+			if (col_at >= (int)n->get_term_width()) {
 				col_at = 0;
 				line_at++;
 				if (line_at > lines) {
@@ -560,7 +560,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 	}
 
 
-	for (size_t i = 0; i <= lines; i++) {
+	for (int i = 0; i <= lines; i++) {
 		fakescreen[i] = (struct character_t *)malloc(sizeof(struct character_t) * (n->get_term_width() + 1));
 		if (!fakescreen[i]) return new_msg;
 		for (size_t x = 0; x <= n->get_term_width(); x++) {
@@ -626,7 +626,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 					else {
 						col_at++;
 					}
-					if (col_at > n->get_term_width()) {
+					if (col_at > (int)n->get_term_width()) {
 						col_at = n->get_term_width();
 					}
 					break;
@@ -649,7 +649,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 					col_at = params[1];
 					if (line_at < 0) line_at = 0;
 					if (col_at < 0) col_at = 0;
-					if (col_at > n->get_term_width()) col_at = n->get_term_width();
+					if (col_at > (int)n->get_term_width()) col_at = n->get_term_width();
 					break;
 				case 'm':
 					for (int z = 0; z < param_count; z++) {
@@ -690,15 +690,15 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 			fakescreen[line_at][col_at].fg_color = fg_color;
 			fakescreen[line_at][col_at].bg_color = bg_color;
 			col_at++;
-			if (col_at >= n->get_term_width()) {
+			if (col_at >= (int)n->get_term_width()) {
 				line_at++;
 				col_at = 0;
 			}
 		}
 	}
 
-	for (size_t i = 0; i < lines; i++) {
-		for (size_t j = n->get_term_width() - 1; j >= 0; j--) {
+	for (int i = 0; i < lines; i++) {
+		for (int j = n->get_term_width() - 1; j >= 0; j--) {
 			if (fakescreen[i][j].c == ' ') {
 				fakescreen[i][j].c = '\0';
 			}
@@ -714,7 +714,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 	bg_color = 0;
 	bold = false;
 	bool got_tearline = false;
-	for (size_t i = 0; i < lines; i++) {
+	for (int i = 0; i < lines; i++) {
 		ss.str("");
 		size_t j;
 
@@ -771,7 +771,7 @@ std::vector<std::string> MsgArea::demangle_ansi(const char* msg, size_t len) {
 		new_msg.push_back(ss.str());
 	}
 
-	for (size_t i = 0; i <= lines; i++) {
+	for (int i = 0; i <= lines; i++) {
 		free(fakescreen[i]);
 	}
 	free(fakescreen);
@@ -1845,7 +1845,7 @@ int MsgArea::list_messages_full(int start) {
 						n->getch();
 					}
 					pos = pos + (n->get_term_height() - 3);
-					if (pos >= msgs.size()) {
+					if (pos >= (int)msgs.size()) {
 						pos = msgs.size() - (n->get_term_height() - 3);
 						if (pos < 0) {
 							pos = 0;
