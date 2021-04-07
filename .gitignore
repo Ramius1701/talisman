@@ -49,3 +49,6 @@
 /Talisman/lua5.4.2.dll
 /Gofer/Release
 /Gofer/Gofer.vcxproj.user
+/Falcon/Debug
+/Falcon/Release
+/Gofer/Debug
