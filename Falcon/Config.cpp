@@ -146,7 +146,7 @@ bool Config::load(std::string datapath) {
 					newarea.mynode = _mynode->as_integer()->value_or(0);
 				}
 
-				auto _upnode = itemtable->get("uplink");
+				auto _upnode = itemtable->get("host");
 
 				if (_upnode == nullptr) {
 					newarea.hostnode = 0;
