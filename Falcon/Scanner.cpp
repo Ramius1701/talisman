@@ -6,6 +6,9 @@
 #include <sqlite3.h>
 #include "../Common/Squish.h"
 #include "../Common/wwivnet.h"
+#ifdef _MSC_VER
+#define strcasecmp stricmp
+#endif
 
 bool Scanner::open_user_database(sqlite3** db)
 {
@@ -179,10 +182,105 @@ void Scanner::run() {
 			}
 			SquishFreeMsg(msg);
 		}
+		SquishCloseMsgBase(mb);
 
 		// loop areas and add messages to packets
+		for (size_t a = 0; a < config.areas.size(); a++) {
+			if (strcasecmp(config.areas.at(a).netname.c_str(), config.networks.at(i).name.c_str()) == 0) {
+				mb = SquishOpenMsgBase(std::string(_msgpath + "/" + config.areas.at(a).basefile).c_str());
 
+				if (!mb) {
+					std::cerr << "Unable to open message base! " << config.areas.at(a).basefile << std::endl;
+					continue;
+				}
+				for (size_t mid = 1; mid <= mb->basehdr.num_msg; mid++) {
 
+					sq_msg_t* msg = SquishReadMsg(mb, mid);
+					if (!msg) {
+						//log.log(LOG_ERROR, "Error Reading Message %d from %s", mid, std::string(_msgpath + "/" + c.areas.at(i).file).c_str());
+						break;
+					}
+
+					if (msg->xmsg.attr & MSGLOCAL && !(msg->xmsg.attr & MSGSENT)) {
+
+						if (fptr == NULL) {
+							if (std::filesystem::exists(fspath)) {
+								fptr = fopen(fspath.u8string().c_str(), "ab");
+							}
+							else {
+								fptr = fopen(fspath.u8string().c_str(), "wb");
+							}
+							if (!fptr) {
+								std::cerr << "Error opening " << fspath << std::endl;
+								break;
+							}
+						}
+
+						struct net_header_rec msgrec;
+
+						memset(&msgrec, 0, sizeof(struct net_header_rec));
+
+						msgrec.fromsys = (uint16_t)config.networks.at(i).mynode;
+						msgrec.tosys = msg->xmsg.dest.node;
+						msgrec.main_type = 26;
+						int id = username_to_id(msg->xmsg.from);
+						if (id > 0) {
+							msgrec.fromuser = id;
+						}
+						std::stringstream ss;
+
+						for (int i = 0; i < msg->msg_len; i++) {
+							if (msg->msg[i] == '\r') {
+								ss << "\r\n";
+							}
+							else if (msg->msg[i] != '\n') {
+								ss << msg->msg[i];
+							}
+						}
+
+						char buffer[90];
+
+						memset(buffer, 0, sizeof buffer);
+
+						struct tm localtm;
+
+						localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
+						localtm.tm_mday = msg->xmsg.date_written.date & 31;
+						localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
+						localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
+						localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
+						localtm.tm_sec = msg->xmsg.date_written.time & 31;
+
+						mktime(&localtm);
+						snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour, localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);
+
+						msgrec.daten = (uint32_t)time(NULL);
+						msgrec.length = strlen(config.areas.at(a).subtype.c_str()) + 1;
+						msgrec.length += strlen(msg->xmsg.subject) + 1;
+						msgrec.length += strlen(msg->xmsg.from) + 2;
+						msgrec.length += strlen(buffer) + 2;
+						msgrec.length += ss.str().size();
+
+						fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
+						fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
+						fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
+						fwrite(msg->xmsg.from, strlen(msg->xmsg.from), 1, fptr);
+						fwrite("\r\n", 2, 1, fptr);
+						fwrite(buffer, strlen(buffer), 1, fptr);
+						fwrite("\r\n", 2, 1, fptr);
+						fwrite(ss.str().c_str(), ss.str().size(), 1, fptr);
+
+						msg->xmsg.attr |= MSGSENT;
+						SquishLockMsgBase(mb);
+						SquishUpdateHdr(mb, msg);
+						SquishUnlockMsgBase(mb);
+					}
+					SquishFreeMsg(msg);
+				}
+				SquishCloseMsgBase(mb);
+
+			}
+		}
 		if (fptr != NULL) {
 			fclose(fptr);
 		}
