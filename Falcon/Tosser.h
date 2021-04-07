@@ -9,6 +9,7 @@ public:
 	void run();
 	bool import_email(int to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent);
 	bool import_email(std::string to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent);
+	bool import_message(std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent);
 	bool open_user_database(sqlite3** db);
 private:
 	Config config;

@@ -151,12 +151,14 @@
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Falcon.cpp" />
     <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="SubReq.cpp" />
     <ClCompile Include="Tosser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="SubReq.h" />
     <ClInclude Include="Tosser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

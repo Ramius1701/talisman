@@ -30,6 +30,9 @@
     <ClCompile Include="..\Common\Squish.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SubReq.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Scanner.h">
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Squish.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubReq.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

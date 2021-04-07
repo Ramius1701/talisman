@@ -5,6 +5,9 @@
 #include "../Common/INIReader.h"
 #include "../Common/wwivnet.h"
 #include "../Common/Squish.h"
+#ifdef _MSC_VER
+#define strcasecmp stricmp
+#endif
 
 bool Tosser::open_user_database(sqlite3** db)
 {
@@ -70,10 +73,6 @@ bool Tosser::import_email(std::string to, std::string from, int fromsys, std::st
 	sq_msg_t newmsg;
 
 	memset(&newmsg, 0, sizeof(sq_msg_t));
-
-
-
-
 
 	std::stringstream ss;
 	std::stringstream cs;
@@ -189,6 +188,126 @@ bool Tosser::import_email(std::string to, std::string from, int fromsys, std::st
 	return true;
 }
 
+bool Tosser::import_message(std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+	for (size_t i = 0; i < config.areas.size(); i++) {
+		if (strcasecmp(config.areas.at(i).subtype.c_str(), subtype.c_str()) == 0 && strcasecmp(config.areas.at(i).netname.c_str(), config.networks.at(network).name.c_str()) == 0) {
+			sq_msg_base_t* mb;
+			sq_msg_t newmsg;
+
+			memset(&newmsg, 0, sizeof(sq_msg_t));
+			std::stringstream ss;
+			std::stringstream cs;
+			bool ctrlline = false;
+
+			for (size_t line = 0; line < msg.size(); line++) {
+				for (size_t ch = 0; ch < msg.at(line).size(); ch++) {
+					if (ch < msg.at(line).size() - 1 && msg.at(line).at(ch) == 0x4 && msg.at(line).at(ch + 1) == '0') {
+						ctrlline = true;
+						cs << 0x01;
+						continue;
+					}
+					if (ctrlline) {
+						cs << msg.at(line).at(ch);
+					}
+					else {
+						ss << msg.at(line).at(ch);
+					}
+				}
+				if (ctrlline) {
+					ctrlline = false;
+				}
+				else {
+					ss << '\r';
+				}
+			}
+
+			newmsg.ctrl_len = cs.str().size();
+			newmsg.ctrl = (char*)malloc(newmsg.ctrl_len + 1);
+			if (!newmsg.ctrl) {
+				return false;
+			}
+
+			strncpy(newmsg.ctrl, cs.str().c_str(), newmsg.ctrl_len);
+
+			newmsg.msg_len = ss.str().size();
+			newmsg.msg = (char*)malloc(newmsg.msg_len + 1);
+			if (!newmsg.msg) {
+				free(newmsg.ctrl);
+				return false;
+			}
+			strncpy(newmsg.msg, ss.str().c_str(), newmsg.msg_len);
+
+			newmsg.xmsg.attr = MSGUID;
+
+			newmsg.xmsg.orig.zone = 20000;
+			newmsg.xmsg.orig.net = 20000;
+			newmsg.xmsg.orig.node = fromsys;
+			newmsg.xmsg.orig.point = 0;
+
+			//int hashloc = from.rfind('#');
+			//if (hashloc != std::string::npos) {
+			//	strncpy(newmsg.xmsg.from, from.substr(0, hashloc - 1).c_str(), 35);
+			//}
+			//else {
+				strncpy(newmsg.xmsg.from, from.c_str(), 35);
+			//}
+			strncpy(newmsg.xmsg.to, "ALL", 35);
+			strncpy(newmsg.xmsg.subject, subject.c_str(), 71);
+
+			std::tm at;
+
+			time_t now = time(NULL);
+#ifdef _MSC_VER
+			localtime_s(&at, &now);
+#else
+			localtime_r(&now, &at);
+#endif
+			newmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
+			newmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+			newmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+			newmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
+			newmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
+			newmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+#ifdef _MSC_VER
+			localtime_s(&at, &sent);
+#else
+			localtime_r(&sent, &at);
+#endif
+			newmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
+			newmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+			newmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+			newmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
+			newmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
+			newmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+			mb = SquishOpenMsgBase(std::string(_msgpath + "/" + config.areas.at(i).basefile).c_str());
+			if (!mb) {
+				free(newmsg.msg);
+				free(newmsg.ctrl);
+				return false;
+			}
+			if (!SquishLockMsgBase(mb)) {
+				free(newmsg.msg);
+				free(newmsg.ctrl);
+
+				return false;
+			}
+			SquishWriteMsg(mb, &newmsg);
+
+			SquishUnlockMsgBase(mb);
+			SquishCloseMsgBase(mb);
+			free(newmsg.msg);
+			free(newmsg.ctrl);
+
+			return true;
+		}
+	}
+
+	return false;
+}
 
 void Tosser::run() {
 	INIReader inir("talisman.ini");
@@ -268,11 +387,25 @@ void Tosser::run() {
 				case 1:
 					break;
 				case 2: // email to num type
-					if (msgrec.tosys == config.networks.at(i).mynode) {
+					if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+						if (msgrec.tosys == 0) {
+							bool found = false;
+							for (size_t k = 0; k < nlist.size(); k++) {
+								if (nlist.at(k) == config.networks.at(i).mynode) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								break;
+							}
+						}
 						std::string subj;
 						std::string sender;
 						std::string datestr;
 						std::stringstream ss;
+
+						if (msg.size() == 0) break;
 
 						for (size_t h = 0; h < msg.at(0).size(); h++) {
 							if (msg.at(0).at(h) == '\0') {
@@ -295,13 +428,31 @@ void Tosser::run() {
 					}
 					break;
 				case 7: // email to name type
-					if (msgrec.tosys == config.networks.at(i).mynode) {
+					
+
+					if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+						
+						if (msgrec.tosys == 0) {
+							bool found = false;
+							for (size_t k = 0; k < nlist.size(); k++) {
+								if (nlist.at(k) == config.networks.at(i).mynode) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								break;
+							}
+						}
 						std::string subj;
 						std::string sender;
 						std::string toname;
 						std::string datestr;
 						std::stringstream ss;
 						bool gottoname = false;
+
+						if (msg.size() == 0) break;
+
 						for (size_t h = 0; h < msg.at(0).size(); h++) {
 							if (msg.at(0).at(h) == '\0') {
 								if (!gottoname) {
@@ -329,6 +480,34 @@ void Tosser::run() {
 					}
 					break;
 				case 26: // main type post
+				{
+					std::string subtype;
+					std::string subject;
+					std::string sender;
+					std::stringstream ss;
+					bool gotsubtype = false;
+					if (msg.size() == 0) break;
+
+					for (size_t h = 0; h < msg.at(0).size(); h++) {
+						if (msg.at(0).at(h) == '\0') {
+							if (!gotsubtype) {
+								subtype = ss.str();
+								gotsubtype = true;
+							}
+							else {
+								subject = ss.str();
+							}
+							ss.str("");
+						}
+						else {
+							ss << msg.at(0).at(h);
+						}
+					}
+					sender = ss.str();
+
+					import_message(subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+				}
+
 					break;
 				}
 			}
