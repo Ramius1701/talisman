@@ -505,6 +505,8 @@ void Tosser::run() {
 					}
 					sender = ss.str();
 
+					msg.erase(msg.begin(), msg.begin() + 1);
+
 					import_message(subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
 				}
 
