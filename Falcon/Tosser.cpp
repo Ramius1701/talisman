@@ -244,13 +244,13 @@ bool Tosser::import_message(std::string subtype, std::string from, int fromsys, 
 			newmsg.xmsg.orig.node = fromsys;
 			newmsg.xmsg.orig.point = 0;
 
-			//int hashloc = from.rfind('#');
-			//if (hashloc != std::string::npos) {
-			//	strncpy(newmsg.xmsg.from, from.substr(0, hashloc - 1).c_str(), 35);
-			//}
-			//else {
+			int hashloc = from.rfind('#');
+			if (hashloc != std::string::npos) {
+				strncpy(newmsg.xmsg.from, from.substr(0, hashloc - 1).c_str(), 35);
+			}
+			else {
 				strncpy(newmsg.xmsg.from, from.c_str(), 35);
-			//}
+			}
 			strncpy(newmsg.xmsg.to, "ALL", 35);
 			strncpy(newmsg.xmsg.subject, subject.c_str(), 71);
 
@@ -370,8 +370,45 @@ void Tosser::run() {
 						msg.push_back(ss.str());
 						ss.str("");
 					}
-					else if (c != '\n') {
-						ss << c;
+					else if (c != '\n' && c != 0x3) {
+						// remove heart codes
+						if (lastc == 0x3) {
+							switch (c) {
+							case '0':
+								ss << "|16|07";
+								break;
+							case '1':
+								ss << "|16|11";
+								break;
+							case '2':
+								ss << "|16|14";
+								break;
+							case '3':
+								ss << "|16|13";
+								break;
+							case '4':
+								ss << "|17|15";
+								break;
+							case '5':
+								ss << "|16|10";
+								break;
+							case '6':
+								ss << "|16|12";
+								break;
+							case '7':
+								ss << "|16|09";
+								break;
+							case '8':
+								ss << "|16|05";
+								break;
+							case '9':
+								ss << "|16|03";
+								break;
+							}
+						}
+						else {
+							ss << c;
+						}
 					}
 					lastc = c;
 				}
