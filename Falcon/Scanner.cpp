@@ -153,7 +153,7 @@ void Scanner::run() {
 				localtm.tm_sec = msg->xmsg.date_written.time & 31;
 
 				mktime(&localtm);
-				snprintf(buffer, sizeof buffer, "%s %s %.2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour, localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);
+				snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour, localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);
 
 				msgrec.daten = (uint32_t)time(NULL);
 				msgrec.length = strlen(msg->xmsg.to) + 1;
