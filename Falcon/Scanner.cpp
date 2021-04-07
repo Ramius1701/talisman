@@ -146,7 +146,7 @@ void Scanner::run() {
 				struct tm localtm;
 
 				localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
-				localtm.tm_mday = msg->xmsg.date_written.date;
+				localtm.tm_mday = msg->xmsg.date_written.date & 31;
 				localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
 				localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
 				localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
