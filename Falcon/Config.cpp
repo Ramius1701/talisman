@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm>
 #include "Config.h"
 #include "../Common/toml.hpp"
 
