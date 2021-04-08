@@ -141,7 +141,6 @@ void Scanner::run() {
 						ss << msg->msg[i];
 					}
 				}
-				ss << (char)0x1a;
 
 				char buffer[90];
 
@@ -178,7 +177,8 @@ void Scanner::run() {
 				fwrite(buffer, strlen(buffer), 1, fptr);
 				fwrite("\r\n", 2, 1, fptr);
 				fwrite(ss.str().c_str(), ss.str().size(), 1, fptr);
-
+				fwrite("\x1a", 1, 1, fptr);
+				
 				msg->xmsg.attr |= MSGSENT;
 				SquishLockMsgBase(mb);
 				SquishUpdateHdr(mb, msg);
@@ -269,7 +269,7 @@ void Scanner::run() {
 						msgrec.length += strlen(msg->xmsg.subject) + 1;
 						msgrec.length += strlen(buffer2) + 2;
 						msgrec.length += strlen(buffer) + 2;
-						msgrec.length += ss.str().size();
+						msgrec.length += ss.str().size() + 1;
 
 						fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
 						fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
@@ -279,7 +279,7 @@ void Scanner::run() {
 						fwrite(buffer, strlen(buffer), 1, fptr);
 						fwrite("\r\n", 2, 1, fptr);
 						fwrite(ss.str().c_str(), ss.str().size(), 1, fptr);
-
+						fwrite("\x1a", 1, 1, fptr);
 						msg->xmsg.attr |= MSGSENT;
 						SquishLockMsgBase(mb);
 						SquishUpdateHdr(mb, msg);
