@@ -370,7 +370,7 @@ void Tosser::run() {
 						msg.push_back(ss.str());
 						ss.str("");
 					}
-					else if (c != '\n' && c != 0x3 && c != 0x1) {
+					else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a) {
 						// remove heart codes
 						if (lastc == 0x3) {
 							switch (c) {
