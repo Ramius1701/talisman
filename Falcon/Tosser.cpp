@@ -516,6 +516,119 @@ void Tosser::run() {
 
 					}
 					break;
+				case 18:
+				{
+					std::string subtype;
+					uint8_t status;
+					std::stringstream ss;
+					std::string subject;
+					std::string sender;
+					bool gotsubtype = false;
+					if (msg.size() == 0) break;
+
+					if (msgrec.minor_type == 0) {
+						gotsubtype = true;
+						subtype = std::to_string(msgrec.minor_type);
+					}
+
+					for (size_t h = 0; h < msg.at(0).size(); h++) {
+						if (msg.at(0).at(h) == '\0') {
+							if (!gotsubtype) {
+								subtype = ss.str();
+								gotsubtype = true;
+							}
+							else {
+								status = (uint8_t)ss.str().at(0);
+								subject = ss.str().substr(1);
+							}
+							ss.str("");
+						}
+						else {
+							ss << msg.at(0).at(h);
+						}
+					}
+					sender = ss.str();
+
+					msg.erase(msg.begin(), msg.begin() + 1);
+					std::string stat_msg;
+
+					switch (status) {
+					case 0:
+						stat_msg = "|10SUCCESS - You have been successfully added to the area.|07";
+						break;
+					case 1:
+						stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
+						break;
+					case 3:
+						stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
+						break;
+					case 4:
+						stat_msg = "|12FAILED - You are already subscribed!|07";
+						break;
+					}
+
+					msg.insert(msg.begin(), stat_msg);
+
+					import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+
+				}
+				break;
+				case 19:
+				{
+					std::string subtype;
+					uint8_t status;
+					std::stringstream ss;
+					std::string subject;
+					std::string sender;
+					bool gotsubtype = false;
+					if (msg.size() == 0) break;
+
+					if (msgrec.minor_type == 0) {
+						gotsubtype = true;
+						subtype = std::to_string(msgrec.minor_type);
+					}
+
+					for (size_t h = 0; h < msg.at(0).size(); h++) {
+						if (msg.at(0).at(h) == '\0') {
+							if (!gotsubtype) {
+								subtype = ss.str();
+								gotsubtype = true;
+							}
+							else {
+								status = (uint8_t)ss.str().at(0);
+								subject = ss.str().substr(1);
+							}
+							ss.str("");
+						}
+						else {
+							ss << msg.at(0).at(h);
+						}
+					}
+					sender = ss.str();
+
+					msg.erase(msg.begin(), msg.begin() + 1);
+					std::string stat_msg;
+
+					switch (status) {
+					case 0:
+						stat_msg = "|10SUCCESS - You have been successfully removed from the area.|07";
+						break;
+					case 1:
+						stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
+						break;
+					case 3:
+						stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
+						break;
+					case 2:
+						stat_msg = "|12FAILED - You are not subscribed!|07";
+						break;
+					}
+
+					msg.insert(msg.begin(), stat_msg);
+
+					import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+				}
+				break;
 				case 26: // main type post
 				{
 					std::string subtype;
@@ -524,6 +637,11 @@ void Tosser::run() {
 					std::stringstream ss;
 					bool gotsubtype = false;
 					if (msg.size() == 0) break;
+
+					if (msgrec.minor_type == 0) {
+						gotsubtype = true;
+						subtype = std::to_string(msgrec.minor_type);
+					}
 
 					for (size_t h = 0; h < msg.at(0).size(); h++) {
 						if (msg.at(0).at(h) == '\0') {

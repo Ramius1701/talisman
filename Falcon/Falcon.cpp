@@ -12,7 +12,7 @@
 
 int main(int argc, char** argv) {
 	if (argc < 2) {
-		std::cout << "Usage: " << argv[0] << " [scan|toss]" << std::endl;
+		std::cout << "Usage: " << argv[0] << " [scan|toss|add|drop]" << std::endl;
 		return -1;
 	}
 
