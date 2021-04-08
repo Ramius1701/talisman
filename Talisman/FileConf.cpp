@@ -97,6 +97,11 @@ int FileConf::list_fsr(Node* n, int sec) {
 	bool redraw = true;
 	int start = 0;
 
+	start = selected - (n->get_term_height() - 4);
+	if (start < 0) {
+		start = 0;
+	}
+
 	while (true) {
 		if (redraw) {
 			n->print_f("\x1b[0;40;37m");
@@ -263,6 +268,11 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 
 	bool redraw = true;
 	int start = 0;
+
+	start = selected - (n->get_term_height() - 4);
+	if (start < 0) {
+		start = 0;
+	}
 
 	while (true) {
 		if (redraw) {
