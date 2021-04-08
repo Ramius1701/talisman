@@ -33,5 +33,6 @@ private:
 	std::string name;
 	int sec_level;
 	std::string tagline;
+	int wwivnode;
 };
 

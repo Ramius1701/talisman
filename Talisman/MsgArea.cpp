@@ -20,7 +20,7 @@
 #include "Qwk.h"
 #include "Nodelist.h"
 
-MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn)
+MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode)
 {
 	this->name = name;
 	this->file = filename;
@@ -32,6 +32,7 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 	this->tagline = tagline;
 	this->qwk_base_no = qwk;
 	this->real_names = rn;
+	this->wwivnode = wwivnode;
 }
 
 int MsgArea::get_total_msgs()
@@ -125,107 +126,120 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 
 	std::stringstream originline;
 
-	if (orig_addr != "") {
+	if (orig_addr != "" || wwivnode != 0) {
 		originline << "\r--- Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << " (" << n->operating_system() << ")\r * Origin: ";
 		if (tagline != "") {
-			originline << tagline << " (" << orig_addr << ")\r";
+			originline << tagline;
 		}
 		else {
-			originline << "A Mysterious BBS (" << orig_addr << ")\r";
+			originline << "A Mysterious BBS";
+		}
+		if (orig_addr != "") {
+			originline << " (" << orig_addr << ")\r";
 		}
 	}
 
-#ifdef _MSC_VER
-	TIME_ZONE_INFORMATION tz;
-	GetTimeZoneInformation(&tz);
-	int bias = tz.Bias;
-	if (bias > 0) {
-		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
-	}
-	else {
-		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
-	}
-#else
-	time_t gmt, rawtime = time(NULL);
-	struct tm* ptm;
-
-	struct tm gbuf;
-	ptm = gmtime_r(&rawtime, &gbuf);
-	// Request that mktime() looksup dst in timezone database
-	ptm->tm_isdst = -1;
-	gmt = mktime(ptm);
-
-	int bias = (int)difftime(rawtime, gmt);
-	bias /= 60;
-	if (bias < 0) {
-		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
-	}
-	else {
-		snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
-	}
-#endif
-
-
-	memset(replyidbuffer, 0, 256);
-
-	if (inreply_to > 0) {
-		rep_msg = SquishReadMsg(mb, inreply_to);
-		if (rep_msg != NULL && rep_msg->xmsg.attr & MSGUID) {
-			repmsgid = rep_msg->xmsg.umsgid;
-			for (int i = 0; i < rep_msg->ctrl_len - 8; i++) {
-				if (strncmp(&rep_msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
-					int h = 8;
-					snprintf(replyidbuffer, sizeof replyidbuffer, "\001REPLY: ");
-					for (int j = i + 8; j < rep_msg->ctrl_len && rep_msg->ctrl[j] != '\x01'; j++) {
-						replyidbuffer[h++] = rep_msg->ctrl[j];
-					}
-					break;
-				}
-			}
-		}
-	}
-
-	memset(msgidbuffer, 0, 256);
-	if (orig_addr != "") {
-		fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "rb");
-
-		if (!fptr) {
-			msgid = (uint32_t)thetime;
-		}
-		else {
-			fread(&msgid, sizeof(uint32_t), 1, fptr);
-			fclose(fptr);
-
-			if (thetime > msgid) {
-				msgid = (uint32_t)thetime;
-			}
-			else {
-				msgid++;
-			}
-		}
-
-		fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "wb");
-		if (fptr) {
-			fwrite(&msgid, sizeof(uint32_t), 1, fptr);
-			fclose(fptr);
-		}
-		snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
-	}
 	sq_msg_t newmsg;
 
 	memset(&newmsg, 0, sizeof(newmsg));
 
-	// are we a netmail
-	newmsg.ctrl_len = strlen(msgidbuffer) + strlen(tzutcbuffer) + strlen(replyidbuffer) + strlen(charsbuffer);
+	if (wwivnode == 0) {
+#ifdef _MSC_VER
+		TIME_ZONE_INFORMATION tz;
+		GetTimeZoneInformation(&tz);
+		int bias = tz.Bias;
+		if (bias > 0) {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+		else {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+#else
+		time_t gmt, rawtime = time(NULL);
+		struct tm* ptm;
 
-	if (orig_addr != "") {
-		NETADDR* orig = parse_fido_addr(orig_addr.c_str());
-		if (orig != NULL) {
-			newmsg.xmsg.orig.zone = orig->zone;
-			newmsg.xmsg.orig.net = orig->net;
-			newmsg.xmsg.orig.node = orig->node;
-			newmsg.xmsg.orig.point = orig->point;
-			free(orig);
+		struct tm gbuf;
+		ptm = gmtime_r(&rawtime, &gbuf);
+		// Request that mktime() looksup dst in timezone database
+		ptm->tm_isdst = -1;
+		gmt = mktime(ptm);
+
+		int bias = (int)difftime(rawtime, gmt);
+		bias /= 60;
+		if (bias < 0) {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+		else {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+#endif
+
+
+		memset(replyidbuffer, 0, 256);
+
+		if (inreply_to > 0) {
+			rep_msg = SquishReadMsg(mb, inreply_to);
+			if (rep_msg != NULL && rep_msg->xmsg.attr & MSGUID) {
+				repmsgid = rep_msg->xmsg.umsgid;
+				for (int i = 0; i < rep_msg->ctrl_len - 8; i++) {
+					if (strncmp(&rep_msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
+						int h = 8;
+						snprintf(replyidbuffer, sizeof replyidbuffer, "\001REPLY: ");
+						for (int j = i + 8; j < rep_msg->ctrl_len && rep_msg->ctrl[j] != '\x01'; j++) {
+							replyidbuffer[h++] = rep_msg->ctrl[j];
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		memset(msgidbuffer, 0, 256);
+		if (orig_addr != "") {
+			fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "rb");
+
+			if (!fptr) {
+				msgid = (uint32_t)thetime;
+			}
+			else {
+				fread(&msgid, sizeof(uint32_t), 1, fptr);
+				fclose(fptr);
+
+				if (thetime > msgid) {
+					msgid = (uint32_t)thetime;
+				}
+				else {
+					msgid++;
+				}
+			}
+
+			fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "wb");
+			if (fptr) {
+				fwrite(&msgid, sizeof(uint32_t), 1, fptr);
+				fclose(fptr);
+			}
+			snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
+		}
+
+
+		// are we a netmail
+		newmsg.ctrl_len = strlen(msgidbuffer) + strlen(tzutcbuffer) + strlen(replyidbuffer) + strlen(charsbuffer);
+
+		if (orig_addr != "") {
+			NETADDR* orig = parse_fido_addr(orig_addr.c_str());
+			if (orig != NULL) {
+				newmsg.xmsg.orig.zone = orig->zone;
+				newmsg.xmsg.orig.net = orig->net;
+				newmsg.xmsg.orig.node = orig->node;
+				newmsg.xmsg.orig.point = orig->point;
+				free(orig);
+			}
+			else {
+				newmsg.xmsg.orig.zone = 0;
+				newmsg.xmsg.orig.net = 0;
+				newmsg.xmsg.orig.node = 0;
+				newmsg.xmsg.orig.point = 0;
+			}
 		}
 		else {
 			newmsg.xmsg.orig.zone = 0;
@@ -233,72 +247,84 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 			newmsg.xmsg.orig.node = 0;
 			newmsg.xmsg.orig.point = 0;
 		}
-	}
-	else {
-		newmsg.xmsg.orig.zone = 0;
-		newmsg.xmsg.orig.net = 0;
-		newmsg.xmsg.orig.node = 0;
-		newmsg.xmsg.orig.point = 0;
-	}
 
-	if (netaddr != "") {
-		NETADDR* dest = parse_fido_addr(netaddr.c_str());
-		if (dest != NULL) {
-			newmsg.xmsg.dest.zone = dest->zone;
-			newmsg.xmsg.dest.net = dest->net;
-			newmsg.xmsg.dest.node = dest->node;
-			newmsg.xmsg.dest.point = dest->point;
-			free(dest);
-			snprintf(intlbuffer, sizeof intlbuffer, "\x01INTL %d:%d/%d %d:%d/%d", newmsg.xmsg.dest.zone, newmsg.xmsg.dest.net, newmsg.xmsg.dest.node, newmsg.xmsg.orig.zone, newmsg.xmsg.orig.net, newmsg.xmsg.orig.node);
-			newmsg.ctrl_len += strlen(intlbuffer);
-			if (newmsg.xmsg.dest.point > 0) {
-				snprintf(toptbuffer, sizeof toptbuffer, "\x01TOPT %d", newmsg.xmsg.dest.point);
-				newmsg.ctrl_len += strlen(toptbuffer);
+		if (netaddr != "") {
+			NETADDR* dest = parse_fido_addr(netaddr.c_str());
+			if (dest != NULL) {
+				newmsg.xmsg.dest.zone = dest->zone;
+				newmsg.xmsg.dest.net = dest->net;
+				newmsg.xmsg.dest.node = dest->node;
+				newmsg.xmsg.dest.point = dest->point;
+				free(dest);
+				snprintf(intlbuffer, sizeof intlbuffer, "\x01INTL %d:%d/%d %d:%d/%d", newmsg.xmsg.dest.zone, newmsg.xmsg.dest.net, newmsg.xmsg.dest.node, newmsg.xmsg.orig.zone, newmsg.xmsg.orig.net, newmsg.xmsg.orig.node);
+				newmsg.ctrl_len += strlen(intlbuffer);
+				if (newmsg.xmsg.dest.point > 0) {
+					snprintf(toptbuffer, sizeof toptbuffer, "\x01TOPT %d", newmsg.xmsg.dest.point);
+					newmsg.ctrl_len += strlen(toptbuffer);
+				}
+				if (newmsg.xmsg.orig.point > 0) {
+					snprintf(fmptbuffer, sizeof fmptbuffer, "\001FMPT %d", newmsg.xmsg.orig.point);
+					newmsg.ctrl_len += strlen(fmptbuffer);
+				}
 			}
-			if (newmsg.xmsg.orig.point > 0) {
-				snprintf(fmptbuffer, sizeof fmptbuffer, "\001FMPT %d", newmsg.xmsg.orig.point);
-				newmsg.ctrl_len += strlen(fmptbuffer);
+			else {
+				newmsg.xmsg.dest.zone = 0;
+				newmsg.xmsg.dest.net = 0;
+				newmsg.xmsg.dest.node = 0;
+				newmsg.xmsg.dest.point = 0;
 			}
 		}
-		else {
-			newmsg.xmsg.dest.zone = 0;
-			newmsg.xmsg.dest.net = 0;
-			newmsg.xmsg.dest.node = 0;
+		newmsg.ctrl = (char*)malloc(newmsg.ctrl_len);
+		if (!newmsg.ctrl) {
+			free(msg);
+			return false;
+		}
+		at = 0;
+		memcpy(newmsg.ctrl, tzutcbuffer, strlen(tzutcbuffer));
+		at += strlen(tzutcbuffer);
+		memcpy(&newmsg.ctrl[at], charsbuffer, strlen(charsbuffer));
+		at += strlen(charsbuffer);
+		if (orig_addr != "") {
+			memcpy(&newmsg.ctrl[at], msgidbuffer, strlen(msgidbuffer));
+			at += strlen(msgidbuffer);
+		}
+		if (inreply_to > 0) {
+			memcpy(&newmsg.ctrl[at], replyidbuffer, strlen(replyidbuffer));
+			at += strlen(replyidbuffer);
+		}
+		if (newmsg.xmsg.dest.zone != 0) {
+			if (newmsg.xmsg.dest.point != 0) {
+				memcpy(&newmsg.ctrl[at], toptbuffer, strlen(toptbuffer));
+				at += strlen(toptbuffer);
+			}
+			if (newmsg.xmsg.orig.point != 0) {
+				memcpy(&newmsg.ctrl[at], fmptbuffer, strlen(fmptbuffer));
+				at += strlen(fmptbuffer);
+			}
+			memcpy(&newmsg.ctrl[at], intlbuffer, strlen(intlbuffer));
+			at += strlen(intlbuffer);
+		}
+
+	}
+	else {
+		newmsg.ctrl = NULL;
+		newmsg.ctrl_len = 0;
+
+		newmsg.xmsg.orig.zone = 20000;
+		newmsg.xmsg.orig.net = 20000;
+		newmsg.xmsg.orig.node = wwivnode;
+		newmsg.xmsg.orig.point = 0;
+
+		if (netaddr != "") {
+			newmsg.xmsg.dest.zone = 20000;
+			newmsg.xmsg.dest.net = 20000;
+			newmsg.xmsg.dest.node = stoi(netaddr);
 			newmsg.xmsg.dest.point = 0;
 		}
 	}
+	
 
-	newmsg.ctrl = (char*)malloc(newmsg.ctrl_len);
-	if (!newmsg.ctrl) {
-		free(msg);
-		return false;
-	}
-	at = 0;
-	memcpy(newmsg.ctrl, tzutcbuffer, strlen(tzutcbuffer));
-	at += strlen(tzutcbuffer);
-	memcpy(&newmsg.ctrl[at], charsbuffer, strlen(charsbuffer));
-	at += strlen(charsbuffer);
-	if (orig_addr != "") {
-		memcpy(&newmsg.ctrl[at], msgidbuffer, strlen(msgidbuffer));
-		at += strlen(msgidbuffer);
-	}
-	if (inreply_to > 0) {
-		memcpy(&newmsg.ctrl[at], replyidbuffer, strlen(replyidbuffer));
-		at += strlen(replyidbuffer);
-	}
-	if (newmsg.xmsg.dest.zone != 0) {
-		if (newmsg.xmsg.dest.point != 0) {
-			memcpy(&newmsg.ctrl[at], toptbuffer, strlen(toptbuffer));
-			at += strlen(toptbuffer);
-		}
-		if (newmsg.xmsg.orig.point != 0) {
-			memcpy(&newmsg.ctrl[at], fmptbuffer, strlen(fmptbuffer));
-			at += strlen(fmptbuffer);
-		}
-		memcpy(&newmsg.ctrl[at], intlbuffer, strlen(intlbuffer));
-		at += strlen(intlbuffer);
-	}
-	if (orig_addr != "") {
+	if ((orig_addr != "" || wwivnode != 0) && !is_netmail()) {
 		newmsg.msg_len = strlen(msg) + originline.str().size();
 		newmsg.msg = (char*)malloc(strlen(msg) + originline.str().size());
 		if (!newmsg.msg) {
@@ -373,6 +399,9 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 		do_semaphore(n->get_config()->netmail_sem());
 	}
 	else if (orig_addr != "") {
+		do_semaphore(n->get_config()->echomail_sem());
+	}
+	else if (wwivnode != 0) {
 		do_semaphore(n->get_config()->echomail_sem());
 	}
 
@@ -1041,7 +1070,12 @@ void MsgArea::attach_sig(std::vector<std::string> *msg, std::string sig) {
 void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer) {
 	if (_is_netmail) {
 		std::stringstream netaddr;
-		netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+		if (wwivnode == 0) {
+			netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+		}
+		else {
+			netaddr << msg->xmsg.orig.node;
+		}
 
 		n->print_f("\r\n     To: ");
 		std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
@@ -1052,24 +1086,42 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 
 		bool doabort = false;
 
-		if (to.size() == 0) {
-			to = "All";
+		if (to.size() == 0 || strcasecmp(to.c_str(), "ALL") == 0) {
+			doabort = true; // don't send netmail to "ALL"
 		}
 
-		NETADDR* na = parse_fido_addr(nnetaddr.c_str());
-		if (!na) {
-			doabort = true;
-		}
-		else {
-			if (na->point == 0) {
-				n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+		if (wwivnode == 0) {
+			NETADDR* na = parse_fido_addr(nnetaddr.c_str());
+			if (!na) {
+				doabort = true;
 			}
 			else {
-				n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+				if (na->point == 0) {
+					n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+				}
+				else {
+					n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+				}
+				free(na);
 			}
-			free(na);
 		}
-
+		else {
+			try {
+				int nn = stoi(nnetaddr);
+				if (nn <= 0 || nn > 0xffff) {
+					doabort = true;
+				}
+				else {
+					n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
+				}
+			}
+			catch (std::out_of_range) {
+				doabort = true;
+			}
+			catch (std::invalid_argument) {
+				doabort = true;
+			}
+		}
 		if (subject.size() > 0 && !doabort) {
 			std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, quotebuffer);
 			if (nmsg.size() > 0) {
@@ -1129,7 +1181,7 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 	int lines = 1;
 	char c;
 
-	if (orig_addr == "") {
+	if (orig_addr == "" && wwivnode == 0) {
 		in.open(n->get_config()->gfile_path() + "/fsr_header_local.ans");
 	}
 	else {
@@ -1158,17 +1210,27 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.to);
 				}
 				else if (n->compare_token(ss.str(), "FROMBBS")) {
-					if (msg->xmsg.orig.point == 0) {
-						std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
-						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
+					if (wwivnode == 0) {
+						if (msg->xmsg.orig.point == 0) {
+							std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
+							n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
+						}
+						else {
+							n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
+						}
 					}
 					else {
-						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
+						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A WWIVnet System");
 					}
 				}
 				else if (n->compare_token(ss.str(), "FROMADDR")) {
 					std::stringstream ss2;
-					ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+					if (wwivnode == 0) {
+						ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+					}
+					else {
+						ss2 << "@" << msg->xmsg.orig.node;
+					}
 					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
 				else if (n->compare_token(ss.str(), "MSGDATE")) {
@@ -1289,15 +1351,21 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 				n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
 			}
 			else {
-				n->print_f("|14   From: |15%-32.32s |14Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+				if (wwivnode == 0) {
+					n->print_f("|14   From: |15%-32.32s |14Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
 
-				std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
+					std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" + std::to_string(msg->xmsg.orig.node));
 
-				if (msg->xmsg.orig.point == 0) {
-					n->print_f("|14     To: |15%-32.32s |14Host: |15%-30.30s\r\n", msg->xmsg.to, node.c_str());
+					if (msg->xmsg.orig.point == 0) {
+						n->print_f("|14     To: |15%-32.32s |14Host: |15%-30.30s\r\n", msg->xmsg.to, node.c_str());
+					}
+					else {
+						n->print_f("|14     To: |15%-32.32s |14Host: |15A Point System\r\n", msg->xmsg.to);
+					}
 				}
 				else {
-					n->print_f("|14     To: |15%-32.32s |14Host: |15A Point System\r\n", msg->xmsg.to);
+					n->print_f("|14   From: |15%-32.32s |14Addr: |15%d\r\n", msg->xmsg.from, msg->xmsg.orig.node);
+					n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
 				}
 			}
 			n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d                 |14Msg#: |15%6d of %6d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63, msg_to_read, total_msgs);
@@ -1615,20 +1683,27 @@ bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 		return false;
 	}
 	if (_is_netmail) {
-		NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
-		if (!myaddr) {
-			//printf("Failed to parse %s\n", orig_addr.c_str());
-			return false;
-		}
+		if (wwivnode == 0) {
+			NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
+			if (!myaddr) {
+				//printf("Failed to parse %s\n", orig_addr.c_str());
+				return false;
+			}
 
-		if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
-			//printf("Not equal %s, %d:%d/%d.%d %d:%d/%d.%d\n", orig_addr.c_str(), myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
+			if (myaddr->zone != msg->xmsg.dest.zone || myaddr->net != msg->xmsg.dest.net || myaddr->node != msg->xmsg.dest.node || myaddr->point != msg->xmsg.dest.point) {
+				//printf("Not equal %s, %d:%d/%d.%d %d:%d/%d.%d\n", orig_addr.c_str(), myaddr->zone, myaddr->net, myaddr->node, myaddr->point, msg->xmsg.dest.zone, msg->xmsg.dest.net, msg->xmsg.dest.node, msg->xmsg.dest.point);
+				free(myaddr);
+
+				return false;
+			}
 			free(myaddr);
-			
-			return false;
-		}
 
-		free(myaddr);
+		}
+		else {
+			if (wwivnode != msg->xmsg.dest.node) {
+				return false;
+			}
+		}
 	}
 	
 	return true;

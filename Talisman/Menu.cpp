@@ -463,28 +463,51 @@ bool Menu::run() {
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).is_netmail()) {
 									n->print_f("\r\nAddress: ");
 									netaddr = n->get_string(16, false);
-									NETADDR *na = parse_fido_addr(netaddr.c_str());
+									if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_wwivnode() == 0) {
+										NETADDR* na = parse_fido_addr(netaddr.c_str());
 
-									if (na == NULL) {
-										doabort = true;
-									}
-									else {
-										if (na->point == 0) {
-											n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+										if (na == NULL) {
+											doabort = true;
 										}
 										else {
-											n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+											if (na->point == 0) {
+												n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point, Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+											}
+											else {
+												n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+											}
+											free(na);
 										}
-										free(na);
+									}
+									else {
+										try {
+											int nn = stoi(netaddr);
+											if (nn <= 0 || nn > 0xffff) {
+												doabort = true;
+											}
+											else {
+												n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
+											}
+										}
+										catch (std::out_of_range) {
+											doabort = true;
+										}
+										catch (std::invalid_argument) {
+											doabort = true;
+										}
+									}
+									if (to.size() == 0 || strcasecmp(to.c_str(), "ALL") == 0) {
+										doabort = true;
 									}
 								}
 								else {
+									if (to.size() == 0) {
+										to = "All";
+									}
 									netaddr = "";
 								}
 
-								if (to.size() == 0) {
-									to = "All";
-								}
+
 								if (doabort || subject.size() == 0) {
 									n->print_f("\r\n|14Aborted!\r\n");
 								}

@@ -69,6 +69,14 @@ bool MsgConf::load(Node *n, std::string filename) {
 			myoaddr = "";
 		}
 
+		auto wwiv_node = itemtable->get("wwivnode");
+		if (wwiv_node != nullptr) {
+			wwivnode = wwiv_node->as_integer()->value_or(0);
+		}
+		else {
+			wwivnode = 0;
+		}
+
 		auto netmail = itemtable->get("netmail");
 		if (netmail != nullptr) {
 			mynetmail = netmail->as_boolean()->value_or(false);
@@ -94,7 +102,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 		}
 
 		if (myfile != "") {
-			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no, myrealnames);
+			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode);
 			areas.push_back(a);
 		}
 	}
@@ -152,6 +160,11 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 
 	bool redraw = true;
 	int start = 0;
+
+	start = selected - (n->get_term_height() - 4);
+	if (start < 0) {
+		start = 0;
+	}
 
 	while (true) {
 		if (redraw) {
@@ -336,6 +349,11 @@ int MsgConf::list_fsr(Node* n, int sec) {
 
 	bool redraw = true;
 	int start = 0;
+
+	start = selected - (n->get_term_height() - 4);
+	if (start < 0) {
+		start = 0;
+	}
 
 	while (true) {
 		if (redraw) {

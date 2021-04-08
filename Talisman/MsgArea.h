@@ -7,7 +7,7 @@ class Node;
 class MsgArea
 {
 public:
-	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn);
+	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode);
 	int get_r_sec_level() {
 		return read_sec_level;
 	}
@@ -49,6 +49,9 @@ public:
 	int get_qwk_id() {
 		return qwk_base_no;
 	}
+	int get_wwivnode() {
+		return wwivnode;
+	}
 	static void attach_sig(std::vector<std::string> *msg, std::string sig);
 private:
 	bool print_msg_header(int msgno, int totmsg, sq_msg_t* msg);
@@ -65,5 +68,6 @@ private:
 	Node* n;
 	int qwk_base_no;
 	bool real_names;
+	int wwivnode;
 };
 
