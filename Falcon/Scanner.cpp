@@ -159,17 +159,21 @@ void Scanner::run() {
 				mktime(&localtm);
 				snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour, localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);
 
+				char buffer2[256];
+				snprintf(buffer2, sizeof buffer2, "%s #%d @%d", msg->xmsg.from, id, config.networks.at(i).mynode);
+
 				msgrec.daten = (uint32_t)time(NULL);
 				msgrec.length = strlen(msg->xmsg.to) + 1;
 				msgrec.length += strlen(msg->xmsg.subject) + 1;
-				msgrec.length += strlen(msg->xmsg.from) + 2;
+				msgrec.length += strlen(buffer2) + 2;
 				msgrec.length += strlen(buffer) + 2;
 				msgrec.length += ss.str().size() + 1;
+
 
 				fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
 				fwrite(msg->xmsg.to, strlen(msg->xmsg.to) + 1, 1, fptr);
 				fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
-				fwrite(msg->xmsg.from, strlen(msg->xmsg.from), 1, fptr);
+				fwrite(buffer2, strlen(buffer2), 1, fptr);
 				fwrite("\r\n", 2, 1, fptr);
 				fwrite(buffer, strlen(buffer), 1, fptr);
 				fwrite("\r\n", 2, 1, fptr);
@@ -256,15 +260,21 @@ void Scanner::run() {
 
 						msgrec.daten = (uint32_t)time(NULL);
 						msgrec.length = strlen(config.areas.at(a).subtype.c_str()) + 1;
+
+						char buffer2[256];
+
+						snprintf(buffer2, sizeof buffer2, "%s #%d @%d", msg->xmsg.from, id, config.networks.at(i).mynode);
+
+
 						msgrec.length += strlen(msg->xmsg.subject) + 1;
-						msgrec.length += strlen(msg->xmsg.from) + 2;
+						msgrec.length += strlen(buffer2) + 2;
 						msgrec.length += strlen(buffer) + 2;
 						msgrec.length += ss.str().size();
 
 						fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
 						fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
 						fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
-						fwrite(msg->xmsg.from, strlen(msg->xmsg.from), 1, fptr);
+						fwrite(buffer2, strlen(buffer2), 1, fptr);
 						fwrite("\r\n", 2, 1, fptr);
 						fwrite(buffer, strlen(buffer), 1, fptr);
 						fwrite("\r\n", 2, 1, fptr);
