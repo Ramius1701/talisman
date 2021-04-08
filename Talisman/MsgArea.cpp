@@ -324,7 +324,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 	}
 	
 
-	if (orig_addr != "" || wwivnode != 0) {
+	if ((orig_addr != "" || wwivnode != 0) && !is_netmail()) {
 		newmsg.msg_len = strlen(msg) + originline.str().size();
 		newmsg.msg = (char*)malloc(strlen(msg) + originline.str().size());
 		if (!newmsg.msg) {
