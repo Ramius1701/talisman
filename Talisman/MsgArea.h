@@ -49,6 +49,9 @@ public:
 	int get_qwk_id() {
 		return qwk_base_no;
 	}
+	int get_wwivnode() {
+		return wwivnode;
+	}
 	static void attach_sig(std::vector<std::string> *msg, std::string sig);
 private:
 	bool print_msg_header(int msgno, int totmsg, sq_msg_t* msg);

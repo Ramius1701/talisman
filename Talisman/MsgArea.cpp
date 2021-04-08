@@ -1086,8 +1086,8 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 
 		bool doabort = false;
 
-		if (to.size() == 0) {
-			to = "All";
+		if (to.size() == 0 || strcasecmp(to.c_str(), "ALL") == 0) {
+			doabort = true; // don't send netmail to "ALL"
 		}
 
 		if (wwivnode == 0) {
