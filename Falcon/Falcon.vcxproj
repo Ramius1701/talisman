@@ -157,9 +157,16 @@
   <ItemGroup>
     <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="SubReq.h" />
     <ClInclude Include="Tosser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Falcon.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\falcon_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
