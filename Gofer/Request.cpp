@@ -314,7 +314,21 @@ std::string Request::last_post(std::string db_path, int uid) {
 		else if (post_tm.tm_year == now_tm.tm_year && post_tm.tm_yday == now_tm.tm_yday - 1) {
 			return "Last Post: Yesterday";
 		}
-		return "Last Post: " + std::to_string(post_tm.tm_year + 1900) + "-" + std::to_string(post_tm.tm_mon + 1) + "-" + std::to_string(post_tm.tm_mday) + " " + std::to_string(post_tm.tm_hour) + ":" + std::to_string(post_tm.tm_min);
+		else {
+			int days = (now_tm.tm_year - post_tm.tm_year) * 365 + (now_tm.tm_yday - post_tm.tm_yday);
+			int months = (now_tm.tm_year - post_tm.tm_year) * 12 + (now_tm.tm_mon - post_tm.tm_mon);
+			if (days < 31) {
+				return "Last Post: " + std::to_string(days) + " days ago";
+			}
+			else if (days < 366) {
+				return "Last Post: " + std::to_string(months) + " months ago";
+			}
+			else {
+				return "Last Post: " + std::to_string(now_tm.tm_year - post_tm.tm_year) + " years ago";
+			}
+		}
+
+
 	}
 }
 
