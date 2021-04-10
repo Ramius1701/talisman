@@ -275,7 +275,7 @@ std::string Request::last_post(sqlite3 *db, int uid) {
 
 	static const char* lpsql = "SELECT datestamp FROM phlog WHERE uid = ? and draft = 0 ORDER by datestamp DESC LIMIT 0, 1";
 	if (sqlite3_prepare_v2(db, lpsql, -1, &stmt, NULL) != SQLITE_OK) {
-		return "Database Error";
+		return std::string(sqlite3_errmsg(db));
 	}
 
 	sqlite3_bind_int(stmt, 1, uid);
