@@ -269,13 +269,19 @@ void Request::doshowpost(int socket, std::string db_path, int uid, int id) {
 	}
 }
 
-std::string Request::last_post(sqlite3 *db, int uid) {
+std::string Request::last_post(std::string db_path, int uid) {
+	sqlite3* db;
 	sqlite3_stmt* stmt;
 	time_t lastpost = 0;
 
+	if (!opendatabase(db_path + "/gopher.sqlite3", &db)) {
+		return "Unable to open database";
+	}
+
 	static const char* lpsql = "SELECT datestamp FROM phlog WHERE uid = ? and draft = 0 ORDER by datestamp DESC LIMIT 0, 1";
 	if (sqlite3_prepare_v2(db, lpsql, -1, &stmt, NULL) != SQLITE_OK) {
-		return std::string(sqlite3_errmsg(db));
+		sqlite3_close(db);
+		return "Database Error";
 	}
 
 	sqlite3_bind_int(stmt, 1, uid);
@@ -283,19 +289,31 @@ std::string Request::last_post(sqlite3 *db, int uid) {
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
 		lastpost = sqlite3_column_int64(stmt, 0);
 	}
+
 	sqlite3_finalize(stmt);
+	sqlite3_close(db);
 
 	if (lastpost == 0) {
-		return "No Posts";
+		return "Last Post: Never";
 	}
 	else {
 		struct tm post_tm;
+		struct tm now_tm;
+		time_t now = time(NULL);
+
 #ifdef _MSC_VER
 		localtime_s(&post_tm, &lastpost);
+		localtime_s(&now_tm, &now);
 #else
 		localtime_r(&lastpost, &post_tm);
+		localtime_r(&now, &now_tm);
 #endif
-
+		if (post_tm.tm_year == now_tm.tm_year && post_tm.tm_yday == now_tm.tm_yday) {
+			return "Last Post: Today!";
+		}
+		else if (post_tm.tm_year == now_tm.tm_year && post_tm.tm_yday == now_tm.tm_yday - 1) {
+			return "Last Post: Yesterday";
+		}
 		return "Last Post: " + std::to_string(post_tm.tm_year + 1900) + "-" + std::to_string(post_tm.tm_mon + 1) + "-" + std::to_string(post_tm.tm_mday) + " " + std::to_string(post_tm.tm_hour) + ":" + std::to_string(post_tm.tm_min);
 	}
 }
@@ -328,7 +346,7 @@ void Request::dolistusers(int socket, std::string db_path) {
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		ss.str("");
 		int uid = sqlite3_column_int(stmt, 0);
-		ss << "1" << std::string((const char*)sqlite3_column_text(stmt, 1)) << " (" << last_post(db, uid) << ")" << "\tusers/" << uid << "\t" << hostname << "\t" << port << "\r\n";
+		ss << "1" << std::string((const char*)sqlite3_column_text(stmt, 1)) << " (" << last_post(db_path, uid) << ")" << "\tusers/" << uid << "\t" << hostname << "\t" << port << "\r\n";
 		send(socket, ss.str().c_str(), ss.str().size(), 0);
 	}
 	sqlite3_finalize(stmt);
