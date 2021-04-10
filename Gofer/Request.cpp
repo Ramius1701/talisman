@@ -346,7 +346,13 @@ void Request::dolistusers(int socket, std::string db_path) {
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		ss.str("");
 		int uid = sqlite3_column_int(stmt, 0);
-		ss << "1" << std::string((const char*)sqlite3_column_text(stmt, 1)) << " (" << last_post(db_path, uid) << ")" << "\tusers/" << uid << "\t" << hostname << "\t" << port << "\r\n";
+		std::string uname = std::string((const char*)sqlite3_column_text(stmt, 1));
+
+		if (uname.length() < 40) {
+			uname.insert(uname.end(), 40 - uname.length(), ' ');
+		}
+
+		ss << "1" << uname << " (" << last_post(db_path, uid) << ")" << "\tusers/" << uid << "\t" << hostname << "\t" << port << "\r\n";
 		send(socket, ss.str().c_str(), ss.str().size(), 0);
 	}
 	sqlite3_finalize(stmt);
