@@ -531,8 +531,6 @@ std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
 
 	std::vector<struct gfile_t> finalfiles;
 
-
-
 	for (size_t i = 0; i < files.size(); i++) {
 		if (files.at(i).width == width && files.at(i).height == height) {
 			finalfiles.push_back(files.at(i));
@@ -542,90 +540,6 @@ std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
 }
 
 void Node::send_gfile(std::string filename, bool pause, bool script) {
-/*	std::vector<std::filesystem::path> gfiles;
-
-	std::filesystem::path p(config.gfile_path());
-
-	if (hasANSI) {
-		p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans");
-		if (std::filesystem::exists(p)) {
-			// got one ansi
-			gfiles.push_back(p);
-			p = config.gfile_path();
-			p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans.1");
-			int count = 2;
-			while (std::filesystem::exists(p)) {
-				gfiles.push_back(p);
-				p = config.gfile_path();
-				p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans." + std::to_string(count));
-				count++;
-			}
-
-			send_file(gfiles.at(rand() % gfiles.size()), pause, script);
-			print_f("\x1b[0m");
-			return;
-		}
-		else {
-			p.clear();
-			p.assign(config.gfile_path());
-			p.append(filename + ".ans");
-			if (std::filesystem::exists(p)) {
-				gfiles.push_back(p);
-				p = config.gfile_path();
-				p.append(filename + ".ans.1");
-				int count = 2;
-				while (std::filesystem::exists(p)) {
-					gfiles.push_back(p);
-					p = config.gfile_path();
-					p.append(filename + ".ans." + std::to_string(count));
-					count++;
-				}
-
-				send_file(gfiles.at(rand() % gfiles.size()), pause, script);
-				print_f("\x1b[0m");
-				return;
-			}
-		}
-	}
-
-	p.clear();
-	p.assign(config.gfile_path());
-	p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc");
-	if (std::filesystem::exists(p)) {
-		gfiles.push_back(p);
-		p = config.gfile_path();
-		p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc.1");
-		int count = 2;
-		while (std::filesystem::exists(p)) {
-			gfiles.push_back(p);
-			p = config.gfile_path();
-			p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".asc." + std::to_string(count));
-			count++;
-		}
-
-		send_file(gfiles.at(rand() % gfiles.size()), pause, script);
-	}
-	else {
-		p.clear();
-		p.assign(config.gfile_path());
-
-		p.append(filename + ".asc");
-		if (std::filesystem::exists(p)) {
-			gfiles.push_back(p);
-			p = config.gfile_path();
-			p.append(filename + ".asc.1");
-			int count = 2;
-			while (std::filesystem::exists(p)) {
-				gfiles.push_back(p);
-				p = config.gfile_path();
-				p.append(filename + ".asc." + std::to_string(count));
-				count++;
-			}
-
-			send_file(gfiles.at(rand() % gfiles.size()), pause, script);
-		}
-	}
-	*/
 	std::vector<struct gfile_t> gfiles;
 
 	if (hasANSI) {
