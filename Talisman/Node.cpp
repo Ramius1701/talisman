@@ -467,10 +467,85 @@ void Node::send_gfile(std::string filename, bool pause) {
 	send_gfile(filename, pause, false);
 }
 
+std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
+	std::filesystem::path p(config.gfile_path());
+	
+	std::vector<struct gfile_t> files;
+
+	int width = -1;
+	int height = -1;
+
+	for (auto& p : std::filesystem::directory_iterator(p)) {
+		if (p.path().filename().u8string().substr(0, filename.size()) == filename) {
+			struct gfile_t gfile;
+			bool isansi = false;
+			std::istringstream iss(p.path().filename().u8string().substr(filename.size()));
+			std::string token;
+
+			gfile.width = -1;
+			gfile.height = -1;
+
+			while (getline(iss, token, '.')) {
+				gfile.fspath = p.path();
+				if (token.find('x') != std::string::npos) {
+					// size
+					try {
+						gfile.width = stoi(token.substr(0, token.find('x')));
+					}
+					catch (std::out_of_range) {
+						gfile.width = -1;
+					}
+					catch (std::invalid_argument) {
+						gfile.width = -1;
+					}
+
+					try {
+						gfile.height = stoi(token.substr(token.find('x') + 1));
+					}
+					catch (std::out_of_range) {
+						gfile.height = -1;
+					}
+					catch (std::invalid_argument) {
+						gfile.height = -1;
+					}
+				}
+				if (token == "ANS" || token == "ans") {
+					isansi = true;
+				}
+				if (token == "ASC" || token == "asc") {
+					isansi = false;
+				}
+			}
+
+			if (gfile.height <= (int)get_term_height() && gfile.width <= (int)get_term_width() && isansi == ansi) {
+				if (gfile.height > height) {
+					height = gfile.height;
+				}
+				if (gfile.width > width) {
+					width = gfile.width;
+				}
+				files.push_back(gfile);
+			}
+		}
+	}
+
+	std::vector<struct gfile_t> finalfiles;
+
+
+
+	for (size_t i = 0; i < files.size(); i++) {
+		if (files.at(i).width == width && files.at(i).height == height) {
+			finalfiles.push_back(files.at(i));
+		}
+	}
+	return finalfiles;
+}
+
 void Node::send_gfile(std::string filename, bool pause, bool script) {
-	std::vector<std::filesystem::path> gfiles;
+/*	std::vector<std::filesystem::path> gfiles;
 
 	std::filesystem::path p(config.gfile_path());
+
 	if (hasANSI) {
 		p.append(filename + "." + std::to_string(get_term_width()) + "x" + std::to_string(get_term_height()) + ".ans");
 		if (std::filesystem::exists(p)) {
@@ -549,6 +624,23 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 			send_file(gfiles.at(rand() % gfiles.size()), pause, script);
 		}
+	}
+	*/
+	std::vector<struct gfile_t> gfiles;
+
+	if (hasANSI) {
+		gfiles = get_gfiles(filename, true);
+
+		if (gfiles.size() > 0) {
+			send_file(gfiles.at(rand() % gfiles.size()).fspath, pause, script);
+			print_f("\x1b[0m");
+			return;
+		}
+	}
+	gfiles = get_gfiles(filename, false);
+
+	if (gfiles.size() > 0) {
+		send_file(gfiles.at(rand() % gfiles.size()).fspath, pause, script);
 	}
 }
 

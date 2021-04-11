@@ -19,6 +19,12 @@ struct tagged_file_t {
 	FileArea* fa;
 };
 
+struct gfile_t {
+	std::filesystem::path fspath;
+	int width;
+	int height;
+};
+
 class Node
 {
 public:
@@ -109,7 +115,7 @@ private:
 	int timeoutmax;
 	size_t term_width;
 	size_t term_height;
-
+	std::vector<struct gfile_t> get_gfiles(std::string filename, bool ansi);
 
 #ifdef _MSC_VER
 	HANDLE hOutput;
