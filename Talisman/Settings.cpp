@@ -148,7 +148,7 @@ void Settings::do_settings(Node* n) {
 						break;
 					}
 				}
-				if (stringok) {
+				if (stringok && newwidth.size() > 0) {
 					n->get_user().set_attribute("screen_override_width", newwidth);
 					n->override_width = stoi(newwidth);
 				} else {
@@ -166,7 +166,7 @@ void Settings::do_settings(Node* n) {
 						break;
 					}
 				}
-				if (stringok) {
+				if (stringok && newheight.size() > 0) {
 					n->get_user().set_attribute("screen_override_height", newheight);
 					n->override_height = stoi(newheight);
 				} else {
