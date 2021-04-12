@@ -526,7 +526,7 @@ void Tosser::run() {
 					bool gotsubtype = false;
 					if (msg.size() == 0) break;
 
-					if (msgrec.minor_type == 0) {
+					if (msgrec.minor_type != 0) {
 						gotsubtype = true;
 						subtype = std::to_string(msgrec.minor_type);
 					}
@@ -583,7 +583,7 @@ void Tosser::run() {
 					bool gotsubtype = false;
 					if (msg.size() == 0) break;
 
-					if (msgrec.minor_type == 0) {
+					if (msgrec.minor_type != 0) {
 						gotsubtype = true;
 						subtype = std::to_string(msgrec.minor_type);
 					}
@@ -638,7 +638,7 @@ void Tosser::run() {
 					bool gotsubtype = false;
 					if (msg.size() == 0) break;
 
-					if (msgrec.minor_type == 0) {
+					if (msgrec.minor_type != 0) {
 						gotsubtype = true;
 						subtype = std::to_string(msgrec.minor_type);
 					}
