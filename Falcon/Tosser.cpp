@@ -372,38 +372,40 @@ void Tosser::run() {
 					}
 					else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a && c != 0x4 && lastc != 0x4) {
 						// remove heart codes
-						if (lastc == 0x3) {
-							switch (c) {
-							case '0':
-								ss << "|16|07";
-								break;
-							case '1':
-								ss << "|16|11";
-								break;
-							case '2':
-								ss << "|16|14";
-								break;
-							case '3':
-								ss << "|16|13";
-								break;
-							case '4':
-								ss << "|17|15";
-								break;
-							case '5':
-								ss << "|16|10";
-								break;
-							case '6':
-								ss << "|16|12";
-								break;
-							case '7':
-								ss << "|16|09";
-								break;
-							case '8':
-								ss << "|16|05";
-								break;
-							case '9':
-								ss << "|16|03";
-								break;
+						if (lastc == 0x3) { 
+							if (!config.striphearts()) {
+								switch (c) {
+								case '0':
+									ss << "|16|07";
+									break;
+								case '1':
+									ss << "|16|11";
+									break;
+								case '2':
+									ss << "|16|14";
+									break;
+								case '3':
+									ss << "|16|13";
+									break;
+								case '4':
+									ss << "|17|15";
+									break;
+								case '5':
+									ss << "|16|10";
+									break;
+								case '6':
+									ss << "|16|12";
+									break;
+								case '7':
+									ss << "|16|09";
+									break;
+								case '8':
+									ss << "|16|05";
+									break;
+								case '9':
+									ss << "|16|03";
+									break;
+								}
 							}
 						}
 						else {

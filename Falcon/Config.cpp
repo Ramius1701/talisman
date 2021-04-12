@@ -38,6 +38,23 @@ bool Config::load(std::string datapath) {
 			__inbound = _inbound->value_or("");
 		}
 
+		auto _hearts = data["falcon"]["heart_codes"].as_string();
+
+		if (_hearts == nullptr) {
+			_striphearts = true;
+		}
+		else {
+			std::string val = _inbound->value_or("strip");
+
+			if (val == "convert") {
+				_striphearts = false;
+			}
+			else {
+				_striphearts = true;
+			}
+
+		}
+
 
 		// iterate over nets
 		auto networkitems = data.get_as<toml::array>("network");

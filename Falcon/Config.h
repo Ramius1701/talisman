@@ -28,7 +28,12 @@ public:
 	std::string inbound() {
 		return __inbound;
 	}
+	bool striphearts() {
+		return _striphearts;
+	}
+
 private:
+	bool _striphearts;
 	std::string __inbound;
 
 };
