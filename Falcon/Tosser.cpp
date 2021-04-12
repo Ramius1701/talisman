@@ -370,7 +370,7 @@ void Tosser::run() {
 						msg.push_back(ss.str());
 						ss.str("");
 					}
-					else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a && c != 0x4 && lastc != 0x4) {
+					else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a && c != 0x4) {
 						// remove heart codes
 						if (lastc == 0x3) { 
 							if (!config.striphearts()) {
@@ -406,6 +406,12 @@ void Tosser::run() {
 									ss << "|16|03";
 									break;
 								}
+							}
+						}
+						else if (lastc == 0x4) {
+							if (c == '0') {
+								ss << 0x4;
+								ss << c;
 							}
 						}
 						else {
