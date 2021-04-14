@@ -177,23 +177,26 @@ bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
             }
             dupcount++;
         }
+        fclose(fptr);
     }
 
     if (dupcount == 1000) {
         FILE *fptr1 = fopen(crcfile.c_str(), "rb");
         FILE* fptr2 = fopen(std::string(crcfile + ".copy").c_str(), "wb");
 
-        fseek(fptr1, sizeof(uint32_t) * 300, SEEK_SET);
+        if (fptr1 != NULL && fptr2 != NULL) {
+            fseek(fptr1, sizeof(uint32_t) * 300, SEEK_SET);
 
-        while (fread(&checkcrc, sizeof(uint32_t), 1, fptr1) == 1) {
-            fwrite(&checkcrc, sizeof(uint32_t), 1, fptr2);
+            while (fread(&checkcrc, sizeof(uint32_t), 1, fptr1) == 1) {
+                fwrite(&checkcrc, sizeof(uint32_t), 1, fptr2);
+            }
+            fwrite(&crc, sizeof(uint32_t), 1, fptr2);
+            fclose(fptr1);
+            fclose(fptr2);
+            std::filesystem::remove(std::filesystem::path(crcfile));
+            std::filesystem::copy(std::filesystem::path(std::string(crcfile + ".copy")), std::filesystem::path(crcfile));
+            std::filesystem::remove(std::filesystem::path(std::string(crcfile + ".copy")));
         }
-        fwrite(&crc, sizeof(uint32_t), 1, fptr2);
-        fclose(fptr1);
-        fclose(fptr2);
-        std::filesystem::remove(std::filesystem::path(crcfile));
-        std::filesystem::copy(std::filesystem::path(std::string(crcfile + ".copy")), std::filesystem::path(crcfile));
-        std::filesystem::remove(std::filesystem::path(std::string(crcfile + ".copy")));
     }
     else {
         fptr = fopen(crcfile.c_str(), "ab");
