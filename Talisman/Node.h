@@ -33,6 +33,7 @@ public:
 	void print_f_nc(const char* fmt, ...);
 	void print_f(const char* fmt, ...);
 	void pause();
+	char getch(int timeout);
 	char getch();
 	char getche();
 	void putch(const char c);
@@ -116,7 +117,8 @@ private:
 	size_t term_width;
 	size_t term_height;
 	std::vector<struct gfile_t> get_gfiles(std::string filename, bool ansi);
-
+	std::vector<std::string> pausefiles;
+	bool pause_loaded;
 #ifdef _MSC_VER
 	HANDLE hOutput;
 #endif
