@@ -6,6 +6,7 @@
 #endif
 #include <filesystem>
 #include <sstream>
+#include <iostream>
 #include "Scanner.h"
 #include "../Common/Logger.h"
 #include "../Common/INIReader.h"
@@ -387,6 +388,12 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
 
 	link->packetpath.append(std::string(packetname) + ".pkt");
 	link->fptr = fopen(link->packetpath.u8string().c_str(), "wb");
+
+	if (!link->fptr) {
+		std::cerr << "Unable to initialize packet!!! " << link->packetpath << " (Error: " << errno << " - Bailing)" << std::endl;
+		exit(-1);
+	}
+
 	memset(&phdr, 0, sizeof(struct packet_t));
 
 	phdr.orignode = pktorig->node;
@@ -701,7 +708,7 @@ bool Scanner::run() {
 		return false;
 	}
 	unsigned long pid;
-	FILE* pfptr = NULL;
+
 	std::filesystem::path packet;
 
 #ifdef _MSC_VER
@@ -774,6 +781,7 @@ bool Scanner::run() {
 			}
 			SquishFreeMsg(msg);
 		}
+		SquishCloseMsgBase(mb);
 
 	}
 
@@ -863,7 +871,7 @@ bool Scanner::run() {
 			}
 			SquishFreeMsg(msg);
 		}
-
+		SquishCloseMsgBase(mb);
 	}
 
 	for (size_t fil = 0; fil < c.links.size(); fil++) {
