@@ -715,8 +715,8 @@ char Node::getch(int delay) {
 			FD_SET(socket, &rfd);
 
 			if (do_delay) {
-				tv.tv_sec = (delay / 1000 > 1 ? delay / 1000 : 0);
-				tv.tv_usec = (delay / 1000 > 1 ? 0 : delay * 1000);
+				tv.tv_sec = delay / 1000;
+				tv.tv_usec = (delay % 1000) * 1000;
 			}
 			else {
 				tv.tv_sec = 60;
