@@ -26,6 +26,37 @@ static inline void trim(std::string& s) {
 	rtrim(s);
 }
 
+Config::~Config() {
+	for (size_t i = 0; i < addresses.size(); i++) {
+		free(addresses.at(i).aka);
+	}
+
+	for (size_t i = 0; i < links.size(); i++) {
+		free(links.at(i).aka);
+		free(links.at(i).ouraka);
+	}
+
+	for (size_t i = 0; i < routes.size(); i++) {
+		free(routes.at(i).aka);
+	}
+
+	for (size_t i = 0; i < areas.size(); i++) {
+		free(areas.at(i).aka);
+	}
+
+	for (size_t i = 0; i < netmailareas.size(); i++) {
+		free(netmailareas.at(i).aka);
+	}
+	for (size_t i = 0; i < fileareas.size(); i++) {
+		free(fileareas.at(i).aka);
+	}
+
+	for (size_t i = 0; i < archivers.size(); i++) {
+		free(archivers.at(i)->bytes);
+		delete archivers.at(i);
+	}
+}
+
 bool Config::load_archivers(std::string datapath)
 {
 	try {

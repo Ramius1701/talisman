@@ -56,6 +56,7 @@ struct farea_conf_t {
 class Config
 {
 public:
+	~Config();
 	bool load(std::string filename);
 	bool load_archivers(std::string datapath);
 	std::vector<Archiver*> archivers;
