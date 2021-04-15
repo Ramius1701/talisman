@@ -190,7 +190,12 @@ void Node::pause() {
 						if (str.find(0x1A) != std::string::npos) {
 							break;
 						}
-						lines.push_back(str);
+						if (str.find('\r') != std::string::npos) {
+							lines.push_back(str);
+						}
+						else {
+							lines.push_back(str.substr(0, str.size() -1));
+						}
 					}
 				}
 
