@@ -410,7 +410,7 @@ void Tosser::run() {
 						}
 						else if (lastc == 0x4) {
 							if (c == '0') {
-								ss << 0x4;
+								ss << "\x4";
 								ss << c;
 							}
 						}
