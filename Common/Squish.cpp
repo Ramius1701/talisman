@@ -436,6 +436,9 @@ sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {
 		return NULL;
 	}
 	memcpy(msg->msg, data + sizeof(XMSG) + msg->ctrl_len, msg->msg_len);
+
+	free(data);
+
 	return msg;
 }
 
