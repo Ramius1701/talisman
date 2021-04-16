@@ -83,7 +83,7 @@ while true do
             end
         end
     end
-    bbs_write_string("|08-----|11Comments|08------------------------------------------------------------------\r\n")
+    bbs_write_string("|08----[|11Comments|08]-----------------------------------------------------------------\r\n")
     for i=1, 7 do
         if i > #oneliners then
             bbs_write_string("\r\n")
@@ -91,7 +91,7 @@ while true do
             bbs_write_string(oneliners[i] .. "\r\n")
         end
     end
-
+    bbs_write_string("|08-------------------------------------------------------------------------------\r\n")
     bbs_write_string("|14Add a comment ? (Y / N):|07")
     local c = bbs_getchar()
 
