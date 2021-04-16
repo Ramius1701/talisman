@@ -328,184 +328,230 @@ void Tosser::run() {
 	}
 
 	for (size_t i = 0; i < config.networks.size(); i++) {
-		std::filesystem::path fspath = config.inbound() + "/s" + std::to_string(config.networks.at(i).mynode) + ".net";
-	
-		if (std::filesystem::exists(fspath)) {
-			// toss file for network.
-			FILE* fptr = fopen(fspath.u8string().c_str(), "rb");
-			if (!fptr) {
-				std::cerr << "Unable to load " << fspath.u8string() << std::endl;
-				continue;
-			}
+		std::filesystem::path ibpath = config.inbound();
+		for (auto di : std::filesystem::directory_iterator(ibpath)) {
+			std::string lookingfor = "s" + std::to_string(config.networks.at(i).mynode) + ".net";
+			if (di.path().filename().u8string() == lookingfor || di.path().stem().u8string() == lookingfor) {
 
-			while (!feof(fptr)) {
-				struct net_header_rec msgrec;
-				std::vector<uint16_t> nlist;
-				if (fread(&msgrec, sizeof(struct net_header_rec), 1, fptr) != 1) {
-					break;
-				}
-				bool sr = false;
-				for (uint16_t j = 0; j < msgrec.list_len; j++) {
-					uint16_t n;
-					if (fread(&n, sizeof(uint16_t), 1, fptr) != 1) {
-						std::cerr << "Short read on 2 " << fspath.u8string() << std::endl;
-						sr = true;
-						break;
-					}
-					nlist.push_back(n);
+				std::filesystem::path fspath = di.path();
+
+				// toss file for network.
+				FILE* fptr = fopen(fspath.u8string().c_str(), "rb");
+				if (!fptr) {
+					std::cerr << "Unable to load " << fspath.u8string() << std::endl;
+					continue;
 				}
 
-				if (sr) break;
-				std::stringstream ss;
-				std::vector<std::string> msg;
-				char lastc = 'x';
-				for (size_t j = 0; j < msgrec.length; j++) {
-					char c;
-					if (fread(&c, sizeof(char), 1, fptr) != 1) {
-						std::cerr << "Short read on 3 " << fspath.u8string() << std::endl;
-						sr = true;
+				while (!feof(fptr)) {
+					struct net_header_rec msgrec;
+					std::vector<uint16_t> nlist;
+					if (fread(&msgrec, sizeof(struct net_header_rec), 1, fptr) != 1) {
 						break;
 					}
-					if (c == '\r' || (c == '\n' && lastc != '\r')) {
-						msg.push_back(ss.str());
-						ss.str("");
+					bool sr = false;
+					for (uint16_t j = 0; j < msgrec.list_len; j++) {
+						uint16_t n;
+						if (fread(&n, sizeof(uint16_t), 1, fptr) != 1) {
+							std::cerr << "Short read on 2 " << fspath.u8string() << std::endl;
+							sr = true;
+							break;
+						}
+						nlist.push_back(n);
 					}
-					else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a && c != 0x4) {
-						// remove heart codes
-						if (lastc == 0x3) { 
-							if (!config.striphearts()) {
-								switch (c) {
-								case '0':
-									ss << "|16|07";
-									break;
-								case '1':
-									ss << "|16|11";
-									break;
-								case '2':
-									ss << "|16|14";
-									break;
-								case '3':
-									ss << "|16|13";
-									break;
-								case '4':
-									ss << "|17|15";
-									break;
-								case '5':
-									ss << "|16|10";
-									break;
-								case '6':
-									ss << "|16|12";
-									break;
-								case '7':
-									ss << "|16|09";
-									break;
-								case '8':
-									ss << "|16|05";
-									break;
-								case '9':
-									ss << "|16|03";
-									break;
+
+					if (sr) break;
+					std::stringstream ss;
+					std::vector<std::string> msg;
+					char lastc = 'x';
+					for (size_t j = 0; j < msgrec.length; j++) {
+						char c;
+						if (fread(&c, sizeof(char), 1, fptr) != 1) {
+							std::cerr << "Short read on 3 " << fspath.u8string() << std::endl;
+							sr = true;
+							break;
+						}
+						if (c == '\r' || (c == '\n' && lastc != '\r')) {
+							msg.push_back(ss.str());
+							ss.str("");
+						}
+						else if (c != '\n' && c != 0x3 && c != 0x1 && c != 0x1a && c != 0x4) {
+							// remove heart codes
+							if (lastc == 0x3) {
+								if (!config.striphearts()) {
+									switch (c) {
+									case '0':
+										ss << "|16|07";
+										break;
+									case '1':
+										ss << "|16|11";
+										break;
+									case '2':
+										ss << "|16|14";
+										break;
+									case '3':
+										ss << "|16|13";
+										break;
+									case '4':
+										ss << "|17|15";
+										break;
+									case '5':
+										ss << "|16|10";
+										break;
+									case '6':
+										ss << "|16|12";
+										break;
+									case '7':
+										ss << "|16|09";
+										break;
+									case '8':
+										ss << "|16|05";
+										break;
+									case '9':
+										ss << "|16|03";
+										break;
+									}
 								}
 							}
-						}
-						else if (lastc == 0x4) {
-							if (c == '0') {
-								ss << "\x4";
+							else if (lastc == 0x4) {
+								if (c == '0') {
+									ss << "\x4";
+									ss << c;
+								}
+							}
+							else {
 								ss << c;
 							}
 						}
-						else {
-							ss << c;
-						}
+						lastc = c;
 					}
-					lastc = c;
-				}
 
-				if (ss.str().size() > 0) {
-					msg.push_back(ss.str());
-					ss.str("");
-				}
+					if (ss.str().size() > 0) {
+						msg.push_back(ss.str());
+						ss.str("");
+					}
 
-				if (sr) break;
+					if (sr) break;
 
-				switch (msgrec.main_type) {
-				case 1:
-					break;
-				case 2: // email to num type
-					if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
-						if (msgrec.tosys == 0) {
-							bool found = false;
-							for (size_t k = 0; k < nlist.size(); k++) {
-								if (nlist.at(k) == config.networks.at(i).mynode) {
-									found = true;
+					switch (msgrec.main_type) {
+					case 1:
+						break;
+					case 2: // email to num type
+						if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+							if (msgrec.tosys == 0) {
+								bool found = false;
+								for (size_t k = 0; k < nlist.size(); k++) {
+									if (nlist.at(k) == config.networks.at(i).mynode) {
+										found = true;
+										break;
+									}
+								}
+								if (!found) {
 									break;
 								}
 							}
-							if (!found) {
-								break;
-							}
-						}
-						std::string subj;
-						std::string sender;
-						std::string datestr;
-						std::stringstream ss;
+							std::string subj;
+							std::string sender;
+							std::string datestr;
+							std::stringstream ss;
 
-						if (msg.size() == 0) break;
+							if (msg.size() == 0) break;
 
-						for (size_t h = 0; h < msg.at(0).size(); h++) {
-							if (msg.at(0).at(h) == '\0') {
-								subj = ss.str();
-								ss.str("");
-							}
-							else {
-								ss << msg.at(0).at(h);
-							}
-						}
-
-						sender = ss.str();
-
-						datestr = msg.at(1);
-
-						msg.erase(msg.begin(), msg.begin() + 1);
-
-						import_email(msgrec.touser, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
-						
-					}
-					break;
-				case 7: // email to name type
-					
-
-					if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
-						
-						if (msgrec.tosys == 0) {
-							bool found = false;
-							for (size_t k = 0; k < nlist.size(); k++) {
-								if (nlist.at(k) == config.networks.at(i).mynode) {
-									found = true;
-									break;
-								}
-							}
-							if (!found) {
-								break;
-							}
-						}
-						std::string subj;
-						std::string sender;
-						std::string toname;
-						std::string datestr;
-						std::stringstream ss;
-						bool gottoname = false;
-
-						if (msg.size() == 0) break;
-
-						for (size_t h = 0; h < msg.at(0).size(); h++) {
-							if (msg.at(0).at(h) == '\0') {
-								if (!gottoname) {
-									toname = ss.str();
-									gottoname = true;
+							for (size_t h = 0; h < msg.at(0).size(); h++) {
+								if (msg.at(0).at(h) == '\0') {
+									subj = ss.str();
+									ss.str("");
 								}
 								else {
-									subj = ss.str();
+									ss << msg.at(0).at(h);
+								}
+							}
+
+							sender = ss.str();
+
+							datestr = msg.at(1);
+
+							msg.erase(msg.begin(), msg.begin() + 1);
+
+							import_email(msgrec.touser, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
+
+						}
+						break;
+					case 7: // email to name type
+
+
+						if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+
+							if (msgrec.tosys == 0) {
+								bool found = false;
+								for (size_t k = 0; k < nlist.size(); k++) {
+									if (nlist.at(k) == config.networks.at(i).mynode) {
+										found = true;
+										break;
+									}
+								}
+								if (!found) {
+									break;
+								}
+							}
+							std::string subj;
+							std::string sender;
+							std::string toname;
+							std::string datestr;
+							std::stringstream ss;
+							bool gottoname = false;
+
+							if (msg.size() == 0) break;
+
+							for (size_t h = 0; h < msg.at(0).size(); h++) {
+								if (msg.at(0).at(h) == '\0') {
+									if (!gottoname) {
+										toname = ss.str();
+										gottoname = true;
+									}
+									else {
+										subj = ss.str();
+									}
+									ss.str("");
+								}
+								else {
+									ss << msg.at(0).at(h);
+								}
+							}
+
+							sender = ss.str();
+
+							datestr = msg.at(1);
+
+							msg.erase(msg.begin(), msg.begin() + 1);
+
+							import_email(toname, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
+
+						}
+						break;
+					case 18:
+					{
+						std::string subtype;
+						uint8_t status;
+						std::stringstream ss;
+						std::string subject;
+						std::string sender;
+						bool gotsubtype = false;
+						if (msg.size() == 0) break;
+
+						if (msgrec.minor_type != 0) {
+							gotsubtype = true;
+							subtype = std::to_string(msgrec.minor_type);
+						}
+
+						for (size_t h = 0; h < msg.at(0).size(); h++) {
+							if (msg.at(0).at(h) == '\0') {
+								if (!gotsubtype) {
+									subtype = ss.str();
+									gotsubtype = true;
+								}
+								else {
+									status = (uint8_t)ss.str().at(0);
+									subject = ss.str().substr(1);
 								}
 								ss.str("");
 							}
@@ -513,177 +559,136 @@ void Tosser::run() {
 								ss << msg.at(0).at(h);
 							}
 						}
-
 						sender = ss.str();
 
-						datestr = msg.at(1);
+						msg.erase(msg.begin(), msg.begin() + 1);
+						std::string stat_msg;
+
+						switch (status) {
+						case 0:
+							stat_msg = "|10SUCCESS - You have been successfully added to the area.|07";
+							break;
+						case 1:
+							stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
+							break;
+						case 3:
+							stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
+							break;
+						case 4:
+							stat_msg = "|12FAILED - You are already subscribed!|07";
+							break;
+						}
+
+						msg.insert(msg.begin(), stat_msg);
+
+						import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+
+					}
+					break;
+					case 19:
+					{
+						std::string subtype;
+						uint8_t status;
+						std::stringstream ss;
+						std::string subject;
+						std::string sender;
+						bool gotsubtype = false;
+						if (msg.size() == 0) break;
+
+						if (msgrec.minor_type != 0) {
+							gotsubtype = true;
+							subtype = std::to_string(msgrec.minor_type);
+						}
+
+						for (size_t h = 0; h < msg.at(0).size(); h++) {
+							if (msg.at(0).at(h) == '\0') {
+								if (!gotsubtype) {
+									subtype = ss.str();
+									gotsubtype = true;
+								}
+								else {
+									status = (uint8_t)ss.str().at(0);
+									subject = ss.str().substr(1);
+								}
+								ss.str("");
+							}
+							else {
+								ss << msg.at(0).at(h);
+							}
+						}
+						sender = ss.str();
+
+						msg.erase(msg.begin(), msg.begin() + 1);
+						std::string stat_msg;
+
+						switch (status) {
+						case 0:
+							stat_msg = "|10SUCCESS - You have been successfully removed from the area.|07";
+							break;
+						case 1:
+							stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
+							break;
+						case 3:
+							stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
+							break;
+						case 2:
+							stat_msg = "|12FAILED - You are not subscribed!|07";
+							break;
+						}
+
+						msg.insert(msg.begin(), stat_msg);
+
+						import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+					}
+					break;
+					case 26: // main type post
+					{
+						std::string subtype;
+						std::string subject;
+						std::string sender;
+						std::stringstream ss;
+						bool gotsubtype = false;
+						if (msg.size() == 0) break;
+
+						if (msgrec.minor_type != 0) {
+							gotsubtype = true;
+							subtype = std::to_string(msgrec.minor_type);
+						}
+
+						for (size_t h = 0; h < msg.at(0).size(); h++) {
+							if (msg.at(0).at(h) == '\0') {
+								if (!gotsubtype) {
+									subtype = ss.str();
+									gotsubtype = true;
+								}
+								else {
+									subject = ss.str();
+								}
+								ss.str("");
+							}
+							else {
+								ss << msg.at(0).at(h);
+							}
+						}
+						sender = ss.str();
 
 						msg.erase(msg.begin(), msg.begin() + 1);
 
-						import_email(toname, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
-
+						import_message(subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
 					}
-					break;
-				case 18:
-				{
-					std::string subtype;
-					uint8_t status;
-					std::stringstream ss;
-					std::string subject;
-					std::string sender;
-					bool gotsubtype = false;
-					if (msg.size() == 0) break;
-
-					if (msgrec.minor_type != 0) {
-						gotsubtype = true;
-						subtype = std::to_string(msgrec.minor_type);
-					}
-
-					for (size_t h = 0; h < msg.at(0).size(); h++) {
-						if (msg.at(0).at(h) == '\0') {
-							if (!gotsubtype) {
-								subtype = ss.str();
-								gotsubtype = true;
-							}
-							else {
-								status = (uint8_t)ss.str().at(0);
-								subject = ss.str().substr(1);
-							}
-							ss.str("");
-						}
-						else {
-							ss << msg.at(0).at(h);
-						}
-					}
-					sender = ss.str();
-
-					msg.erase(msg.begin(), msg.begin() + 1);
-					std::string stat_msg;
-
-					switch (status) {
-					case 0:
-						stat_msg = "|10SUCCESS - You have been successfully added to the area.|07";
-						break;
-					case 1:
-						stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
-						break;
-					case 3:
-						stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
-						break;
-					case 4:
-						stat_msg = "|12FAILED - You are already subscribed!|07";
-						break;
-					}
-
-					msg.insert(msg.begin(), stat_msg);
-
-					import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
-
-				}
-				break;
-				case 19:
-				{
-					std::string subtype;
-					uint8_t status;
-					std::stringstream ss;
-					std::string subject;
-					std::string sender;
-					bool gotsubtype = false;
-					if (msg.size() == 0) break;
-
-					if (msgrec.minor_type != 0) {
-						gotsubtype = true;
-						subtype = std::to_string(msgrec.minor_type);
-					}
-
-					for (size_t h = 0; h < msg.at(0).size(); h++) {
-						if (msg.at(0).at(h) == '\0') {
-							if (!gotsubtype) {
-								subtype = ss.str();
-								gotsubtype = true;
-							}
-							else {
-								status = (uint8_t)ss.str().at(0);
-								subject = ss.str().substr(1);
-							}
-							ss.str("");
-						}
-						else {
-							ss << msg.at(0).at(h);
-						}
-					}
-					sender = ss.str();
-
-					msg.erase(msg.begin(), msg.begin() + 1);
-					std::string stat_msg;
-
-					switch (status) {
-					case 0:
-						stat_msg = "|10SUCCESS - You have been successfully removed from the area.|07";
-						break;
-					case 1:
-						stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
-						break;
-					case 3:
-						stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
-						break;
-					case 2:
-						stat_msg = "|12FAILED - You are not subscribed!|07";
-						break;
-					}
-
-					msg.insert(msg.begin(), stat_msg);
-
-					import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
-				}
-				break;
-				case 26: // main type post
-				{
-					std::string subtype;
-					std::string subject;
-					std::string sender;
-					std::stringstream ss;
-					bool gotsubtype = false;
-					if (msg.size() == 0) break;
-
-					if (msgrec.minor_type != 0) {
-						gotsubtype = true;
-						subtype = std::to_string(msgrec.minor_type);
-					}
-
-					for (size_t h = 0; h < msg.at(0).size(); h++) {
-						if (msg.at(0).at(h) == '\0') {
-							if (!gotsubtype) {
-								subtype = ss.str();
-								gotsubtype = true;
-							}
-							else {
-								subject = ss.str();
-							}
-							ss.str("");
-						}
-						else {
-							ss << msg.at(0).at(h);
-						}
-					}
-					sender = ss.str();
-
-					msg.erase(msg.begin(), msg.begin() + 1);
-
-					import_message(subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
-				}
 
 					break;
+					}
 				}
-			}
 
-			fclose(fptr);
-			try {
-				std::cerr << fspath << std::endl;
-				std::filesystem::remove(fspath);
-			}
-			catch (std::exception) {
-				std::cerr << "failed to remove file" << std::endl;
+				fclose(fptr);
+				try {
+					std::cerr << fspath << std::endl;
+					std::filesystem::remove(fspath);
+				}
+				catch (std::exception) {
+					std::cerr << "failed to remove file" << std::endl;
+				}
 			}
 		}
 	}
