@@ -2,9 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.18"
+#define MyAppVersion "0.19"
 #define MyAppPublisher "Andrew Pamment"
-#define MyAppURL "https://talismanbbs.com/"
+#define MyAppURL "https://talismandocs.com/"
 #define MyAppExeName "Servo.exe"
 
 [Setup]
@@ -63,6 +63,7 @@ Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-1_1.dll"; DestDir: "
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}\dist"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\dist\gfiles\pause\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\menus\*"; DestDir: "{app}\dist\menus\"; Flags: ignoreversion
@@ -98,6 +99,7 @@ Name: "{app}\dloads\general\uploads"
 Name: "{app}\dloads\general\misc"
 Name: "{app}\dist"
 Name: "{app}\dist\gfiles"
+Name: "{app}\dist\gfiles\pause"
 Name: "{app}\dist\data"
 Name: "{app}\dist\menus"
 Name: "{app}\dist\scripts"
