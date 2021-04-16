@@ -70,16 +70,19 @@ while true do
         start = 1
     end
 
-    for i=1, 7 do
-        if (i + start > #newusers_usernames) then
-            bbs_write_string("\r\n");
-        else
-            local d = os.date("*t", newusers_firston[i])
-        
-            bbs_write_string(string.format("    |10NEWUSER!    |14Welcome, |15%-16.16s   |14Signed up: |15%04d/%02d/%02d %02d:%02d\r\n", newusers_usernames[i], d['year'], d['month'], d['day'], d['hour'], d['min']))
+    if #newusers_usernames == 0 then
+        bbs_write_string("\r\n\r\n\r\n                           |12 No New Users Recorded |14:( |07\r\n\r\n\r\n\r\n")
+    else
+        for i=1, 7 do
+            if (i + start > #newusers_usernames) then
+                bbs_write_string("\r\n");
+            else
+                local d = os.date("*t", newusers_firston[i])
+            
+                bbs_write_string(string.format("    |10NEWUSER!    |14Welcome, |15%-16.16s   |14Signed up: |15%04d/%02d/%02d %02d:%02d\r\n", newusers_usernames[i], d['year'], d['month'], d['day'], d['hour'], d['min']))
+            end
         end
     end
-
     bbs_write_string("|08-----|11Comments|08------------------------------------------------------------------\r\n")
     for i=1, 7 do
         if i > #oneliners then
