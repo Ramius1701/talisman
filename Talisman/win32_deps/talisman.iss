@@ -42,6 +42,7 @@ Source: "C:\Users\apamm\Talisman\Release\Falcon.exe"; DestDir: "{app}"; Flags: i
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\gfiles\pause\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\menus\*"; DestDir: "{app}\menus\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\scripts\*"; DestDir: "{app}\scripts"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\gopher"; Flags: onlyifdoesntexist
@@ -85,6 +86,7 @@ Name: "{app}\data"
 Name: "{app}\temp"
 Name: "{app}\logs"
 Name: "{app}\gfiles"
+Name: "{app}\gfiles\pause"
 Name: "{app}\menus"
 Name: "{app}\msgs"
 Name: "{app}\scripts\"
