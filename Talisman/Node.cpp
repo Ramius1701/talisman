@@ -570,7 +570,7 @@ std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
 	int height = -1;
 
 	for (auto& p : std::filesystem::directory_iterator(p)) {
-		if (p.path().filename().u8string().substr(0, filename.size()) == filename) {
+		if (p.path().filename().u8string().substr(0, p.path().filename().u8string().find('.')) == filename) {
 			struct gfile_t gfile;
 			bool isansi = false;
 			std::istringstream iss(p.path().filename().u8string().substr(filename.size()));
@@ -1231,6 +1231,8 @@ bool Node::newuser() {
 					}
 					if (found) break;
 				}
+
+				u.set_attribute("first_on", std::to_string(time(NULL)));
 
 				if (config.new_user_feedback()) {
 					cls();

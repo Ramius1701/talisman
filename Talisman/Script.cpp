@@ -225,6 +225,16 @@ extern "C" int lua_BBSDisplayTextfileP(lua_State *L) {
 	return 0;
 }
 
+extern "C" int lua_GetAttrib(lua_State * L) {
+	const char* attrib = lua_tostring(L, 1);
+	const char* def = lua_tostring(L, 2);
+	Node* n = lua_getNode(L);
+
+	lua_pushstring(L, n->get_user().get_attribute(std::string(attrib), std::string(def)).c_str());
+
+	return 1;
+}
+
 extern "C" int lua_Pause(lua_State * L) {
 	Node* n = lua_getNode(L);
 	n->pause();
@@ -281,6 +291,9 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_Pause);
 	lua_setglobal(l, "bbs_pause");
+
+	lua_pushcfunction(l, lua_GetAttrib);
+	lua_setglobal(l, "bbs_get_user_attribute");
 
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){
