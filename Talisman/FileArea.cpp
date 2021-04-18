@@ -177,15 +177,6 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 	return ret;
 }
 
-struct file_list_t {
-	std::string filename;
-	size_t filesize = 0;
-	int dlcount = 0;
-	time_t uldate = 0;
-	bool missing = false;
-	std::string ulname;
-	std::vector<std::string> desc;
-};
 
 void FileArea::list_files(Node* n) {
 	list_files(n, 0, nullptr);
@@ -196,11 +187,10 @@ void FileArea::list_files(Node* n, time_t date) {
 }
 
 void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords) {
-	int lines = 0;
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	std::vector<file_list_t> filelist;
-	static const char units[] = " KMGT";
+
 	struct stat s;
 	static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
 	static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
@@ -276,43 +266,175 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 
 	sqlite3_finalize(stmt);
 	sqlite3_close(db);
+	bool fsr = (n->get_user().get_attribute("fullscreenreader", "true") == "true" && n->hasANSI);
+	if (fsr) {
+		do_list_fsr(n, &filelist);
+	}
+	else {
+		do_list(n, &filelist);
+	}
 
-	for (size_t i = 0; i < filelist.size(); i++) {
+}
+
+void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
+	int unit;
+	bool tagged = false;
+	int start = 0;
+	int selected = 0;
+	bool redraw = true;
+	static const char units[] = " KMGT";
+
+	if (filelist->size() == 0) return;
+
+	while (true) {
+		n->cls();
+		n->print_f("\x1b[1;1H");
+		n->print_f("%s", n->get_config()->get_prompt_colour());
+		n->print_f("File Area: %s", name.c_str());
+		n->print_f("\x1b[K");
+
+		n->print_f("\x1b[%d;1H", n->get_term_height() - 1);
+		n->print_f("%s", n->get_config()->get_prompt_colour());
+		n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
+		n->print_f("\x1b[K");
+
+		n->print_f("\x1b[0;37;40m");
+		for (size_t i = start; i < filelist->size() && i < start + n->get_term_height() - 4; i++) {
+			int fsz = filelist->at(i).filesize;
+			for (unit = 0; unit < 5; unit++) {
+				if (fsz >= 1024) {
+					fsz /= 1024;
+				}
+				else {
+					break;
+				}
+			}
+
+			for (size_t j = 0; j < n->tagged_files.size(); j++) {
+				if (n->tagged_files.at(j).filename == filelist->at(i).filename) {
+					tagged = true;
+					break;
+				}
+			}
+
+			n->print_f("\x1b[%d;%dH", i + 3, 2);
+			if (i == selected) {
+				n->print_f("%s", n->get_config()->get_prompt_colour());
+			}
+			else {
+				n->print_f("\x1b[0;37;40m");
+			}
+
+			std::filesystem::path p(filelist->at(i).filename);
+
+			if (filelist->at(i).missing) {
+				n->print_f(" %-20.20s MISSING", p.filename().u8string().c_str());
+			}
+			else {
+				if (tagged) {
+					n->print_f("|12*|07%-20.20s %.5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+				}
+				else {
+					n->print_f(" |07%-20.20s %.5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+				}
+			}
+		}
+
+		n->print_f("\x1b[3;34H");
+		n->print_f("|14Uploaded By|08: |15%-16.16s", filelist->at(selected).ulname.c_str());
+		n->print_f("\x1b[3;64H");
+
+		struct tm f_tm;
+
+#ifdef _MSC_VER
+		localtime_s(&f_tm, &filelist->at(selected).uldate);
+#else
+		localtime_r(&filelist->at(selected).uldate, &f_tm);
+#endif
+		n->print_f("|14On|08: |15%04d/%02d/%02d", f_tm.tm_year + 1900, f_tm.tm_mon + 1, f_tm.tm_mday);
+		n->print_f("\x1b[4;35H");
+		n->print_f("|14Downloaded|08: |15%d times.", filelist->at(selected).dlcount);
+
+		for (size_t i = 0; i < filelist->at(selected).desc.size() && i < n->get_term_height() - 8; i++) {
+			n->print_f("\x1b[%d;34H", i + 6);
+			n->print_f("%-44.44s", filelist->at(selected).desc.at(i).c_str());
+		}
+
+		char c = n->getch();
+		if (c == '\x1b') {
+			c = n->getch();
+			if (c == '[') {
+				c = n->getch();
+				if (c == 'A') { // up
+					if (selected > 0) {
+						selected--;
+						if (selected < start) {
+							start = selected - (n->get_term_height() - 8);
+							if (start < 0) start = 0;
+						}
+					}
+				}
+				else if (c == 'B') {
+					if (selected < filelist->size() - 1) {
+						selected++;
+						if (selected > start + (n->get_term_height() - 8)) {
+							start = selected;
+						}
+					}
+				}
+			}
+		}
+		else if (c == ' ') {
+			// tag file
+			if (!filelist->at(selected).missing) {
+
+			}
+		}
+		else if (c == 'Q' || c == 'q') {
+			return;
+		}
+	}
+}
+
+void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
+	static const char units[] = " KMGT";
+	int lines = 0;
+	for (size_t i = 0; i < filelist->size(); i++) {
 		int unit;
 		bool tagged = false;
 		for (unit = 0; unit < 5; unit++) {
-			if (filelist.at(i).filesize >= 1024) {
-				filelist.at(i).filesize /= 1024;
+			if (filelist->at(i).filesize >= 1024) {
+				filelist->at(i).filesize /= 1024;
 			}
 			else {
 				break;
 			}
 		}
-		std::filesystem::path p(filelist.at(i).filename);
+		std::filesystem::path p(filelist->at(i).filename);
 
 		for (size_t j = 0; j < n->tagged_files.size(); j++) {
-			if (n->tagged_files.at(j).filename == filelist.at(i).filename) {
+			if (n->tagged_files.at(j).filename == filelist->at(i).filename) {
 				tagged = true;
 				break;
 			}
 		}
 
-		if (filelist.at(i).desc.size() > 0) {
+		if (filelist->at(i).desc.size() > 0) {
 			if (tagged) {
-				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
+				n->print_f("|14%4d.|10*|15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist->at(i).filesize, units[unit], filelist->at(i).dlcount, filelist->at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 			}
 			else {
-				if (filelist.at(i).missing) {
-					n->print_f("|14%4d. |15%-16.16s |12MISSING |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
+				if (filelist->at(i).missing) {
+					n->print_f("|14%4d. |15%-16.16s |12MISSING |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist->at(i).dlcount, filelist->at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 				}
 				else {
-					n->print_f("|14%4d. |15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount, filelist.at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
+					n->print_f("|14%4d. |15%-16.16s |13%5d%cb |11%4d |07%s\r\n", i + 1, p.filename().u8string().c_str(), filelist->at(i).filesize, units[unit], filelist->at(i).dlcount, filelist->at(i).desc.at(0).substr(0, n->get_term_width() - 37).c_str());
 				}
 			}
 			lines++;
-			for (size_t z = 1; z < filelist.at(i).desc.size(); z++) {
-				if (lines == n->get_term_height() -2) {
-					n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist.size());
+			for (size_t z = 1; z < filelist->at(i).desc.size(); z++) {
+				if (lines == n->get_term_height() - 2) {
+					n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
 					std::string res = n->get_string(5, false);
 					if (res.size() > 0) {
 						if (tolower(res.at(0) == 'q')) {
@@ -328,9 +450,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 						catch (std::out_of_range) {
 							ftag = 0;
 						}
-						if (ftag > 0 && ftag <= filelist.size()) {
-							if (!filelist.at(ftag - 1).missing) {
-								n->tag_file(filelist.at(ftag - 1).filename, this);
+						if (ftag > 0 && ftag <= filelist->size()) {
+							if (!filelist->at(ftag - 1).missing) {
+								n->tag_file(filelist->at(ftag - 1).filename, this);
 							}
 						}
 					}
@@ -338,16 +460,16 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 					lines = 0;
 				}
 
-				n->print_f("                                    |07%s\r\n", filelist.at(i).desc.at(z).substr(0, n->get_term_width() - 37).c_str());
+				n->print_f("                                    |07%s\r\n", filelist->at(i).desc.at(z).substr(0, n->get_term_width() - 37).c_str());
 				lines++;
 			}
 		}
 		else {
-			n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07No Description\r\n", i + 1, p.filename().u8string().c_str(), filelist.at(i).filesize, units[unit], filelist.at(i).dlcount);
+			n->print_f("|14%4d. |15%-16.16s |13%5d%cb |12%4d |07No Description\r\n", i + 1, p.filename().u8string().c_str(), filelist->at(i).filesize, units[unit], filelist->at(i).dlcount);
 			lines++;
 		}
-		if (lines == n->get_term_height() -2) {
-			n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist.size());
+		if (lines == n->get_term_height() - 2) {
+			n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
 			std::string res = n->get_string(5, false);
 			if (res.size() > 0) {
 				if (tolower(res.at(0) == 'q')) {
@@ -363,9 +485,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 				catch (std::out_of_range) {
 					ftag = 0;
 				}
-				if (ftag > 0 && ftag <= filelist.size()) {
-					if (!filelist.at(ftag - 1).missing) {
-						n->tag_file(filelist.at(ftag - 1).filename, this);
+				if (ftag > 0 && ftag <= filelist->size()) {
+					if (!filelist->at(ftag - 1).missing) {
+						n->tag_file(filelist->at(ftag - 1).filename, this);
 					}
 				}
 			}
@@ -375,7 +497,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 		}
 	}
 	if (lines > 0) {
-		n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15ENTER|08=|14Quit: ", filelist.size());
+		n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15ENTER|08=|14Quit: ", filelist->size());
 		std::string res = n->get_string(5, false);
 		if (res.size() > 0) {
 			size_t ftag;
@@ -388,9 +510,9 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 			catch (std::out_of_range) {
 				ftag = 0;
 			}
-			if (ftag > 0 && ftag <= filelist.size()) {
-				if (!filelist.at(ftag - 1).missing) {
-					n->tag_file(filelist.at(ftag - 1).filename, this);
+			if (ftag > 0 && ftag <= filelist->size()) {
+				if (!filelist->at(ftag - 1).missing) {
+					n->tag_file(filelist->at(ftag - 1).filename, this);
 				}
 			}
 		}

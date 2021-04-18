@@ -599,7 +599,7 @@ void Tosser::run() {
 					case 19:
 					{
 						std::string subtype;
-						uint8_t status = 999;
+						uint8_t status = 0;
 						std::stringstream ss;
 						std::string subject;
 						std::string sender;

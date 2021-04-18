@@ -4,6 +4,17 @@
 #include <sqlite3.h>
 class Node;
 
+struct file_list_t {
+	std::string filename;
+	size_t filesize = 0;
+	int dlcount = 0;
+	time_t uldate = 0;
+	bool missing = false;
+	std::string ulname;
+	std::vector<std::string> desc;
+};
+
+
 class FileArea
 {
 public:
@@ -34,6 +45,8 @@ public:
 	bool file_exists(Node* n, std::string filename);
 	bool insert_file(Node* n, std::string filename, std::vector<std::string> descr);
 private:
+	void do_list(Node *n, std::vector<struct file_list_t>* filelist);
+	void do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist);
 	bool open_database(std::string filename, sqlite3** db);
 	std::string name;
 	std::string file_path;
