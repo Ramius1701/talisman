@@ -310,6 +310,8 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 				}
 			}
 
+			tagged = false;
+
 			for (size_t j = 0; j < n->tagged_files.size(); j++) {
 				if (n->tagged_files.at(j).filename == filelist->at(i).filename) {
 					tagged = true;
@@ -332,10 +334,10 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 			}
 			else {
 				if (tagged) {
-					n->print_f("*%-20.20s %.5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+					n->print_f("*%-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
 				}
 				else {
-					n->print_f(" %-20.20s %.5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+					n->print_f(" %-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
 				}
 			}
 		}
