@@ -552,12 +552,16 @@ void Tosser::run() {
 								if (!gotsubtype) {
 									subtype = ss.str();
 									gotsubtype = true;
+									ss.str("");
 								}
-								else {
+								else if (ss.str().size() > 0) {
 									status = (uint8_t)ss.str().at(0);
 									subject = ss.str().substr(1);
+									ss.str("");
 								}
-								ss.str("");
+								else {
+									ss << msg.at(0).at(h);
+								}
 							}
 							else {
 								ss << msg.at(0).at(h);
@@ -595,7 +599,7 @@ void Tosser::run() {
 					case 19:
 					{
 						std::string subtype;
-						uint8_t status;
+						uint8_t status = 999;
 						std::stringstream ss;
 						std::string subject;
 						std::string sender;
@@ -612,12 +616,16 @@ void Tosser::run() {
 								if (!gotsubtype) {
 									subtype = ss.str();
 									gotsubtype = true;
+									ss.str("");
 								}
-								else {
+								else if (ss.str().size() > 0) {
 									status = (uint8_t)ss.str().at(0);
 									subject = ss.str().substr(1);
+									ss.str("");
 								}
-								ss.str("");
+								else {
+									ss << msg.at(0).at(h);
+								}
 							}
 							else {
 								ss << msg.at(0).at(h);
