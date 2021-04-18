@@ -299,7 +299,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		n->print_f("\x1b[K");
 
 		n->print_f("\x1b[0;37;40m");
-		for (size_t i = start; i < filelist->size() && i < start + n->get_term_height() - 4; i++) {
+		for (size_t i = start; i < filelist->size() && i < start + n->get_term_height() - 5; i++) {
 			int fsz = filelist->at(i).filesize;
 			for (unit = 0; unit < 5; unit++) {
 				if (fsz >= 1024) {
@@ -370,7 +370,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 					if (selected > 0) {
 						selected--;
 						if (selected < start) {
-							start = selected - (n->get_term_height() - 8);
+							start = selected - (n->get_term_height() - 5);
 							if (start < 0) start = 0;
 						}
 					}
@@ -378,7 +378,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 				else if (c == 'B') {
 					if (selected < filelist->size() - 1) {
 						selected++;
-						if (selected > start + (n->get_term_height() - 8)) {
+						if (selected > start + (n->get_term_height() - 5)) {
 							start = selected;
 						}
 					}
