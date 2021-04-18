@@ -326,6 +326,9 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 				if (i == selected) {
 					n->print_f("%s", n->get_config()->get_prompt_colour());
 				}
+				else {
+					n->print_f("|16|07");
+				}
 
 
 				std::filesystem::path p(filelist->at(i).filename);
@@ -345,7 +348,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 			}
 			else {
 				n->print_f("\x1b[%d;%dH", i - start + 3, 2);
-				n->print_f("                           ");
+				n->print_f("                            ");
 			}
 		}
 
