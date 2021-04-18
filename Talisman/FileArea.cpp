@@ -286,59 +286,67 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 
 	if (filelist->size() == 0) return;
 
+	n->cls();
+	n->print_f("\x1b[1;1H");
+	n->print_f("%s", n->get_config()->get_prompt_colour());
+	n->print_f("File Area: %s", name.c_str());
+	n->print_f("\x1b[K");
+
+	n->print_f("\x1b[%d;1H", n->get_term_height() - 1);
+	n->print_f("%s", n->get_config()->get_prompt_colour());
+	n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
+	n->print_f("\x1b[K");
+
+	n->print_f("\x1b[0;37;40m");
+
 	while (true) {
-		n->cls();
-		n->print_f("\x1b[1;1H");
-		n->print_f("%s", n->get_config()->get_prompt_colour());
-		n->print_f("File Area: %s", name.c_str());
-		n->print_f("\x1b[K");
 
-		n->print_f("\x1b[%d;1H", n->get_term_height() - 1);
-		n->print_f("%s", n->get_config()->get_prompt_colour());
-		n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
-		n->print_f("\x1b[K");
+		for (size_t i = start;i < start + n->get_term_height() - 5; i++) {
+			if (i < filelist->size()) {
+				int fsz = filelist->at(i).filesize;
+				for (unit = 0; unit < 5; unit++) {
+					if (fsz >= 1024) {
+						fsz /= 1024;
+					}
+					else {
+						break;
+					}
+				}
 
-		n->print_f("\x1b[0;37;40m");
-		for (size_t i = start; i < filelist->size() && i < start + n->get_term_height() - 5; i++) {
-			int fsz = filelist->at(i).filesize;
-			for (unit = 0; unit < 5; unit++) {
-				if (fsz >= 1024) {
-					fsz /= 1024;
+				tagged = false;
+
+				for (size_t j = 0; j < n->tagged_files.size(); j++) {
+					if (n->tagged_files.at(j).filename == filelist->at(i).filename) {
+						tagged = true;
+						break;
+					}
+				}
+
+				n->print_f("\x1b[%d;%dH", i - start + 3, 2);
+				if (i == selected) {
+					n->print_f("%s", n->get_config()->get_prompt_colour());
+				}
+
+
+				std::filesystem::path p(filelist->at(i).filename);
+
+				if (filelist->at(i).missing) {
+					n->print_f(" %-20.20s MISSING", p.filename().u8string().c_str());
 				}
 				else {
-					break;
+					if (tagged) {
+						n->print_f("*%-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+					}
+					else {
+						n->print_f(" %-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+					}
 				}
-			}
-
-			tagged = false;
-
-			for (size_t j = 0; j < n->tagged_files.size(); j++) {
-				if (n->tagged_files.at(j).filename == filelist->at(i).filename) {
-					tagged = true;
-					break;
-				}
-			}
-
-			n->print_f("\x1b[%d;%dH", i - start + 3, 2);
-			if (i == selected) {
-				n->print_f("%s", n->get_config()->get_prompt_colour());
-			}
-			
-
-			std::filesystem::path p(filelist->at(i).filename);
-
-			if (filelist->at(i).missing) {
-				n->print_f(" %-20.20s MISSING", p.filename().u8string().c_str());
+				n->print_f("\x1b[0;37;40m");
 			}
 			else {
-				if (tagged) {
-					n->print_f("*%-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
-				}
-				else {
-					n->print_f(" %-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
-				}
+				n->print_f("\x1b[%d;%dH", i - start + 3, 2);
+				n->print_f("                           ");
 			}
-			n->print_f("\x1b[0;37;40m");
 		}
 
 		n->print_f("\x1b[3;34H");
@@ -356,9 +364,14 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		n->print_f("\x1b[4;35H");
 		n->print_f("|14Downloaded|08: |15%d times.", filelist->at(selected).dlcount);
 
-		for (size_t i = 0; i < filelist->at(selected).desc.size() && i < n->get_term_height() - 8; i++) {
+		for (size_t i = 0; i < n->get_term_height() - 8; i++) {
 			n->print_f("\x1b[%d;34H", i + 6);
-			n->print_f("%-44.44s", filelist->at(selected).desc.at(i).c_str());
+			if (i < filelist->at(selected).desc.size()) {
+				n->print_f("%-44.44s", filelist->at(selected).desc.at(i).c_str());
+			}
+			else {
+				n->print_f("\x1b[K");
+			}
 		}
 
 		char c = n->getch();
