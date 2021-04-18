@@ -323,9 +323,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 			if (i == selected) {
 				n->print_f("%s", n->get_config()->get_prompt_colour());
 			}
-			else {
-				n->print_f("\x1b[0;37;40m");
-			}
+			
 
 			std::filesystem::path p(filelist->at(i).filename);
 
@@ -340,6 +338,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 					n->print_f(" %-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
 				}
 			}
+			n->print_f("\x1b[0;37;40m");
 		}
 
 		n->print_f("\x1b[3;34H");
@@ -389,7 +388,17 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		else if (c == ' ') {
 			// tag file
 			if (!filelist->at(selected).missing) {
-				n->tag_file(filelist->at(selected).filename, this);
+				tagged = false;
+				for (size_t j = 0; j < n->tagged_files.size(); j++) {
+					if (n->tagged_files.at(j).filename == filelist->at(selected).filename) {
+						n->tagged_files.erase(n->tagged_files.begin() + j);
+						tagged = true;
+						break;
+					}
+				}
+				if (tagged == false) {
+					n->tag_file(filelist->at(selected).filename, this);
+				}
 			}
 		}
 		else if (c == 'Q' || c == 'q') {
