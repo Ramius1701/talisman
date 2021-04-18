@@ -370,7 +370,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 					if (selected > 0) {
 						selected--;
 						if (selected < start) {
-							start = selected - (n->get_term_height() - 5);
+							start = selected - (n->get_term_height() - 6);
 							if (start < 0) start = 0;
 						}
 					}
@@ -378,7 +378,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 				else if (c == 'B') {
 					if (selected < filelist->size() - 1) {
 						selected++;
-						if (selected > start + (n->get_term_height() - 5)) {
+						if (selected > start + (n->get_term_height() - 6)) {
 							start = selected;
 						}
 					}
