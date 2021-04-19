@@ -439,7 +439,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "postmsg") == 0) {
-				n->update_node_use("Posting a Message");
+					n->update_node_use("Posting a Message");
 					n->log->log(LOG_INFO, "%s posting a message on node %d", n->get_user().get_username().c_str(), n->getnodenum());
 					int msgconf = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
 					if (msgconf == -1) {
