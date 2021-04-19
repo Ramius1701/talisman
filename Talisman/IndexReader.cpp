@@ -84,7 +84,7 @@ void IndexReader::run(Node* n) {
 		}
 
 		n->cls();
-		n->print_f("\x1b[1;1H%s     Message Area                      Total Unread Last Msg\x1b[K", n->get_config()->get_prompt_colour());
+		n->print_f("\x1b[1;1H%s      Message Area                      Total Unread Last Msg\x1b[K", n->get_config()->get_prompt_colour());
 		n->print_f("\x1b[%d;1H%sUp / Down - Scroll, Enter - Select, ? - Help (More Commands)\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 		n->print_f("|16");
 		while (true) {
