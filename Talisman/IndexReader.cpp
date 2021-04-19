@@ -194,34 +194,54 @@ void IndexReader::run(Node* n) {
 				conf.at(selected_conf).area.at(selected_area).tagged = !conf.at(selected_conf).area.at(selected_area).tagged;
 			}
 			else if (c == 'S' || c == 's') {
+				bool nothingtagged = true;
 				for (size_t i = 0; i < conf.size(); i++) {
 					for (size_t j = 0; j < conf.at(i).area.size(); j++) {
 						if (conf.at(i).area.at(j).tagged) {
 							n->get_user().set_subscribed(conf.at(i).area.at(j).ma->get_file(), true);
 							conf.at(i).area.at(j).subbed = true;
+							nothingtagged = false;
 						}
 					}
 				}
+				if (nothingtagged) {
+					n->get_user().set_subscribed(conf.at(selected_conf).area.at(selected_area).ma->get_file(), true);
+					conf.at(selected_conf).area.at(selected_area).subbed = true;
+				}
 			}
 			else if (c == 'U' || c == 'u') {
+				bool nothingtagged = true;
 				for (size_t i = 0; i < conf.size(); i++) {
 					for (size_t j = 0; j < conf.at(i).area.size(); j++) {
 						if (conf.at(i).area.at(j).tagged) {
 							n->get_user().set_subscribed(conf.at(i).area.at(j).ma->get_file(), false);
 							conf.at(i).area.at(j).subbed = false;
+							nothingtagged = false;
 						}
 					}
 				}
+
+				if (nothingtagged) {
+					n->get_user().set_subscribed(conf.at(selected_conf).area.at(selected_area).ma->get_file(), false);
+					conf.at(selected_conf).area.at(selected_area).subbed = false;
+				}
 			}
 			else if (c == 'R' || c == 'r') {
+				bool nothingtagged = true;
 				for (size_t i = 0; i < conf.size(); i++) {
 					for (size_t j = 0; j < conf.at(i).area.size(); j++) {
 						if (conf.at(i).area.at(j).tagged) {
 							n->get_user().user_set_lastread(conf.at(i).area.at(j).ma->get_file(), conf.at(i).area.at(j).total);
 							conf.at(i).area.at(j).lr = conf.at(i).area.at(j).total;
 							conf.at(i).area.at(j).unread = 0;
+							nothingtagged = false;
 						}
 					}
+				}
+				if (nothingtagged) {
+					n->get_user().user_set_lastread(conf.at(selected_conf).area.at(selected_area).ma->get_file(), conf.at(selected_conf).area.at(selected_area).total);
+					conf.at(selected_conf).area.at(selected_area).lr = conf.at(selected_conf).area.at(selected_area).total;
+					conf.at(selected_conf).area.at(selected_area).unread = 0;
 				}
 			}
 			else if (c == 'C' || c == 'c') {
@@ -237,13 +257,49 @@ void IndexReader::run(Node* n) {
 			}
 			else if (c == 'p' || c == 'P') {
 				n->cls();
+				int tot_areas = 0;
+				bool selected_is_tagged = true;
+				bool tagged_netmail = false;
+				for (size_t i = 0; i < conf.size(); i++) {
+					for (size_t j = 0; j < conf.at(i).area.size(); j++) {
+						if (conf.at(i).area.at(j).tagged) {
+							tot_areas++;
+							if (conf.at(i).area.at(j).ma->is_netmail()) {
+								tagged_netmail = true;
+							}
+						}
+					}
+				}
+
+			
+
+				if (tot_areas > 0) {
+					if (n->get_config()->get_sec_level_info(n->get_user().get_sec_level())->bulk_msg_allowed) {
+						n->print_f("|12Warning! |15 You have tagged %d areas to send this message on!\r\n", tot_areas);
+						n->print_f("Do you want to do that? (Y/N) : ");
+						char ch = n->getch();
+						if (ch == 'y' || ch == 'Y') {
+							selected_is_tagged = false;
+						}
+					}
+					else {
+						selected_is_tagged = true;
+					}
+				}
+
+				if (!selected_is_tagged && tagged_netmail) {
+					n->print_f("\r\nSorry! One of your tagged bases is a netmail area. Aborting!\r\n");
+					n->pause();
+					break;
+				}
+
 				bool doabort = false;
 				n->print_f("\r\n     To: ");
 				std::string to = n->get_string(35, false);
 				n->print_f("\r\nSubject: ");
 				std::string subject = n->get_string(60, false);
 				std::string netaddr;
-				if (conf.at(selected_conf).area.at(selected_area).ma->is_netmail()) {
+				if (selected_is_tagged && conf.at(selected_conf).area.at(selected_area).ma->is_netmail()) {
 					n->print_f("\r\nAddress: ");
 					netaddr = n->get_string(16, false);
 					if (conf.at(selected_conf).area.at(selected_area).ma->get_wwivnode() == 0) {
@@ -295,19 +351,41 @@ void IndexReader::run(Node* n) {
 					n->print_f("\r\n|14Aborted!\r\n");
 				}
 				else {
-					std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, conf.at(selected_conf).area.at(selected_area).ma->get_name(), conf.at(selected_conf).area.at(selected_area).ma->is_netmail(), nullptr);
-					if (nmsg.size() > 0) {
-						if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
-							MsgArea::attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+					if (selected_is_tagged) {
+						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, conf.at(selected_conf).area.at(selected_area).ma->get_name(), conf.at(selected_conf).area.at(selected_area).ma->is_netmail(), nullptr);
+						if (nmsg.size() > 0) {
+							if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+								MsgArea::attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+							}
+							if (conf.at(selected_conf).area.at(selected_area).ma->get_real_names()) {
+								conf.at(selected_conf).area.at(selected_area).ma->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, netaddr, 0);
+							}
+							else {
+								conf.at(selected_conf).area.at(selected_area).ma->save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
+							}
+							n->clog->post_msg();
 						}
-						if (conf.at(selected_conf).area.at(selected_area).ma->get_real_names()) {
-							conf.at(selected_conf).area.at(selected_area).ma->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, netaddr, 0);
+					}
+					else {
+						std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, "Multiple Areas", conf.at(selected_conf).area.at(selected_area).ma->is_netmail(), nullptr);
+						if (nmsg.size() > 0) {
+							if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+								MsgArea::attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+							}
+							for (size_t i = 0; i < conf.size(); i++) {
+								for (size_t j = 0; j < conf.at(i).area.size(); j++) {
+									if (conf.at(i).area.at(j).tagged) {
+										if (conf.at(i).area.at(j).ma->get_real_names()) {
+											conf.at(i).area.at(j).ma->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, netaddr, 0);
+										}
+										else {
+											conf.at(i).area.at(j).ma->save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
+										}
+										n->clog->post_msg();
+									}
+								}
+							}
 						}
-						else {
-							conf.at(selected_conf).area.at(selected_area).ma->save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
-
-						}
-						n->clog->post_msg();
 					}
 				}
 				break;

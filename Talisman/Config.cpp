@@ -113,6 +113,7 @@ bool Config::load(Node *n, std::string filename) {
 			int mysec_level;
 			int mytimeonline;
 			int mytimeout;
+			bool mybulk;
 
 			auto name = itemtable->get("name");
 			if (name != nullptr) {
@@ -144,12 +145,22 @@ bool Config::load(Node *n, std::string filename) {
 				mytimeout = 0;
 			}
 
+			auto bulk = itemtable->get("bulk_msg_allowed");
+			if (bulk != nullptr) {
+				mybulk = timeout->as_boolean()->value_or(false);
+			}
+			else {
+				mybulk = false;
+			}
+
+
 			if (mysec_level != 0) {
 				struct sec_level_t slvl;
 				slvl.level = mysec_level;
 				slvl.name = myname;
 				slvl.timeout = mytimeout;
 				slvl.time_online = mytimeonline;
+				slvl.bulk_msg_allowed = mybulk;
 				seclevels.push_back(slvl);
 			}
 		}

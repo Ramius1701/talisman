@@ -14,6 +14,7 @@ struct sec_level_t {
 	int level;
 	int time_online;
 	int timeout;
+	bool bulk_msg_allowed;
 };
 
 struct login_item_t {
