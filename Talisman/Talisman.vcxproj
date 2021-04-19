@@ -159,6 +159,7 @@
     <ClCompile Include="FileArea.cpp" />
     <ClCompile Include="FileConf.cpp" />
     <ClCompile Include="FullScreenEditor.cpp" />
+    <ClCompile Include="IndexReader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
     <ClCompile Include="MsgArea.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="FileConf.h" />
     <ClInclude Include="FullScreenEditor.h" />
     <ClInclude Include="GenDefs.h" />
+    <ClInclude Include="IndexReader.h" />
     <ClInclude Include="Menu.h" />
     <ClInclude Include="MsgArea.h" />
     <ClInclude Include="MsgConf.h" />

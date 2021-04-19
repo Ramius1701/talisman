@@ -27,6 +27,7 @@
 #include "Nodelist.h"
 #include "Phlog.h"
 #include "../Common/Squish.h"
+#include "IndexReader.h"
 
 Menu::Menu(Node *n)
 {
@@ -1155,6 +1156,16 @@ bool Menu::run() {
 							ssig << newsig.at(s) << "\r";
 						}
 						n->get_user().set_attribute("signature", ssig.str());
+					}
+				}
+				else if (strcasecmp(items[i].command.c_str(), "indexreader") == 0) {
+					if (!n->hasANSI) {
+						n->print_f("Sorry, the index reader requires ANSI!\r\n");
+						n->pause();
+					}
+					else {
+						IndexReader i;
+						i.run(n);
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
