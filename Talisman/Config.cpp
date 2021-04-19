@@ -147,7 +147,7 @@ bool Config::load(Node *n, std::string filename) {
 
 			auto bulk = itemtable->get("bulk_msg_allowed");
 			if (bulk != nullptr) {
-				mybulk = timeout->as_boolean()->value_or(false);
+				mybulk = bulk->as_boolean()->value_or(false);
 			}
 			else {
 				mybulk = false;
