@@ -85,18 +85,17 @@ void IndexReader::run(Node* n) {
 
 		n->cls();
 		n->print_f("\x1b[1;1H%s     Message Area                      Total Unread Last Msg\x1b[K", n->get_config()->get_prompt_colour());
-		n->print_f("\x1b[%d;1H%s   Up/Down - Select, ENTER - Read, SPACE - Tag, C - Clear Tagged Q - Quit\x1b[K", n->get_term_height() - 2, n->get_config()->get_prompt_colour());
-		n->print_f("\x1b[%d;1H%s  P - Post,  With Tagged: S - Subscribe, U - Unsubscribe, R - Mark As Read\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
+		n->print_f("\x1b[%d;1H%sUp / Down - Scroll, Enter - Select, ? - Help (More Commands)\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 		n->print_f("|16");
 		while (true) {
 			int cur_conf = start_conf;
 			int cur_area = start_area;
-			for (int i = 0; i < n->get_term_height() - 4; i++) {
+			for (int i = 0; i < n->get_term_height() - 3; i++) {
 				n->print_f("\x1b[%d;1H", i + 2);
 				if (cur_area == 0) {
-					n->print_f("|14     %s\x1b[K", conf.at(cur_conf).mc->get_name().c_str());
+					n->print_f("|14      %s\x1b[K", conf.at(cur_conf).mc->get_name().c_str());
 					i++;
-					if (i == n->get_term_height() - 4) break;
+					if (i == n->get_term_height() - 3) break;
 					n->print_f("\x1b[%d;1H", i + 2);
 				}
 				struct tm ltm;
@@ -107,37 +106,46 @@ void IndexReader::run(Node* n) {
 #endif
 
 				if (conf.at(cur_conf).area.at(cur_area).unread > 0) {
-					n->print_f("|10NEW |15");
+					n->print_f(" |10NEW |15");
 				}
-				else {
-					n->print_f("|07    ");
+				else if (conf.at(cur_conf).area.at(cur_area).total == 0) {
+					n->print_f(" |08    ");
+				} else {
+					n->print_f(" |07    ");
 				}
 
 				if (selected_conf == cur_conf && selected_area == cur_area) {
 					n->print_f("%s", n->get_config()->get_prompt_colour());
 					x = i;
+					if (conf.at(cur_conf).area.at(cur_area).total == 0) {
+						n->print_f(" %-32.32s %6d %6d No Messages %s %s\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
+							conf.at(cur_conf).area.at(cur_area).subbed ? "Sub" : "   ", conf.at(cur_conf).area.at(cur_area).tagged ? "Tag" : "   ");
+					}
+					else {
+						n->print_f(" %-32.32s %6d %6d %04d/%02d/%02d  %s %s\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
+							ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, conf.at(cur_conf).area.at(cur_area).subbed ? "Sub" : "   ", conf.at(cur_conf).area.at(cur_area).tagged ? "Tag" : "   ");
+					}
+					n->print_f("|16");
 				}
 				else {
 					n->print_f("|16");
+					if (conf.at(cur_conf).area.at(cur_area).total == 0) {
+						n->print_f(" %-32.32s %6d %6d No Messages %s %s\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
+							conf.at(cur_conf).area.at(cur_area).subbed ? "|09Sub" : "   ", conf.at(cur_conf).area.at(cur_area).tagged ? "|12Tag" : "   ");
+					}
+					else {
+						n->print_f(" %-32.32s %6d %6d %04d/%02d/%02d  %s %s\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
+							ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, conf.at(cur_conf).area.at(cur_area).subbed ? "|09Sub" : "   ", conf.at(cur_conf).area.at(cur_area).tagged ? "|12Tag" : "   ");
+					}
 				}
-
-
-				if (conf.at(cur_conf).area.at(cur_area).last_post == 0) {
-					n->print_f(" %-32.32s %6d %6d No Messages %c %c\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
-						conf.at(cur_conf).area.at(cur_area).subbed ? 'S' : ' ', conf.at(cur_conf).area.at(cur_area).tagged ? 'T' : ' ');
-				}
-				else {
-					n->print_f(" %-32.32s %6d %6d %04d/%02d/%02d  %c %c\x1b[K", conf.at(cur_conf).area.at(cur_area).ma->get_name().c_str(), conf.at(cur_conf).area.at(cur_area).total, conf.at(cur_conf).area.at(cur_area).unread,
-						ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, conf.at(cur_conf).area.at(cur_area).subbed ? 'S' : ' ', conf.at(cur_conf).area.at(cur_area).tagged ? 'T' : ' ');
-				}
-				n->print_f("|16");
+			
 				cur_area++;
 				
 				if (cur_area >= conf.at(cur_conf).area.size()) {
 					cur_conf++;
 					i++;
 					cur_area = 0;
-					if (i == n->get_term_height() - 4) break;
+					if (i == n->get_term_height() - 3) break;
 					n->print_f("\x1b[%d;1H\x1b[K", i + 2);
 				}
 
@@ -304,6 +312,25 @@ void IndexReader::run(Node* n) {
 				}
 				break;
 			}
+			else if (c == '?') {
+				n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->get_term_height() - 16) / 2);
+				n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 16) / 2) + 1);
+				n->print_f("\x1b[%d;20H|     UP/DOWN  Scroll Areas  |", ((n->get_term_height() - 16) / 2) + 2);
+				n->print_f("\x1b[%d;20H|     ENTER    Read Area     |", ((n->get_term_height() - 16) / 2) + 3);
+				n->print_f("\x1b[%d;20H|     SPACE    Tag Area      |", ((n->get_term_height() - 16) / 2) + 4);
+				n->print_f("\x1b[%d;20H|     P        Post Message  |", ((n->get_term_height() - 16) / 2) + 5);
+				n->print_f("\x1b[%d;20H|     Q        Quit          |", ((n->get_term_height() - 16) / 2) + 6);
+				n->print_f("\x1b[%d;20H|     ?        Help          |", ((n->get_term_height() - 16) / 2) + 7);
+				n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 16) / 2) + 8);
+				n->print_f("\x1b[%d;20H|  With Tagged Areas:        |", ((n->get_term_height() - 16) / 2) + 9);
+				n->print_f("\x1b[%d;20H|     C        Clear Tagged  |", ((n->get_term_height() - 16) / 2) + 10);
+				n->print_f("\x1b[%d;20H|     S        Subscribe     |", ((n->get_term_height() - 16) / 2) + 11);
+				n->print_f("\x1b[%d;20H|     U        Unsubscribe   |", ((n->get_term_height() - 16) / 2) + 12);
+				n->print_f("\x1b[%d;20H|     R        Mark as Read  |", ((n->get_term_height() - 16) / 2) + 13);
+				n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 16) / 2) + 14);
+				n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 16) / 2) + 15);
+				n->getch();
+			}
 			else if (c == '\x1b') {
 				c = n->getch();
 				if (c == '[') {
@@ -355,7 +382,7 @@ void IndexReader::run(Node* n) {
 				}
 			}
 
-			while (x >= n->get_term_height() - 4) {
+			while (x >= n->get_term_height() - 3) {
 				// scroll down
 				if (start_area < conf.at(start_conf).area.size() - 1) {
 					start_area++;
