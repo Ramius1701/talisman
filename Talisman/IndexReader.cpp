@@ -62,16 +62,6 @@ void IndexReader::run(Node* n) {
 				if (!mb) continue;
 				if (mb->basehdr.num_msg > 0) {
 					sq_msg_t* msg;
-					/*
-					for (int k = (newarea.lr > 0 ? newarea.lr : 1); k <= mb->basehdr.num_msg; k++) {
-						msg = SquishReadMsg(mb, k);
-						if (msg == NULL) continue;
-						if (newarea.ma->is_to_me(n, msg)) {
-							newarea.unread_personal++;
-						}
-						SquishFreeMsg(msg);
-					}
-					*/
 					msg = SquishReadMsg(mb, mb->basehdr.num_msg);
 					struct tm localtm;
 
@@ -83,6 +73,7 @@ void IndexReader::run(Node* n) {
 					localtm.tm_sec = msg->xmsg.date_written.time & 31;
 
 					newarea.last_post = mktime(&localtm);
+					SquishFreeMsg(msg);
 				}
 				SquishCloseMsgBase(mb);
 
