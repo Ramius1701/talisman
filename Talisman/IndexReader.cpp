@@ -1,4 +1,5 @@
 #include <vector>
+#include <cstring>
 #include "Nodelist.h"
 #include "Editor.h"
 #include "Node.h"
