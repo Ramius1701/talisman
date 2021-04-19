@@ -78,6 +78,10 @@ command = "EDITSIG"
 hotkey = "Z"
 
 [[menuitem]]
+command = "INDEXREADER"
+hotkey = "X"
+
+[[menuitem]]
 command = "PREVMENU"
 hotkey = "Q"
 
