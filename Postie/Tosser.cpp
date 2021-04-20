@@ -149,7 +149,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 						showhelp = true;
 					}
 					else if (strncasecmp(line.substr(1).c_str(), "RESCAN", 6) == 0) {
-						std::string area = line.substr(9);
+						std::string area = line.substr(8);
 
 						bool success = false;
 
