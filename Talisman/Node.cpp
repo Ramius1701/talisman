@@ -1473,7 +1473,12 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		u.set_attribute("theme", "0");
 	}
 	else {
-		config.set_theme(cur_theme);
+		if (!hasANSI && config.theme_needs_ansi(cur_theme)) {
+			// theme needs ansi and we don't have it!
+		}
+		else {
+			config.set_theme(cur_theme);
+		}
 	}
 
 	u.set_attribute("last_on", std::to_string(time(NULL)));

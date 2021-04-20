@@ -141,6 +141,10 @@ public:
 		}
 	}
 
+	bool theme_needs_ansi(int t) {
+		return themes.at(t).req_ansi;
+	}
+
 private:
 	int selected_theme;
 	int _max_nodes;

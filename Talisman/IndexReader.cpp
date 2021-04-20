@@ -275,8 +275,8 @@ void IndexReader::run(Node* n) {
 
 				if (tot_areas > 0) {
 					if (n->get_config()->get_sec_level_info(n->get_user().get_sec_level())->bulk_msg_allowed) {
-						n->print_f("|12Warning! |15 You have tagged %d areas to send this message on!\r\n", tot_areas);
-						n->print_f("Do you want to do that? (Y/N) : ");
+						n->print_f("|12Warning! |15You have tagged %d areas to send this message on!\r\n", tot_areas);
+						n->print_f("         Do you want to do that? (Y/N) : ");
 						char ch = n->getch();
 						if (ch == 'y' || ch == 'Y') {
 							selected_is_tagged = false;
@@ -294,7 +294,7 @@ void IndexReader::run(Node* n) {
 				}
 
 				bool doabort = false;
-				n->print_f("\r\n     To: ");
+				n->print_f("\r\n     |07To: ");
 				std::string to = n->get_string(35, false);
 				n->print_f("\r\nSubject: ");
 				std::string subject = n->get_string(60, false);
