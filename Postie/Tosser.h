@@ -12,6 +12,7 @@ public:
 	bool run(bool protinbound);
 	NETADDR* get_echomail_addr(std::string ctrlbody, std::string msgbody);
 private:
+	unsigned long pid;
 	Logger log;
 	void areafix(Config *c, sq_msg_t* msg);
 	bool update(std::string tag, std::string links);

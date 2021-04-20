@@ -148,6 +148,52 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 					else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
 						showhelp = true;
 					}
+					else if (strncasecmp(line.substr(1).c_str(), "RESCAN", 6) == 0) {
+						std::string area = line.substr(9);
+
+						bool success = false;
+
+						for (size_t i = 0; i < c->areas.size(); i++) {
+							if (strcasecmp(c->areas.at(i).areatag.c_str(), area.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+								sq_msg_base_t* mb;
+								int count = 0;
+								mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
+								if (mb != NULL) {
+									int start = 1;
+									
+									if (mb->basehdr.num_msg > 100) {
+										start = mb->basehdr.num_msg - 100;
+									}
+
+									for (int m = start; m < mb->basehdr.num_msg; m++) {
+										sq_msg_t* msg = SquishReadMsg(mb, m);
+										if (msg != NULL) {
+											if (link->fptr == NULL) {
+												Scanner::initialize_packet(link, std::string(_tmppath + "/postie-" + std::to_string(pid)), link->ouraka);
+											}
+											// write message
+											if (msg->xmsg.attr & MSGLOCAL) {
+												Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, true);
+											}
+											else {
+												Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, false);
+											}
+											count++;
+											SquishFreeMsg(msg);
+										}
+									}
+									SquishCloseMsgBase(mb);
+									msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
+									bool success = true;
+								}
+								break;
+							}
+						}
+						if (!success) {
+							msgout.push_back("RESCAN " + area + ": Not successful!");
+						}
+					}
+
 				}
 				else {
 					// add area
@@ -266,6 +312,8 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			msgstr << "This will remove you from SOMEAREA\r\r";
 			msgstr << "%LIST\r\r";
 			msgstr << "This will give you a list of everything available\r\r";
+			msgstr << "%RESCAN AREA_TAG\r\r";
+			msgstr << "(Re)send up to the last 100 messages in this base.\r\r";
 			msgstr << "%HELP\r\r";
 			msgstr << "This will show you this help\r\r";
 			msgstr << "----------------------------------------------------------\r";
@@ -370,7 +418,6 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 bool Tosser::run(bool protinbound) {
 	INIReader inir("talisman.ini");
 	Config c;
-	unsigned long pid;
 
 	if (inir.ParseError()) {
 		return false;
