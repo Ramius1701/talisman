@@ -184,7 +184,7 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 									}
 									SquishCloseMsgBase(mb);
 									msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
-									bool success = true;
+									success = true;
 								}
 								break;
 							}
