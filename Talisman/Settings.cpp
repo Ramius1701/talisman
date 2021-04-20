@@ -27,6 +27,7 @@ void Settings::do_settings(Node* n) {
 		n->print_f(" |15O |14Override Screen Dimensions |08(|15%s|08)\r\n", (n->get_user().get_attribute("screen_override", "false") == "false" ? "NO" : "YES"));
 		n->print_f(" |15W |14Override Screen Width |08(|15%s|08)\r\n", n->get_user().get_attribute("screen_override_width", "80").c_str());
 		n->print_f(" |15H |14Override Screen Height |08(|15%s|08)\r\n", n->get_user().get_attribute("screen_override_height", "24").c_str());
+		n->print_f(" |15T |14Set Default Theme |08(|15%s|08)\r\n", n->get_config()->selected_theme_name().c_str());
 		n->print_f("\r\n");
 		n->print_f(" |15Q |14Quit\r\n");
 		n->print_f("|08------------------------------------------------------------------------------|07\r\n");
@@ -173,7 +174,16 @@ void Settings::do_settings(Node* n) {
 					n->print_f("\r\n\r\n|12Invalid Argument!\r\n");
 				}
 			}
-			break;			
+			break;
+			case 't':
+			{
+				if (n->get_config()->select_theme(n, false) != -1) {
+					n->print_f("\r\n\r\n|10Your selected theme will be activated next login!\r\n\r\n");
+					n->pause();
+				}
+				
+			}
+			break;
 			case 'q':
 				return;
 			}

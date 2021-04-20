@@ -25,6 +25,13 @@ struct login_item_t {
 	int seclevel;
 };
 
+struct theme_t {
+	std::string name;
+	std::string gfile_path;
+	std::string menu_path;
+	bool req_ansi;
+};
+
 class Config
 {
 public:
@@ -38,13 +45,13 @@ public:
 	}
 
 	std::string gfile_path() {
-		return _gfilepath;
+		return themes.at(selected_theme).gfile_path;
 	}
 	std::string data_path() {
 		return _datapath;
 	}
 	std::string menu_path() {
-		return _menupath;
+		return themes.at(selected_theme).menu_path;
 	}
 	std::string msg_path() {
 		return _msgpath;
@@ -117,9 +124,25 @@ public:
 	std::vector<Archiver*> archivers;
 	Protocol* select_protocol(Node* n);
 	int select_archiver(Node* n);
-	
+	int select_theme(Node* n, bool apply);
+	std::string selected_theme_name() {
+		return themes.at(selected_theme).name;
+	}
+	bool theme_is_valid(int t) {
+		if (t >= (int)themes.size()) {
+			return false;
+		}
+		return true;
+	}
+
+	void set_theme(int t) {
+		if (theme_is_valid(t)) {
+			selected_theme = t;
+		}
+	}
 
 private:
+	int selected_theme;
 	int _max_nodes;
 	std::string _bg_colour;
 	std::string _fg_colour;
@@ -144,6 +167,7 @@ private:
 	std::vector<Protocol*> protocols;
 	std::vector<struct login_item_t> loginitems;
 	std::string prompt_background_ansi;
+	std::vector<struct theme_t> themes;
 	int _new_user_sec_level;
 	int _gopherport;
 };

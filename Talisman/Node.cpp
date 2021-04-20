@@ -1467,6 +1467,15 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		}
 	}
 
+	int cur_theme = stoi(u.get_attribute("theme", "0"));
+
+	if (!config.theme_is_valid(cur_theme)) {
+		u.set_attribute("theme", "0");
+	}
+	else {
+		config.set_theme(cur_theme);
+	}
+
 	u.set_attribute("last_on", std::to_string(time(NULL)));
 
 	if (login_pause) {
@@ -1488,7 +1497,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 					break;
 				}
 				print_f("\r\n");
-			} 
+			}
+			if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SELECTTHEME") == 0) {
+				config.select_theme(this, true);
+			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "SENDGFILE") == 0) {
 				send_gfile(config.get_login_items()->at(i).data, true);
 			}

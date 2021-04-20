@@ -45,6 +45,18 @@ bool Config::load(Node *n, std::string filename) {
 	_new_user_feedback = inir.GetBoolean("Main", "New User Feedback", false);
 	_hostname = inir.Get("Main", "Hostname", "localhost");
 	_gopherport = inir.GetInteger("Main", "Gopher Port", -1);
+
+	struct theme_t dtheme;
+
+	dtheme.name = "Default Theme";
+	dtheme.gfile_path = _gfilepath;
+	dtheme.menu_path = _menupath;
+	dtheme.req_ansi = false;
+
+	themes.push_back(dtheme);
+
+	selected_theme = 0;
+
 	try {
 		auto data = toml::parse_file(_datapath + "/msgconfs.toml");
 
@@ -411,6 +423,68 @@ bool Config::load(Node *n, std::string filename) {
 		std::cerr << "Error parsing " << _datapath << "/fileconfs.toml" << std::endl;
 		return false;
 	}
+
+	if (std::filesystem::exists(std::filesystem::path(_datapath + "/themes.toml"))) {
+
+		try {
+			auto data = toml::parse_file(_datapath + "/themes.toml");
+
+			auto themeitems = data.get_as<toml::array>("theme");
+
+			for (size_t i = 0; i < themeitems->size(); i++) {
+				auto itemtable = themeitems->get(i)->as_table();
+
+				std::string myname;
+				std::string mygfiles;
+				std::string mymenus;
+				bool myansi;
+
+				auto name = itemtable->get("name");
+				if (name != nullptr) {
+					myname = name->as_string()->value_or("Theme " + std::to_string(i + 1));
+				}
+				else {
+					myname = "Theme " + std::to_string(i + 1);
+				}
+
+				auto gfiles = itemtable->get("gfile_path");
+				if (gfiles != nullptr) {
+					mygfiles = gfiles->as_string()->value_or(_gfilepath);
+				}
+				else {
+					mygfiles = _gfilepath;
+				}
+
+				auto menus = itemtable->get("menu_path");
+				if (menus != nullptr) {
+					mymenus = menus->as_string()->value_or(_menupath);
+				}
+				else {
+					mymenus = _menupath;
+				}
+
+				auto ansi = itemtable->get("req_ansi");
+				if (ansi != nullptr) {
+					myansi = ansi->as_boolean()->value_or(false);
+				}
+				else {
+					myansi = false;
+				}
+
+				struct theme_t theme;
+
+				theme.name = myname;
+				theme.gfile_path = mygfiles;
+				theme.menu_path = mymenus;
+				theme.req_ansi = myansi;
+				themes.push_back(theme);
+			}
+		}
+		catch (toml::parse_error) {
+			std::cerr << "Error parsing " << _datapath << "/themes.toml" << std::endl;
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -450,6 +524,40 @@ Protocol* Config::select_protocol(Node* n) {
 		}
 	}
 	return nullptr;
+}
+
+int Config::select_theme(Node* n, bool apply) {
+	n->print_f("|14Available Themes\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	for (size_t i = 0; i < themes.size(); i++) {
+		n->print_f("|15%2d|08. |14%s %s\r\n", i + 1, themes.at(i).name.c_str(), (themes.at(i).req_ansi ? "(Req. ANSI)" : ""));
+	}
+	n->print_f("|15 Q|08. |14Quit\r\n");
+	n->print_f("|08----------------------------------------\r\n");
+	std::string res = n->get_string(2, false);
+	if (res.size() > 0) {
+		if (tolower(res.at(0)) == 'q') {
+			return -1;
+		}
+		try {
+			size_t theme = (size_t)stoi(res);
+			if (theme > 0 && theme <= themes.size()) {
+				n->get_user().set_attribute("theme", std::to_string(theme - 1));
+
+				if (apply) {
+					selected_theme = theme - 1;
+				}
+				return theme - 1;
+			}
+		}
+		catch (std::invalid_argument) {
+
+		}
+		catch (std::out_of_range) {
+
+		}
+	}
+	return -1;
 }
 
 int Config::select_archiver(Node* n) {
