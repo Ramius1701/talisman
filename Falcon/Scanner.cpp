@@ -225,7 +225,7 @@ void Scanner::run() {
 						memset(&msgrec, 0, sizeof(struct net_header_rec));
 
 						msgrec.fromsys = (uint16_t)config.networks.at(i).mynode;
-						msgrec.tosys = msg->xmsg.dest.node;
+						msgrec.tosys = config.areas.at(a).hostnode;
 						msgrec.main_type = 26;
 						int id = username_to_id(msg->xmsg.from);
 						if (id > 0) {
