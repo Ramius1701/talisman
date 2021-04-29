@@ -28,6 +28,7 @@
 #include "Phlog.h"
 #include "../Common/Squish.h"
 #include "IndexReader.h"
+#include "bluewave.h"
 
 Menu::Menu(Node *n)
 {
@@ -1249,6 +1250,83 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 	return true;
 }
 
+
+tLONG convertl(tLONG l) {
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	unsigned char result_bytes[4];
+	unsigned int result;
+	result_bytes[0] = (unsigned char)((l >> 24) & 0xFF);
+	result_bytes[1] = (unsigned char)((l >> 16) & 0xFF);
+	result_bytes[2] = (unsigned char)((l >> 8) & 0xFF);
+	result_bytes[3] = (unsigned char)(l & 0xFF);
+	memcpy(&result, result_bytes, 4);
+	return result;
+#else
+	return l;
+#endif
+}
+
+tWORD converts(tWORD s) {
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	unsigned char result_bytes[2];
+	unsigned short result;
+	result_bytes[0] = (unsigned char)((s >> 8) & 0xFF);
+	result_bytes[1] = (unsigned char)(s & 0xFF);
+	memcpy(&result, result_bytes, 4);
+	return result;
+#else
+	return s;
+#endif
+}
+
+
+void Menu::bwave_down(Node* n) {
+	FILE* mix_file;
+	FILE* fti_file;
+	FILE* dat_file;
+	FILE* inf_file;
+	int tot_areas = 0;
+	INF_HEADER hdr;
+
+	if (n->get_config()->main_aka == NULL) {
+		return;
+	}
+
+	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
+					tot_areas++;
+				}
+			}
+		}
+	}
+
+	memset(&hdr, 0, sizeof(INF_HEADER));
+	hdr.ver = PACKET_LEVEL;
+
+	strncpy((char *)hdr.loginname, n->get_user().get_username().c_str(), sizeof hdr.loginname);
+	strncpy((char*)hdr.aliasname, n->get_user().get_attribute("fullname", "Some User").c_str(), sizeof(hdr.aliasname));
+
+	hdr.zone = converts(n->get_config()->main_aka->zone);
+	hdr.node = converts(n->get_config()->main_aka->node);
+	hdr.net = converts(n->get_config()->main_aka->net);
+	hdr.point = converts(n->get_config()->main_aka->point);
+	strncpy((char*)hdr.sysop, n->get_config()->op_name().c_str(), sizeof(hdr.sysop));
+	strncpy((char*)hdr.systemname, n->get_config()->sys_name().c_str(), sizeof(hdr.systemname));
+	hdr.inf_header_len = converts(sizeof(INF_HEADER));
+	hdr.inf_areainfo_len = converts(sizeof(INF_AREA_INFO));
+	hdr.mix_structlen = converts(sizeof(MIX_REC));
+	hdr.fti_structlen = converts(sizeof(FTI_REC));
+	hdr.uses_upl_file = 1;
+	hdr.from_to_len = 35;
+	hdr.subject_len = 71;
+	memcpy(hdr.packet_id, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size());
+
+
+
+}
+
 void Menu::qwk_down(Node* n) {
 	static const char* chdr = "Produced by Qmail...Copyright (c) 1987 by Sparkware.  All Rights Reserved";
 
@@ -1775,8 +1853,8 @@ void Menu::qwk_up(Node *n) {
 
 			if (subject.length() == 0) {
 				subject.append((const char*)qhdr.MsgSubj, 25);
-				for (i = subject.length() - 1; i >= 0; i--) {
-					if (subject.at(i) == ' ') {
+				for (int j = subject.length() - 1; j >= 0; j--) {
+					if (subject.at(j) == ' ') {
 						subject.pop_back();
 					}
 					else {
@@ -1786,8 +1864,8 @@ void Menu::qwk_up(Node *n) {
 			}
 			if (to.length() == 0) {
 				to.append((const char*)qhdr.MsgTo, 25);
-				for (i = to.length() - 1; i >= 0; i--) {
-					if (to.at(i) == ' ') {
+				for (int j = to.length() - 1; j >= 0; j--) {
+					if (to.at(j) == ' ') {
 						to.pop_back();
 					}
 					else {
@@ -1797,8 +1875,8 @@ void Menu::qwk_up(Node *n) {
 			}
 			if (from.length() == 0) {
 				from.append((const char*)qhdr.MsgFrom, 25);
-				for (i = from.length() - 1; i >= 0; i--) {
-					if (from.at(i) == ' ') {
+				for (int j = from.length() - 1; j >= 0; j--) {
+					if (from.at(j) == ' ') {
 						from.pop_back();
 					}
 					else {

@@ -46,6 +46,8 @@ bool Config::load(Node *n, std::string filename) {
 	_hostname = inir.Get("Main", "Hostname", "localhost");
 	_gopherport = inir.GetInteger("Main", "Gopher Port", -1);
 
+	main_aka = parse_fido_addr(inir.Get("Main", "Main AKA", "0:0/0").c_str());
+
 	struct theme_t dtheme;
 
 	dtheme.name = "Default Theme";
