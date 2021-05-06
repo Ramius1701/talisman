@@ -479,7 +479,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 						send(socket, "@", 1, 0);
 					}
 					else {
-						printf("@%s@", ss.str().c_str());
+						print_f("@%s@", ss.str().c_str());
 					}
 				}
 				ss.str("");
@@ -493,7 +493,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 						send(socket, ss.str().c_str(), ss.str().size(), 0);
 					}
 					else {
-						printf("@%s", ss.str().c_str());
+						print_f("@%s", ss.str().c_str());
 					}
 					lastc = ss.str().at(ss.str().size() - 1);
 					ss.str("");
@@ -793,7 +793,7 @@ char Node::getch(int delay) {
 						}
 						else if (ch != '\n' && ch != '\0') {
 							if (!time_check()) {
-								printf("|14You are out of time for today!\r\n");
+								print_f("|14You are out of time for today!\r\n");
 #ifdef _MSC_VER
 								closesocket(socket);
 #else

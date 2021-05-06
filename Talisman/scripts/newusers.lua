@@ -103,7 +103,7 @@ while true do
 			local file = io.open(bbs_get_data_path() .. "/newusers_comments.dat", "w")
 			local start = 1
 
-			if #oneliners == 8 then
+			if #oneliners == 7 then
 				start = 2
 			end
 

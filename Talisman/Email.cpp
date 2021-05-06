@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cstring>
 #include <sqlite3.h>
+#include "bluewave.h"
 #include "Node.h"
 #include "../Common/Logger.h"
 #include "Email.h"
@@ -447,6 +448,84 @@ static int ieee_to_msbin(float* src4, float* dest4) {
 	msbin[1] = ieee[1];
 	msbin[0] = ieee[0];
 	return 0;
+}
+
+int Email::bwave_scan(Node *n, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	
+	MIX_REC mix;
+	FTI_REC fti;
+
+	long mixptr = ftell(fti_file);
+	char *month_name[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	
+	//char buffer[256];
+
+	int tot_msgs = 0;
+	int area_msgs = 0;
+	char *body;
+	time_t thetime;
+	struct tm timeStruct;
+	static const char sql[] = "SELECT id, sender, subject, body, date FROM email WHERE recipient = ? AND seen = 0";
+
+	if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
+		n->log->log(LOG_ERROR, "Unable to open email sqlite database");
+		return 0;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
+		sqlite3_close(db);
+		return 0;
+	}
+	std::string uname = n->get_user().get_username();
+	sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		memset(&fti, 0, sizeof(FTI_REC));
+		strncpy((char *)fti.from, (char *)sqlite3_column_text(stmt, 1), sizeof(fti.from) -1);
+		strncpy((char *)fti.to, n->get_user().get_username().c_str(), sizeof(fti.to) - 1);
+		strncpy((char *)fti.subject, (char *)sqlite3_column_text(stmt, 2), sizeof(fti.subject) - 1);
+		thetime = sqlite3_column_int64(stmt, 4);
+
+#ifdef _MSC_VER
+		localtime_s(&timeStruct, &thetime);
+#else		
+		localtime_r(&thetime, &timeStruct);
+#endif
+		snprintf((char *)fti.date, sizeof fti.date, "%02d-%s-%04d %02d:%02d", timeStruct.tm_mday, month_name[timeStruct.tm_mon], timeStruct.tm_year + 1900, timeStruct.tm_hour, timeStruct.tm_min);
+		fti.msgnum = converts((tWORD)sqlite3_column_int(stmt, 0));
+		body = strdup((char *)sqlite3_column_text(stmt, 3));
+		fti.replyto = 0;
+		fti.replyat = 0;
+		fti.msgptr = convertl(*last_ptr);
+		fti.msglength = convertl(strlen(body));
+
+		*last_ptr += strlen(body);
+		fti.flags |= FTI_MSGLOCAL;
+		fti.flags = converts(fti.flags);
+		fti.orig_zone = 0;
+		fti.orig_net = 0;
+		fti.orig_node = 0;
+		fwrite(body, 1, strlen(body), dat_file);
+		fwrite(&fti, sizeof(FTI_REC), 1, fti_file);
+		free(body);
+		area_msgs++;
+		tot_msgs++;
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	memset(&mix, 0, sizeof(MIX_REC));
+
+	snprintf((char *)mix.areanum, 6, "%d", 1);
+	mix.totmsgs = converts(area_msgs);
+	mix.numpers = converts(area_msgs);
+	mix.msghptr = convertl(mixptr);
+	fwrite(&mix, sizeof(MIX_REC), 1, mix_file);
+
+	return tot_msgs;
 }
 
 int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot) {

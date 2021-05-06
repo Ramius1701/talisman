@@ -1160,5 +1160,6 @@ typedef struct /*  PDQ_REC  */
 */
 
 /*---------------------------------------------------------------------------*/
-
+extern tWORD converts(tWORD s);
+extern tLONG convertl(tLONG l);
 #endif /*  __BLUEWAVE_H  */

@@ -1119,7 +1119,10 @@ bool Menu::run() {
 						}
 					}
 				} 
-
+				else if (strcasecmp(items[i].command.c_str(), "bwavedown") == 0) {
+					n->update_node_use("Downloading a BlueWave Packet");
+					bwave_down(n);
+				}
 				else if (strcasecmp(items[i].command.c_str(), "qwkdown") == 0) {
 					n->update_node_use("Downloading a QWK Packet");
 					qwk_down(n);
@@ -1250,7 +1253,6 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 	return true;
 }
 
-
 tLONG convertl(tLONG l) {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	unsigned char result_bytes[4];
@@ -1285,7 +1287,25 @@ void Menu::bwave_down(Node* n) {
 	FILE* fti_file;
 	FILE* dat_file;
 	FILE* inf_file;
+	
+	char *weekday[] = {".SU", ".MO", ".TU", ".WE", ".TH", ".FR", ".SA"};
+
+	int last_ptr = 0;
+	int flags;
+	std::filesystem::path temp_dir(n->get_config()->tmp_path());
+
+	temp_dir.append(std::to_string(n->getnodenum()));
+	temp_dir.append("bwave");
+
 	int tot_areas = 0;
+	int tot_msgs = 0;
+	int last_tot;
+	int area_count = 1;
+
+	std::vector<INF_AREA_INFO> areas;
+
+	INF_AREA_INFO area;
+
 	INF_HEADER hdr;
 
 	if (n->get_config()->main_aka == NULL) {
@@ -1323,8 +1343,220 @@ void Menu::bwave_down(Node* n) {
 	hdr.subject_len = 71;
 	memcpy(hdr.packet_id, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size());
 
+	if (std::filesystem::exists(temp_dir)) {
+		std::filesystem::remove_all(temp_dir);
+	}
+	std::filesystem::create_directories(temp_dir);
+
+	std::filesystem::path fti_path(temp_dir);
+	fti_path.append(n->get_config()->qwk_id() + ".FTI");
+
+	std::filesystem::path mix_path(temp_dir);
+	mix_path.append(n->get_config()->qwk_id() + ".MIX");
+
+	std::filesystem::path dat_path(temp_dir);
+	dat_path.append(n->get_config()->qwk_id() + ".DAT");
+
+	fti_file = fopen(fti_path.u8string().c_str(), "wb");
+	if (!fti_file) {
+		return;
+	}
+	mix_file = fopen(mix_path.u8string().c_str(), "wb");
+	if (!mix_file) {
+		fclose(fti_file);
+		return;
+	}
+
+	dat_file = fopen(dat_path.u8string().c_str(), "wb");
+	if (!dat_file) {
+		fclose(fti_file);
+		fclose(mix_file);
+		return;
+	}
+	n->print_f("\r\n\r\n|14Searching |15Email|14...\r\n");
+
+	tot_msgs = Email::bwave_scan(n, fti_file, mix_file, dat_file, &last_ptr);
+	if (!tot_msgs) {
+		n->print_f("|14... |12None\r\n");
+	}
+	else {
+		n->print_f("|14... |10%d Messages\r\n", tot_msgs);
+	}
+
+	flags = 0;
+
+	memset(&area, 0, sizeof(INF_AREA_INFO));
+	snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+
+	memcpy((char *)area.echotag, "PRIVATE_EMAIL", 13);
+
+	strncpy((char *)area.title, "Private Email", 49);
+
+	flags |= INF_POST;
+	flags |= INF_NO_PUBLIC;
+	flags |= INF_SCANNING;
+
+	area.area_flags = converts(flags);
+	area.network_type = INF_NET_FIDONET;
+
+	areas.push_back(area);
+
+	std::vector<unsigned int> last_read_ptrs;
+
+	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+			n->print_f("\r\n\r\n|14Searching |15%s|14...\r\n", n->get_config()->msgconfs.at(i).get_name().c_str());
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0) {
+					last_tot = tot_msgs;
+					int last_read = 0;
+					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).bwave_scan(n, tot_msgs, areas.size() + 1, fti_file, mix_file, dat_file, &last_ptr, &last_read);
+
+					if (last_tot == tot_msgs) {
+						n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
+					}
+					else {
+						n->print_f("|14... |15%s |14... |10%d Messages\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), tot_msgs - last_tot);
+					}
+
+					last_read_ptrs.push_back(last_read);
+
+					memset(&area, 0, sizeof(INF_AREA_INFO));
+
+					snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+					snprintf((char *)area.echotag, 20, "%d", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
+
+					strncpy((char *)area.title, n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), 49);
+
+					flags = 0;
+
+					if (n->get_config()->msgconfs.at(i).areas.at(j).get_w_sec_level() <= n->get_user().get_sec_level()) {
+						flags |= INF_POST;
+					}
+
+					if (n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+						flags |= INF_NO_PUBLIC;
+						flags |= INF_NETMAIL;
+						flags |= INF_ECHO;
+					} else
+					if (n->get_config()->msgconfs.at(i).areas.at(j).is_echomail()) {
+						flags |= INF_NO_PRIVATE;
+						flags |= INF_ECHO;
+					} else {
+						flags |= INF_NO_PRIVATE;
+					}
+
+					flags |= INF_SCANNING;
+					area.area_flags = converts(flags);
+					area.network_type = INF_NET_FIDONET;
+
+					areas.push_back(area);
+				}
+			}
+		}
+	}
+
+	fclose(dat_file);
+	fclose(mix_file);
+	fclose(fti_file);
+	std::filesystem::path inf_path(temp_dir);
+	inf_path.append(n->get_config()->qwk_id() + ".INF");
+
+	inf_file = fopen(inf_path.u8string().c_str(), "wb");
+
+	if (!inf_file) {
+		return;
+	}
+
+	fwrite(&hdr, sizeof(INF_HEADER), 1, inf_file);
+
+	for (size_t i = 0; i < areas.size(); i++) {
+		fwrite(&areas.at(i), sizeof(INF_AREA_INFO), 1, inf_file);
+	}
+
+	fclose(inf_file);
+
+	if (tot_msgs > 0) {
+
+		int bwave_packet_no = stoi(n->get_user().get_attribute("bluewave_pkt_no", "0"));
+
+		time_t thetime = time(NULL);
+		struct tm time_tm;
+
+#ifdef _MSC_VER
+		localtime_s(&time_tm, &thetime);
+#else	
+		localtime_r(&thetime, &time_tm);
+#endif
+		
+		if (bwave_packet_no / 10 != time_tm.tm_wday) {
+			bwave_packet_no = time_tm.tm_wday * 10;
+		}
 
 
+
+		std::filesystem::path bwave_file(temp_dir);
+		std::vector<std::string> flist;
+
+
+		flist.push_back(mix_path.u8string());
+		flist.push_back(fti_path.u8string());
+		flist.push_back(dat_path.u8string());
+		flist.push_back(inf_path.u8string());
+
+		bwave_file.append(n->get_config()->qwk_id() + weekday[time_tm.tm_wday] + std::to_string(bwave_packet_no % 10));
+
+		int arc = stoi(n->get_user().get_attribute("archiver", "-1"));
+
+		if (arc == -1) arc = 0;
+
+		if (arc < 0 || arc >= (int)n->get_config()->archivers.size()) {
+			n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+			return;
+		}
+
+		n->get_config()->archivers.at(arc)->compress(bwave_file.u8string(), flist);
+
+		std::vector<std::filesystem::path> sendlist;
+
+		sendlist.push_back(bwave_file);
+
+		Protocol* p = n->get_config()->select_protocol(n);
+
+		if (p == nullptr) {
+			return;
+		}
+
+		p->download(n, n->get_socket(), &sendlist);
+
+		// Update pointers
+		while (1) {
+			n->print_f("\r\n|14Update last read pointers? (Y/N) : ");
+			int h = 0;
+			char c = n->getch();
+			if (tolower(c) == 'y') {
+				Email::set_all_seen(n);
+				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+					if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
+					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+							if (last_read_ptrs.at(h) != 0) {
+								n->get_user().user_set_lastread(n->get_config()->msgconfs.at(i).areas.at(j).get_file(), last_read_ptrs.at(h));
+							}
+							h++;
+						}
+					}
+				}
+				return;
+			}
+			else if (tolower(c) == 'n') {
+				return;
+			}
+		}
+	} else {
+		n->print_f("|12No new messages!\r\n");
+		n->pause();
+	}
 }
 
 void Menu::qwk_down(Node* n) {
