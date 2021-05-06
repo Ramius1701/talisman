@@ -2352,14 +2352,14 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr, int *last_read) {
 	int lastread = n->get_user().user_get_lastread(file);
-	char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	int personal_msgs = 0;
 	int area_msgs = 0;
 	long mixptr;
 	int tot_msgs = totmsgs;
 	FTI_REC fti;
 	MIX_REC mix;
-	mixptr = ftell(mix_file);
+	mixptr = ftell(fti_file);
 
 	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {

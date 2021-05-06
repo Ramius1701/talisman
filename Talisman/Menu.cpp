@@ -1288,7 +1288,7 @@ void Menu::bwave_down(Node* n) {
 	FILE* dat_file;
 	FILE* inf_file;
 	
-	char *weekday[] = {".SU", ".MO", ".TU", ".WE", ".TH", ".FR", ".SA"};
+	const char *weekday[] = {".SU", ".MO", ".TU", ".WE", ".TH", ".FR", ".SA"};
 
 	int last_ptr = 0;
 	int flags;
