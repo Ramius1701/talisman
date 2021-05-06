@@ -1315,7 +1315,7 @@ void Menu::bwave_down(Node* n) {
 	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
 			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
 					tot_areas++;
 				}
 			}
@@ -1407,7 +1407,7 @@ void Menu::bwave_down(Node* n) {
 		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
 			n->print_f("\r\n\r\n|14Searching |15%s|14...\r\n", n->get_config()->msgconfs.at(i).get_name().c_str());
 			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
 					last_tot = tot_msgs;
 					int last_read = 0;
 					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).bwave_scan(n, tot_msgs, areas.size() + 1, fti_file, mix_file, dat_file, &last_ptr, &last_read);
@@ -1529,6 +1529,10 @@ void Menu::bwave_down(Node* n) {
 
 		p->download(n, n->get_socket(), &sendlist);
 
+		bwave_packet_no++;
+
+		n->get_user().set_attribute("bluewave_pkt_no", std::to_string(bwave_packet_no));
+
 		// Update pointers
 		while (1) {
 			n->print_f("\r\n|14Update last read pointers? (Y/N) : ");
@@ -1539,7 +1543,7 @@ void Menu::bwave_down(Node* n) {
 				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
 					if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
 					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file()) && !n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
 							if (last_read_ptrs.at(h) != 0) {
 								n->get_user().user_set_lastread(n->get_config()->msgconfs.at(i).areas.at(j).get_file(), last_read_ptrs.at(h));
 							}
