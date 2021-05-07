@@ -2349,3 +2349,129 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 	return tot;
 }
+
+int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr, int *last_read) {
+	int lastread = n->get_user().user_get_lastread(file);
+	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	int personal_msgs = 0;
+	int area_msgs = 0;
+	long mixptr;
+	int tot_msgs = totmsgs;
+	FTI_REC fti;
+	MIX_REC mix;
+	mixptr = ftell(fti_file);
+
+	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return 0;
+	}
+
+	for (size_t msgno = lastread + 1; msgno <= mb->basehdr.num_msg; msgno++) {
+		sq_msg_t* msg = SquishReadMsg(mb, msgno);
+
+		if (msg == NULL) {
+			continue;
+		}
+
+		bool istome = is_to_me(n, msg);
+
+		if (msg->xmsg.attr & MSGPRIVATE && !istome) {
+			SquishFreeMsg(msg);
+			continue;
+		}
+
+		if (istome) {
+			personal_msgs++;
+		}
+
+		memset(&fti, 0, sizeof(FTI_REC));
+
+
+
+		std::string subject(msg->xmsg.subject);
+		std::string sender(msg->xmsg.from);
+		std::string recipient(msg->xmsg.to);
+
+		strncpy((char *)fti.from, sender.c_str(), sizeof(fti.from) - 1);
+		strncpy((char *)fti.to, recipient.c_str(), sizeof(fti.to) - 1);
+		strncpy((char *)fti.subject, subject.c_str(), sizeof(fti.subject) - 1);
+
+
+
+		int hour = (msg->xmsg.date_written.time >> 11) & 31;
+		int minute = (msg->xmsg.date_written.time >> 5) & 63;
+
+		int day = msg->xmsg.date_written.date & 31;
+		int month = (msg->xmsg.date_written.date >> 5) & 15;
+		int year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980;
+
+		snprintf((char *)fti.date, sizeof(fti.date), "%02d-%s-%04d %02d:%02d", day, months[month - 1], year, hour, minute);
+
+		fti.msgnum = converts((tWORD)msg->xmsg.umsgid);
+		fti.replyto = 0;
+		fti.replyat = 0;
+
+		fti.msgptr = convertl(*last_ptr);
+
+		std::stringstream msgss;
+		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
+			if (msg->msg[i] == '\r') {
+				if (i < (size_t)msg->msg_len - 1) {
+					if (msg->msg[i] == '\001') {
+						i++;
+						while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
+							i++;
+						}
+						continue;
+					}
+				}
+				else if (i < (size_t)msg->msg_len - 9) {
+					if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' &&
+						msg->msg[i + 4] == '-' && msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+						while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
+							i++;
+						}
+						continue;
+					}
+				}
+			}
+			msgss << msg->msg[i];
+		}
+
+		fti.msglength = convertl(msgss.str().size());
+		*last_ptr += msgss.str().size() + 1;
+
+		if (msg->xmsg.attr & MSGLOCAL) {
+			fti.flags |= FTI_MSGLOCAL;
+		}
+
+		fti.flags = converts(fti.flags);
+
+		fti.orig_zone = converts(msg->xmsg.orig.zone);
+		fti.orig_net = converts(msg->xmsg.orig.net);
+		fti.orig_node = converts(msg->xmsg.orig.node);
+
+		fwrite(" ", 1, 1, dat_file);
+		fwrite(msgss.str().c_str(), 1, msgss.str().size(), dat_file);
+		fwrite(&fti, sizeof(FTI_REC), 1, fti_file);
+
+
+		area_msgs++;
+		tot_msgs++;
+		SquishFreeMsg(msg);
+	}
+	*last_read = mb->basehdr.num_msg;
+
+	SquishCloseMsgBase(mb);
+
+	memset(&mix, 0, sizeof(MIX_REC));
+	snprintf((char *)mix.areanum, 6, "%d", areano);
+	mix.totmsgs = converts(area_msgs);
+	mix.numpers = converts(personal_msgs);
+	mix.msghptr = convertl(mixptr);
+
+	fwrite(&mix, sizeof(MIX_REC), 1, mix_file);
+
+	return tot_msgs;
+
+}

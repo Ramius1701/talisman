@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "../Common/Squish.h"
+#include "bluewave.h"
 class Node;
 
 class MsgArea
@@ -52,7 +53,15 @@ public:
 	int get_wwivnode() {
 		return wwivnode;
 	}
+	bool is_echomail() {
+		if (!_is_netmail && wwivnode != 0 && orig_addr != "") {
+			return true;
+		}
+		return false;
+	}
+
 	static void attach_sig(std::vector<std::string> *msg, std::string sig);
+	int bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr, int *last_read);
 private:
 	bool print_msg_header(int msgno, int totmsg, sq_msg_t* msg);
 

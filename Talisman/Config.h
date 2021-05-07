@@ -4,6 +4,7 @@
 
 #include "MsgConf.h"
 #include "FileConf.h"
+#include "../Common/Squish.h"
 
 class Node;
 class Protocol;
@@ -144,7 +145,7 @@ public:
 	bool theme_needs_ansi(int t) {
 		return themes.at(t).req_ansi;
 	}
-
+	NETADDR *main_aka;
 private:
 	int selected_theme;
 	int _max_nodes;

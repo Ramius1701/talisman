@@ -28,6 +28,7 @@
 #include "Phlog.h"
 #include "../Common/Squish.h"
 #include "IndexReader.h"
+#include "bluewave.h"
 
 Menu::Menu(Node *n)
 {
@@ -1118,7 +1119,10 @@ bool Menu::run() {
 						}
 					}
 				} 
-
+				else if (strcasecmp(items[i].command.c_str(), "bwavedown") == 0) {
+					n->update_node_use("Downloading a BlueWave Packet");
+					bwave_down(n);
+				}
 				else if (strcasecmp(items[i].command.c_str(), "qwkdown") == 0) {
 					n->update_node_use("Downloading a QWK Packet");
 					qwk_down(n);
@@ -1126,6 +1130,10 @@ bool Menu::run() {
 				else if (strcasecmp(items[i].command.c_str(), "qwkup") == 0) {
 					n->update_node_use("Uploading a QWK Packet");
 					qwk_up(n);
+				}
+				else if (strcasecmp(items[i].command.c_str(), "bwaveup") == 0) {
+					n->update_node_use("Uploading a BlueWave Packet");
+					bwave_up(n);
 				}
 				else if (strcasecmp(items[i].command.c_str(), "phlognew") == 0) {
 					n->update_node_use("Writing Phlog Article");
@@ -1247,6 +1255,316 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 	fclose(dest_ptr);
 
 	return true;
+}
+
+tLONG convertl(tLONG l) {
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	unsigned char result_bytes[4];
+	unsigned int result;
+	result_bytes[0] = (unsigned char)((l >> 24) & 0xFF);
+	result_bytes[1] = (unsigned char)((l >> 16) & 0xFF);
+	result_bytes[2] = (unsigned char)((l >> 8) & 0xFF);
+	result_bytes[3] = (unsigned char)(l & 0xFF);
+	memcpy(&result, result_bytes, 4);
+	return result;
+#else
+	return l;
+#endif
+}
+
+tWORD converts(tWORD s) {
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	unsigned char result_bytes[2];
+	unsigned short result;
+	result_bytes[0] = (unsigned char)((s >> 8) & 0xFF);
+	result_bytes[1] = (unsigned char)(s & 0xFF);
+	memcpy(&result, result_bytes, 4);
+	return result;
+#else
+	return s;
+#endif
+}
+
+
+void Menu::bwave_down(Node* n) {
+	FILE* mix_file;
+	FILE* fti_file;
+	FILE* dat_file;
+	FILE* inf_file;
+	
+	const char *weekday[] = {".SU", ".MO", ".TU", ".WE", ".TH", ".FR", ".SA"};
+
+	int last_ptr = 0;
+	int flags;
+	std::filesystem::path temp_dir(n->get_config()->tmp_path());
+
+	temp_dir.append(std::to_string(n->getnodenum()));
+	temp_dir.append("bwave");
+
+	int tot_areas = 0;
+	int tot_msgs = 0;
+	int last_tot;
+	int area_count = 1;
+
+	std::vector<INF_AREA_INFO> areas;
+
+	INF_AREA_INFO area;
+
+	INF_HEADER hdr;
+
+	if (n->get_config()->main_aka == NULL) {
+		return;
+	}
+
+	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
+					tot_areas++;
+				}
+			}
+		}
+	}
+
+	memset(&hdr, 0, sizeof(INF_HEADER));
+	hdr.ver = PACKET_LEVEL;
+
+	strncpy((char *)hdr.loginname, n->get_user().get_username().c_str(), sizeof hdr.loginname);
+	strncpy((char*)hdr.aliasname, n->get_user().get_attribute("fullname", "Some User").c_str(), sizeof(hdr.aliasname));
+
+	hdr.zone = converts(n->get_config()->main_aka->zone);
+	hdr.node = converts(n->get_config()->main_aka->node);
+	hdr.net = converts(n->get_config()->main_aka->net);
+	hdr.point = converts(n->get_config()->main_aka->point);
+	strncpy((char*)hdr.sysop, n->get_config()->op_name().c_str(), sizeof(hdr.sysop));
+	strncpy((char*)hdr.systemname, n->get_config()->sys_name().c_str(), sizeof(hdr.systemname));
+	hdr.inf_header_len = converts(sizeof(INF_HEADER));
+	hdr.inf_areainfo_len = converts(sizeof(INF_AREA_INFO));
+	hdr.mix_structlen = converts(sizeof(MIX_REC));
+	hdr.fti_structlen = converts(sizeof(FTI_REC));
+	hdr.uses_upl_file = 1;
+	hdr.from_to_len = 35;
+	hdr.subject_len = 71;
+	memcpy(hdr.packet_id, n->get_config()->qwk_id().c_str(), n->get_config()->qwk_id().size());
+
+	if (std::filesystem::exists(temp_dir)) {
+		std::filesystem::remove_all(temp_dir);
+	}
+	std::filesystem::create_directories(temp_dir);
+
+	std::filesystem::path fti_path(temp_dir);
+	fti_path.append(n->get_config()->qwk_id() + ".FTI");
+
+	std::filesystem::path mix_path(temp_dir);
+	mix_path.append(n->get_config()->qwk_id() + ".MIX");
+
+	std::filesystem::path dat_path(temp_dir);
+	dat_path.append(n->get_config()->qwk_id() + ".DAT");
+
+	fti_file = fopen(fti_path.u8string().c_str(), "wb");
+	if (!fti_file) {
+		return;
+	}
+	mix_file = fopen(mix_path.u8string().c_str(), "wb");
+	if (!mix_file) {
+		fclose(fti_file);
+		return;
+	}
+
+	dat_file = fopen(dat_path.u8string().c_str(), "wb");
+	if (!dat_file) {
+		fclose(fti_file);
+		fclose(mix_file);
+		return;
+	}
+	n->print_f("\r\n\r\n|14Searching |15Email|14...\r\n");
+
+	tot_msgs = Email::bwave_scan(n, fti_file, mix_file, dat_file, &last_ptr);
+	if (!tot_msgs) {
+		n->print_f("|14... |12None\r\n");
+	}
+	else {
+		n->print_f("|14... |10%d Messages\r\n", tot_msgs);
+	}
+
+	flags = 0;
+
+	memset(&area, 0, sizeof(INF_AREA_INFO));
+	snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+
+	memcpy((char *)area.echotag, "PRIVATE_EMAIL", 13);
+
+	strncpy((char *)area.title, "Private Email", 49);
+
+	flags |= INF_POST;
+	flags |= INF_NO_PUBLIC;
+	flags |= INF_SCANNING;
+
+	area.area_flags = converts(flags);
+	area.network_type = INF_NET_FIDONET;
+
+	areas.push_back(area);
+
+	std::vector<unsigned int> last_read_ptrs;
+
+	for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+		if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+			n->print_f("\r\n\r\n|14Searching |15%s|14...\r\n", n->get_config()->msgconfs.at(i).get_name().c_str());
+			for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+				if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
+					last_tot = tot_msgs;
+					int last_read = 0;
+					tot_msgs = n->get_config()->msgconfs.at(i).areas.at(j).bwave_scan(n, tot_msgs, areas.size() + 1, fti_file, mix_file, dat_file, &last_ptr, &last_read);
+
+					if (last_tot == tot_msgs) {
+						n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str());
+					}
+					else {
+						n->print_f("|14... |15%s |14... |10%d Messages\r\n", n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), tot_msgs - last_tot);
+					}
+
+					last_read_ptrs.push_back(last_read);
+
+					memset(&area, 0, sizeof(INF_AREA_INFO));
+
+					snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+					snprintf((char *)area.echotag, 20, "%d", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
+
+					strncpy((char *)area.title, n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), 49);
+
+					flags = 0;
+
+					if (n->get_config()->msgconfs.at(i).areas.at(j).get_w_sec_level() <= n->get_user().get_sec_level()) {
+						flags |= INF_POST;
+					}
+
+					if (n->get_config()->msgconfs.at(i).areas.at(j).is_netmail()) {
+						flags |= INF_NO_PUBLIC;
+						flags |= INF_NETMAIL;
+						flags |= INF_ECHO;
+					} else
+					if (n->get_config()->msgconfs.at(i).areas.at(j).is_echomail()) {
+						flags |= INF_NO_PRIVATE;
+						flags |= INF_ECHO;
+					} else {
+						flags |= INF_NO_PRIVATE;
+					}
+
+					flags |= INF_SCANNING;
+					area.area_flags = converts(flags);
+					area.network_type = INF_NET_FIDONET;
+
+					areas.push_back(area);
+				}
+			}
+		}
+	}
+
+	fclose(dat_file);
+	fclose(mix_file);
+	fclose(fti_file);
+	std::filesystem::path inf_path(temp_dir);
+	inf_path.append(n->get_config()->qwk_id() + ".INF");
+
+	inf_file = fopen(inf_path.u8string().c_str(), "wb");
+
+	if (!inf_file) {
+		return;
+	}
+
+	fwrite(&hdr, sizeof(INF_HEADER), 1, inf_file);
+
+	for (size_t i = 0; i < areas.size(); i++) {
+		fwrite(&areas.at(i), sizeof(INF_AREA_INFO), 1, inf_file);
+	}
+
+	fclose(inf_file);
+
+	if (tot_msgs > 0) {
+
+		int bwave_packet_no = stoi(n->get_user().get_attribute("bluewave_pkt_no", "0"));
+
+		time_t thetime = time(NULL);
+		struct tm time_tm;
+
+#ifdef _MSC_VER
+		localtime_s(&time_tm, &thetime);
+#else	
+		localtime_r(&thetime, &time_tm);
+#endif
+		
+		if (bwave_packet_no / 10 != time_tm.tm_wday) {
+			bwave_packet_no = time_tm.tm_wday * 10;
+		}
+
+
+
+		std::filesystem::path bwave_file(temp_dir);
+		std::vector<std::string> flist;
+
+
+		flist.push_back(mix_path.u8string());
+		flist.push_back(fti_path.u8string());
+		flist.push_back(dat_path.u8string());
+		flist.push_back(inf_path.u8string());
+
+		bwave_file.append(n->get_config()->qwk_id() + weekday[time_tm.tm_wday] + std::to_string(bwave_packet_no % 10));
+
+		int arc = stoi(n->get_user().get_attribute("archiver", "-1"));
+
+		if (arc == -1) arc = 0;
+
+		if (arc < 0 || arc >= (int)n->get_config()->archivers.size()) {
+			n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+			return;
+		}
+
+		n->get_config()->archivers.at(arc)->compress(bwave_file.u8string(), flist);
+
+		std::vector<std::filesystem::path> sendlist;
+
+		sendlist.push_back(bwave_file);
+
+		Protocol* p = n->get_config()->select_protocol(n);
+
+		if (p == nullptr) {
+			return;
+		}
+
+		p->download(n, n->get_socket(), &sendlist);
+
+		bwave_packet_no++;
+
+		n->get_user().set_attribute("bluewave_pkt_no", std::to_string(bwave_packet_no));
+
+		// Update pointers
+		while (1) {
+			n->print_f("\r\n|14Update last read pointers? (Y/N) : ");
+			int h = 0;
+			char c = n->getch();
+			if (tolower(c) == 'y') {
+				Email::set_all_seen(n);
+				for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+					if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level()) continue;
+					for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+						if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() > 0 && n->get_user().is_subscribed(n->get_config()->msgconfs.at(i).areas.at(j).get_file())) {
+							if (last_read_ptrs.at(h) != 0) {
+								n->get_user().user_set_lastread(n->get_config()->msgconfs.at(i).areas.at(j).get_file(), last_read_ptrs.at(h));
+							}
+							h++;
+						}
+					}
+				}
+				return;
+			}
+			else if (tolower(c) == 'n') {
+				return;
+			}
+		}
+	} else {
+		n->print_f("|12No new messages!\r\n");
+		n->pause();
+	}
 }
 
 void Menu::qwk_down(Node* n) {
@@ -1531,6 +1849,261 @@ static int safe_atoi(const char* str, int len) {
 	return ret;
 }
 
+void Menu::bwave_up(Node *n) {
+    n->cls();
+    std::filesystem::path fpath;
+    fpath.append(n->get_config()->tmp_path());
+	fpath.append(std::to_string(n->getnodenum()));
+
+	fpath.append("bwave");
+
+   	if (std::filesystem::exists(fpath)) {
+		std::filesystem::remove_all(fpath);
+	}
+	std::filesystem::create_directories(fpath);
+
+    Protocol *p = n->get_config()->select_protocol(n);
+
+    if (p == nullptr) {
+        return;
+    }
+
+    p->upload(n, n->get_socket(), std::filesystem::absolute(fpath).u8string());
+
+    std::filesystem::path bwavefile(fpath);
+	std::stringstream ss;
+
+    ss.str("");
+	for (size_t i = 0; i < strlen(n->get_config()->qwk_id().c_str()); i++) {
+		ss << (char)tolower(n->get_config()->qwk_id().at(i));
+	}
+
+	bwavefile.append(ss.str() + ".new");
+    if (!std::filesystem::exists(bwavefile)) {
+		bwavefile = fpath;
+		bwavefile.append(n->get_config()->qwk_id() + ".NEW");
+		if (!std::filesystem::exists(bwavefile)) {
+			n->print_f("|12Could not find %s.NEW\r\n|07", n->get_config()->qwk_id().c_str());
+			n->pause();
+			return;
+		}
+	}
+	int arc = stoi(n->get_user().get_attribute("archiver", "-1"));
+
+	if (arc == -1) {
+		arc = n->get_config()->select_archiver(n);
+	}
+
+	if (arc < 0 || arc >= (int)n->get_config()->archivers.size()) {
+		n->print_f("|12Invalid Archiver!|07\r\n\r\n");
+		n->pause();
+		return;
+	}
+	n->get_config()->archivers.at(arc)->extract(bwavefile.u8string(), fpath.u8string());
+
+    std::filesystem::path upl_file(fpath);
+
+    upl_file.append(ss.str() + ".upl");
+    if (!std::filesystem::exists(upl_file)) {
+        upl_file = fpath;
+        upl_file.append(n->get_config()->qwk_id() + ".UPL");
+        if (!std::filesystem::exists(upl_file)) {
+            n->print_f("|14Could not find %s.UPL|07\r\n", n->get_config()->qwk_id().c_str());
+            n->pause();
+            return;
+        }
+    }
+
+    FILE *uplfptr = fopen(upl_file.u8string().c_str(), "rb");
+
+    if (!uplfptr) {
+        n->print_f("|12Could not open %s.UPL|07\r\n", n->get_config()->qwk_id().c_str());
+        n->pause();
+        return;
+    }
+
+   	UPL_HEADER upl_hdr;
+	UPL_REC upl_rec;
+
+    if (!fread(&upl_hdr, sizeof(UPL_HEADER), 1, uplfptr)) {
+		n->print_f("Failed to read header\r\n");
+        n->pause();
+		fclose(uplfptr);
+		return;
+	}
+
+    while (fread(&upl_rec, sizeof(UPL_REC), 1, uplfptr)) {
+        tWORD msg_attr = converts(upl_rec.msg_attr);
+
+        if (strcmp("PRIVATE_EMAIL", (const char *)upl_rec.echotag) == 0) {
+			if (msg_attr & UPL_INACTIVE) {
+				continue;
+			}
+
+			if (strcasecmp((const char *)upl_rec.from, n->get_user().get_username().c_str()) != 0) {
+				continue;
+			}
+
+			std::filesystem::path urec_file(fpath);
+            urec_file.append((const char *)upl_rec.filename);
+            if (!std::filesystem::exists(urec_file)) {
+                // try lower case;
+                std::stringstream uss;
+                for (size_t i = 0; i < strlen((const char *)upl_rec.filename); i++) {
+                    uss << (char)tolower(((const char *)upl_rec.filename)[i]);
+                }
+
+                urec_file = fpath;
+                urec_file.append(uss.str());
+
+                if (!std::filesystem::exists(urec_file)) {
+                    // message file not found
+                    continue;
+                }
+            }
+            std::string line;
+            std::ifstream infile(urec_file);
+            std::vector<std::string> body;
+
+            while (std::getline(infile, line))
+            {
+                std::istringstream iss(line);
+
+                if (line.at(line.size() - 1) == '\r') {
+                    line = line.substr(0, line.size() - 1);
+                }
+
+                body.push_back(line);
+            }
+            infile.close();
+            std::string sanatized_to = User::user_exists(n->get_config(), std::string((const char *)upl_rec.to));
+            if (sanatized_to != "") {
+                Email::save_message(n, sanatized_to, n->get_user().get_username(), std::string((const char *)upl_rec.subj), body);
+                n->print_f("|10Posted email to \"|15%s\"!\r\n", sanatized_to.c_str());
+            } else {
+                n->print_f("|14Failed to post email to \"%s\"!|07\r\n", (const char *)upl_rec.to);
+            }
+        } else {
+            int qwkno = strtol((const char *)upl_rec.echotag, NULL, 10);
+            bool found = false;
+            int mc = 0;
+            int ma = 0;
+
+            for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+                if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
+                    for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
+                        if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() == qwkno) {
+                            mc = i;
+                            ma = j;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) break;
+                }
+            }
+
+            if (found) {
+
+                if (msg_attr & UPL_INACTIVE) {
+                    continue;
+                }
+
+                if (strcasecmp((const char *)upl_rec.from, n->get_user().get_username().c_str()) != 0) {
+                    continue;
+                }
+
+                NETADDR addr;
+
+                memset(&addr, 0, sizeof(NETADDR));
+
+                if (n->get_config()->msgconfs.at(mc).areas.at(ma).is_netmail()) {
+                    if (!(msg_attr & UPL_NETMAIL)) {
+                        continue;
+                    }
+                    addr.zone = converts(upl_rec.destzone);
+					addr.net = converts(upl_rec.destnet);
+					addr.node = converts(upl_rec.destnode);
+					addr.point = converts(upl_rec.destpoint);
+                } else if (n->get_config()->msgconfs.at(mc).areas.at(ma).is_echomail()) {
+                    if (msg_attr & UPL_PRIVATE) {
+                        continue;
+                    }
+                } else {
+                    if (msg_attr & UPL_PRIVATE) {
+                        continue;
+                    }
+                }
+
+                std::filesystem::path urec_file(fpath);
+                urec_file.append((const char *)upl_rec.filename);
+
+                if (!std::filesystem::exists(urec_file)) {
+                    // try lower case;
+                    std::stringstream uss;
+                    for (size_t i = 0; i < strlen((const char *)upl_rec.filename); i++) {
+                        uss << (char)tolower(((const char *)upl_rec.filename)[i]);
+                    }
+
+                    urec_file = fpath;
+                    urec_file.append(uss.str());
+
+                    if (!std::filesystem::exists(urec_file)) {
+                        // message file not found
+                        continue;
+                    }
+                }
+
+                std::string line;
+                std::ifstream infile(urec_file);
+                std::vector<std::string> body;
+
+                while (std::getline(infile, line))
+                {
+                    std::istringstream iss(line);
+
+                    if (line.at(line.size() - 1) == '\r') {
+                        line = line.substr(0, line.size() - 1);
+                    }
+
+                    body.push_back(line);
+                }
+                infile.close();
+                if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_w_sec_level() <= n->get_user().get_sec_level()) {
+                    std::string from;
+					if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_real_names()) {
+                        from = n->get_user().get_attribute("fullname", n->get_user().get_username());
+                    } else {
+                        from = n->get_user().get_username();
+                    }
+
+                    std::string netaddr;
+                    if (n->get_config()->msgconfs.at(mc).areas.at(ma).is_netmail()) {
+                        netaddr = std::to_string(addr.zone) + ":" + std::to_string(addr.net) + "/" + std::to_string(addr.node) + "." + std::to_string(addr.point);
+                    } else {
+                        netaddr = "";
+                    }
+                    if (!n->get_config()->msgconfs.at(mc).areas.at(ma).save_message(std::string((const char *)upl_rec.to), from, std::string((const char *)upl_rec.subj), body, netaddr, convertl(upl_rec.replyto), convertl(upl_rec.unix_date))) {
+						n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
+					}
+					else {
+						n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
+						n->clog->post_msg();
+					}
+
+                } else {
+                    n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
+                }
+            } else {
+                n->print_f("|14Unknown message base |15%d|07\r\n", qwkno);
+            }
+        }
+    }
+    fclose(uplfptr);
+
+    n->pause();
+}
+
 void Menu::qwk_up(Node *n) {
 	n->cls();
 	std::filesystem::path fpath;
@@ -1613,7 +2186,7 @@ void Menu::qwk_up(Node *n) {
 		}
 	}
 
-	FILE* msgsfptr = fopen(qwkfile.string().c_str(), "rb");
+	FILE* msgsfptr = fopen(qwkfile.u8string().c_str(), "rb");
 
 	if (!msgsfptr) {
 		n->print_f("|12Could not open %s.MSG|07\r\n", n->get_config()->qwk_id().c_str());
@@ -1775,8 +2348,8 @@ void Menu::qwk_up(Node *n) {
 
 			if (subject.length() == 0) {
 				subject.append((const char*)qhdr.MsgSubj, 25);
-				for (i = subject.length() - 1; i >= 0; i--) {
-					if (subject.at(i) == ' ') {
+				for (int j = subject.length() - 1; j >= 0; j--) {
+					if (subject.at(j) == ' ') {
 						subject.pop_back();
 					}
 					else {
@@ -1786,8 +2359,8 @@ void Menu::qwk_up(Node *n) {
 			}
 			if (to.length() == 0) {
 				to.append((const char*)qhdr.MsgTo, 25);
-				for (i = to.length() - 1; i >= 0; i--) {
-					if (to.at(i) == ' ') {
+				for (int j = to.length() - 1; j >= 0; j--) {
+					if (to.at(j) == ' ') {
 						to.pop_back();
 					}
 					else {
@@ -1797,8 +2370,8 @@ void Menu::qwk_up(Node *n) {
 			}
 			if (from.length() == 0) {
 				from.append((const char*)qhdr.MsgFrom, 25);
-				for (i = from.length() - 1; i >= 0; i--) {
-					if (from.at(i) == ' ') {
+				for (int j = from.length() - 1; j >= 0; j--) {
+					if (from.at(j) == ' ') {
 						from.pop_back();
 					}
 					else {
