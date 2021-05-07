@@ -1946,7 +1946,21 @@ void Menu::bwave_up(Node *n) {
 
 			std::filesystem::path urec_file(fpath);
             urec_file.append((const char *)upl_rec.filename);
+            if (!std::filesystem::exists(urec_file)) {
+                // try lower case;
+                std::stringstream uss;
+                for (size_t i = 0; i < strlen((const char *)upl_rec.filename); i++) {
+                    uss << (char)tolower(((const char *)upl_rec.filename)[i]);
+                }
 
+                urec_file = fpath;
+                urec_file.append(uss.str());
+
+                if (!std::filesystem::exists(urec_file)) {
+                    // message file not found
+                    continue;
+                }
+            }
             std::string line;
             std::ifstream infile(urec_file);
             std::vector<std::string> body;
@@ -1978,7 +1992,7 @@ void Menu::bwave_up(Node *n) {
             for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
                 if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
                     for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
-                        if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id()) {
+                        if (n->get_config()->msgconfs.at(i).areas.at(j).get_r_sec_level() <= n->get_user().get_sec_level() && n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id() == qwkno) {
                             mc = i;
                             ma = j;
                             found = true;
@@ -2023,6 +2037,22 @@ void Menu::bwave_up(Node *n) {
 
                 std::filesystem::path urec_file(fpath);
                 urec_file.append((const char *)upl_rec.filename);
+
+                if (!std::filesystem::exists(urec_file)) {
+                    // try lower case;
+                    std::stringstream uss;
+                    for (size_t i = 0; i < strlen((const char *)upl_rec.filename); i++) {
+                        uss << (char)tolower(((const char *)upl_rec.filename)[i]);
+                    }
+
+                    urec_file = fpath;
+                    urec_file.append(uss.str());
+
+                    if (!std::filesystem::exists(urec_file)) {
+                        // message file not found
+                        continue;
+                    }
+                }
 
                 std::string line;
                 std::ifstream infile(urec_file);
