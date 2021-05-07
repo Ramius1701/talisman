@@ -458,7 +458,7 @@ int Email::bwave_scan(Node *n, FILE *fti_file, FILE *mix_file, FILE *dat_file, i
 	FTI_REC fti;
 
 	long mixptr = ftell(fti_file);
-	char *month_name[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	const char *month_name[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	
 	//char buffer[256];
 

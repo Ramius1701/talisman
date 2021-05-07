@@ -22,7 +22,7 @@ public:
 
 private:
 	static void bwave_down(Node* n);
-
+    static void bwave_up(Node *n);
 	static void qwk_down(Node* n);
 	static void qwk_up(Node* n);
 	std::string gfile;
