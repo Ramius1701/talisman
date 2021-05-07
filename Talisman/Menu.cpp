@@ -2100,6 +2100,8 @@ void Menu::bwave_up(Node *n) {
         }
     }
     fclose(uplfptr);
+
+    n->pause();
 }
 
 void Menu::qwk_up(Node *n) {
