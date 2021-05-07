@@ -2047,13 +2047,20 @@ void Menu::bwave_up(Node *n) {
                         from = n->get_user().get_username();
                     }
 
-                    if (!n->get_config()->msgconfs.at(mc).areas.at(ma).save_message(std::string((const char *)upl_rec.to), from, std::string((const char *)upl_rec.subj), body, "", convertl(upl_rec.replyto), convertl(upl_rec.unix_date))) {
+                    std::string netaddr;
+                    if (n->get_config()->msgconfs.at(mc).areas.at(ma).is_netmail()) {
+                        netaddr = std::to_string(addr.zone) + ":" + std::to_string(addr.net) + "/" + std::to_string(addr.node) + "." + std::to_string(addr.point);
+                    } else {
+                        netaddr = "";
+                    }
+                    if (!n->get_config()->msgconfs.at(mc).areas.at(ma).save_message(std::string((const char *)upl_rec.to), from, std::string((const char *)upl_rec.subj), body, netaddr, convertl(upl_rec.replyto), convertl(upl_rec.unix_date))) {
 						n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
 					}
 					else {
 						n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
 						n->clog->post_msg();
 					}
+
                 } else {
                     n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(), n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
                 }
