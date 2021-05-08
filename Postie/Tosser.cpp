@@ -1003,7 +1003,6 @@ bool Tosser::run(bool protinbound) {
 					sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 
 					if (found) {
-						// TODO: it's to me, is it for areafix?
 						if (strcasecmp(sqmsg.xmsg.to, "areafix") == 0 && protinbound) {
 							log.log(LOG_INFO, "It's to areafix!");
 							areafix(&c, &sqmsg);

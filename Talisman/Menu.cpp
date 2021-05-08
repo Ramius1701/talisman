@@ -1304,7 +1304,6 @@ void Menu::bwave_down(Node* n) {
 	int tot_areas = 0;
 	int tot_msgs = 0;
 	int last_tot;
-	int area_count = 1;
 
 	std::vector<INF_AREA_INFO> areas;
 
@@ -1390,7 +1389,7 @@ void Menu::bwave_down(Node* n) {
 	flags = 0;
 
 	memset(&area, 0, sizeof(INF_AREA_INFO));
-	snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+	snprintf((char *)area.areanum, 6, "%lu", areas.size() + 1);
 
 	memcpy((char *)area.echotag, "PRIVATE_EMAIL", 13);
 
@@ -1427,7 +1426,7 @@ void Menu::bwave_down(Node* n) {
 
 					memset(&area, 0, sizeof(INF_AREA_INFO));
 
-					snprintf((char *)area.areanum, 6, "%d", areas.size() + 1);
+					snprintf((char *)area.areanum, 6, "%lu", areas.size() + 1);
 					snprintf((char *)area.echotag, 20, "%d", n->get_config()->msgconfs.at(i).areas.at(j).get_qwk_id());
 
 					strncpy((char *)area.title, n->get_config()->msgconfs.at(i).areas.at(j).get_name().c_str(), 49);
@@ -2079,7 +2078,11 @@ void Menu::bwave_up(Node *n) {
 
                     std::string netaddr;
                     if (n->get_config()->msgconfs.at(mc).areas.at(ma).is_netmail()) {
-                        netaddr = std::to_string(addr.zone) + ":" + std::to_string(addr.net) + "/" + std::to_string(addr.node) + "." + std::to_string(addr.point);
+                        if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_wwivnode() == 0) {
+                            netaddr = std::to_string(addr.zone) + ":" + std::to_string(addr.net) + "/" + std::to_string(addr.node) + "." + std::to_string(addr.point);
+                        } else {
+                            netaddr = std::to_string(addr.node);
+                        }
                     } else {
                         netaddr = "";
                     }

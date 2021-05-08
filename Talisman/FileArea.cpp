@@ -281,7 +281,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 	bool tagged = false;
 	int start = 0;
 	int selected = 0;
-	bool redraw = true;
+	//bool redraw = true;
 	static const char units[] = " KMGT";
 
 	if (filelist->size() == 0) return;

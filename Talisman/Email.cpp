@@ -672,7 +672,7 @@ int Email::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* con
 		}
 
 
-		snprintf(buffer, 7, "%d", len + 1);
+		snprintf(buffer, 7, "%lu", len + 1);
 		memset(q.Msgrecs, ' ', 6);
 		memcpy(q.Msgrecs, buffer, strlen(buffer));
 

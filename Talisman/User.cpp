@@ -193,7 +193,6 @@ void User::set_attribute(std::string attrib, std::string value) {
 std::string User::hash_sha256(std::string pass, std::string salt) {
 	std::stringstream ss;
 	std::stringstream sh;
-	char* shash = NULL;
 	unsigned char hash[EVP_MAX_MD_SIZE];
 	unsigned int length_of_hash = 0;
 	unsigned int i;

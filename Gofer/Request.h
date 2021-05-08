@@ -19,6 +19,6 @@ private:
 	std::string last_post(std::string db_path, int uid);
 	void dolistusers(int socket, std::string dbpath);
 	void dolistposts(int socket, std::string db_path, int uid);
-	void doshowpost(int socket, std::string db_path, int uid, int id);
+	void doshowpost(int socket, std::string db_path, int id);
 };
 

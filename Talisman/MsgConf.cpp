@@ -268,7 +268,6 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 
 int MsgConf::list_areas_old(Node* n, int sec)
 {
-	Config *c = n->get_config();
 	int cur_area = 1;
 	int lines = 0;
 

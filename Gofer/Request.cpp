@@ -208,7 +208,7 @@ void Request::dolistposts(int socket, std::string db_path, int uid) {
 	}
 }
 
-void Request::doshowpost(int socket, std::string db_path, int uid, int id) {
+void Request::doshowpost(int socket, std::string db_path, int id) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 
@@ -407,7 +407,7 @@ void Request::dorequest(int socket, std::string request) {
 			dolistposts(socket, data_path, strtol(tokens.at(1).c_str(), NULL, 10));
 		}
 		if (tokens.size() == 3) {
-			doshowpost(socket, data_path, strtol(tokens.at(1).c_str(), NULL, 10), strtol(tokens.at(2).c_str(), NULL, 10));
+			doshowpost(socket, data_path, strtol(tokens.at(2).c_str(), NULL, 10));
 		}
 		return;
 	}

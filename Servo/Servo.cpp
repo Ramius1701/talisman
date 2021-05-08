@@ -436,7 +436,7 @@ int main()
                     }
 #else
 					char buffer[PATH_MAX];
-					snprintf(buffer, sizeof buffer, "/proc/%d/cmdline", nodes.at(i).pid);
+					snprintf(buffer, sizeof buffer, "/proc/%lu/cmdline", nodes.at(i).pid);
 					FILE* fptr = fopen(buffer, "r");
 
 					if (fptr) {

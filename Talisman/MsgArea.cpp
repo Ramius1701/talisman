@@ -1285,7 +1285,6 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
 	sq_msg_base_t* mb;
-	int lr = 0; // TODO set last read
 	bool fsr = (n->get_user().get_attribute("fullscreenreader", "true") == "true" && n->hasANSI);
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
@@ -2018,7 +2017,6 @@ int MsgArea::list_messages_old(int start) {
 
 void MsgArea::update_lr(time_t date) {
 	sq_msg_base_t* mb;
-	bool foundmsg = false;
 
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
@@ -2318,7 +2316,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 		}
 
 
-		snprintf(buffer, 7, "%d", len + 1);
+		snprintf(buffer, 7, "%lu", len + 1);
 		memset(q.Msgrecs, ' ', 6);
 		memcpy(q.Msgrecs, buffer, strlen(buffer));
 

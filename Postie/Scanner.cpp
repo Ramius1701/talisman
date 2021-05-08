@@ -702,7 +702,6 @@ void Scanner::write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* lin
 bool Scanner::run() {
 	INIReader inir("talisman.ini");
 	Config c;
-	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	if (inir.ParseError()) {
 		return false;

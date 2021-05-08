@@ -12,8 +12,8 @@
 
 void SubReq::add(const char *netname, int hostid, const char *subtype) {
 	INIReader inir("talisman.ini");
-	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	//static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	//static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	if (inir.ParseError()) {
 		std::cerr << "Failed to parse talisman.ini" << std::endl;
 		return;
@@ -69,8 +69,8 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
 
 void SubReq::drop(const char* netname, int hostid, const char* subtype) {
 	INIReader inir("talisman.ini");
-	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-	static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	//static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	//static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	if (inir.ParseError()) {
 		std::cerr << "Failed to parse talisman.ini" << std::endl;
 		return;

@@ -1,6 +1,7 @@
 #include "Config.h"
 #include <fstream>
 #include "../Common/toml.hpp"
+#include "../Common/Squish.h"
 
 bool Config::load(std::string datapath) {
 	try {
@@ -47,9 +48,80 @@ bool Config::load(std::string datapath) {
 
 				auto itemtable = addressitems->get(i)->as_table();
 
+                auto _addr = itemtable->get("address");
+                if (_addr != nullptr) {
+                    std::string str =_addr->as_string()->value_or("");
+                    newaddr.addr = parse_fido_addr(str.c_str());
+                    if (newaddr.addr == NULL) {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+                auto _domain = itemtable->get("domain");
+                if (_domain != nullptr) {
+                    newaddr.domain = _domain->as_string()->value_or("");
+                } else {
+                    newaddr.domain = "";
+                }
 
+                if (newaddr.domain == "") {
+                    free(newaddr.addr);
+                    continue;
+                }
+                addresses.push_back(newaddr);
 			}
 		}
+
+		auto linkitems = data.get_as<toml::array>("links");
+        if (linkitems != nullptr) {
+            for (size_t i = 0; i < linkitems->size(); i++) {
+                struct link_t newlink;
+                auto itemtable = linkitems->get(i)->as_table();
+
+                auto _network = itemtable->get("domain");
+
+                if (_network != nullptr) {
+                    newlink.network = _network->as_string()->value_or("");
+                } else {
+                    newlink.network = "";
+                }
+
+                auto _addr = itemtable->get("address");
+                if (_addr != nullptr) {
+                    std::string str = _addr->as_string()->value_or("");
+                    newlink.addr = parse_fido_addr(str.c_str());
+                    if (newlink.addr == NULL) {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+
+                auto _outbox = itemtable->get("outbox");
+                if (_outbox != nullptr) {
+                    newlink.outbox = _outbox->as_string()->value_or("");
+                } else {
+                    newlink.outbox = "";
+                }
+
+                auto _password = itemtable->get("password");
+                if (_password != nullptr) {
+                    newlink.password = _password->as_string()->value_or("");
+                } else {
+                    newlink.password = "";
+                }
+
+                auto _crammd5 = itemtable->get("cram-md5");
+                if (_crammd5 != nullptr) {
+                    newlink.crammd5 = _crammd5->as_boolean()->value_or(false);
+                } else {
+                    newlink.crammd5 = false;
+                }
+
+                links.push_back(newlink);
+            }
+        }
 	}
 	catch (toml::parse_error) {
 		return false;

@@ -114,11 +114,6 @@ static UNS_32_BITS crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-static uint32_t updateCRC32(unsigned char ch, uint32_t crc)
-{
-    return UPDC32(ch, crc);
-}
-
 uint32_t Dupe::crc32buf(const char* buf, size_t len)
 {
     uint32_t oldcrc32;

@@ -5,6 +5,7 @@
 #include "Server.h"
 
 #include <iostream>
+#include <cstring>
 
 int main(int argc, char **argv)
 {

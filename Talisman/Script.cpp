@@ -113,7 +113,6 @@ extern "C" int lua_bbsPostMsg(lua_State *L) {
 	const char *subj = lua_tostring(L, 4);
 	const char *body = lua_tostring(L, 5);
 	Node *n = lua_getNode(L);
-	time_t date = time(NULL);
 
 	for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
 		for (size_t msgbase = 0; msgbase < n->get_config()->msgconfs.at(msgconf).areas.size(); msgbase++) {

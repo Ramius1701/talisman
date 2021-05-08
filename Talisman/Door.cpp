@@ -132,12 +132,12 @@ void Door::createDropfiles(Node *n) {
 	f << "2" << LINE_END;
 	f << n->get_socket() << LINE_END;
 	f << "38400" << LINE_END;
-	f << "Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << LINE_END; // TODO: Add version
+	f << "Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << LINE_END;
 	f << n->get_user().get_uid() << LINE_END;
 	f << n->get_user().get_attribute("fullname", "UNKNOWN") << LINE_END;
 	f << n->get_user().get_username() << LINE_END;
 	f << n->get_user().get_sec_level() << LINE_END;
-	f << std::to_string(n->get_timeleft() / 60) << LINE_END; // TODO: Time left
+	f << std::to_string(n->get_timeleft() / 60) << LINE_END;
 	f << (n->hasANSI ? "1" : "0") << LINE_END;
 	f << n->getnodenum() << LINE_END;
 
@@ -162,7 +162,7 @@ void Door::createDropfiles(Node *n) {
 	f2 << "00-0000-0000" << LINE_END;
 	f2 << "00-0000-0000" << LINE_END;
 	f2 << "SECRET" << LINE_END;
-	f2 << n->get_user().get_sec_level() << LINE_END; // TODO: Security Level
+	f2 << n->get_user().get_sec_level() << LINE_END;
 	f2 << n->clog->total_calls(n->get_user().get_username()) << LINE_END;
 	f2 << "01-01-1971" << LINE_END;
 	f2 << std::to_string(n->get_timeleft()) << LINE_END;
@@ -247,7 +247,6 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 
 	return true;
 #else
-	// TODO unix door
 	pid_t pid;
 	char **argv;
 	int door_in;
