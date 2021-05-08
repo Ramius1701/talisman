@@ -56,5 +56,10 @@ data = "oneliners"
 
 [[menuitem]]
 command = "SUBMENU"
+hotkey = "H"
+data = "gopher"
+
+[[menuitem]]
+command = "SUBMENU"
 hotkey = "G"
 data = "logoff"

@@ -1,0 +1,35 @@
+[menu]
+gfile = "offline"
+
+[[menuitem]]
+command = "BWAVEDOWN"
+hotkey = "1"
+
+[[menuitem]]
+command = "BWAVEUP"
+hotkey = "2"
+
+[[menuitem]]
+command = "QWKDOWN"
+hotkey = "3"
+
+[[menuitem]]
+command = "QWKUP"
+hotkey = "4"
+
+[[menuitem]]
+command = "MSGUPDATELR"
+hotkey = "U"
+
+[[menuitem]]
+command = "MSGSUBAREAS"
+hotkey = "B"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "Q"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"

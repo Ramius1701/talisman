@@ -58,12 +58,9 @@ command = "MSGSUBAREAS"
 hotkey = "B"
 
 [[menuitem]]
-command = "QWKDOWN"
-hotkey = "D"
-
-[[menuitem]]
-command = "QWKUP"
-hotkey = "W"
+command = "SUBMENU"
+hotkey = "O"
+data = "offline"
 
 [[menuitem]]
 command = "LISTEMAIL"

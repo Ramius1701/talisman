@@ -1,5 +1,5 @@
 125
-|14Press Any Key.|07
-|14Press Any Key..|07
-|14Press Any Key...|07
-|14Press Any Key..|07
+|14Press Any Key [|15/|14]|07
+|14Press Any Key [|15-|14]|07
+|14Press Any Key [|15\|14]|07
+|14Press Any Key [|15||14]|07

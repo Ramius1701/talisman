@@ -1,0 +1,19 @@
+[menu]
+gfile = "gopher"
+
+[[menuitem]]
+command = "PHLOGNEW"
+hotkey = "E"
+
+[[menuitem]]
+command = "PHLOGMANAGE"
+hotkey = "M"
+
+[[menuitem]]
+command = "PREVMENU"
+hotkey = "Q"
+
+[[menuitem]]
+command = "SUBMENU"
+data = "logoff"
+hotkey = "G"
