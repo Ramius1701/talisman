@@ -1257,6 +1257,12 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 	return true;
 }
 
+#ifdef _MSC_VER
+#define __ORDER_LITTLE_ENDIAN__ 1
+#define __ORDER_BIG_ENDIAN__ 2
+#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
+#endif
+
 tLONG convertl(tLONG l) {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	unsigned char result_bytes[4];
