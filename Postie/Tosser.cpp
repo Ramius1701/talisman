@@ -454,16 +454,28 @@ bool Tosser::run(bool protinbound) {
 	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
 	tempdir = _tmppath + "/postie-" + std::to_string(pid);
 
-	std::vector<std::filesystem::path> removelist;
+	//std::vector<std::filesystem::path> removelist;
+    std::vector<std::filesystem::path> totoss;
 
 	for (auto& p : std::filesystem::directory_iterator(inbound)) {
-		std::filesystem::path packetpth = p.path();
+        std::filesystem::path packetpth = p.path();
+        totoss.push_back(p.path());
+    }
+
+    for (std::filesystem::path packetpth : totoss) {
 		std::filesystem::remove_all(tempdir);
 		std::filesystem::create_directories(tempdir);
+        std::filesystem::path temp_name(packetpth);
+        std::filesystem::path e(packetpth.extension().u8string() + ".toss");
+
+
+        temp_name.replace_extension(e);
+
+        std::filesystem::rename(packetpth, temp_name);
 
 		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
-			std::filesystem::copy(packetpth, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
-			removelist.push_back(packetpth);
+			std::filesystem::copy(temp_name, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
+			//removelist.push_back(temp_name);
 		}
 		else {
 			if (!strchr(fileext1, packetpth.extension().u8string().substr(1, 1).c_str()[0])) {
@@ -478,13 +490,13 @@ bool Tosser::run(bool protinbound) {
 				continue;
 			}
 
-			removelist.push_back(packetpth);
+			//removelist.push_back(temp_name);
 
 			bool unarced = false;
 
 			// unarchive packet
 			for (size_t i = 0; i < c.archivers.size(); i++) {
-				FILE* fptr = fopen(packetpth.u8string().c_str(), "rb");
+				FILE* fptr = fopen(temp_name.u8string().c_str(), "rb");
 				if (c.archivers.at(i)->offset >= 0) {
 					fseek(fptr, c.archivers.at(i)->offset, SEEK_SET);
 				}
@@ -504,7 +516,7 @@ bool Tosser::run(bool protinbound) {
 				}
 				fclose(fptr);
 				if (match == false) continue;
-				c.archivers.at(i)->extract(packetpth.u8string(), tempdir.u8string());
+				c.archivers.at(i)->extract(temp_name.u8string(), tempdir.u8string());
 				unarced = true;
 				break;
 			}
@@ -1064,6 +1076,8 @@ bool Tosser::run(bool protinbound) {
 			}
 			fclose(fptr);
 		}
+
+		std::filesystem::remove(temp_name);
 	}
 	
 
@@ -1099,10 +1113,6 @@ bool Tosser::run(bool protinbound) {
 	std::filesystem::path temppath(_tmppath + "/postie-" + std::to_string(pid));
 
 	std::filesystem::remove_all(temppath);
-
-	for (size_t i = 0; i < removelist.size(); i++) {
-		std::filesystem::remove(removelist.at(i));
-	}
 
 	return true;
 }
