@@ -1904,8 +1904,8 @@ void Menu::bwave_up(Node *n) {
 		n->pause();
 		return;
 	}
-	n->get_config()->archivers.at(arc)->extract(bwavefile.u8string(), fpath.u8string());
 
+	n->get_config()->archivers.at(arc)->extract(bwavefile.u8string(), fpath.u8string());
     std::filesystem::path upl_file(fpath);
 
     upl_file.append(ss.str() + ".upl");
@@ -1918,7 +1918,6 @@ void Menu::bwave_up(Node *n) {
             return;
         }
     }
-
     FILE *uplfptr = fopen(upl_file.u8string().c_str(), "rb");
 
     if (!uplfptr) {
@@ -1930,6 +1929,7 @@ void Menu::bwave_up(Node *n) {
    	UPL_HEADER upl_hdr;
 	UPL_REC upl_rec;
 
+
     if (!fread(&upl_hdr, sizeof(UPL_HEADER), 1, uplfptr)) {
 		n->print_f("Failed to read header\r\n");
         n->pause();
@@ -1939,7 +1939,6 @@ void Menu::bwave_up(Node *n) {
 
     while (fread(&upl_rec, sizeof(UPL_REC), 1, uplfptr)) {
         tWORD msg_attr = converts(upl_rec.msg_attr);
-
         if (strcmp("PRIVATE_EMAIL", (const char *)upl_rec.echotag) == 0) {
 			if (msg_attr & UPL_INACTIVE) {
 				continue;
@@ -1993,7 +1992,6 @@ void Menu::bwave_up(Node *n) {
             bool found = false;
             int mc = 0;
             int ma = 0;
-
             for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
                 if (n->get_config()->msgconfs.at(i).get_sec_level() <= n->get_user().get_sec_level()) {
                     for (size_t j = 0; j < n->get_config()->msgconfs.at(i).areas.size(); j++) {
@@ -2058,22 +2056,22 @@ void Menu::bwave_up(Node *n) {
                         continue;
                     }
                 }
-
                 std::string line;
-                std::ifstream infile(urec_file);
+                std::ifstream infile;
                 std::vector<std::string> body;
 
-                while (std::getline(infile, line))
-                {
-                    std::istringstream iss(line);
+				infile.open(urec_file.u8string());
 
-                    if (line.at(line.size() - 1) == '\r') {
+                while (std::getline(infile, line))
+				{
+                    if (line.size() > 0 && line.at(line.size() - 1) == '\r') {
                         line = line.substr(0, line.size() - 1);
                     }
 
                     body.push_back(line);
                 }
                 infile.close();
+
                 if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_w_sec_level() <= n->get_user().get_sec_level()) {
                     std::string from;
 					if (n->get_config()->msgconfs.at(mc).areas.at(ma).get_real_names()) {
