@@ -471,9 +471,10 @@ bool Tosser::run(bool protinbound) {
 
         temp_name.replace_extension(e);
 
-        std::filesystem::rename(packetpth, temp_name);
+
 
 		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
+            std::filesystem::rename(packetpth, temp_name);
 			std::filesystem::copy(temp_name, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
 			//removelist.push_back(temp_name);
 		}
@@ -489,7 +490,7 @@ bool Tosser::run(bool protinbound) {
 			if (!strchr(fileext3, packetpth.extension().u8string().substr(3, 1).c_str()[0])) {
 				continue;
 			}
-
+            std::filesystem::rename(packetpth, temp_name);
 			//removelist.push_back(temp_name);
 
 			bool unarced = false;
