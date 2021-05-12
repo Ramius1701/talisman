@@ -150,85 +150,70 @@ void Node::update_node_use(std::string usage) {
 
 void Node::pause() {
 	if (hasANSI) {
-		if (pause_loaded == true && pausefiles.size() == 0) {
-			// no pause files....
-		}
-		else {
+		if (!pause_loaded) {
+			std::filesystem::path fspath(config.gfile_path() + "/pause");
 
-			if (!pause_loaded) {
-				std::filesystem::path fspath(config.gfile_path() + "/pause");
-
-				if (std::filesystem::exists(fspath) && std::filesystem::is_directory(fspath)) {
-					for (auto de : std::filesystem::directory_iterator(fspath)) {
-						pausefiles.push_back(de.path().u8string());
-					}
+			if (std::filesystem::exists(fspath) && std::filesystem::is_directory(fspath)) {
+				for (auto de : std::filesystem::directory_iterator(fspath)) {
+					pausefiles.push_back(de.path().u8string());
 				}
-				pause_loaded = true;
 			}
-			if (pausefiles.size() > 0) {
-				std::string pp = pausefiles.at(rand() % pausefiles.size());
-				std::ifstream pf(pp);
-				std::string str;
-				std::vector<std::string> lines;
+			pause_loaded = true;
+		}
+		if (pausefiles.size() > 0) {
+			std::string pp = pausefiles.at(rand() % pausefiles.size());
+			std::ifstream pf(pp);
+			std::string str;
+			std::vector<std::string> lines;
 
-				bool gotspeed = false;
-				int speed = 1000;
-				while (std::getline(pf, str)) {
-					if (gotspeed == false) {
-						try {
-							speed = stoi(str);
-						}
-						catch (std::invalid_argument) {
-							speed = 1000;
-						}
-						catch (std::out_of_range) {
-							speed = 1000;
-						}
-						gotspeed = true;
+			bool gotspeed = false;
+			int speed = 1000;
+			while (std::getline(pf, str)) {
+				if (gotspeed == false) {
+					try {
+						speed = stoi(str);
+					}
+					catch (std::invalid_argument) {
+						speed = 1000;
+					}
+					catch (std::out_of_range) {
+						speed = 1000;
+					}
+					gotspeed = true;
+				}
+				else {
+					if (str.find(0x1A) != std::string::npos) {
+						break;
+					}
+					if (str.find('\r') == std::string::npos) {
+						lines.push_back(str);
 					}
 					else {
-						if (str.find(0x1A) != std::string::npos) {
-							break;
-						}
-						if (str.find('\r') == std::string::npos) {
-							lines.push_back(str);
-						}
-						else {
-							lines.push_back(str.substr(0, str.size() - 1));
-						}
+						lines.push_back(str.substr(0, str.size() - 1));
 					}
 				}
+			}
 
-				int i = 0;
-				int milsec = 0;
+			int i = 0;
+			int milsec = 0;
 
-				print_f("\x1b[s");
+            print_f("\x1b[s");
+			print_f("%s\x1b[K", lines.at(i++).c_str());
+			print_f("\x1b[u");
+			while ((signed char)getch(speed) == -1) {
+				milsec += speed;
+				if (i == lines.size()) i = 0;
 				print_f("%s\x1b[K", lines.at(i++).c_str());
 				print_f("\x1b[u");
-				while (getch(speed) == -1) {
-					milsec += speed;
-					if (i == lines.size()) i = 0;
-					print_f("%s\x1b[K", lines.at(i++).c_str());
-					print_f("\x1b[u");
 
-					if (milsec >= 60000) {
-						if (!stop_timeout) {
-							timeout++;
-							if (timeout == timeoutmax - 1) {
-								print_f("|14You are about to time out!\r\n");
-							}
-							else if (timeout == timeoutmax) {
-								print_f("|12You have timed out, call back when you're there!\r\n");
-#ifdef _MSC_VER
-								closesocket(socket);
-#else
-								close(socket);
-#endif
-								disconnected();
-							}
+				if (milsec >= 60000) {
+					if (!stop_timeout) {
+						timeout++;
+						if (timeout == timeoutmax - 1) {
+							print_f("|14You are about to time out!\r\n");
 						}
-						if (!time_check()) {
-							print_f("|14You are out of time for today!\r\n");
+						else if (timeout == timeoutmax) {
+							print_f("|12You have timed out, call back when you're there!\r\n");
 #ifdef _MSC_VER
 							closesocket(socket);
 #else
@@ -236,18 +221,28 @@ void Node::pause() {
 #endif
 							disconnected();
 						}
-						milsec = 0;
 					}
+					if (!time_check()) {
+						print_f("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+						closesocket(socket);
+#else
+						close(socket);
+#endif
+						disconnected();
+					}
+					milsec = 0;
 				}
-				print_f("\x1b[u\x1b[K");
-				return;
 			}
-		}
+            print_f("\x1b[u\x1b[K");
+            return;
+        }
+
 		
 		print_f("\x1b[s|14Press any key...|07");
 		getch();
 		print_f("\x1b[u\x1b[K");
-	}
+    }
 	else {
 		print_f("|14Press any key...|07");
 		getch();
@@ -730,7 +725,7 @@ char Node::getch(int delay) {
 					if (delay / 1000 > 60) {
 						delay -= 60000;
 					}
-					else {
+                    else {
 						return -1;
 					}
 				}
