@@ -294,6 +294,12 @@ int main(int argc, char** argv) {
                     std::cout << "Success clearing last read." << std::endl;
                 }
             }
+        } else if (strcasecmp(argv[1], "deleteuser") == 0) {
+            if (argc == 3) {
+                if (!User::delete_user(inir.Get("paths", "data path", "data"), std::string(argv[2]))) {
+                    std::cout << "Failed" << std::endl;
+                }
+            }
         }
 	}
 	else {
@@ -311,5 +317,6 @@ int main(int argc, char** argv) {
         std::cerr << "   COMMAND clearlruser      ARGS username" << std::endl;
         std::cerr << "   COMMAND clearlrbase      ARGS msgbasefile" << std::endl;
         std::cerr << "   COMMAND clearlrbaseuser  ARGS msgbasefile username" << std::endl;
+        std::cerr << "   COMMAND deleteuser       ARGS username" << std::endl;
 	}
 }

@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <iostream>
 #ifdef _MSC_VER
 #include <Windows.h>
 #include <bcrypt.h>
@@ -234,6 +235,132 @@ bool User::clear_lastread(std::string datapath, std::string msgbase, std::string
     return true;
 }
 
+bool User::delete_user(std::string datapath, std::string username)
+{
+    static const char *delete_details = "DELETE FROM details WHERE uid = ?";
+    static const char *delete_subscriptions = "DELETE FROM subs WHERE uid = ?";
+    static const char *delete_user = "DELETE FROM users WHERE id = ?";
+    static const char *delete_lastread = "DELETE FROM lastr WHERE uid = ?";
+    static const char *delete_emails = "DELETE FROM email WHERE recpient = ?";
+    static const char *delete_phlogs = "DELETE FROM phlog WHERE uid = ?";
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+
+
+    int uid = get_uid(datapath, username);
+
+    if (uid == -1) {
+        return false;
+    }
+
+    std::cout << "Deleting Emails....";
+
+    if (!open_email_database(datapath + "/email.sqlite3", &db)) {
+        return false;
+    }
+
+    if (sqlite3_prepare_v2(db, delete_emails, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, 0);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    std::cout << "Done" << std::endl;
+
+    std::cout << "Deleting Phlogs....";
+
+    if (!open_gopher_database(datapath + "/gopher.sqlite3", &db)) {
+        return false;
+    }
+
+    if (sqlite3_prepare_v2(db, delete_phlogs, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    std::cout << "Done" << std::endl;
+
+    std::cout << "Deleting user attributes...";
+
+    if (!open_database(datapath + "/users.sqlite3", &db)) {
+        return false;
+    }
+
+    if (sqlite3_prepare_v2(db, delete_details, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    std::cout << "Done";
+
+
+    std::cout << "Deleting user subscriptions...";
+
+    if (sqlite3_prepare_v2(db, delete_subscriptions, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    std::cout << "Done";
+
+    sqlite3_close(db);
+
+    std::cout << "Deleting user last read pointers...";
+
+    if (sqlite3_prepare_v2(db, delete_lastread, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    std::cout << "Done";
+
+    std::cout << "Deleting user...";
+
+    if (sqlite3_prepare_v2(db, delete_user, -1, &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+
+    std::cout << "Done";
+
+    return true;
+}
+
+
 bool User::open_database(std::string filename, sqlite3** db)
 {
 	static const char* create_users_sql = "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
@@ -280,3 +407,48 @@ bool User::open_database(std::string filename, sqlite3** db)
 	}
 	return true;
 }
+
+bool User::open_email_database(std::string filename, sqlite3** db) {
+	const char* create_users_sql = "CREATE TABLE IF NOT EXISTS email(id INTEGER PRIMARY KEY, sender TEXT COLLATE NOCASE, recipient TEXT COLLATE NOCASE, subject TEXT, body TEXT, date INTEGER, seen INTEGER)";
+
+	int rc;
+	char* err_msg = NULL;
+
+	if (sqlite3_open(filename.c_str(), db) != SQLITE_OK) {
+		//std::cerr << "Unable to open database: " << filename << std::endl;
+		return false;
+	}
+	sqlite3_busy_timeout(*db, 5000);
+
+	rc = sqlite3_exec(*db, create_users_sql, 0, 0, &err_msg);
+	if (rc != SQLITE_OK) {
+		//std::cerr << "Unable to create email table: " << err_msg << std::endl;
+		sqlite3_free(err_msg);
+		sqlite3_close(*db);
+		return false;
+	}
+	return true;
+}
+
+bool User::open_gopher_database(std::string filename, sqlite3** db) {
+	static const char* create_gopher_sql = "CREATE TABLE IF NOT EXISTS phlog(id INTEGER PRIMARY KEY, uid INTEGER, author TEXT, subject TEXT, datestamp INTEGER, body TEXT, draft INTEGER)";
+
+	int rc;
+	char* err_msg = NULL;
+
+	if (sqlite3_open(filename.c_str(), db) != SQLITE_OK) {
+		//std::cerr << "Unable to open database: users.db" << std::endl;
+		return false;
+	}
+	sqlite3_busy_timeout(*db, 5000);
+
+	rc = sqlite3_exec(*db, create_gopher_sql, 0, 0, &err_msg);
+	if (rc != SQLITE_OK) {
+		sqlite3_free(err_msg);
+		sqlite3_close(*db);
+		return false;
+	}
+
+	return true;
+}
+
