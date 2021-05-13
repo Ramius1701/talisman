@@ -12,7 +12,6 @@
 std::string User::hash_sha256(std::string pass, std::string salt) {
 	std::stringstream ss;
 	std::stringstream sh;
-	char* shash = NULL;
 	unsigned char hash[EVP_MAX_MD_SIZE];
 	unsigned int length_of_hash = 0;
 	unsigned int i;
@@ -181,6 +180,58 @@ bool User::set_attribute(std::string datapath, std::string username, std::string
 	sqlite3_close(db);
 
 	return true;
+}
+
+bool User::clear_lastread(std::string datapath, std::string msgbase, std::string user) {
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    static const char *delete_all = "DELETE FROM lastr";
+    static const char *delete_user = "DELETE FROM lastr WHERE uid = ?";
+    static const char *delete_base = "DELETE FROM lastr WHERE msgbase = ?";
+    static const char *delete_base_user = "DELETE FROM lastr WHERE uid = ? AND msgbase = ?";
+
+    int uid;
+
+    if (user != "") {
+        uid = get_uid(datapath, user);
+        if (uid == -1) return false;
+    }
+
+    if (!open_database(datapath + "/users.sqlite3", &db)) {
+        return false;
+    }
+
+    if (msgbase != "" && user != "") {
+        if (sqlite3_prepare_v2(db, delete_base_user, -1, &stmt, NULL) != SQLITE_OK) {
+            sqlite3_close(db);
+            return false;
+        }
+        sqlite3_bind_int(stmt, 1, uid);
+        sqlite3_bind_text(stmt, 2, msgbase.c_str(), -1, 0);
+    } else if (user != "") {
+        if (sqlite3_prepare_v2(db, delete_user, -1, &stmt, NULL) != SQLITE_OK) {
+            sqlite3_close(db);
+            return false;
+        }
+        sqlite3_bind_int(stmt, 1, uid);
+    } else if (msgbase != "") {
+        if (sqlite3_prepare_v2(db, delete_base, -1, &stmt, NULL) != SQLITE_OK) {
+            sqlite3_close(db);
+            return false;
+        }
+        sqlite3_bind_text(stmt, 1, msgbase.c_str(), -1, 0);
+    } else {
+        if (sqlite3_prepare_v2(db, delete_all, -1, &stmt, NULL) != SQLITE_OK) {
+            sqlite3_close(db);
+            return false;
+        }
+    }
+
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return true;
 }
 
 bool User::open_database(std::string filename, sqlite3** db)

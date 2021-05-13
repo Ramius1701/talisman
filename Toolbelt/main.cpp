@@ -264,18 +264,52 @@ int main(int argc, char** argv) {
 
 				std::cout << "New files list " << argv[4] << " created listing " << tot << " total files." << std::endl;
 			}
-		}
+		} else if (strcasecmp(argv[1], "clearlrall") == 0) {
+            if (!User::clear_lastread(inir.Get("paths", "data path", "data"), "", "")) {
+                std::cout << "Error clearing last read." << std::endl;
+            } else {
+                std::cout << "Success clearing last read." << std::endl;
+            }
+        } else if (strcasecmp(argv[1], "clearlruser") == 0) {
+            if (argc == 3) {
+                if (!User::clear_lastread(inir.Get("paths", "data path", "data"), "", std::string(argv[2]))) {
+                    std::cout << "Error clearing last read." << std::endl;
+                } else {
+                    std::cout << "Success clearing last read." << std::endl;
+                }
+            }
+        } else if (strcasecmp(argv[1], "clearlrbase") == 0) {
+            if (argc == 3) {
+                if (!User::clear_lastread(inir.Get("paths", "data path", "data"), std::string(argv[2]), "")) {
+                    std::cout << "Error clearing last read." << std::endl;
+                } else {
+                    std::cout << "Success clearing last read." << std::endl;
+                }
+            }
+        } else if (strcasecmp(argv[1], "clearlrbaseuser") == 0) {
+            if (argc == 4) {
+                if (!User::clear_lastread(inir.Get("paths", "data path", "data"), std::string(argv[2]), std::string(argv[3]))) {
+                    std::cout << "Error clearing last read." << std::endl;
+                } else {
+                    std::cout << "Success clearing last read." << std::endl;
+                }
+            }
+        }
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
-		std::cerr << "   COMMAND password    ARGS username newpassword" << std::endl;
-		std::cerr << "   COMMAND seclevel    ARGS username newlevel" << std::endl;
-		std::cerr << "   COMMAND uploadindex ARGS indexfile folder database [uploadedby]" << std::endl;
-		std::cerr << "   COMMAND uploadbulk  ARGS folder database [uploadedby]" << std::endl;
-		std::cerr << "   COMMAND filetrim    ARGS database" << std::endl;
-		std::cerr << "   COMMAND movefile    ARGS srcfilename destdir srcdatabase destdatabase" << std::endl;
-		std::cerr << "   COMMAND allfiles    ARGS sec_level outfile" << std::endl;
-		std::cerr << "   COMMAND newfiles    ARGS sec_level yyyy.mm.dd outfile" << std::endl;
-		std::cerr << "   COMMAND nodelistp   ARGS domain nodelist database" << std::endl;
+		std::cerr << "   COMMAND password         ARGS username newpassword" << std::endl;
+		std::cerr << "   COMMAND seclevel         ARGS username newlevel" << std::endl;
+		std::cerr << "   COMMAND uploadindex      ARGS indexfile folder database [uploadedby]" << std::endl;
+		std::cerr << "   COMMAND uploadbulk       ARGS folder database [uploadedby]" << std::endl;
+		std::cerr << "   COMMAND filetrim         ARGS database" << std::endl;
+		std::cerr << "   COMMAND movefile         ARGS srcfilename destdir srcdatabase destdatabase" << std::endl;
+		std::cerr << "   COMMAND allfiles         ARGS sec_level outfile" << std::endl;
+		std::cerr << "   COMMAND newfiles         ARGS sec_level yyyy.mm.dd outfile" << std::endl;
+		std::cerr << "   COMMAND nodelistp        ARGS domain nodelist database" << std::endl;
+        std::cerr << "   COMMAND clearlrall       ARGS (NONE)" << std::endl;
+        std::cerr << "   COMMAND clearlruser      ARGS username" << std::endl;
+        std::cerr << "   COMMAND clearlrbase      ARGS msgbasefile" << std::endl;
+        std::cerr << "   COMMAND clearlrbaseuser  ARGS msgbasefile username" << std::endl;
 	}
 }
