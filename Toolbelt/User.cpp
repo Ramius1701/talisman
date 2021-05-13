@@ -308,7 +308,7 @@ bool User::delete_user(std::string datapath, std::string username)
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    std::cout << "Done";
+    std::cout << "Done" << std::endl;
 
 
     std::cout << "Deleting user subscriptions...";
@@ -323,7 +323,7 @@ bool User::delete_user(std::string datapath, std::string username)
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    std::cout << "Done";
+    std::cout << "Done" << std::endl;
 
     sqlite3_close(db);
 
@@ -339,7 +339,7 @@ bool User::delete_user(std::string datapath, std::string username)
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 
-    std::cout << "Done";
+    std::cout << "Done" << std::endl;
 
     std::cout << "Deleting user...";
 
@@ -355,7 +355,7 @@ bool User::delete_user(std::string datapath, std::string username)
 
     sqlite3_close(db);
 
-    std::cout << "Done";
+    std::cout << "Done" << std::endl;
 
     return true;
 }
