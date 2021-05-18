@@ -491,7 +491,7 @@ bool User::username_allowed(Config config, std::string username) {
 	}
 
 	for (size_t i = 0; i < username.size(); i++) {
-		if (!(username[i] == ' ' || isalnum(username[i]))) {
+		if (!(username[i] == ' ' || username[i] == '-' || isalnum(username[i]))) {
 			return false;
 		}
 	}
