@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv) {
 	if (argc < 2) {
-		std::cout << "Usage: " << argv[0] << " [scan|toss]" << std::endl;
+		std::cout << "Usage: " << argv[0] << " [scan|toss|ticproc]" << std::endl;
 		return -1;
 	}
 
@@ -27,7 +27,14 @@ int main(int argc, char** argv) {
 	else if (strcasecmp(argv[1], "ticproc") == 0) {
 		TicProc tp;
 		tp.run();
-	}
+	} else if (strcasecmp(argv[1], "tichatch") == 0) {
+        TicProc tp;
+        if (argc < 5) {
+            std::cout << "Usage: " << argv[0] << " tichatch \"file\" \"areatag\" \"replaces\" \"desc\"" << std::endl;
+            return -1;
+        }
+        tp.hatch(argv[2], argv[3], argv[4], argv[5]);
+    }
 	else {
 		std::cout << "Usage: " << argv[0] << " [scan|toss|ticproc]" << std::endl;
 		return -1;

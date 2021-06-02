@@ -66,7 +66,7 @@ public:
 	std::vector<struct route_conf_t> routes;
 	std::vector<struct netmail_area_conf_t> netmailareas;
 	std::vector<struct farea_conf_t> fileareas;
-	
+	static void sort_addr(std::vector<NETADDR *> *links);
 	std::string packetdir() {
 		return __packetdir;
 	}

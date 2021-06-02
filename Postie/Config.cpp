@@ -163,6 +163,48 @@ bool Config::load_archivers(std::string datapath)
 	return true;
 }
 
+struct {
+	bool operator()(NETADDR  *a, NETADDR *b) const
+	{
+		if (a->zone < b->zone) {
+			return true;
+		}
+		else {
+            if (a->zone > b->zone) {
+                return false;
+            }
+
+			if (a->net < b->net) {
+				return true;
+			} else {
+                if (a->net > b->net) {
+                    return false;
+                }
+
+                if (a->node < b->node) {
+                    return true;
+                } else {
+                    if (a->node > b->node) {
+                        return false;
+                    } else if (a->point < b->point) {
+                        return true;
+                    } else if (a->point > b->point) {
+                        return false;
+                    }
+                }
+            }
+		}
+		return true;
+	}
+} compare_links;
+
+void Config::sort_addr(std::vector<NETADDR *> *links)
+{
+	if (links->size() > 1) {
+		std::sort(links->begin(), links->end(), compare_links);
+	}
+}
+
 bool Config::load(std::string datapath) {
 	try {
 		auto data = toml::parse_file(datapath + "/postie.toml");

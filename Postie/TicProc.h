@@ -24,6 +24,7 @@ class TicProc
 {
 public:
 	bool run();
+    bool hatch(const char *file, const char *area, const char *replace, const char *desc);
 private:
 	bool check_crc(const char *, uint32_t crc);
 	bool add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcfile, std::filesystem::path destfile, std::string database);

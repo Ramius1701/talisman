@@ -18,6 +18,7 @@
 #include "../Common/Logger.h"
 #include "Dupe.h"
 #include "Archiver.h"
+#include "GenDefs.h"
 
 
 bool TicProc::check_crc(const char * filename, uint32_t crc_chk) {
@@ -134,6 +135,142 @@ bool TicProc::open_database(std::string filename, sqlite3** db)
 		return false;
 	}
 	return true;
+}
+
+bool TicProc::hatch(const char *file, const char *area, const char *replace, const char *desc) {
+	INIReader inir("talisman.ini");
+	Config c;
+	unsigned long pid;
+	static const char* days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	static const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+	if (inir.ParseError()) {
+		return false;
+	}
+
+	_datapath = inir.Get("Paths", "Data Path", "data");
+	_logpath = inir.Get("Paths", "Log Path", "logs");
+	_tmppath = inir.Get("Paths", "Temp Path", "temp");
+
+	Logger log;
+
+	log.load(_logpath + "/postie.log");
+
+	if (!c.load(_datapath)) {
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+		return false;
+	}
+
+#ifdef _MSC_VER
+	pid = GetCurrentProcessId();
+#else
+	pid = getpid();
+#endif
+
+	std::filesystem::path temppth(_tmppath + "/postie-" + std::to_string(pid));
+	std::filesystem::create_directories(temppth);
+
+    std::filesystem::path tic(temppth);
+
+    std::filesystem::path fpath(file);
+
+    char buffer[9];
+    time_t ttime = time(NULL);
+    struct tm ttime_tm;
+
+#ifdef _MSC_VER
+    gmtime_s(&ttime_tm, &ttime);
+#else
+    gmtime_r(&ttime, &ttime_tm);
+#endif
+
+    snprintf(buffer, sizeof buffer, "%08" PRIx64 , ttime & 0xffffffff);
+
+    tic.append(std::string(buffer) + ".tic");
+
+    uint32_t crc;
+
+    if (!Dupe::crc32file(fpath.u8string().c_str(), &crc)) {
+        std::filesystem::remove_all(temppth);
+        return false;
+    }
+
+    struct farea_conf_t *fa = NULL;
+
+    for (size_t a = 0; a < c.fileareas.size(); a++) {
+        if (strcasecmp(c.fileareas.at(a).areatag.c_str(), area) == 0) {
+            fa = &c.fileareas.at(a);
+            break;
+        }
+    }
+
+    if (fa == NULL) {
+        std::filesystem::remove_all(temppth);
+        return false;
+    }
+
+    for (size_t l = 0; l < fa->links.size(); l++) {
+        FILE *fptr = fopen(tic.u8string().c_str(), "wb");
+
+        if (!fptr) {
+            continue;
+        }
+
+        fprintf(fptr, "Area %s\r\n", area);
+        fprintf(fptr, "File %s\r\n", fpath.filename().u8string().c_str());
+
+        fprintf(fptr, "Size %lu\r\n", std::filesystem::file_size(fpath));
+        fprintf(fptr, "Desc %s\r\n", desc);
+
+        // TODO: Ldesc
+
+        fprintf(fptr, "Created by Postie %d.%d\r\n", VERSION_MAJOR, VERSION_MINOR);
+        fprintf(fptr, "Replaces %s\r\n", replace);
+        fprintf(fptr, "Crc %08X\r\n", crc);
+
+        fprintf(fptr, "Pw %s\r\n", fa->links.at(l)->ticpwd.c_str());
+
+        std::vector<NETADDR *> addresses;
+
+        for (size_t sb = 0; sb < fa->links.size(); sb++) {
+            addresses.push_back(fa->links.at(sb)->aka);
+        }
+
+        addresses.push_back(fa->aka);
+
+        Config::sort_addr(&addresses);
+
+        for (size_t sb = 0; sb < addresses.size(); sb++) {
+            if (addresses.at(sb)->point > 0) {
+                fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node, addresses.at(sb)->point);
+            } else {
+                fprintf(fptr, "Seenby %d:%d/%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node);
+            }
+        }
+        if (fa->links.at(l)->ouraka->point > 0) {
+            fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l)->ouraka->zone, fa->links.at(l)->ouraka->net, fa->links.at(l)->ouraka->node, fa->links.at(l)->ouraka->point, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+        } else {
+            fprintf(fptr, "Path %d:%d/%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l)->ouraka->zone, fa->links.at(l)->ouraka->net, fa->links.at(l)->ouraka->node, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+        }
+        fclose(fptr);
+
+        std::filesystem::path targetfile(fa->links.at(l)->filebox);
+        targetfile.append(fpath.filename().u8string());
+
+        std::filesystem::path targettic(fa->links.at(l)->filebox);
+        targettic.append(tic.filename().u8string());
+
+        std::filesystem::copy_file(tic, targettic);
+        std::filesystem::copy_file(fpath, targetfile);
+
+        std::filesystem::remove(tic);
+
+    }
+    std::filesystem::remove_all(temppth);
+    return true;
 }
 
 bool TicProc::run() {
@@ -377,15 +514,30 @@ bool TicProc::run() {
 					gmtime_r(&now, &ltime);
 #endif
 
-					fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
+					fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_mday + 1, ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
 					
+                    std::vector<NETADDR *> addresses;
+
+
 					// print seenbys
 					for (size_t sb = 0; sb < tic.seenbys.size(); sb++) {
-						fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", tic.seenbys.at(sb)->zone, tic.seenbys.at(sb)->net, tic.seenbys.at(sb)->node, tic.seenbys.at(sb)->point);
+                        addresses.push_back(tic.seenbys.at(sb));
 					}
 					for (size_t sb = 0; sb < downlinks.size(); sb++) {
-						fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", downlinks.at(sb)->aka->zone, downlinks.at(sb)->aka->net, downlinks.at(sb)->aka->node, downlinks.at(sb)->aka->point);
+                        addresses.push_back(downlinks.at(sb)->aka);
+
 					}
+
+					Config::sort_addr(&addresses);
+
+                    for (size_t sb = 0; sb < addresses.size(); sb++) {
+                        if (addresses.at(sb)->point > 0) {
+                            fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node, addresses.at(sb)->point);
+                        } else {
+                            fprintf(fptr, "Seenby %d:%d/%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node);
+                        }
+                    }
+
 					fclose(fptr);
 
 					// copy new tic file, and actual file to outbox

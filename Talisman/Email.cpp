@@ -225,6 +225,7 @@ void Email::list_email(Node* n) {
 							emails.at(emailno).seen = true;
 							
 							if (ret == 0) {
+                                lines = 0;
 								break;
 							}
 							else {
@@ -257,6 +258,7 @@ void Email::list_email(Node* n) {
 					int ret = view_email(n, emails.at(emailno));
 					emails.at(emailno).seen = true;
 					if (ret == 0) {
+                        lines = 0;
 						break;
 					}
 					else {
