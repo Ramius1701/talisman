@@ -178,7 +178,7 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     std::filesystem::path fpath(file);
 
-    if (fpath.stem().u8string().size() > 8 || fpath.extension().u8string().size() > 3) {
+    if (fpath.stem().u8string().size() > 8 || fpath.extension().u8string().size() > 4) {
         std::cerr << "Filename is not MS-DOS compatible!" << std::endl;
         return false;
     }
