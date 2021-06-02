@@ -468,7 +468,7 @@ void Tosser::filefix(Config *c, sq_msg_t* msg) {
 								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
 							}
 							else {
-								ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+								ss2 << "!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
 								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
 							}
 							if (success) {
