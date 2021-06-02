@@ -655,16 +655,36 @@ bool Config::load(std::string datapath) {
 
 				while (getline(ss, buff, ',')) {
 					trim(buff);
-					NETADDR* laddr = parse_fido_addr(buff.c_str());
-					if (laddr) {
-						for (size_t y = 0; y < links.size(); y++) {
-							if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
-								faconf.links.push_back(&links.at(y));
-								break;
-							}
-						}
+                    NETADDR* laddr = NULL;
 
-						free(laddr);
+                    if (buff.at(0) == '&') {
+                        laddr = parse_fido_addr(&buff.c_str()[1]);
+                        if (laddr) {
+                            for (size_t y = 0; y < links.size(); y++) {
+                                if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
+                                    struct flink_conf_t fl;
+                                    fl.link = &links.at(y);
+                                    fl.forward_allowed = true;
+                                    faconf.links.push_back(fl);
+                                    break;
+                                }
+                            }
+                            free(laddr);
+                        }
+                    } else {
+                        laddr = parse_fido_addr(buff.c_str());
+                        if (laddr) {
+                            for (size_t y = 0; y < links.size(); y++) {
+                                if (laddr->zone == links.at(y).aka->zone && laddr->net == links.at(y).aka->net && laddr->node == links.at(y).aka->node && laddr->point == links.at(y).aka->point) {
+                                    struct flink_conf_t fl;
+                                    fl.link = &links.at(y);
+                                    fl.forward_allowed = false;
+                                    faconf.links.push_back(fl);
+                                    break;
+                                }
+                            }
+                            free(laddr);
+                        }
 					}
 				}
 

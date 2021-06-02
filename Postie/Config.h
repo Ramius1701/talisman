@@ -44,13 +44,18 @@ struct area_conf_t {
 	std::vector <struct link_conf_t*> links;
 };
 
+struct flink_conf_t {
+    struct link_conf_t *link;
+    bool forward_allowed;
+};
+
 struct farea_conf_t {
 	NETADDR *aka;
 	std::string database;
 	std::string directory;
 	std::string areatag;
 	std::string hook;
-	std::vector <struct link_conf_t*> links;
+	std::vector <struct flink_conf_t> links;
 };
 
 class Config

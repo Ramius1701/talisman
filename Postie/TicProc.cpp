@@ -12,6 +12,7 @@
 #include <ctime>
 #include <sstream>
 #include <cinttypes>
+#include <iostream>
 #include "../Common/INIReader.h"
 #include "Config.h"
 #include "TicProc.h"
@@ -177,6 +178,16 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     std::filesystem::path fpath(file);
 
+    if (fpath.stem().u8string().size() > 8 || fpath.extension().u8string().size() > 3) {
+        std::cerr << "Filename is not MS-DOS compatible!" << std::endl;
+        return false;
+    }
+
+    if (!std::filesystem::exists(fpath) || !std::filesystem::is_regular_file(fpath)) {
+        std::cerr << "File does not exist, or is not a regular file!" << std::endl;
+        return false;
+    }
+
     char buffer[9];
     time_t ttime = time(NULL);
     struct tm ttime_tm;
@@ -231,12 +242,12 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
         fprintf(fptr, "Replaces %s\r\n", replace);
         fprintf(fptr, "Crc %08X\r\n", crc);
 
-        fprintf(fptr, "Pw %s\r\n", fa->links.at(l)->ticpwd.c_str());
+        fprintf(fptr, "Pw %s\r\n", fa->links.at(l).link->ticpwd.c_str());
 
         std::vector<NETADDR *> addresses;
 
         for (size_t sb = 0; sb < fa->links.size(); sb++) {
-            addresses.push_back(fa->links.at(sb)->aka);
+            addresses.push_back(fa->links.at(sb).link->aka);
         }
 
         addresses.push_back(fa->aka);
@@ -250,17 +261,17 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
                 fprintf(fptr, "Seenby %d:%d/%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node);
             }
         }
-        if (fa->links.at(l)->ouraka->point > 0) {
-            fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l)->ouraka->zone, fa->links.at(l)->ouraka->net, fa->links.at(l)->ouraka->node, fa->links.at(l)->ouraka->point, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+        if (fa->links.at(l).link->ouraka->point > 0) {
+            fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, fa->links.at(l).link->ouraka->point, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
         } else {
-            fprintf(fptr, "Path %d:%d/%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l)->ouraka->zone, fa->links.at(l)->ouraka->net, fa->links.at(l)->ouraka->node, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+            fprintf(fptr, "Path %d:%d/%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
         }
         fclose(fptr);
 
-        std::filesystem::path targetfile(fa->links.at(l)->filebox);
+        std::filesystem::path targetfile(fa->links.at(l).link->filebox);
         targetfile.append(fpath.filename().u8string());
 
-        std::filesystem::path targettic(fa->links.at(l)->filebox);
+        std::filesystem::path targettic(fa->links.at(l).link->filebox);
         targettic.append(tic.filename().u8string());
 
         std::filesystem::copy_file(tic, targettic);
@@ -389,28 +400,6 @@ bool TicProc::run() {
 				continue;
 			}
 
-			bool passok = false;
-
-			for (size_t i = 0; i < c.links.size(); i++) {
-				if (c.links.at(i).aka->zone == ticfrom->zone && c.links.at(i).aka->net == ticfrom->net && c.links.at(i).aka->node == ticfrom->node && c.links.at(i).aka->point == ticfrom->point) {
-					if (c.links.at(i).ticpwd == tic.password) {
-						passok = true;
-					}
-					break;
-				}
-			}
-
-			free(ticfrom);
-
-			if (!passok) {
-				log.log(LOG_ERROR, "%s contains an invalid password!", filepth.u8string().c_str());
-				for (NETADDR* addr : tic.seenbys) {
-					free(addr);
-				}
-
-				continue;
-			}
-
 			struct farea_conf_t* filearea = nullptr;
 
 			//    add file to area
@@ -428,6 +417,32 @@ bool TicProc::run() {
 				}
 				continue;
 			}
+
+			bool passok = false;
+            bool canforward = false;
+
+			for (size_t i = 0; i < filearea->links.size(); i++) {
+				if (filearea->links.at(i).link->aka->zone == ticfrom->zone && filearea->links.at(i).link->aka->net == ticfrom->net && filearea->links.at(i).link->aka->node == ticfrom->node && filearea->links.at(i).link->aka->point == ticfrom->point) {
+					if (filearea->links.at(i).link->ticpwd == tic.password) {
+						passok = true;
+                        canforward = filearea->links.at(i).forward_allowed;
+					}
+					break;
+				}
+			}
+
+			free(ticfrom);
+
+			if (!passok) {
+				log.log(LOG_ERROR, "%s contains an invalid password!", filepth.u8string().c_str());
+				for (NETADDR* addr : tic.seenbys) {
+					free(addr);
+				}
+
+				continue;
+			}
+
+
 			std::filesystem::path fsrc(c.protinbound() + "/" + tic.file);
 			std::filesystem::path fdest(filearea->directory);
 
@@ -453,116 +468,120 @@ bool TicProc::run() {
 					Archiver::runexec(ss.str());
 				}
 			}
-			std::vector<struct link_conf_t*> downlinks;
 
-			//    forward any files to downlinks
-			for (size_t l = 0; l < filearea->links.size(); l++) {
-				bool inseenby = false;
-				for (size_t s = 0; s < tic.seenbys.size(); s++) {
-					if (tic.seenbys.at(s)->zone == filearea->links.at(l)->aka->zone && tic.seenbys.at(s)->net == filearea->links.at(l)->aka->net && tic.seenbys.at(s)->node == filearea->links.at(l)->aka->node && tic.seenbys.at(s)->point == filearea->links.at(l)->aka->point) {
-						inseenby = true;
-						break;
-					}
-				}
-				if (!inseenby) {
-					downlinks.push_back(filearea->links.at(l));
-				}
-			}
+            if (canforward) {
 
-			for (size_t l = 0; l < downlinks.size(); l++) {
-				std::ifstream ifs(filepth);
-				std::string line;
-				std::vector<std::string> ticlines;
-				while (std::getline(ifs, line))
-				{
-					ticlines.push_back(line);
-				}
+                std::vector<struct link_conf_t*> downlinks;
 
-				ifs.close();
-
-				// create tic file for link
-				std::filesystem::path newtic(temppth);
-				newtic.append(filepth.filename().u8string());
-
-				FILE* fptr = fopen(newtic.u8string().c_str(), "wb");
-
-				if (fptr) {
-					for (size_t ln = 0; ln < ticlines.size(); ln++) {
-						if (strncasecmp(ticlines.at(ln).c_str(), "Pw ", 3) == 0) {
-							fprintf(fptr, "Pw %s\r\n", downlinks.at(l)->ticpwd.c_str());
-						}
-						else if (strncasecmp(ticlines.at(ln).c_str(), "To ", 3) == 0) {
-							fprintf(fptr, "To %d:%d/%d.%d\r\n", downlinks.at(l)->aka->zone, downlinks.at(l)->aka->net, downlinks.at(l)->aka->node, downlinks.at(l)->aka->point);
-						}
-						else if (strncasecmp(ticlines.at(ln).c_str(), "From ", 5) == 0) {
-							fprintf(fptr, "From %d:%d/%d.%d\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point);
-						}
-						else if (strncasecmp(ticlines.at(ln).c_str(), "Seenby ", 7) != 0 && strncasecmp(ticlines.at(ln).c_str(), "Path ", 5) != 0) {
-							fprintf(fptr, "%s\r\n", ticlines.at(ln).c_str());
-						}
-					}
-
-					// print path
-					for (size_t pt = 0; pt < tic.path.size(); pt++) {
-						fprintf(fptr, "Path %s\r\n", tic.path.at(pt).c_str());
-					}
-					time_t now = time(NULL);
-					struct tm ltime;
-#ifdef _MSC_VER
-					gmtime_s(&ltime, &now);
-#else
-					gmtime_r(&now, &ltime);
-#endif
-
-					fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_mday + 1, ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
-					
-                    std::vector<NETADDR *> addresses;
-
-
-					// print seenbys
-					for (size_t sb = 0; sb < tic.seenbys.size(); sb++) {
-                        addresses.push_back(tic.seenbys.at(sb));
-					}
-					for (size_t sb = 0; sb < downlinks.size(); sb++) {
-                        addresses.push_back(downlinks.at(sb)->aka);
-
-					}
-
-					Config::sort_addr(&addresses);
-
-                    for (size_t sb = 0; sb < addresses.size(); sb++) {
-                        if (addresses.at(sb)->point > 0) {
-                            fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node, addresses.at(sb)->point);
-                        } else {
-                            fprintf(fptr, "Seenby %d:%d/%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node);
+                //    forward any files to downlinks
+                for (size_t l = 0; l < filearea->links.size(); l++) {
+                    bool inseenby = false;
+                    for (size_t s = 0; s < tic.seenbys.size(); s++) {
+                        if (tic.seenbys.at(s)->zone == filearea->links.at(l).link->aka->zone && tic.seenbys.at(s)->net == filearea->links.at(l).link->aka->net && tic.seenbys.at(s)->node == filearea->links.at(l).link->aka->node && tic.seenbys.at(s)->point == filearea->links.at(l).link->aka->point) {
+                            inseenby = true;
+                            break;
                         }
                     }
+                    if (!inseenby) {
+                        downlinks.push_back(filearea->links.at(l).link);
+                    }
+                }
 
-					fclose(fptr);
+                for (size_t l = 0; l < downlinks.size(); l++) {
+                    std::ifstream ifs(filepth);
+                    std::string line;
+                    std::vector<std::string> ticlines;
+                    while (std::getline(ifs, line))
+                    {
+                        ticlines.push_back(line);
+                    }
 
-					// copy new tic file, and actual file to outbox
+                    ifs.close();
 
-					std::filesystem::path desttic(downlinks.at(l)->filebox);
-					desttic.append(filepth.filename().u8string());
+                    // create tic file for link
+                    std::filesystem::path newtic(temppth);
+                    newtic.append(filepth.filename().u8string());
 
-					std::filesystem::path destfile(downlinks.at(l)->filebox);
-					destfile.append(tic.file);
+                    FILE* fptr = fopen(newtic.u8string().c_str(), "wb");
 
-					std::filesystem::copy(newtic, desttic);
+                    if (fptr) {
+                        for (size_t ln = 0; ln < ticlines.size(); ln++) {
+                            if (strncasecmp(ticlines.at(ln).c_str(), "Pw ", 3) == 0) {
+                                fprintf(fptr, "Pw %s\r\n", downlinks.at(l)->ticpwd.c_str());
+                            }
+                            else if (strncasecmp(ticlines.at(ln).c_str(), "To ", 3) == 0) {
+                                fprintf(fptr, "To %d:%d/%d.%d\r\n", downlinks.at(l)->aka->zone, downlinks.at(l)->aka->net, downlinks.at(l)->aka->node, downlinks.at(l)->aka->point);
+                            }
+                            else if (strncasecmp(ticlines.at(ln).c_str(), "From ", 5) == 0) {
+                                fprintf(fptr, "From %d:%d/%d.%d\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point);
+                            }
+                            else if (strncasecmp(ticlines.at(ln).c_str(), "Seenby ", 7) != 0 && strncasecmp(ticlines.at(ln).c_str(), "Path ", 5) != 0) {
+                                fprintf(fptr, "%s\r\n", ticlines.at(ln).c_str());
+                            }
+                        }
 
-					if (std::filesystem::exists(destfile)) {
-						std::filesystem::remove(destfile);
-					}
-					std::filesystem::copy(fsrc, destfile);
+                        // print path
+                        for (size_t pt = 0; pt < tic.path.size(); pt++) {
+                            fprintf(fptr, "Path %s\r\n", tic.path.at(pt).c_str());
+                        }
+                        time_t now = time(NULL);
+                        struct tm ltime;
+    #ifdef _MSC_VER
+                        gmtime_s(&ltime, &now);
+    #else
+                        gmtime_r(&now, &ltime);
+    #endif
 
-					std::filesystem::remove(newtic);
-				}
-			}
-			removelist.push_back(fsrc);
-			removelist.push_back(filepth);
-			for (NETADDR* addr : tic.seenbys) {
-				free(addr);
-			}
+                        fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_mday + 1, ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
+
+                        std::vector<NETADDR *> addresses;
+
+
+                        // print seenbys
+                        for (size_t sb = 0; sb < tic.seenbys.size(); sb++) {
+                            addresses.push_back(tic.seenbys.at(sb));
+                        }
+                        for (size_t sb = 0; sb < downlinks.size(); sb++) {
+                            addresses.push_back(downlinks.at(sb)->aka);
+
+                        }
+
+                        Config::sort_addr(&addresses);
+
+                        for (size_t sb = 0; sb < addresses.size(); sb++) {
+                            if (addresses.at(sb)->point > 0) {
+                                fprintf(fptr, "Seenby %d:%d/%d.%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node, addresses.at(sb)->point);
+                            } else {
+                                fprintf(fptr, "Seenby %d:%d/%d\r\n", addresses.at(sb)->zone, addresses.at(sb)->net, addresses.at(sb)->node);
+                            }
+                        }
+
+                        fclose(fptr);
+
+                        // copy new tic file, and actual file to outbox
+
+                        std::filesystem::path desttic(downlinks.at(l)->filebox);
+                        desttic.append(filepth.filename().u8string());
+
+                        std::filesystem::path destfile(downlinks.at(l)->filebox);
+                        destfile.append(tic.file);
+
+                        std::filesystem::copy(newtic, desttic);
+
+                        if (std::filesystem::exists(destfile)) {
+                            std::filesystem::remove(destfile);
+                        }
+                        std::filesystem::copy(fsrc, destfile);
+
+                        std::filesystem::remove(newtic);
+                    }
+                }
+                removelist.push_back(fsrc);
+                removelist.push_back(filepth);
+                for (NETADDR* addr : tic.seenbys) {
+                    free(addr);
+                }
+            }
 		}
 	}
 
