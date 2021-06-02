@@ -586,12 +586,12 @@ bool TicProc::run() {
                         std::filesystem::remove(newtic);
                     }
                 }
-                removelist.push_back(fsrc);
-                removelist.push_back(filepth);
-                for (NETADDR* addr : tic.seenbys) {
-                    free(addr);
-                }
             }
+            for (NETADDR* addr : tic.seenbys) {
+                free(addr);
+            }
+            removelist.push_back(fsrc);
+            removelist.push_back(filepth);
 		}
 	}
 
