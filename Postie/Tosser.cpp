@@ -20,10 +20,11 @@
 #include <fstream>
 
 
-bool Tosser::update(std::string tag, std::string links) {
+
+bool Tosser::update(std::string tag, std::string links, bool filearea) {
 	auto config = toml::parse_file(_datapath + "/postie.toml");
 
-	auto areaitems = config.get_as<toml::array>("area");
+	auto areaitems = config.get_as<toml::array>((filearea ? "filearea" : "area"));
 	if (areaitems != nullptr) {
 
 		for (size_t k = 0; k < areaitems->size(); k++) {
@@ -41,7 +42,7 @@ bool Tosser::update(std::string tag, std::string links) {
 			}
 
 			if (mytag == tag) {
-				std::stringstream ss2;
+				//std::stringstream ss2;
 
 				itemtable->insert_or_assign("links", links);
 
@@ -117,10 +118,10 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 
 							if (success == true) {
 								if (ss2.str().size() > 1) {
-									success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1));
+									success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), false);
 								}
 								else {
-									success = update(c->areas.at(i).areatag, ss2.str());
+									success = update(c->areas.at(i).areatag, ss2.str(), false);
 								}
 							}
 							if (success) {
@@ -217,11 +218,11 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 
 							if (ss2.str().size() > 1 && success == true) {
 								ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->areas.at(i).areatag, ss2.str());
+								success = update(c->areas.at(i).areatag, ss2.str(), false);
 							}
 							else {
 								ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->areas.at(i).areatag, ss2.str());
+								success = update(c->areas.at(i).areatag, ss2.str(), false);
 							}
 							if (success) {
 								msgout.push_back("You have been added to " + c->areas.at(i).areatag + " successfully.");
@@ -314,6 +315,251 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 			msgstr << "This will give you a list of everything available\r\r";
 			msgstr << "%RESCAN AREA_TAG\r\r";
 			msgstr << "(Re)send up to the last 100 messages in this base.\r\r";
+			msgstr << "%HELP\r\r";
+			msgstr << "This will show you this help\r\r";
+			msgstr << "----------------------------------------------------------\r";
+		}
+
+		sqmsg.msg = (char*)malloc(msgstr.str().size());
+		if (!sqmsg.msg) {
+			free(sqmsg.ctrl);
+			return;
+		}
+		memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+		sqmsg.msg_len = msgstr.str().size();
+
+		if (link->fptr == NULL) {
+			Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
+		}
+		Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
+	}
+	else {
+		log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+	}
+}
+
+void Tosser::filefix(Config *c, sq_msg_t* msg) {
+	link_conf_t* link = NULL;
+	bool showhelp = false;
+
+	for (size_t i = 0; i < c->links.size(); i++) {
+		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
+			c->links.at(i).aka->net == msg->xmsg.orig.net &&
+			c->links.at(i).aka->node == msg->xmsg.orig.node &&
+			c->links.at(i).aka->point == msg->xmsg.orig.point) {
+			link = &c->links.at(i);
+			break;
+		}
+	}
+
+	if (link == NULL) {
+		log.log(LOG_INFO, "Got filefix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+		return;
+	}
+
+	// first check password
+	if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
+		// password is good.
+		std::vector<std::string> smsg;
+		std::stringstream ss;
+		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
+			if (msg->msg[i] == '\r') {
+				smsg.push_back(ss.str());
+				ss.str("");
+			}
+			else if (msg->msg[i] != '\n') {
+				ss << msg->msg[i];
+			}
+ 		}
+		if (ss.str().size() > 0) {
+			smsg.push_back(ss.str());
+		}
+
+		std::vector<std::string> msgout;
+
+		for (std::string line : smsg) {
+			if (line.size() > 0) {
+				if (line.at(0) == '-') {
+					// remove area
+					bool success = false;
+
+					for (size_t i = 0; i < c->fileareas.size(); i++) {
+						if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 && link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+							std::stringstream ss2;
+							for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
+								if (c->fileareas.at(i).links.at(j).link == link) {
+									success = true;
+								}
+								else {
+                                    if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                                        ss2 << "!";
+                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
+                                        ss2 << "&";
+                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                                        ss2 << "=";
+                                    }
+									ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/" << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
+								}
+							}
+
+							if (success == true) {
+								if (ss2.str().size() > 1) {
+									success = update(c->fileareas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), true);
+								}
+								else {
+									success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+								}
+							}
+							if (success) {
+								msgout.push_back("You have been removed from " + c->fileareas.at(i).areatag + " successfully.");
+								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
+							}
+							else {
+								msgout.push_back("You have NOT been removed from " + c->fileareas.at(i).areatag);
+							}
+							break;
+						}
+					}
+
+				}
+				else if (line.at(0) == '%') {
+					if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
+						msgout.push_back("File areas you have access to:");
+						msgout.push_back("");
+						for (size_t i = 0; i < c->fileareas.size(); i++) {
+							if (link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+								msgout.push_back(c->fileareas.at(i).areatag);
+							}
+						}
+					}
+					else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
+						showhelp = true;
+					}
+                }
+				else {
+					// add area
+					bool success = false;
+
+					for (size_t i = 0; i < c->fileareas.size(); i++) {
+						if (line.at(0) == '+') {
+							line = line.substr(1);
+						}
+						if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+							std::stringstream ss2;
+							for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
+								if (c->fileareas.at(i).links.at(j).link == link) {
+									success = false;
+									break;
+								}
+								else {
+                                    if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                                        ss2 << "!";
+                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
+                                        ss2 << "&";
+                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                                        ss2 << "=";
+                                    }
+									ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/" << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
+								}
+							}
+
+							if (ss2.str().size() > 1 && success == true) {
+								ss2 << ",!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+							}
+							else {
+								ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+							}
+							if (success) {
+								msgout.push_back("You have been added to " + c->fileareas.at(i).areatag + " successfully.");
+								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
+							}
+							else {
+								msgout.push_back("You have NOT been added to " + c->fileareas.at(i).areatag);
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		sq_msg_t sqmsg;
+
+		memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+		sqmsg.xmsg.orig.zone = link->ouraka->zone;
+		sqmsg.xmsg.orig.net = link->ouraka->net;
+		sqmsg.xmsg.orig.point = link->ouraka->point;
+		sqmsg.xmsg.orig.node = link->ouraka->node;
+
+
+		sqmsg.xmsg.dest.zone = link->aka->zone;
+		sqmsg.xmsg.dest.net = link->aka->net;
+		sqmsg.xmsg.dest.point = link->aka->point;
+		sqmsg.xmsg.dest.node = link->aka->node;
+
+		strncpy(sqmsg.xmsg.subject, "FILEFIX Response", 72);
+		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 36);
+		strncpy(sqmsg.xmsg.from, "FILEFIX", 36);
+
+		std::tm at;
+
+		time_t now = time(NULL);
+#ifdef _MSC_VER
+		localtime_s(&at, &now);
+#else
+		localtime_r(&now, &at);
+#endif
+		sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
+		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
+		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+		sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+
+		std::stringstream ctrlstr;
+
+		ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/" << link->ouraka->node;
+		if (link->aka->point > 0) {
+			ctrlstr << "\x01TOPT " << link->aka->point;
+		}
+		if (link->ouraka->point > 0) {
+			ctrlstr << "\001FMPT " << link->ouraka->point;
+		}
+
+		sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
+		if (!sqmsg.ctrl) {
+			return;
+		}
+		memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+		sqmsg.ctrl_len = ctrlstr.str().size();
+
+		std::stringstream msgstr;
+
+		if (msgout.size() > 0) {
+			// send msgout
+
+			for (size_t i = 0; i < msgout.size(); i++) {
+				msgstr << msgout.at(i) << "\r";
+			}
+
+		}
+		if (showhelp) {
+			// send help text
+			msgstr << "\r\r----------------------------------------------------------\r";
+			msgstr << "FILEFIX HELP!\r";
+			msgstr << "----------------------------------------------------------\r";
+			msgstr << "+SOMEAREA\r\r";
+			msgstr << "This will add you to SOMEAREA\r\r";
+			msgstr << "-SOMEAREA\r\r";
+			msgstr << "This will remove you from SOMEAREA\r\r";
+			msgstr << "%LIST\r\r";
+			msgstr << "This will give you a list of everything available\r\r";
 			msgstr << "%HELP\r\r";
 			msgstr << "This will show you this help\r\r";
 			msgstr << "----------------------------------------------------------\r";
@@ -1019,6 +1265,9 @@ bool Tosser::run(bool protinbound) {
 						if (strcasecmp(sqmsg.xmsg.to, "areafix") == 0 && protinbound) {
 							log.log(LOG_INFO, "It's to areafix!");
 							areafix(&c, &sqmsg);
+						} else if (strcasecmp(sqmsg.xmsg.to, "filefix") == 0 && protinbound) {
+							log.log(LOG_INFO, "It's to filefix!");
+							filefix(&c, &sqmsg);
 						}
 						else {
 

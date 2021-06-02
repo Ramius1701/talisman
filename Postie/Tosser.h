@@ -14,9 +14,11 @@ public:
 private:
 	unsigned long pid;
 	Logger log;
+
+    void filefix(Config *c, sq_msg_t* msg);
 	void areafix(Config *c, sq_msg_t* msg);
-	bool update(std::string tag, std::string links);
-	std::string get_msgid(std::string ctrlbody);
+	bool update(std::string tag, std::string links, bool filearea);
+    std::string get_msgid(std::string ctrlbody);
 	std::filesystem::path tempdir;
 	std::string _datapath;
 	std::string _logpath;

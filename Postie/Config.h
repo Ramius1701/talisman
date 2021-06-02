@@ -56,6 +56,7 @@ struct farea_conf_t {
 	std::string directory;
 	std::string areatag;
 	std::string hook;
+    char group;
 	std::vector <struct flink_conf_t> links;
 };
 

@@ -594,6 +594,7 @@ bool Config::load(std::string datapath) {
 				std::string mydb;
 				std::string mylinklist;
 				std::string myhook;
+                std::string mygroup;
 
 				auto addr = itemtable->get("aka");
 				if (addr != nullptr) {
@@ -641,6 +642,14 @@ bool Config::load(std::string datapath) {
 				}
 				else {
 					myhook = "";
+				}
+
+                auto group = itemtable->get("group");
+				if (group != nullptr) {
+					mygroup = group->as_string()->value_or("0");
+				}
+				else {
+					mygroup = "0";
 				}
 
 				if (mytag == "" || mydir == "" || mydb == "") {
@@ -725,6 +734,7 @@ bool Config::load(std::string datapath) {
 				faconf.directory = mydir;
 				faconf.database = mydb;
 				faconf.hook = myhook;
+                faconf.group = mygroup.at(0);
 				fileareas.push_back(faconf);
 			}
 		}
