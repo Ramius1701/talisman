@@ -420,12 +420,14 @@ bool TicProc::run() {
 
 			bool passok = false;
             bool canforward = false;
+            bool canprocess = false;
 
 			for (size_t i = 0; i < filearea->links.size(); i++) {
 				if (filearea->links.at(i).link->aka->zone == ticfrom->zone && filearea->links.at(i).link->aka->net == ticfrom->net && filearea->links.at(i).link->aka->node == ticfrom->node && filearea->links.at(i).link->aka->point == ticfrom->point) {
 					if (filearea->links.at(i).link->ticpwd == tic.password) {
 						passok = true;
                         canforward = filearea->links.at(i).forward_allowed;
+                        canprocess = filearea->links.at(i).process_allowed;
 					}
 					break;
 				}
@@ -442,6 +444,14 @@ bool TicProc::run() {
 				continue;
 			}
 
+			if (!canprocess) {
+				log.log(LOG_ERROR, "%s cant process tic file!", filepth.u8string().c_str());
+				for (NETADDR* addr : tic.seenbys) {
+					free(addr);
+				}
+
+				continue;
+            }
 
 			std::filesystem::path fsrc(c.protinbound() + "/" + tic.file);
 			std::filesystem::path fdest(filearea->directory);

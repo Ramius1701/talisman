@@ -47,6 +47,7 @@ struct area_conf_t {
 struct flink_conf_t {
     struct link_conf_t *link;
     bool forward_allowed;
+    bool process_allowed;
 };
 
 struct farea_conf_t {
