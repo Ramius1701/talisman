@@ -174,6 +174,9 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 	std::filesystem::path temppth(_tmppath + "/postie-" + std::to_string(pid));
 	std::filesystem::create_directories(temppth);
 
+    std::filesystem::path extractpth(temppth.u8string() + "/extract");
+    std::filesystem::create_directories(extractpth);
+
     std::filesystem::path tic(temppth);
 
     std::filesystem::path fpath(file);
@@ -223,6 +226,52 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
         return false;
     }
 
+    bool unarced = false;
+
+    for (size_t i = 0; i < c.archivers.size(); i++) {
+        FILE* fptr = fopen(fpath.u8string().c_str(), "rb");
+        if (c.archivers.at(i)->offset >= 0) {
+			fseek(fptr, c.archivers.at(i)->offset, SEEK_SET);
+		}
+		else {
+			fseek(fptr, c.archivers.at(i)->offset, SEEK_END);
+		}
+
+		uint8_t byte;
+		bool match = true;
+		for (int z = 0; z < c.archivers.at(i)->bytelen; z++) {
+			fread(&byte, 1, 1, fptr);
+
+			if (byte != c.archivers.at(i)->bytes[z]) {
+				match = false;
+				break;
+			}
+		}
+		fclose(fptr);
+		if (match == false) continue;
+
+        c.archivers.at(i)->extract(fpath.u8string(), extractpth.u8string());
+		unarced = true;
+		break;
+    }
+
+    std::vector<std::string> descr;
+
+    if (unarced) {
+        for (auto& d : std::filesystem::directory_iterator(extractpth)) {
+            if (strcasecmp(d.path().filename().u8string().c_str(), "file_id.diz") == 0) {
+				// found description;
+				std::ifstream infile(d.path().u8string());
+				std::string line;
+				while (std::getline(infile, line))
+				{
+					descr.push_back(line);
+				}
+				break;
+			}
+		}
+    }
+
     for (size_t l = 0; l < fa->links.size(); l++) {
         FILE *fptr = fopen(tic.u8string().c_str(), "wb");
 
@@ -238,7 +287,9 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
         fprintf(fptr, "Size %lu\r\n", std::filesystem::file_size(fpath));
         fprintf(fptr, "Desc %s\r\n", desc);
 
-        // TODO: Ldesc
+        for (size_t i = 0; i< descr.size(); i++) {
+            fprintf(fptr, "Ldesc %s\r\n", descr.at(i).c_str());
+        }
 
         fprintf(fptr, "Created by Postie %d.%d\r\n", VERSION_MAJOR, VERSION_MINOR);
         fprintf(fptr, "Replaces %s\r\n", replace);
