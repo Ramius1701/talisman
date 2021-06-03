@@ -58,10 +58,14 @@ bool TicProc::add_file_to_area(struct ticfile_t* tic, std::filesystem::path srcf
 			pattern = tic->replaces;
 			filename = p.path().filename().u8string();
 #ifdef _MSC_VER
+
+            fprintf(stderr, "%s v %s\n", filename.c_str(), pattern.c_str());
+
 			if (PathMatchSpecA(filename.c_str(), pattern.c_str())) {
 #else
 			if (fnmatch(pattern.c_str(), filename.c_str(), FNM_CASEFOLD) == 0) {
 #endif
+                fprintf(stderr, "MATCH\n");
 				// remove from database
 				if (sqlite3_prepare_v2(db, dsql, strlen(dsql), &stmt, NULL) != SQLITE_OK) {
 					sqlite3_close(db);
