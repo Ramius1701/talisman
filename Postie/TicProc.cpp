@@ -294,7 +294,7 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
         fprintf(fptr, "From %d:%d/%d.%d\r\n", fa->aka->zone, fa->aka->net, fa->aka->node, fa->aka->point);
 
-        fprintf(fptr, "Size %lu\r\n", std::filesystem::file_size(fpath));
+        fprintf(fptr, "Size %" PRIu64 "\r\n", std::filesystem::file_size(fpath));
         fprintf(fptr, "Desc %s\r\n", desc);
 
         for (size_t i = 0; i< descr.size(); i++) {
@@ -444,7 +444,7 @@ bool TicProc::run() {
 			ifs.close();
 
 			//    check crc of file
-			fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file).c_str());
+			// fprintf(stderr, "%s\r\n", std::string(c.protinbound() + "/" + tic.file).c_str());
 			if (!check_crc(std::string(c.protinbound() + "/" + tic.file).c_str(), tic.crc)) {
 				log.log(LOG_ERROR, "%s failed CRC check!", tic.file.c_str());
 				for (NETADDR* addr : tic.seenbys) {
