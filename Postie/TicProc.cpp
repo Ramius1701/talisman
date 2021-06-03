@@ -327,9 +327,9 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
             }
         }
         if (fa->links.at(l).link->ouraka->point > 0) {
-            fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, fa->links.at(l).link->ouraka->point, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+            fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, fa->links.at(l).link->ouraka->point, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
         } else {
-            fprintf(fptr, "Path %d:%d/%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday + 1, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
+            fprintf(fptr, "Path %d:%d/%d %" PRId64 " %s %s %d %02d:%02d:%02d %04d UTC\r\n", fa->links.at(l).link->ouraka->zone, fa->links.at(l).link->ouraka->net, fa->links.at(l).link->ouraka->node, ttime, days[ttime_tm.tm_wday], months[ttime_tm.tm_mon], ttime_tm.tm_mday, ttime_tm.tm_hour, ttime_tm.tm_min, ttime_tm.tm_sec, ttime_tm.tm_year + 1900);
         }
         fclose(fptr);
 
@@ -607,7 +607,7 @@ bool TicProc::run() {
                         gmtime_r(&now, &ltime);
     #endif
 
-                        fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_mday + 1, ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
+                        fprintf(fptr, "Path %d:%d/%d.%d %" PRId64 " %s %s %d %02d:%02d:%02d %d UTC\r\n", downlinks.at(l)->ouraka->zone, downlinks.at(l)->ouraka->net, downlinks.at(l)->ouraka->node, downlinks.at(l)->ouraka->point, now, days[ltime.tm_wday], months[ltime.tm_mon], ltime.tm_mday, ltime.tm_hour, ltime.tm_min, ltime.tm_sec, ltime.tm_year + 1900);
 
                         std::vector<NETADDR *> addresses;
 
