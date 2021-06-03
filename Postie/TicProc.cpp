@@ -292,6 +292,8 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
         fprintf(fptr, "Area %s\r\n", area);
         fprintf(fptr, "File %s\r\n", fpath.filename().u8string().c_str());
 
+        fprintf(fptr, "Origin %d:%d/%d.%d\r\n", fa->aka->zone, fa->aka->net, fa->aka->node, fa->aka->point);
+
         fprintf(fptr, "From %d:%d/%d.%d\r\n", fa->aka->zone, fa->aka->net, fa->aka->node, fa->aka->point);
 
         fprintf(fptr, "Size %" PRIu64 "\r\n", std::filesystem::file_size(fpath));

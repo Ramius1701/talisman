@@ -596,7 +596,7 @@ bool FileArea::upload_file(Node *n) {
 					break;
 				}
 			}
-			//std::filesystem::remove_all(t);
+			std::filesystem::remove_all(t);
 
 			if (descr.size() > 0) {
 				n->print_f("|10Found Description!\r\n|07");
