@@ -21,6 +21,11 @@
 #include "Archiver.h"
 #include "GenDefs.h"
 
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
 
 bool TicProc::check_crc(const char * filename, uint32_t crc_chk) {
 	uint32_t crc;
@@ -265,7 +270,8 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 				std::string line;
 				while (std::getline(infile, line))
 				{
-					descr.push_back(line);
+                    rtrim(line);
+                    descr.push_back(line);
 				}
 				break;
 			}
