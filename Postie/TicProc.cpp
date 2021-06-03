@@ -296,6 +296,8 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
         fprintf(fptr, "From %d:%d/%d.%d\r\n", fa->aka->zone, fa->aka->net, fa->aka->node, fa->aka->point);
 
+        fprintf(fptr, "To %d:%d/%d.%d\r\n", fa->links.at(l).link->aka->zone, fa->links.at(l).link->aka->net, fa->links.at(l).link->aka->node, fa->links.at(l).link->aka->point);
+
         fprintf(fptr, "Size %" PRIu64 "\r\n", std::filesystem::file_size(fpath));
         fprintf(fptr, "Desc %s\r\n", desc);
 
