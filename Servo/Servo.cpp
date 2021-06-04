@@ -171,8 +171,7 @@ int main()
 		return -1;
 	}
 
-	listen(telnetfd, 5);
-	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
+
 
     // listen on telnet6
 
@@ -204,6 +203,9 @@ int main()
 
     }
 
+	listen(telnetfd, 5);
+	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
+
 	int sshfd = -1;
     int sshfd6 = -1;
 
@@ -228,8 +230,7 @@ int main()
 			return -1;
 		}
 
-		listen(sshfd, 5);
-		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
+
         if (ipv6) {
             sshfd6 = socket(AF_INET6, SOCK_STREAM, 0);
 
@@ -258,6 +259,8 @@ int main()
             listen(sshfd6, 5);
             std::cerr << "Listening on port " << sshport << "(SSH - ipv6)" << std::endl;
         }
+		listen(sshfd, 5);
+		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
 	}
 
 	int gopherfd = -1;
@@ -284,8 +287,7 @@ int main()
 			return -1;
 		}
 
-		listen(gopherfd, 5);
-		std::cerr << "Listening on port " << gopherport << "(Gopher)" << std::endl;
+
         if (ipv6) {
             gopherfd6 = socket(AF_INET6, SOCK_STREAM, 0);
 
@@ -315,6 +317,8 @@ int main()
             listen(gopherfd6, 5);
             std::cerr << "Listening on port " << gopherport << "(Gopher - ipv6)" << std::endl;
         }
+        listen(gopherfd, 5);
+		std::cerr << "Listening on port " << gopherport << "(Gopher)" << std::endl;
 	}
 
 	int nfds;
