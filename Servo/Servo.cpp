@@ -176,6 +176,7 @@ int main()
     // listen on telnet6
 
     if (ipv6) {
+        telnetfd6 = socket(AF_INET6, SOCK_STREAM, 0);
         memset(&serv_addr6, 0, sizeof(struct sockaddr_in6));
 
         serv_addr6.sin6_family = AF_INET6;
