@@ -73,8 +73,10 @@ int main()
 {
 	int sshport;
 	int gopherport;
+    bool ipv6 = false;
 	int port;
 	struct sockaddr_in gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr;
+    struct sockaddr_in6 gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6;
 	int csockfd;
 	int on = 1;
 	int max_nodes = 4;
@@ -112,6 +114,7 @@ int main()
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
 	gopherport = inir.GetInteger("main", "gopher port", -1);
 	datapath = inir.Get("paths", "data path", "data");
+    ipv6 = inir.GetBoolean("main", "enable ipv6", false);
 
 	blocklist = new std::vector<IPBlockItem*>();
 
@@ -145,7 +148,10 @@ int main()
 		nodes.push_back(n);
 	}
 
+	// listen on telnet
+
 	int telnetfd = socket(AF_INET, SOCK_STREAM, 0);
+    int telnetfd6 = -1;
 
 	memset(&serv_addr, 0, sizeof(struct sockaddr_in));
 
@@ -168,7 +174,34 @@ int main()
 	listen(telnetfd, 5);
 	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
 
-	int sshfd;
+    // listen on telnet6
+
+    if (ipv6) {
+        memset(&serv_addr6, 0, sizeof(struct sockaddr_in6));
+
+        serv_addr6.sin6_family = AF_INET6;
+        serv_addr6.sin6_addr = in6addr_any;
+        serv_addr6.sin6_port = htons(port);
+        if (setsockopt(telnetfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+            std::cerr << "Error setting SO_REUSEADDR (Telnet - ipv6)" << std::endl;
+            return -1;
+        }
+        if (setsockopt(telnetfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+            std::cerr << "Error setting TCP_NODELAY (Telnet - ipv6)" << std::endl;
+            return -1;
+        }
+        if (bind(telnetfd6, (struct sockaddr*)&serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
+            std::cerr << "Error binding. (Telnet - ipv6)" << std::endl;
+            return -1;
+        }
+
+        listen(telnetfd6, 5);
+        std::cerr << "Listening on port " << port << "(TELNET - ipv6)" << std::endl;
+
+    }
+
+	int sshfd = -1;
+    int sshfd6 = -1;
 
 	if (sshport != -1) {
 		sshfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -193,9 +226,34 @@ int main()
 
 		listen(sshfd, 5);
 		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
+        if (ipv6) {
+            sshfd6 = socket(AF_INET6, SOCK_STREAM, 0);
+
+            memset(&ssh_serv_addr6, 0, sizeof(struct sockaddr_in6));
+
+            ssh_serv_addr6.sin6_family = AF_INET6;
+            ssh_serv_addr6.sin6_addr = in6addr_any;
+            ssh_serv_addr6.sin6_port = htons(sshport);
+            if (setsockopt(sshfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+                std::cerr << "Error setting SO_REUSEADDR (SSH - ipv6)" << std::endl;
+                return -1;
+            }
+            if (setsockopt(sshfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+                std::cerr << "Error setting TCP_NODELAY (SSH - ipv6)" << std::endl;
+                return -1;
+            }
+            if (bind(sshfd6, (struct sockaddr*)&ssh_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
+                std::cerr << "Error binding. (SSH - ipv6)" << std::endl;
+                return -1;
+            }
+
+            listen(sshfd6, 5);
+            std::cerr << "Listening on port " << sshport << "(SSH - ipv6)" << std::endl;
+        }
 	}
 
-	int gopherfd;
+	int gopherfd = -1;
+    int gopherfd6 = -1;
 
 	if (gopherport != -1) {
 		gopherfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -220,6 +278,30 @@ int main()
 
 		listen(gopherfd, 5);
 		std::cerr << "Listening on port " << gopherport << "(Gopher)" << std::endl;
+        if (ipv6) {
+            gopherfd6 = socket(AF_INET6, SOCK_STREAM, 0);
+
+            memset(&gopher_serv_addr6, 0, sizeof(struct sockaddr_in6));
+
+            gopher_serv_addr6.sin6_family = AF_INET6;
+            gopher_serv_addr6.sin6_addr = in6addr_any;
+            gopher_serv_addr6.sin6_port = htons(gopherport);
+            if (setsockopt(gopherfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+                std::cerr << "Error setting SO_REUSEADDR (Gopher - ipv6)" << std::endl;
+                return -1;
+            }
+            if (setsockopt(gopherfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+                std::cerr << "Error setting TCP_NODELAY (Gopher - ipv6)" << std::endl;
+                return -1;
+            }
+            if (bind(gopherfd6, (struct sockaddr*)&gopher_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
+                std::cerr << "Error binding. (Gopher - ipv6)" << std::endl;
+                return -1;
+            }
+
+            listen(gopherfd6, 5);
+            std::cerr << "Listening on port " << gopherport << "(Gopher - ipv6)" << std::endl;
+        }
 	}
 
 	int nfds;
@@ -242,15 +324,38 @@ int main()
 		}
 	}
 
+	if (ipv6) {
+        FD_SET(telnetfd6, &server_fds);
+        if (telnetfd6 > maxfd) maxfd = telnetfd6;
+
+        if (gopherport != -1) {
+            FD_SET(gopherfd6, &server_fds);
+            if (gopherfd6 > maxfd) {
+                maxfd = gopherfd6;
+            }
+        }
+
+        if (sshport != -1) {
+            FD_SET(sshfd6, &server_fds);
+
+            if (sshfd6 > maxfd) {
+                maxfd = sshfd6;
+            }
+        }
+
+    }
+
 	nfds = maxfd;
 	nfds++;
 
 	while (1) {
 		csockfd = -1;
 		bool telnet = false;
+        bool ipv6con = false;
 		fd_set copy_fds = server_fds;
 		
 		int clen = sizeof(struct sockaddr_in);
+		int clen6 = sizeof(struct sockaddr_in6);
 
 		memset(&client_addr, 0, clen);
 
@@ -267,14 +372,27 @@ int main()
 			csockfd = accept(telnetfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			telnet = true;
 		}
+		if (ipv6){
+            if (FD_ISSET(telnetfd6, &copy_fds)) {
+                csockfd = accept(telnetfd6, (struct sockaddr*)&client_addr6, (socklen_t*)&clen6);
+                telnet = true;
+                ipv6con = true;
+            }
+        }
 		if (sshport != -1) {
 			if (FD_ISSET(sshfd, &copy_fds)) {
 				csockfd = accept(sshfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 			}
+            if (ipv6){
+                if (FD_ISSET(sshfd6, &copy_fds)) {
+                    csockfd = accept(sshfd6, (struct sockaddr*)&client_addr6, (socklen_t*)&clen6);
+                    ipv6con = true;
+                }
+            }
 		}
 		if (gopherport != -1) {
 			if (FD_ISSET(gopherfd, &copy_fds)) {
-				csockfd = accept(gopherfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+                csockfd = accept(gopherfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
 #ifdef _MSC_VER
 				std::stringstream ss;
 				ss.str("");
@@ -323,9 +441,66 @@ int main()
 #endif
 				continue;
 			}
+			if (ipv6) {
+                if (FD_ISSET(gopherfd6, &copy_fds)) {
+                    csockfd = accept(gopherfd6, (struct sockaddr*)&client_addr6, (socklen_t*)&clen6);
+    #ifdef _MSC_VER
+                    std::stringstream ss;
+                    ss.str("");
+                    ss << "\"gofer.exe\" " << csockfd;
+
+                    char* cmd = strdup(ss.str().c_str());
+
+                    STARTUPINFOA si;
+                    PROCESS_INFORMATION pi;
+
+                    ZeroMemory(&si, sizeof(si));
+                    si.cb = sizeof(si);
+                    //	si.dwFlags = STARTF_USESTDHANDLES;
+                    //	si.hStdInput = INVALID_HANDLE_VALUE;
+                    //	si.hStdError = INVALID_HANDLE_VALUE;
+                    //	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+                    ZeroMemory(&pi, sizeof(pi));
+
+                    if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+                        std::cerr << "Failed to create process!" << std::endl;
+                        free(cmd);
+                        closesocket(csockfd);
+                        continue;
+                    }
+                    CloseHandle(pi.hProcess);
+                    CloseHandle(pi.hThread);
+                    free(cmd);
+                    closesocket(csockfd);
+    #else
+                    pid_t pid = fork();
+                    if (pid == 0) {
+                        snprintf(sockstr, 10, "%d", csockfd);
+                        if (execlp("./gofer", "./gofer", sockstr, NULL) == -1) {
+                            perror("Execlp: ");
+                            exit(-1);
+                        }
+                    }
+                    else if (pid == -1) {
+                        std::cerr << "Failed to create process!" << std::endl;
+                        close(csockfd);
+                    }
+                    else {
+                        close(csockfd);
+                    }
+    #endif
+                    continue;
+                }
+            }
 		}
 		if (csockfd != -1) {
-			std::string ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
+			std::string ipaddr;
+            if (ipv6con) {
+                ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
+            } else {
+                ipaddr = std::string(inet_ntop(AF_INET6, &((struct sockaddr_in6*)&client_addr6)->sin6_addr, str, sizeof(str)));
+            }
 			if (!should_pass(ipaddr)) {
 				std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
 #ifdef _MSC_VER
