@@ -727,7 +727,7 @@ bool Tosser::run(bool protinbound) {
 	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
 	tempdir = _tmppath + "/postie-" + std::to_string(pid);
 
-	//std::vector<std::filesystem::path> removelist;
+	std::vector<std::filesystem::path> removelist;
     std::vector<std::filesystem::path> totoss;
 
 	for (auto& p : std::filesystem::directory_iterator(inbound)) {
@@ -735,9 +735,18 @@ bool Tosser::run(bool protinbound) {
         totoss.push_back(p.path());
     }
 
+	std::filesystem::remove_all(tempdir);
+    std::filesystem::create_directories(tempdir);
+
     for (std::filesystem::path packetpth : totoss) {
-		std::filesystem::remove_all(tempdir);
-		std::filesystem::create_directories(tempdir);
+
+        if (removelist.size() > 0) {
+            for (auto& rm : removelist) {
+                std::filesystem::remove(rm);
+            }
+            removelist.clear();
+        }
+
         std::filesystem::path temp_name(packetpth);
         std::filesystem::path e(packetpth.extension().u8string() + ".toss");
 
@@ -749,7 +758,6 @@ bool Tosser::run(bool protinbound) {
 		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
             std::filesystem::rename(packetpth, temp_name);
 			std::filesystem::copy(temp_name, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
-			//removelist.push_back(temp_name);
 		}
 		else {
 			if (!strchr(fileext1, packetpth.extension().u8string().substr(1, 1).c_str()[0])) {
@@ -764,7 +772,7 @@ bool Tosser::run(bool protinbound) {
 				continue;
 			}
             std::filesystem::rename(packetpth, temp_name);
-			//removelist.push_back(temp_name);
+
 
 			bool unarced = false;
 
@@ -802,6 +810,8 @@ bool Tosser::run(bool protinbound) {
 
 		for (auto& pkt : std::filesystem::directory_iterator(tempdir)) {
 			FILE* fptr = fopen(pkt.path().u8string().c_str(), "rb");
+
+            removelist.push_back(pkt.path());
 
 			if (!fptr) {
 				log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
