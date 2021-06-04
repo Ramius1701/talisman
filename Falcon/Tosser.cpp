@@ -1,5 +1,6 @@
 #include <iostream>
 #include <filesystem>
+#include <sstream>
 #include "Tosser.h"
 #include "Config.h"
 #include "../Common/INIReader.h"

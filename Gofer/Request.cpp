@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <optional>
 #include <fstream>
+#include <sstream>
 #include "../Common/INIReader.h"
 #include "Request.h"
 #include "../Common/Logger.h"

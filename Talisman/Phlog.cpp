@@ -1,6 +1,7 @@
 #include <sqlite3.h>
 #include <string>
 #include <cstring>
+#include <sstream>
 #include "Editor.h"
 #include "Phlog.h"
 #include "Node.h"

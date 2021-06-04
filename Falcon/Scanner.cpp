@@ -1,5 +1,6 @@
 #include <iostream>
 #include <filesystem>
+#include <sstream>
 #include "../Common/INIReader.h"
 #include "Config.h"
 #include "Scanner.h"
