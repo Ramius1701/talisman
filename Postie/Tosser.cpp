@@ -678,19 +678,46 @@ bool Tosser::run(bool protinbound) {
 
 	log.load(_logpath + "/postie.log");
 
-	if (!c.load(_datapath)) {
-		return false;
-	}
-
-	if (!c.load_archivers(_datapath)) {
-		return false;
-	}
-
 #ifdef _MSC_VER
 	pid = GetCurrentProcessId();
 #else
 	pid = getpid();
 #endif
+
+    std::filesystem::path pidfile(_datapath + "/postie.pid");
+    int tries = 0;
+    while (std::filesystem::exists(pidfile)) {
+        if (tries == 10) {
+            log.log(LOG_ERROR, "Timeout waiting for pid file...");
+            return false;
+        }
+#ifdef _MSC_VER
+        Sleep(1000);
+#else
+        sleep(1);
+#endif
+        tries++;
+    }
+
+    FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
+    if (!fptr) {
+        log.log(LOG_ERROR, "Failed to open pid file...");
+        return false;
+    }
+    fprintf(fptr, "%lu\r\n", pid);
+    fclose(fptr);
+
+	if (!c.load(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
+
+
 
 	static const char* fileext1 = "SMTWFsmtwf";
 	static const char* fileext2 = "UOEHRAuoehra";
@@ -1363,6 +1390,6 @@ bool Tosser::run(bool protinbound) {
 	std::filesystem::path temppath(_tmppath + "/postie-" + std::to_string(pid));
 
 	std::filesystem::remove_all(temppath);
-
+    std::filesystem::remove(pidfile);
 	return true;
 }

@@ -162,23 +162,50 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 	_logpath = inir.Get("Paths", "Log Path", "logs");
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-	Logger log;
-
-	log.load(_logpath + "/postie.log");
-
-	if (!c.load(_datapath)) {
-		return false;
-	}
-
-	if (!c.load_archivers(_datapath)) {
-		return false;
-	}
-
 #ifdef _MSC_VER
 	pid = GetCurrentProcessId();
 #else
 	pid = getpid();
 #endif
+
+	Logger log;
+
+	log.load(_logpath + "/postie.log");
+
+    std::filesystem::path pidfile(_datapath + "/postie.pid");
+    int tries = 0;
+    while (std::filesystem::exists(pidfile)) {
+        if (tries == 10) {
+            log.log(LOG_ERROR, "Timeout waiting for pid file...");
+            return false;
+        }
+#ifdef _MSC_VER
+        Sleep(1000);
+#else
+        sleep(1);
+#endif
+        tries++;
+    }
+
+    FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
+    if (!fptr) {
+        log.log(LOG_ERROR, "Failed to open pid file...");
+        return false;
+    }
+    fprintf(fptr, "%lu\r\n", pid);
+    fclose(fptr);
+
+	if (!c.load(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
+
+
 
 	std::filesystem::path temppth(_tmppath + "/postie-" + std::to_string(pid));
 	std::filesystem::create_directories(temppth);
@@ -192,11 +219,13 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     if (fpath.stem().u8string().size() > 8 || fpath.extension().u8string().size() > 4) {
         std::cerr << "Filename is not MS-DOS compatible!" << std::endl;
+        std::filesystem::remove(pidfile);
         return false;
     }
 
     if (!std::filesystem::exists(fpath) || !std::filesystem::is_regular_file(fpath)) {
         std::cerr << "File does not exist, or is not a regular file!" << std::endl;
+        std::filesystem::remove(pidfile);
         return false;
     }
 
@@ -218,6 +247,7 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     if (!Dupe::crc32file(fpath.u8string().c_str(), &crc)) {
         std::filesystem::remove_all(temppth);
+        std::filesystem::remove(pidfile);
         return false;
     }
 
@@ -232,6 +262,7 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     if (fa == NULL) {
         std::filesystem::remove_all(temppth);
+        std::filesystem::remove(pidfile);
         return false;
     }
 
@@ -348,6 +379,7 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
     }
     std::filesystem::remove_all(temppth);
+    std::filesystem::remove(pidfile);
     return true;
 }
 
@@ -366,23 +398,48 @@ bool TicProc::run() {
 	_logpath = inir.Get("Paths", "Log Path", "logs");
 	_tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-	Logger log;
-
-	log.load(_logpath + "/postie.log");
-
-	if (!c.load(_datapath)) {
-		return false;
-	}
-
-	if (!c.load_archivers(_datapath)) {
-		return false;
-	}
-
 #ifdef _MSC_VER
 	pid = GetCurrentProcessId();
 #else
 	pid = getpid();
 #endif
+
+	Logger log;
+
+	log.load(_logpath + "/postie.log");
+
+    std::filesystem::path pidfile(_datapath + "/postie.pid");
+    int tries = 0;
+    while (std::filesystem::exists(pidfile)) {
+        if (tries == 10) {
+            log.log(LOG_ERROR, "Timeout waiting for pid file...");
+            return false;
+        }
+#ifdef _MSC_VER
+        Sleep(1000);
+#else
+        sleep(1);
+#endif
+        tries++;
+    }
+
+    FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
+    if (!fptr) {
+        log.log(LOG_ERROR, "Failed to open pid file...");
+        return false;
+    }
+    fprintf(fptr, "%lu\r\n", pid);
+    fclose(fptr);
+
+	if (!c.load(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
+
+	if (!c.load_archivers(_datapath)) {
+        std::filesystem::remove(pidfile);
+		return false;
+	}
 
 	std::filesystem::path temppth(_tmppath + "/postie-" + std::to_string(pid));
 	std::filesystem::create_directories(temppth);
@@ -667,5 +724,6 @@ bool TicProc::run() {
 	}
 
 	std::filesystem::remove_all(temppth);
+    std::filesystem::remove(pidfile);
 	return true;
 }

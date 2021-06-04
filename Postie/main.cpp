@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 		tp.run();
 	} else if (strcasecmp(argv[1], "tichatch") == 0) {
         TicProc tp;
-        if (argc < 5) {
+        if (argc < 6) {
             std::cout << "Usage: " << argv[0] << " tichatch \"file\" \"areatag\" \"replaces\" \"desc\"" << std::endl;
             return -1;
         }

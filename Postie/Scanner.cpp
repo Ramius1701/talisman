@@ -725,11 +725,36 @@ bool Scanner::run() {
 
 	log.load(_logpath + "/postie.log");
 
+    std::filesystem::path pidfile(_datapath + "/postie.pid");
+    int tries = 0;
+    while (std::filesystem::exists(pidfile)) {
+        if (tries == 10) {
+            log.log(LOG_ERROR, "Timeout waiting for pid file...");
+            return false;
+        }
+#ifdef _MSC_VER
+        Sleep(1000);
+#else
+        sleep(1);
+#endif
+        tries++;
+    }
+
+    FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
+    if (!fptr) {
+        log.log(LOG_ERROR, "Failed to open pid file...");
+        return false;
+    }
+    fprintf(fptr, "%lu\r\n", pid);
+    fclose(fptr);
+
 	if (!c.load(_datapath)) {
+        std::filesystem::remove(pidfile);
 		return false;
 	}
 
 	if (!c.load_archivers(_datapath)) {
+        std::filesystem::remove(pidfile);
 		return false;
 	}
 
@@ -906,7 +931,7 @@ bool Scanner::run() {
 	std::filesystem::path temppath(_tmppath + "/postie-" + std::to_string(pid));
 
 	std::filesystem::remove_all(temppath);
-
+    std::filesystem::remove(pidfile);
 	return true;
 }
 
