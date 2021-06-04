@@ -182,7 +182,7 @@ int main()
         serv_addr6.sin6_family = AF_INET6;
         serv_addr6.sin6_addr = in6addr_any;
         serv_addr6.sin6_port = htons(port);
-        if (setsockopt(telnetfd6, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on, sizeof(on)) < 0) {
+        if (setsockopt(telnetfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&on, sizeof(on)) < 0) {
             std::cerr << "Error setting IPV6_V6ONLY (Telnet - ipv6)" << std::endl;
             return -1;
         }
@@ -240,7 +240,7 @@ int main()
             ssh_serv_addr6.sin6_family = AF_INET6;
             ssh_serv_addr6.sin6_addr = in6addr_any;
             ssh_serv_addr6.sin6_port = htons(sshport);
-            if (setsockopt(sshfd6, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on, sizeof(on)) < 0) {
+            if (setsockopt(sshfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
                 std::cerr << "Error setting IPV6_V6ONLY (SSH - ipv6)" << std::endl;
                 return -1;
             }
@@ -298,7 +298,7 @@ int main()
             gopher_serv_addr6.sin6_addr = in6addr_any;
             gopher_serv_addr6.sin6_port = htons(gopherport);
 
-            if (setsockopt(gopherfd6, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&on, sizeof(on)) < 0) {
+            if (setsockopt(gopherfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
                 std::cerr << "Error setting IPV6_V6ONLY (Gopher - ipv6)" << std::endl;
                 return -1;
             }
