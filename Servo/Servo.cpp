@@ -514,7 +514,7 @@ int main()
 		}
 		if (csockfd != -1) {
 			std::string ipaddr;
-            if (ipv6con) {
+            if (!ipv6con) {
                 ipaddr = std::string(inet_ntop(AF_INET, &((struct sockaddr_in*)&client_addr)->sin_addr, str, sizeof(str)));
             } else {
                 ipaddr = std::string(inet_ntop(AF_INET6, &((struct sockaddr_in6*)&client_addr6)->sin6_addr, str, sizeof(str)));
