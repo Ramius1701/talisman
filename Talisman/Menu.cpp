@@ -1028,7 +1028,7 @@ bool Menu::run() {
 							}
 						}
 
-						n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Conference|08, |15Q|08=|14Quit : ", confcounter);
+						n->print_f("\r\n|08[|151|08-|15%d|08] |14Select Conference|08, |15Q|08=|14Quit : ", confcounter);
 
 						res = n->get_string(6, false);
 						if (res.size() > 0) {
@@ -1078,7 +1078,7 @@ bool Menu::run() {
 													areacounter++;
 												}
 											}
-											n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Area|08, |15A|08=|14All, |15N|08=|14None, |15Q|08=|14Quit : ", areacounter);
+											n->print_f("\r\n|08[|151|08-|15%d|08] |14Select Area|08, |15A|08=|14All, |15N|08=|14None, |15Q|08=|14Quit : ", areacounter);
 											res = n->get_string(6, false);
 											if (res.size() > 0) {
 												if (tolower(res[0]) == 'q') {
