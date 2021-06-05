@@ -1078,12 +1078,26 @@ bool Menu::run() {
 													areacounter++;
 												}
 											}
-											n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Area|08, |15Q|08=|14Quit : ", areacounter);
+											n->print_f("\r\n|08[|151|08,|15%d|08] |14Select Area|08, |15A|08=|14All, |15N|08=|14None, |15Q|08=|14Quit : ", areacounter);
 											res = n->get_string(6, false);
 											if (res.size() > 0) {
 												if (tolower(res[0]) == 'q') {
 													break;
 												}
+												else if (tolower(res[0]) == 'a') {
+        											for (size_t i = 0; i < n->get_config()->msgconfs.at(actualconf).areas.size(); i++) {
+														if (n->get_config()->msgconfs.at(actualconf).areas.at(i).get_r_sec_level() <= n->get_user().get_sec_level()) {
+                                                            n->get_user().set_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(i).get_file(), true);
+														}
+                                                    }
+                                                }
+												else if (tolower(res[0]) == 'n') {
+        											for (size_t i = 0; i < n->get_config()->msgconfs.at(actualconf).areas.size(); i++) {
+														if (n->get_config()->msgconfs.at(actualconf).areas.at(i).get_r_sec_level() <= n->get_user().get_sec_level()) {
+                                                            n->get_user().set_subscribed(n->get_config()->msgconfs.at(actualconf).areas.at(i).get_file(), false);
+														}
+                                                    }
+                                                }
 												else {
 													int selarea = -1;
 													try {
