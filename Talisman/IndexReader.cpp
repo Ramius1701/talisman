@@ -6,7 +6,7 @@
 #include "CallLog.h"
 #include "IndexReader.h"
 #include "../Common/Squish.h"
-
+#include <iostream>
 #ifdef _MSC_VER
 #define strcasecmp stricmp
 #endif
@@ -441,6 +441,90 @@ void IndexReader::run(Node* n) {
 							}
 						}
 					}
+					else if (c == 'V' || c == '5') {
+                        if (c == '5') {
+                            n->getch();
+                        }
+                        // page up
+                        for (int i=0;i < n->get_term_height() -4 ; ) {
+                            if (selected_area > 0) {
+                                selected_area--;
+                                i++;
+                            }
+                            else {
+                                if (selected_conf > 0 && i + 3 < n->get_term_height() -4) {
+                                    selected_conf--;
+                                    selected_area = conf.at(selected_conf).area.size() - 1;
+                                    i += 3;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        start_area = selected_area;
+                        start_conf = selected_conf;
+                        continue;
+                    }
+                    else if (c == 'U' || c == '6') {
+                        if (c == '6') {
+                            n->getch();
+                        }
+                        // page down
+                        int i = 0;
+                        for (;i < n->get_term_height() -4 ; ) {
+                            if (selected_area < conf.at(selected_conf).area.size() - 1) {
+                                selected_area++;
+                                i++;
+                            }
+                            else {
+                                if (selected_conf < conf.size() - 1 && i + 3 < n->get_term_height() -4) {
+                                    selected_conf++;
+                                    selected_area = 0;
+                                    i += 3;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+
+                        start_area = selected_area;
+                        start_conf = selected_conf;
+                        // adjust start_area if less than a page to display
+
+                        int s_conf = selected_conf;
+                        int s_area = selected_area;
+
+                        int counter = 0;
+
+                        for (;s_conf < conf.size();s_conf++) {
+                            for (;s_area < conf.at(s_conf).area.size();s_area++) {
+                                counter++;
+                            }
+                            if (s_conf < conf.size() - 1) {
+                                counter += 3;
+                            }
+                            s_area = 0;
+                        }
+
+                        if (counter < n->get_term_height() - 3) {
+                            for (int j=0;j < n->get_term_height() - 3 - counter; ) {
+                                if (start_area > 0) {
+                                    start_area--;
+                                    j++;
+                                }
+                                else {
+                                    if (start_conf > 0) {
+                                        start_conf--;
+                                        start_area = conf.at(start_conf).area.size() - 1;
+                                        j += 3;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        continue;
+                    }
 				}
 			}
 
