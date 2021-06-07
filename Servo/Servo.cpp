@@ -625,9 +625,11 @@ int main()
 					ss.str("");
 					ss << "\"talisman.exe\"" << " -S " << csockfd << " -N " << std::to_string(i + 1);
 					if (telnet) {
+                        std::cout << norm() << ts() << "NodeManager : Launching Talisman (Telnet - " << ipaddr << ")" << rst() << std::endl;
 						ss << " -T";
 					}
 					else {
+                        std::cout << norm() << ts() << "NodeManager : Launching Talisman (SSH - " << ipaddr << ")" << rst() << std::endl;
 						ss << " -SSH";
 					}
 					char* cmd = strdup(ss.str().c_str());
