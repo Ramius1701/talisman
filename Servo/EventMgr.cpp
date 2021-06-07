@@ -135,7 +135,7 @@ void EventMgr::executor(EventMgr *ev)
                 std::cout << "EvtManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << std::endl;
 
 #ifdef _MSC_VER
-				char* cmd = strdup(events.at(i).execute.c_str());
+				char* cmd = strdup(ev->events.at(i).execute.c_str());
 
 				STARTUPINFOA si;
 				PROCESS_INFORMATION pi;

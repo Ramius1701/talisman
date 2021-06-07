@@ -1,6 +1,7 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
+#include <Windows.h>
 #else
 #include <unistd.h>
 #endif

@@ -4,6 +4,7 @@
 #include <sstream>
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
+#include <Windows.h>
 #endif
 #include "../Common/toml.hpp"
 #include "../Common/INIReader.h"
