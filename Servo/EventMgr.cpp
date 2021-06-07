@@ -11,6 +11,9 @@
 #include "EventMgr.h"
 
 extern std::string ts();
+extern std::string err();
+extern std::string norm();
+extern std::string rst();
 
 bool EventMgr::load_config(std::string datapath)
 {
@@ -59,7 +62,7 @@ bool EventMgr::load_config(std::string datapath)
 			}
 
 			if ((myinterval == 0 && myfiletowatch == "") || myexec == "" || (myinterval != 0 && myfiletowatch != "")) {
-                std::cerr << "\x1b[1;31m" << ts() << "EventManager: Invalid event config for " << myname << "\x1b[0m" << std::endl;
+                std::cerr << err() << ts() << "EventManager: Invalid event config for " << myname << rst() << std::endl;
                 continue;
             }
 
@@ -90,7 +93,7 @@ bool EventMgr::load_config(std::string datapath)
         return false;
     }
 
-    std::cout << "\x1b[1;37m" << ts() << "EventManager: Loaded " << events.size() << " events..." << "\x1b[0m" << std::endl;
+    std::cout << norm() << ts() << "EventManager: Loaded " << events.size() << " events..." << rst() << std::endl;
 
     return true;
 }
@@ -134,7 +137,7 @@ void EventMgr::executor(EventMgr *ev)
             }
 
             if (shouldrun) {
-                std::cout << "\x1b[1;37m" << ts() << "EventManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << "\x1b[0m" << std::endl;
+                std::cout << norm() << ts() << "EventManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << rst() << std::endl;
 
 #ifdef _MSC_VER
 				char* cmd = strdup(ev->events.at(i).execute.c_str());
@@ -150,7 +153,7 @@ void EventMgr::executor(EventMgr *ev)
 				ZeroMemory(&pi, sizeof(pi));
 
 				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-					std::cerr << "\x1b[1;31m" << ts() << "EventManager: Failed to create process!" << "\x1b[0m" << std::endl;
+					std::cerr << err() << ts() << "EventManager: Failed to create process!" << rst() << std::endl;
 					free(cmd);
 					continue;
 				}
@@ -166,7 +169,7 @@ void EventMgr::executor(EventMgr *ev)
                     exit(0);
 				}
 				else if (pid == -1) {
-					std::cerr << "\x1b[1;31m" << ts() << "EventManager: Failed to create process!" << "\x1b[0m" << std::endl;
+					std::cerr << err() << ts() << "EventManager: Failed to create process!" << rst() << std::endl;
 				}
 #endif
             }
@@ -179,7 +182,7 @@ void EventMgr::run(std::string datapath)
 {
     // load events
     if (!load_config(datapath)) {
-        std::cerr << "\x1b[1;31m" << ts() << "EventManager: Error loading event manager config" << "\x1b[0m" << std::endl;
+        std::cerr << err() << ts() << "EventManager: Error loading event manager config" << rst() << std::endl;
         return;
     }
 
