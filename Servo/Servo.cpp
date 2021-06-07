@@ -26,6 +26,7 @@
 #include <cstring>
 #include "../Common/INIReader.h"
 #include "IPBlockItem.h"
+#include "EventMgr.h"
 
 #ifndef _MSC_VER
 void sigchld_handler(int s) {
@@ -115,6 +116,10 @@ int main()
 	gopherport = inir.GetInteger("main", "gopher port", -1);
 	datapath = inir.Get("paths", "data path", "data");
     ipv6 = inir.GetBoolean("main", "enable ipv6", false);
+
+    EventMgr ev;
+
+    ev.run(datapath);
 
 	blocklist = new std::vector<IPBlockItem*>();
 

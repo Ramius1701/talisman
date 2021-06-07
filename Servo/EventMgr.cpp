@@ -1,0 +1,137 @@
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <thread>
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+#include "../Common/toml.hpp"
+#include "EventMgr.h"
+
+bool EventMgr::load_config(std::string datapath)
+{
+    try {
+		auto data = toml::parse_file(datapath + "/events.toml");
+
+		auto eventitems = data.get_as<toml::array>("event");
+
+		for (size_t i = 0; i < eventitems->size(); i++) {
+            std::string myname;
+            int myinterval;
+			std::string myexec;
+            auto itemtable = eventitems->get(i)->as_table();
+
+			auto name = itemtable->get("name");
+			if (name != nullptr) {
+				myname = name->as_string()->value_or("Unnamed Event");
+			}
+			else {
+				myname = "Unnamed Event";
+			}
+
+			auto interval = itemtable->get("interval");
+			if (interval != nullptr) {
+				myinterval = interval->as_integer()->value_or(0);
+			}
+			else {
+				myinterval = 0;
+			}
+			auto exe = itemtable->get("exec");
+			if (exe != nullptr) {
+				myexec = exe->as_string()->value_or("");
+			}
+			else {
+				myexec = "";
+			}
+
+			if (myinterval == 0 || myexec == "") {
+                std::cerr << "Invalid event config for " << myname << std::endl;
+                continue;
+            }
+
+            struct event_t ev;
+
+            ev.name = myname;
+            ev.execute = myexec;
+            ev.interval = myinterval;
+            ev.nextrun = time(NULL) + (myinterval * 60);
+            events.push_back(ev);
+        }
+    } catch (toml::parse_error) {
+        return false;
+    }
+
+    std::cout << "Loaded " << events.size() << " events..." << std::endl;
+
+    return true;
+}
+
+void EventMgr::executor(EventMgr *ev)
+{
+    while(!ev->shutdown) {
+#ifdef _MSC_VER
+        Sleep(60000);
+#else
+        sleep(60);
+#endif
+        time_t now = time(NULL);
+        for (size_t i = 0; i < ev->events.size(); i++) {
+            if (ev->events.at(i).nextrun <= now) {
+                ev->events.at(i).nextrun = now + (ev->events.at(i).interval * 60);
+                std::cout << "Running " << ev->events.at(i).name << " !" << std::endl;
+
+#ifdef _MSC_VER
+				char* cmd = strdup(events.at(i).execute.c_str());
+
+				STARTUPINFOA si;
+				PROCESS_INFORMATION pi;
+
+				ZeroMemory(&si, sizeof(si));
+				si.cb = sizeof(si);
+				si.dwFlags = STARTF_USESHOWWINDOW;
+				si.wShowWindow = SW_MINIMIZE;
+
+				ZeroMemory(&pi, sizeof(pi));
+
+				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+					std::cerr << "Failed to create process!" << std::endl;
+					free(cmd);
+					continue;
+				}
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+				free(cmd);
+#else
+
+				pid_t pid = fork();
+				if (pid == 0) {
+                    std::stringstream ss;
+                    execl("/bin/sh", "sh", "-c", ev->events.at(i).execute.c_str(), (char *) NULL);
+                    exit(0);
+				}
+				else if (pid == -1) {
+					std::cerr << "Failed to create process!" << std::endl;
+				}
+#endif
+            }
+        }
+    }
+}
+
+
+void EventMgr::run(std::string datapath)
+{
+    // load events
+    if (!load_config(datapath)) {
+        std::cerr << "Error loading event manager config" << std::endl;
+        return;
+    }
+
+    shutdown = false;
+    // run event thread
+    std::thread th(executor, this);
+    th.detach();
+    // return
+}
