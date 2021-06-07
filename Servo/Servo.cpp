@@ -48,6 +48,21 @@ struct node_t {
 std::vector<IPBlockItem*>* blocklist;
 std::string datapath;
 
+std::string ts() {
+    time_t now = time(NULL);
+    struct tm now_tm;
+    char buffer[22];
+
+#ifdef _MSC_VER
+    localtime_s(&now_tm, &now);
+#else
+    localtime_r(&now, &now_tm);
+#endif
+    snprintf(buffer, sizeof buffer, "%04d/%02d/%02d %02d:%02d:%02d: ", now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday, now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec);
+
+    return std::string(buffer);
+}
+
 bool should_pass(std::string ip) {
 	for (size_t i = 0; i < blocklist->size(); i++) {
 		if (ip == blocklist->at(i)->getip()) {
@@ -89,7 +104,7 @@ int main()
 	WSADATA wsaData;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		std::cerr << "Error initializing winsock!" << std::endl;
+		std::cerr << "\x1b[1;31m" << "Error initializing winsock!" << "\x1b[0m" << std::endl;
 		return -1;
 	}
 #else 
@@ -164,15 +179,15 @@ int main()
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(port);
 	if (setsockopt(telnetfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-		std::cerr << "Error setting SO_REUSEADDR (Telnet)" << std::endl;
+		std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting SO_REUSEADDR (Telnet)" << "\x1b[0m" << std::endl;
 		return -1;
 	}
 	if (setsockopt(telnetfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-		std::cerr << "Error setting TCP_NODELAY (Telnet)" << std::endl;
+		std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting TCP_NODELAY (Telnet)" << "\x1b[0m" << std::endl;
 		return -1;
 	}
 	if (bind(telnetfd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) < 0) {
-		std::cerr << "Error binding. (Telnet)" << std::endl;
+		std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error binding. (Telnet)" << "\x1b[0m" << std::endl;
 		return -1;
 	}
 
@@ -188,29 +203,29 @@ int main()
         serv_addr6.sin6_addr = in6addr_any;
         serv_addr6.sin6_port = htons(port);
         if (setsockopt(telnetfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&on, sizeof(on)) < 0) {
-            std::cerr << "Error setting IPV6_V6ONLY (Telnet - ipv6)" << std::endl;
+            std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting IPV6_V6ONLY (Telnet - ipv6)" << "\x1b[0m" << std::endl;
             return -1;
         }
         if (setsockopt(telnetfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-            std::cerr << "Error setting SO_REUSEADDR (Telnet - ipv6)" << std::endl;
+            std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting SO_REUSEADDR (Telnet - ipv6)" << "\x1b[0m" << std::endl;
             return -1;
         }
         if (setsockopt(telnetfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-            std::cerr << "Error setting TCP_NODELAY (Telnet - ipv6)" << std::endl;
+            std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting TCP_NODELAY (Telnet - ipv6)" << "\x1b[0m" << std::endl;
             return -1;
         }
         if (bind(telnetfd6, (struct sockaddr*)&serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
-            std::cerr << "Error binding. (Telnet - ipv6)" << std::endl;
+            std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error binding. (Telnet - ipv6)" << "\x1b[0m" << std::endl;
             return -1;
         }
 
         listen(telnetfd6, 5);
-        std::cerr << "Listening on port " << port << "(TELNET - ipv6)" << std::endl;
+        std::cout << "\x1b[1;37m" << ts() << "NodeManager : Listening on port " << port << "(TELNET - ipv6)" << "\x1b[0m" << std::endl;
 
     }
 
 	listen(telnetfd, 5);
-	std::cerr << "Listening on port " << port << "(TELNET)" << std::endl;
+	std::cout << "\x1b[1;37m" << ts() << "NodeManager : Listening on port " << port << "(TELNET)" << "\x1b[0m" << std::endl;
 
 	int sshfd = -1;
     int sshfd6 = -1;
@@ -224,15 +239,15 @@ int main()
 		ssh_serv_addr.sin_addr.s_addr = INADDR_ANY;
 		ssh_serv_addr.sin_port = htons(sshport);
 		if (setsockopt(sshfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-			std::cerr << "Error setting SO_REUSEADDR (SSH)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting SO_REUSEADDR (SSH)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 		if (setsockopt(sshfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-			std::cerr << "Error setting TCP_NODELAY (SSH)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting TCP_NODELAY (SSH)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 		if (bind(sshfd, (struct sockaddr*)&ssh_serv_addr, sizeof(struct sockaddr_in)) < 0) {
-			std::cerr << "Error binding. (SSH)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error binding. (SSH)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 
@@ -246,27 +261,27 @@ int main()
             ssh_serv_addr6.sin6_addr = in6addr_any;
             ssh_serv_addr6.sin6_port = htons(sshport);
             if (setsockopt(sshfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting IPV6_V6ONLY (SSH - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting IPV6_V6ONLY (SSH - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (setsockopt(sshfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting SO_REUSEADDR (SSH - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting SO_REUSEADDR (SSH - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (setsockopt(sshfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting TCP_NODELAY (SSH - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error setting TCP_NODELAY (SSH - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (bind(sshfd6, (struct sockaddr*)&ssh_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
-                std::cerr << "Error binding. (SSH - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Error binding. (SSH - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
 
             listen(sshfd6, 5);
-            std::cerr << "Listening on port " << sshport << "(SSH - ipv6)" << std::endl;
+            std::cout << "\x1b[1;37m" << ts() << "NodeManager : Listening on port " << sshport << "(SSH - ipv6)" << "\x1b[0m" << std::endl;
         }
 		listen(sshfd, 5);
-		std::cerr << "Listening on port " << sshport << "(SSH)" << std::endl;
+		std::cout << "\x1b[1;37m" << ts() << "NodeManager : Listening on port " << sshport << "(SSH)" << "\x1b[0m" << std::endl;
 	}
 
 	int gopherfd = -1;
@@ -281,15 +296,15 @@ int main()
 		gopher_serv_addr.sin_addr.s_addr = INADDR_ANY;
 		gopher_serv_addr.sin_port = htons(gopherport);
 		if (setsockopt(gopherfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-			std::cerr << "Error setting SO_REUSEADDR (Gopher)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error setting SO_REUSEADDR (Gopher)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 		if (setsockopt(gopherfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-			std::cerr << "Error setting TCP_NODELAY (Gopher)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error setting TCP_NODELAY (Gopher)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 		if (bind(gopherfd, (struct sockaddr*)&gopher_serv_addr, sizeof(struct sockaddr_in)) < 0) {
-			std::cerr << "Error binding. (Gopher)" << std::endl;
+			std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error binding. (Gopher)" << "\x1b[0m" << std::endl;
 			return -1;
 		}
 
@@ -304,27 +319,27 @@ int main()
             gopher_serv_addr6.sin6_port = htons(gopherport);
 
             if (setsockopt(gopherfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting IPV6_V6ONLY (Gopher - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error setting IPV6_V6ONLY (Gopher - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (setsockopt(gopherfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting SO_REUSEADDR (Gopher - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error setting SO_REUSEADDR (Gopher - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (setsockopt(gopherfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
-                std::cerr << "Error setting TCP_NODELAY (Gopher - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error setting TCP_NODELAY (Gopher - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
             if (bind(gopherfd6, (struct sockaddr*)&gopher_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
-                std::cerr << "Error binding. (Gopher - ipv6)" << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Error binding. (Gopher - ipv6)" << "\x1b[0m" << std::endl;
                 return -1;
             }
 
             listen(gopherfd6, 5);
-            std::cerr << "Listening on port " << gopherport << "(Gopher - ipv6)" << std::endl;
+            std::cout << "\x1b[1;37m" << ts() << "GopherServer: Listening on port " << gopherport << "(Gopher - ipv6)" << "\x1b[0m" << std::endl;
         }
         listen(gopherfd, 5);
-		std::cerr << "Listening on port " << gopherport << "(Gopher)" << std::endl;
+		std::cout << "\x1b[1;37m" << ts() << "GopherServer: Listening on port " << gopherport << "(Gopher)" << "\x1b[0m" << std::endl;
 	}
 
 	int nfds;
@@ -436,7 +451,7 @@ int main()
 				ZeroMemory(&pi, sizeof(pi));
 
 				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
-					std::cerr << "Failed to create process!" << std::endl;
+					std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Failed to create process!" << "\x1b[0m" << std::endl;
 					free(cmd);
 					closesocket(csockfd);
 					continue;
@@ -455,7 +470,7 @@ int main()
 					}
 				}
 				else if (pid == -1) {
-					std::cerr << "Failed to create process!" << std::endl;
+					std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Failed to create process!" << "\x1b[0m" << std::endl;
 					close(csockfd);
 				}
 				else {
@@ -487,7 +502,7 @@ int main()
                     ZeroMemory(&pi, sizeof(pi));
 
                     if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
-                        std::cerr << "Failed to create process!" << std::endl;
+                        std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Failed to create process!" << "\x1b[0m" << std::endl;
                         free(cmd);
                         closesocket(csockfd);
                         continue;
@@ -506,7 +521,7 @@ int main()
                         }
                     }
                     else if (pid == -1) {
-                        std::cerr << "Failed to create process!" << std::endl;
+                        std::cerr << "\x1b[1;31m" << ts() << "GopherServer: Failed to create process!" << "\x1b[0m" << std::endl;
                         close(csockfd);
                     }
                     else {
@@ -525,7 +540,7 @@ int main()
                 ipaddr = std::string(inet_ntop(AF_INET6, &((struct sockaddr_in6*)&client_addr6)->sin6_addr, str, sizeof(str)));
             }
 			if (!should_pass(ipaddr)) {
-				std::cerr << "Blocking ip " << ipaddr << " (Blocklist)" << std::endl;
+				std::cout << "\x1b[1;37m" << ts() << "NodeManager : Blocking ip " << ipaddr << " (Blocklist)" << "\x1b[0m" << std::endl;
 #ifdef _MSC_VER
 				closesocket(csockfd);
 #else
@@ -570,7 +585,7 @@ int main()
 			}
 
 			if (alreadyloggedin && !in_multiallowed(&multiallowed, ipaddr)) {
-				std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+				std::cout << "\x1b[1;37m" << ts() << "NodeManager : Blocking ip " << ipaddr << " (Already logged in)" << "\x1b[0m" << std::endl;
 				closesocket(csockfd);
 				continue;
 			}
@@ -602,7 +617,7 @@ int main()
 					ZeroMemory(&pi, sizeof(pi));
 
 					if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-						std::cerr << "Failed to create process!" << std::endl;
+						std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Failed to create process!" << "\x1b[0m" << std::endl;
 						free(cmd);
 						closesocket(csockfd);
 						continue;
@@ -626,7 +641,7 @@ int main()
 #ifdef __APPLE__
                     char buffer[PROC_PIDPATHINFO_MAXSIZE];
                     if (proc_name(nodes.at(i).pid, buffer, sizeof(buffer)) == -1) {
-                        std::cerr << "ERROR getting proc_name" << std::endl;
+                        std::cerr << "\x1b[1;31m" << ts() << "NodeManager : ERROR getting proc_name" << "\x1b[0m" << std::endl;
                     }
                                        
                     if (strncmp(buffer, "talisman", 8) == 0) {
@@ -659,7 +674,7 @@ int main()
 			}
 
 			if (alreadyloggedin) {
-				std::cerr << "Blocking ip " << ipaddr << " (Already logged in)" << std::endl;
+				std::cout << "\x1b[1;37m" << ts() << "NodeManager : Blocking ip " << ipaddr << " (Already logged in)" << "\x1b[0m" << std::endl;
 				close(csockfd);
 				continue;
 			}
@@ -686,14 +701,14 @@ int main()
 						snprintf(sockstr, 10, "%d", csockfd);
 						snprintf(nodestr, 10, "%d", i + 1);
 						if (telnet) {
-							std::cerr << "Launching Talisman (Telnet)" << std::endl;
+							std::cout << "\x1b[1;37m" << ts() << "NodeManager : Launching Talisman (Telnet - " << ipaddr << ")" << "\x1b[0m" << std::endl;
 							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
 								perror("Execlp: ");
 								exit(-1);
 							}
 						}
 						else {
-							std::cerr << "Launching Talisman (SSH)" << std::endl;
+							std::cout << "\x1b[1;37m" << ts() << "NodeManager : Launching Talisman (SSH - " << ipaddr << ")" << "\x1b[0m" << std::endl;
 							if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-SSH", NULL) == -1) {
 								perror("Execlp: ");
 								exit(-1);
@@ -701,14 +716,14 @@ int main()
 						}
 					}
 					else {
-						std::cerr << "Failed to create process!" << std::endl;
+						std::cerr << "\x1b[1;31m" << ts() << "NodeManager : Failed to create process!" << "\x1b[0m" << std::endl;
 						close(csockfd);
 					}
 					break;
 				}
 			}
 			if (i == max_nodes) {
-				std::cerr << "All nodes busy." << std::endl;
+				std::cerr << "\x1b[1;31m" << ts() << "NodeManager : All nodes busy." << "\x1b[0m" << std::endl;
 				send(csockfd, "BUSY\r\n", 6, 0);
 				close(csockfd);
 			}

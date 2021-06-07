@@ -10,6 +10,8 @@
 #include "../Common/toml.hpp"
 #include "EventMgr.h"
 
+extern std::string ts();
+
 bool EventMgr::load_config(std::string datapath)
 {
     try {
@@ -57,7 +59,7 @@ bool EventMgr::load_config(std::string datapath)
 			}
 
 			if ((myinterval == 0 && myfiletowatch == "") || myexec == "" || (myinterval != 0 && myfiletowatch != "")) {
-                std::cerr << "Invalid event config for " << myname << std::endl;
+                std::cerr << "\x1b[1;31m" << ts() << "EventManager: Invalid event config for " << myname << "\x1b[0m" << std::endl;
                 continue;
             }
 
@@ -88,7 +90,7 @@ bool EventMgr::load_config(std::string datapath)
         return false;
     }
 
-    std::cout << "Loaded " << events.size() << " events..." << std::endl;
+    std::cout << "\x1b[1;37m" << ts() << "EventManager: Loaded " << events.size() << " events..." << "\x1b[0m" << std::endl;
 
     return true;
 }
@@ -132,7 +134,7 @@ void EventMgr::executor(EventMgr *ev)
             }
 
             if (shouldrun) {
-                std::cout << "EvtManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << std::endl;
+                std::cout << "\x1b[1;37m" << ts() << "EventManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << "\x1b[0m" << std::endl;
 
 #ifdef _MSC_VER
 				char* cmd = strdup(ev->events.at(i).execute.c_str());
@@ -148,7 +150,7 @@ void EventMgr::executor(EventMgr *ev)
 				ZeroMemory(&pi, sizeof(pi));
 
 				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
-					std::cerr << "Failed to create process!" << std::endl;
+					std::cerr << "\x1b[1;31m" << ts() << "EventManager: Failed to create process!" << "\x1b[0m" << std::endl;
 					free(cmd);
 					continue;
 				}
@@ -164,7 +166,7 @@ void EventMgr::executor(EventMgr *ev)
                     exit(0);
 				}
 				else if (pid == -1) {
-					std::cerr << "Failed to create process!" << std::endl;
+					std::cerr << "\x1b[1;31m" << ts() << "EventManager: Failed to create process!" << "\x1b[0m" << std::endl;
 				}
 #endif
             }
@@ -177,7 +179,7 @@ void EventMgr::run(std::string datapath)
 {
     // load events
     if (!load_config(datapath)) {
-        std::cerr << "Error loading event manager config" << std::endl;
+        std::cerr << "\x1b[1;31m" << ts() << "EventManager: Error loading event manager config" << "\x1b[0m" << std::endl;
         return;
     }
 

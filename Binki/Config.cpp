@@ -127,6 +127,5 @@ bool Config::load(std::string datapath) {
 		return false;
 	}
 
-
 	return true;
 }
