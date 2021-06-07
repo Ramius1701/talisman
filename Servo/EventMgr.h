@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -8,6 +9,9 @@ struct event_t {
     std::string execute;
     int interval;
     time_t nextrun;
+    std::string file_to_watch;
+    bool file_exists;
+    std::filesystem::file_time_type modified_time;
 };
 
 class EventMgr {

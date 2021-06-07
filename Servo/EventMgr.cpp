@@ -21,6 +21,8 @@ bool EventMgr::load_config(std::string datapath)
             std::string myname;
             int myinterval;
 			std::string myexec;
+            std::string myfiletowatch;
+
             auto itemtable = eventitems->get(i)->as_table();
 
 			auto name = itemtable->get("name");
@@ -38,6 +40,14 @@ bool EventMgr::load_config(std::string datapath)
 			else {
 				myinterval = 0;
 			}
+
+			auto filetowatch = itemtable->get("watchfile");
+            if (filetowatch != nullptr) {
+                myfiletowatch = filetowatch->as_string()->value_or("");
+            } else {
+                myfiletowatch = "";
+            }
+
 			auto exe = itemtable->get("exec");
 			if (exe != nullptr) {
 				myexec = exe->as_string()->value_or("");
@@ -46,7 +56,7 @@ bool EventMgr::load_config(std::string datapath)
 				myexec = "";
 			}
 
-			if (myinterval == 0 || myexec == "") {
+			if ((myinterval == 0 && myfiletowatch == "") || myexec == "" || (myinterval != 0 && myfiletowatch != "")) {
                 std::cerr << "Invalid event config for " << myname << std::endl;
                 continue;
             }
@@ -56,7 +66,22 @@ bool EventMgr::load_config(std::string datapath)
             ev.name = myname;
             ev.execute = myexec;
             ev.interval = myinterval;
-            ev.nextrun = time(NULL) + (myinterval * 60);
+
+            if (myfiletowatch != "") {
+                ev.file_to_watch = myfiletowatch;
+
+                if (std::filesystem::exists(myfiletowatch)) {
+                    ev.file_exists = true;
+                    ev.modified_time = std::filesystem::last_write_time(myfiletowatch);
+                } else {
+                    ev.file_exists = false;
+                    ev.modified_time = std::filesystem::file_time_type::clock::now();
+                }
+            }
+
+            if (ev.interval != 0) {
+                ev.nextrun = time(NULL) + (myinterval * 60);
+            }
             events.push_back(ev);
         }
     } catch (toml::parse_error) {
@@ -77,10 +102,37 @@ void EventMgr::executor(EventMgr *ev)
         sleep(60);
 #endif
         time_t now = time(NULL);
+
         for (size_t i = 0; i < ev->events.size(); i++) {
-            if (ev->events.at(i).nextrun <= now) {
-                ev->events.at(i).nextrun = now + (ev->events.at(i).interval * 60);
-                std::cout << "Running " << ev->events.at(i).name << " !" << std::endl;
+            bool shouldrun = false;
+            std::string reason = "";
+            if (ev->events.at(i).interval > 0) {
+                if (ev->events.at(i).nextrun <= now) {
+                    ev->events.at(i).nextrun = now + (ev->events.at(i).interval * 60);
+                    reason = "Timed";
+                    shouldrun = true;
+                }
+            } else {
+                std::filesystem::path fspath(ev->events.at(i).file_to_watch);
+
+                if (ev->events.at(i).file_exists != std::filesystem::exists(fspath)) {
+                    shouldrun = true;
+                    ev->events.at(i).file_exists = std::filesystem::exists(fspath);
+                    if (!ev->events.at(i).file_exists) {
+                        reason = "File Deleted";
+                    } else {
+                        reason = "File Created";
+                        ev->events.at(i).modified_time = std::filesystem::last_write_time(fspath);
+                    }
+                } else if (std::filesystem::exists(fspath) && ev->events.at(i).modified_time != std::filesystem::last_write_time(fspath)) {
+                    shouldrun = true;
+                    ev->events.at(i).modified_time = std::filesystem::last_write_time(fspath);
+                    reason = "File Modified";
+                }
+            }
+
+            if (shouldrun) {
+                std::cout << "EvtManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << std::endl;
 
 #ifdef _MSC_VER
 				char* cmd = strdup(events.at(i).execute.c_str());
