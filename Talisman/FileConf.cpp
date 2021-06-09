@@ -90,7 +90,15 @@ int FileConf::list(Node* n, int sec) {
 int FileConf::list_fsr(Node* n, int sec) {
 	int selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
 
-	if (selected == -1 || selected >= (int)n->get_config()->fileconfs.size()) {
+    std::vector<std::string> filecs;
+
+    for (size_t i = 0; i < n->get_config()->fileconfs.size(); i++) {
+        if (n->get_config()->fileconfs.at(i).get_sec_level() <= sec) {
+            filecs.push_back(n->get_config()->fileconfs.at(i).get_name());
+        }
+    }
+
+	if (selected == -1 || selected >= (int)filecs.size()) {
 		selected = 0;
 	}
 
@@ -109,12 +117,12 @@ int FileConf::list_fsr(Node* n, int sec) {
 			n->print_f("\x1b[1;1H%sFile Conferences Available\x1b[K", n->get_config()->get_prompt_colour());
 			n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
-			for (size_t i = start; i - start < n->get_term_height() - 3 && i < n->get_config()->fileconfs.size(); i++) {
+			for (size_t i = start; i - start < n->get_term_height() - 3 && i < filecs.size(); i++) {
 				if (i == selected) {
-					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->fileconfs.at(i).name.c_str());
+					n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, filecs.at(i).c_str());
 				}
 				else {
-					n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->fileconfs.at(i).name.c_str());
+					n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, filecs.at(i).c_str());
 				}
 			}
 			redraw = false;
@@ -136,23 +144,23 @@ int FileConf::list_fsr(Node* n, int sec) {
 							redraw = true;
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
 							selected--;
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
 						}
 					}
 				}
 				else if (c == 'B') {
-					if (selected < (int)n->get_config()->fileconfs.size() - 1) {
+					if (selected < (int)filecs.size() - 1) {
 						if (selected + 1 >= start + ((int)n->get_term_height() - 2) - 1) {
 							selected++;
 							start = selected;
 							redraw = true;
 						}
 						else {
-							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
 							selected++;
-							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->fileconfs.at(selected).name.c_str());
+							n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
 						}
 					}
 
