@@ -1478,7 +1478,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 		}
 		else if (fsr == true) {
-			size_t top = 0;
+			int top = 0;
 			std::vector<std::string> linesv2;
 			bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true";
 			for (size_t i = 0; i < linesv.size(); i++) {
@@ -1618,8 +1618,8 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 									n->getch();
 								}
 								top = top + (n->get_term_height() - 8);
-								if (top >= linesv2.size()) {
-									top = linesv2.size() - (n->get_term_height() - 8);
+								if (top > (int)linesv2.size() - (int)(n->get_term_height() - 8)) {
+									top = (int)linesv2.size() - (int)(n->get_term_height() - 8);
 									if (top < 0) {
 										top = 0;
 									}
@@ -1783,10 +1783,15 @@ int MsgArea::list_messages_full(int start) {
 		selected = 0;
 	}
 
+	if ((int)msgs.size() - selected < n->get_term_height() - 3) {
+        pos = (int)msgs.size() - (n->get_term_height() - 3);
+    }
+
 	if (pos >= (int)msgs.size()) {
 		pos = msgs.size() - 1;
 	}
-	else if (pos < 0) {
+
+	if (pos < 0) {
 		pos = 0;
 	}
 
@@ -1868,6 +1873,10 @@ int MsgArea::list_messages_full(int start) {
 
 						if (selected - pos >= (int)n->get_term_height() - 3 && pos + n->get_term_height() - 3 < msgs.size()) {
 							pos += n->get_term_height() - 3;
+                            if ((int)msgs.size() - selected < n->get_term_height() - 3) {
+                                pos = (int)msgs.size() - (n->get_term_height() - 3);
+                            }
+                            if (pos < 0) pos = 0;
 							redraw = true;
 						}
 						else {
@@ -1920,15 +1929,17 @@ int MsgArea::list_messages_full(int start) {
 					}
 					pos = pos + (n->get_term_height() - 3);
 					if (pos >= (int)msgs.size()) {
-                        selected = msgs.size() - 1;
-						pos = msgs.size() - (n->get_term_height() - 3);
+                        pos = (int)msgs.size() - (int)(n->get_term_height() - 3);
 						if (pos < 0) {
 							pos = 0;
 						}
-					} else {
-                        selected = pos;
                     }
-
+                    selected = pos;
+                    if (pos > 0) {
+                        if ((int)msgs.size() - selected < n->get_term_height() - 3) {
+                            pos = (int)msgs.size() - (n->get_term_height() - 3);
+                        }
+                    }
 					redraw = true;
 				}
 			}
