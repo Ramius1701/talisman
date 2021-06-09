@@ -1920,12 +1920,15 @@ int MsgArea::list_messages_full(int start) {
 					}
 					pos = pos + (n->get_term_height() - 3);
 					if (pos >= (int)msgs.size()) {
+                        selected = msgs.size() - 1;
 						pos = msgs.size() - (n->get_term_height() - 3);
 						if (pos < 0) {
 							pos = 0;
 						}
-					}
-					selected = pos;
+					} else {
+                        selected = pos;
+                    }
+
 					redraw = true;
 				}
 			}
