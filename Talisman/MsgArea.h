@@ -37,6 +37,7 @@ public:
 	int list_messages_full(int start);
 
 	void read_message(int start, int *last);
+    bool is_from_me(Node* n, sq_msg_t *msg);
 	bool is_to_me(Node* n, sq_msg_t *msg);
 	bool read_message(int start, bool search, bool unread, bool set_last_read, int *last);
 	std::vector<std::string> demangle_ansi(const char* msg, size_t len);

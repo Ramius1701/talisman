@@ -1312,7 +1312,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 			return false;
 		}
-		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
 			if (direction == 1) {
 				msg_to_read++;
 			}
@@ -1676,6 +1676,37 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 	}
 }
 
+bool MsgArea::is_from_me(Node* n, sq_msg_t* msg) {
+	if (strcasecmp(msg->xmsg.from, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.from, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
+		//printf("Not to me %s\n", msg->xmsg.to);
+		return false;
+	}
+	if (_is_netmail) {
+		if (wwivnode == 0) {
+			NETADDR* myaddr = parse_fido_addr(orig_addr.c_str());
+			if (!myaddr) {
+				//printf("Failed to parse %s\n", orig_addr.c_str());
+				return false;
+			}
+
+			if (myaddr->zone != msg->xmsg.orig.zone || myaddr->net != msg->xmsg.orig.net || myaddr->node != msg->xmsg.orig.node || myaddr->point != msg->xmsg.orig.point) {
+				free(myaddr);
+
+				return false;
+			}
+			free(myaddr);
+
+		}
+		else {
+			if (wwivnode != msg->xmsg.orig.node) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 bool MsgArea::is_to_me(Node* n, sq_msg_t* msg) {
 	if (strcasecmp(msg->xmsg.to, n->get_user().get_username().c_str()) != 0 && strcasecmp(msg->xmsg.to, n->get_user().get_attribute("fullname", "UNKNOWN").c_str()) != 0) {
 		//printf("Not to me %s\n", msg->xmsg.to);
@@ -1753,14 +1784,14 @@ int MsgArea::list_messages_full(int start) {
 		if (msg == NULL) {
 			continue;
 		}
-		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
 
 		if (i == start) {
-			pos = i - 1;
-			selected = i - 1;
+			pos = msgs.size();
+			selected = msgs.size();
 		}
 
 		mli.msgno = i;
@@ -1965,7 +1996,7 @@ int MsgArea::list_messages_old(int start) {
 	n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
 	for (size_t i = start; i <= mb->basehdr.num_msg; i++) {
 		sq_msg_t* msg = SquishReadMsg(mb, i);
-		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
@@ -2088,7 +2119,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		foundmsg = false;
 		sq_msg_t* msg = SquishReadMsg(mb, i);
 
-		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg)) {
+		if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
 			SquishFreeMsg(msg);
 			continue;
 		}
