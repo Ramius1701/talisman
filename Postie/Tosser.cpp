@@ -150,51 +150,54 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 						showhelp = true;
 					}
 					else if (strncasecmp(line.substr(1).c_str(), "RESCAN", 6) == 0) {
-						std::string area = line.substr(8);
+						if (line.size() > 8) {
+							std::string area = line.substr(8);
+							bool success = false;
 
-						bool success = false;
+							for (size_t i = 0; i < c->areas.size(); i++) {
+								if (strcasecmp(c->areas.at(i).areatag.c_str(), area.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+									sq_msg_base_t* mb;
+									int count = 0;
+									mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
+									if (mb != NULL) {
+										int start = 1;
 
-						for (size_t i = 0; i < c->areas.size(); i++) {
-							if (strcasecmp(c->areas.at(i).areatag.c_str(), area.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
-								sq_msg_base_t* mb;
-								int count = 0;
-								mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
-								if (mb != NULL) {
-									int start = 1;
-									
-									if (mb->basehdr.num_msg > 100) {
-										start = mb->basehdr.num_msg - 100;
-									}
-
-									for (int m = start; m < mb->basehdr.num_msg; m++) {
-										sq_msg_t* msg = SquishReadMsg(mb, m);
-										if (msg != NULL) {
-											if (link->fptr == NULL) {
-												Scanner::initialize_packet(link, std::string(_tmppath + "/postie-" + std::to_string(pid)), link->ouraka);
-											}
-											// write message
-											if (msg->xmsg.attr & MSGLOCAL) {
-												Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, true);
-											}
-											else {
-												Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, false);
-											}
-											count++;
-											SquishFreeMsg(msg);
+										if (mb->basehdr.num_msg > 100) {
+											start = mb->basehdr.num_msg - 100;
 										}
+
+										for (int m = start; m < mb->basehdr.num_msg; m++) {
+											sq_msg_t* msg = SquishReadMsg(mb, m);
+											if (msg != NULL) {
+												if (link->fptr == NULL) {
+													Scanner::initialize_packet(link, std::string(_tmppath + "/postie-" + std::to_string(pid)), link->ouraka);
+												}
+												// write message
+												if (msg->xmsg.attr & MSGLOCAL) {
+													Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, true);
+												}
+												else {
+													Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, false);
+												}
+												count++;
+												SquishFreeMsg(msg);
+											}
+										}
+										SquishCloseMsgBase(mb);
+										msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
+										success = true;
 									}
-									SquishCloseMsgBase(mb);
-									msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
-									success = true;
+									break;
 								}
-								break;
+							}
+							if (!success) {
+								msgout.push_back("RESCAN " + area + ": Not successful!");
 							}
 						}
-						if (!success) {
-							msgout.push_back("RESCAN " + area + ": Not successful!");
-						}
 					}
-
+					else {
+						msgout.push_back("RESCAN requires an area as an argument!");
+					}
 				}
 				else {
 					// add area
