@@ -857,6 +857,7 @@ char Node::getch(int delay) {
 #endif
 		disconnected();
 	}
+	timeout = 0;
 	return ch;
 }
 std::string Node::get_string(size_t maxlen, bool masked, bool clear) {
