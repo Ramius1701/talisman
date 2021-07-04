@@ -194,9 +194,9 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 								msgout.push_back("RESCAN " + area + ": Not successful!");
 							}
 						}
-					}
-					else {
-						msgout.push_back("RESCAN requires an area as an argument!");
+						else {
+							msgout.push_back("RESCAN requires an area as an argument!");
+						}
 					}
 				}
 				else {
