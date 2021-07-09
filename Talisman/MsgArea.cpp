@@ -1184,9 +1184,14 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 	if (orig_addr == "" && wwivnode == 0) {
 		in.open(n->get_config()->gfile_path() + "/fsr_header_local.ans");
 	}
-	else {
-		in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
-	}
+	else if (is_netmail()) {
+		in.open(n->get_config()->gfile_path() + "/fsr_header_net.ans");
+        if (!in.is_open()) {
+            in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
+        }
+	} else {
+        in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
+    }
 
 	if (in.is_open()) {
 		while (in.get(c)) {
@@ -1230,6 +1235,30 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 					}
 					else {
 						ss2 << "@" << msg->xmsg.orig.node;
+					}
+					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
+				}
+				else if (n->compare_token(ss.str(), "TOBBS")) {
+					if (wwivnode == 0) {
+						if (msg->xmsg.dest.point == 0) {
+							std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.dest.zone) + ":" + std::to_string(msg->xmsg.dest.net) + "/" + std::to_string(msg->xmsg.dest.node));
+							n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
+						}
+						else {
+							n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
+						}
+					}
+					else {
+						n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A WWIVnet System");
+					}
+				}
+				else if (n->compare_token(ss.str(), "TOADDR")) {
+					std::stringstream ss2;
+					if (wwivnode == 0) {
+						ss2 << msg->xmsg.dest.zone << ":" << msg->xmsg.dest.net << "/" << msg->xmsg.dest.node << "." << msg->xmsg.dest.point;
+					}
+					else {
+						ss2 << "@" << msg->xmsg.dest.node;
 					}
 					n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
 				}
