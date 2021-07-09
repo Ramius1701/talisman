@@ -224,6 +224,16 @@ extern "C" int lua_BBSDisplayTextfileP(lua_State *L) {
 	return 0;
 }
 
+extern "C" int lua_BBSTermWidth(lua_State * L) {
+	lua_pushnumber(L, lua_getNode(L)->get_term_width());
+	return 1;
+}
+
+extern "C" int lua_BBSTermHeight(lua_State * L) {
+	lua_pushnumber(L, lua_getNode(L)->get_term_height());
+	return 1;
+}
+
 extern "C" int lua_GetAttrib(lua_State * L) {
 	const char* attrib = lua_tostring(L, 1);
 	const char* def = lua_tostring(L, 2);
@@ -286,6 +296,15 @@ void Script::exec(Node *n, std::string script) {
 	lua_setglobal(l, "bbs_get_message");
 	
 	lua_pushcfunction(l, lua_bbsPostMsg);
+	lua_setglobal(l, "bbs_post_message");
+
+    lua_pushcfunction(l, lua_BBSTermWidth);
+	lua_setglobal(l, "bbs_get_term_width");
+
+    lua_pushcfunction(l, lua_BBSTermHeight);
+	lua_setglobal(l, "bbs_get_term_height");
+
+    lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
 
 	lua_pushcfunction(l, lua_Pause);
