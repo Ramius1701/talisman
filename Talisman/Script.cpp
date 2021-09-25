@@ -260,6 +260,7 @@ extern "C" int lua_getCallLogX(lua_State * L) {
 
     if (CallLog::get_last_x(n, x, &ct)) {
         lua_pushnumber(L, ct.id);
+        lua_pushnumber(L, ct.node);
         lua_pushstring(L, ct.username.c_str());
         lua_pushnumber(L, ct.timeon);
         lua_pushnumber(L, ct.timeoff);
@@ -268,8 +269,9 @@ extern "C" int lua_getCallLogX(lua_State * L) {
         lua_pushnumber(L, ct.msgpost);
         lua_pushnumber(L, ct.doors);
 
-        return 8;
+        return 9;
     } else {
+        lua_pushnumber(L, 0);
         lua_pushnumber(L, 0);
         lua_pushstring(L, "No One");
         lua_pushnumber(L, 0);
