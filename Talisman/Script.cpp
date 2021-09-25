@@ -281,7 +281,7 @@ extern "C" int lua_getCallLogX(lua_State * L) {
         lua_pushnumber(L, 0);
         lua_pushnumber(L, 0);
 
-        return 8;
+        return 9;
     }
 }
 
