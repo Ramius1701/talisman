@@ -247,6 +247,37 @@ int CallLog::total_calls(std::string username) {
 	return ret;
 }
 
+bool CallLog::get_last_x(Node *n, int x, struct caller_t *ct) {
+    sqlite3* db;
+	sqlite3_stmt* stmt;
+	const char* sql = "SELECT id, username, node, timeon, timeoff, rundoor, upload, download, msgpost FROM calllog ORDER by id DESC LIMIT ?, 1";
+
+	if (!open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+		return false;
+	}
+
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_bind_int(stmt, 1, x);
+		sqlite3_close(db);
+		return false;
+	}
+
+    ct->timeon = sqlite3_column_int(stmt, 3);
+    ct->timeoff = sqlite3_column_int(stmt, 4);
+    ct->id = sqlite3_column_int(stmt, 0);
+    ct->node = sqlite3_column_int(stmt, 2);
+    ct->username = std::string((const char *)sqlite3_column_text(stmt, 1));
+    ct->doors = sqlite3_column_int(stmt, 5);
+    ct->upload = sqlite3_column_int(stmt, 6);
+    ct->download = sqlite3_column_int(stmt, 7);
+    ct->msgpost = sqlite3_column_int(stmt, 8);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return true;
+}
+
 void CallLog::last10_callers(Node* n) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
@@ -309,4 +340,6 @@ void CallLog::last10_callers(Node* n) {
 		free(username);
 	}
 	n->print_f("\r\n");
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 }

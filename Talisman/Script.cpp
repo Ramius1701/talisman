@@ -5,6 +5,7 @@
 #include "Node.h"
 #include "Config.h"
 #include "User.h"
+#include "CallLog.h"
 #include "../Common/Logger.h"
 #include "../Common/Squish.h"
 
@@ -251,6 +252,37 @@ extern "C" int lua_Pause(lua_State * L) {
 	return 0;
 }
 
+extern "C" int lua_getCallLogX(lua_State * L) {
+    int x = lua_tointeger(L, 1);
+    Node *n = lua_getNode(L);
+
+    struct caller_t ct;
+
+    if (CallLog::get_last_x(n, x, &ct)) {
+        lua_pushnumber(L, ct.id);
+        lua_pushstring(L, ct.username.c_str());
+        lua_pushnumber(L, ct.timeon);
+        lua_pushnumber(L, ct.timeoff);
+        lua_pushnumber(L, ct.upload);
+        lua_pushnumber(L, ct.download);
+        lua_pushnumber(L, ct.msgpost);
+        lua_pushnumber(L, ct.doors);
+
+        return 8;
+    } else {
+        lua_pushnumber(L, 0);
+        lua_pushstring(L, "No One");
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+        lua_pushnumber(L, 0);
+
+        return 8;
+    }
+}
+
 void Script::exec(Node *n, std::string script) {
 	lua_State *l = luaL_newstate();
 	luaL_openlibs(l);
@@ -312,6 +344,9 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_GetAttrib);
 	lua_setglobal(l, "bbs_get_user_attribute");
+
+    lua_pushcfunction(l, lua_getCallLogX);
+    lua_setglobal(l, "bbs_get_calllog_x");
 
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){

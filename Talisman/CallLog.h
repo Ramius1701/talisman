@@ -4,11 +4,23 @@
 class Node;
 class Config;
 
+struct caller_t {
+    int id;
+    std::string username;
+    int node;
+    time_t timeon;
+    time_t timeoff;
+    int upload;
+    int download;
+    int msgpost;
+    int doors;
+};
 
 class CallLog
 {
 public:
 	CallLog(Config *c);
+    static bool get_last_x(Node *n, int x, struct caller_t *ct);
 	void log_on(std::string username, int node);
 	void log_off();
 	void ran_door();
