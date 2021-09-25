@@ -262,18 +262,23 @@ bool CallLog::get_last_x(Node *n, int x, struct caller_t *ct) {
 		return false;
 	}
 
-    ct->timeon = sqlite3_column_int(stmt, 3);
-    ct->timeoff = sqlite3_column_int(stmt, 4);
-    ct->id = sqlite3_column_int(stmt, 0);
-    ct->node = sqlite3_column_int(stmt, 2);
-    ct->username = std::string((const char *)sqlite3_column_text(stmt, 1));
-    ct->doors = sqlite3_column_int(stmt, 5);
-    ct->upload = sqlite3_column_int(stmt, 6);
-    ct->download = sqlite3_column_int(stmt, 7);
-    ct->msgpost = sqlite3_column_int(stmt, 8);
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+        ct->timeon = sqlite3_column_int(stmt, 3);
+        ct->timeoff = sqlite3_column_int(stmt, 4);
+        ct->id = sqlite3_column_int(stmt, 0);
+        ct->node = sqlite3_column_int(stmt, 2);
+        ct->username = std::string((const char *)sqlite3_column_text(stmt, 1));
+        ct->doors = sqlite3_column_int(stmt, 5);
+        ct->upload = sqlite3_column_int(stmt, 6);
+        ct->download = sqlite3_column_int(stmt, 7);
+        ct->msgpost = sqlite3_column_int(stmt, 8);
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+    } else {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        return false;
+    }
 
     return true;
 }
