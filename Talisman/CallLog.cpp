@@ -257,10 +257,11 @@ bool CallLog::get_last_x(Node *n, int x, struct caller_t *ct) {
 	}
 
 	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
-        sqlite3_bind_int(stmt, 1, x);
 		sqlite3_close(db);
 		return false;
 	}
+
+    sqlite3_bind_int(stmt, 1, x);
 
 	if (sqlite3_step(stmt) == SQLITE_ROW) {
         ct->timeon = sqlite3_column_int(stmt, 3);
