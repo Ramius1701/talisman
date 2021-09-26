@@ -607,7 +607,7 @@ void User::user_list(Node* n) {
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		std::string username = std::string((const char *)sqlite3_column_text(stmt, 1));
 		int uid = sqlite3_column_int(stmt, 0);
-		int total_calls = n->clog->total_calls(username);
+		int total_calls = CallLog::total_calls(n, username);
 		std::string location = get_attribute_s(n->get_config(), uid, "location", "Somewhere, The World");
 		time_t lastcall = n->clog->last_call(username);
 		struct tm thetm;

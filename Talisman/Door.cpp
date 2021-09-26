@@ -163,7 +163,7 @@ void Door::createDropfiles(Node *n) {
 	f2 << "00-0000-0000" << LINE_END;
 	f2 << "SECRET" << LINE_END;
 	f2 << n->get_user().get_sec_level() << LINE_END;
-	f2 << n->clog->total_calls(n->get_user().get_username()) << LINE_END;
+	f2 << CallLog::total_calls(n, n->get_user().get_username()) << LINE_END;
 	f2 << "01-01-1971" << LINE_END;
 	f2 << std::to_string(n->get_timeleft()) << LINE_END;
 	f2 << "999" << LINE_END;

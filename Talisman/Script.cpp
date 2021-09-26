@@ -252,6 +252,91 @@ extern "C" int lua_Pause(lua_State * L) {
 	return 0;
 }
 
+extern "C" int lua_getTotCalls(lua_State * L) {
+    const char *username = lua_tostring(L, 1);
+    Node *n = lua_getNode(L);
+    int tot = CallLog::total_calls(n, std::string(username));
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotUploads(lua_State * L) {
+    const char *username = lua_tostring(L, 1);
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_tot_uploads(n, username);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotDownloads(lua_State * L) {
+    const char *username = lua_tostring(L, 1);
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_tot_downloads(n, username);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotMsgPosts(lua_State * L) {
+    const char *username = lua_tostring(L, 1);
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_tot_msgpost(n, username);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotDoorRuns(lua_State * L) {
+    const char *username = lua_tostring(L, 1);
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_tot_doors(n, username);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotBBSCalls(lua_State * L) {
+    Node *n = lua_getNode(L);
+    int tot = CallLog::total_bbs_calls(n);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotBBSUploads(lua_State * L) {
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_bbs_tot_uploads(n);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotBBSDownloads(lua_State * L) {
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_bbs_tot_downloads(n);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotBBSMsgPosts(lua_State * L) {
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_bbs_tot_msgpost(n);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
+extern "C" int lua_getTotBBSDoorRuns(lua_State * L) {
+    Node *n = lua_getNode(L);
+    int tot = CallLog::get_bbs_tot_doors(n);
+    lua_pushnumber(L, tot);
+
+    return 1;
+}
+
 extern "C" int lua_getCallLogX(lua_State * L) {
     int x = lua_tointeger(L, 1);
     Node *n = lua_getNode(L);
@@ -349,6 +434,36 @@ void Script::exec(Node *n, std::string script) {
 
     lua_pushcfunction(l, lua_getCallLogX);
     lua_setglobal(l, "bbs_get_calllog_x");
+
+    lua_pushcfunction(l, lua_getTotCalls);
+    lua_setglobal(l, "bbs_user_get_total_calls");
+
+    lua_pushcfunction(l, lua_getTotUploads);
+    lua_setglobal(l, "bbs_user_get_total_uploads");
+
+    lua_pushcfunction(l, lua_getTotDownloads);
+    lua_setglobal(l, "bbs_user_get_total_downloads");
+
+    lua_pushcfunction(l, lua_getTotMsgPosts);
+    lua_setglobal(l, "bbs_user_get_total_msgposts");
+
+    lua_pushcfunction(l, lua_getTotDoorRuns);
+    lua_setglobal(l, "bbs_user_get_total_doorsrun");
+
+    lua_pushcfunction(l, lua_getTotBBSCalls);
+    lua_setglobal(l, "bbs_get_total_calls");
+
+    lua_pushcfunction(l, lua_getTotBBSUploads);
+    lua_setglobal(l, "bbs_get_total_uploads");
+
+    lua_pushcfunction(l, lua_getTotBBSDownloads);
+    lua_setglobal(l, "bbs_get_total_downloads");
+
+    lua_pushcfunction(l, lua_getTotBBSMsgPosts);
+    lua_setglobal(l, "bbs_get_total_msgposts");
+
+    lua_pushcfunction(l, lua_getTotBBSDoorRuns);
+    lua_setglobal(l, "bbs_get_total_doorsrun");
 
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){

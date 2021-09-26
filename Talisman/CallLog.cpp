@@ -223,12 +223,12 @@ time_t CallLog::last_call(std::string username) {
 	return ret;
 }
 
-int CallLog::total_calls(std::string username) {
+int CallLog::total_calls(Node *n, std::string username) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	int ret = 0;
 	const char* sql = "SELECT COUNT(*) FROM calllog WHERE username = ?";
-	if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
+	if (!open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
 		return 0;
 	}
 	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
@@ -247,12 +247,35 @@ int CallLog::total_calls(std::string username) {
 	return ret;
 }
 
+int CallLog::total_bbs_calls(Node *n) {
+	sqlite3* db;
+	sqlite3_stmt* stmt;
+	int ret = 0;
+	const char* sql = "SELECT COUNT(*) FROM calllog";
+	if (!open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+		return 0;
+	}
+	if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+		sqlite3_close(db);
+		return 0;
+	}
+
+	if (sqlite3_step(stmt) == SQLITE_ROW) {
+		ret = sqlite3_column_int(stmt, 0);
+	}
+	sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
+}
+
+
 bool CallLog::get_last_x(Node *n, int x, struct caller_t *ct) {
     sqlite3* db;
 	sqlite3_stmt* stmt;
 	const char* sql = "SELECT id, username, node, timeon, timeoff, rundoor, upload, download, msgpost FROM calllog ORDER by id DESC LIMIT ?, 1";
 
-	if (!open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+	if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
 		return false;
 	}
 
@@ -283,6 +306,226 @@ bool CallLog::get_last_x(Node *n, int x, struct caller_t *ct) {
 
     return true;
 }
+
+
+int CallLog::get_bbs_tot_doors(Node* n) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT rundoor FROM calllog";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+int CallLog::get_bbs_tot_msgpost(Node* n) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT msgpost FROM calllog";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+
+int CallLog::get_bbs_tot_uploads(Node* n) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT upload FROM calllog";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+int CallLog::get_bbs_tot_downloads(Node* n) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT download FROM calllog";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+
+int CallLog::get_tot_doors(Node* n, const char* username) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT rundoor FROM calllog where username = ?";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+int CallLog::get_tot_downloads(Node* n, const char* username) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT download FROM calllog where username = ?";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+int CallLog::get_tot_uploads(Node* n, const char* username) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT upload FROM calllog where username = ?";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
+int CallLog::get_tot_msgpost(Node* n, const char* username) {
+    int tot = 0;
+
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+    const char *sql = "SELECT msgpost FROM calllog where username = ?";
+
+    if (!CallLog::open_database(n->get_config()->data_path() + "/call_log.sqlite3", &db)) {
+        return 0;
+    }
+
+    if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+        sqlite3_close(db);
+        return 0;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, NULL);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        tot += sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return tot;
+}
+
 
 void CallLog::last10_callers(Node* n) {
 	sqlite3* db;
