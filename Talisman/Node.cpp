@@ -13,6 +13,7 @@
 #include <cstring>
 #include <sys/utsname.h>
 #endif
+#include <cinttypes>
 #include <filesystem>
 #include <sstream>
 #include <iostream>
@@ -1094,6 +1095,8 @@ void Node::tag_file(std::string filename, FileArea* fa)
 }
 
 void Node::system_info() {
+    static const char *units[] = {"b", "Kb", "Mb", "Gb", "Tb"};
+
 	cls();
 	send_gfile("sysinfo");
 	print_f("|15Talisman BBS v%d.%d-%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
@@ -1108,7 +1111,27 @@ void Node::system_info() {
     print_f("|15Total Calls: |14%d\r\n", CallLog::total_bbs_calls(this));
     print_f("|15Msgs Posted: |14%d\r\n", CallLog::get_bbs_tot_msgpost(this));
     print_f("|15  Doors Run: |14%d\r\n", CallLog::get_bbs_tot_doors(this));
-    print_f("|15  Transfers: |14(|15Up: |14%d bytes / |15Down: |14%d bytes)\r\n\r\n", CallLog::get_bbs_tot_uploads(this), CallLog::get_bbs_tot_downloads(this));
+
+    uint64_t uploads = CallLog::get_bbs_tot_uploads(this);
+    uint64_t downloads = CallLog::get_bbs_tot_downloads(this);
+    int ui = 0;
+    int di = 0;
+
+    for (ui = 0; ui < 4; ui++) {
+        if (uploads / 1024 <= 0) {
+            break;
+        }
+        uploads /= 1024;
+    }
+
+    for (di = 0; di < 4; di++) {
+        if (downloads / 1024 <= 0) {
+            break;
+        }
+        downloads /= 1024;
+    }
+
+    print_f("|15  Transfers: |14(|15Up: |14%" PRIu64 " %s / |15Down: |14%" PRIu64 " %s)\r\n\r\n", uploads, units[ui], downloads, units[di]);
 
 	pause();
 

@@ -32,12 +32,12 @@ public:
 	time_t last_call(std::string username);
 	static void last10_callers(Node* n);
     static int get_tot_msgpost(Node *n, const char *username);
-    static int get_tot_uploads(Node *n, const char *username);
-    static int get_tot_downloads(Node *n, const char *username);
+    static uint64_t get_tot_uploads(Node *n, const char *username);
+    static uint64_t get_tot_downloads(Node *n, const char *username);
     static int get_tot_doors(Node *n, const char *username);
     static int get_bbs_tot_msgpost(Node *n);
-    static int get_bbs_tot_uploads(Node *n);
-    static int get_bbs_tot_downloads(Node *n);
+    static uint64_t get_bbs_tot_uploads(Node *n);
+    static uint64_t get_bbs_tot_downloads(Node *n);
     static int get_bbs_tot_doors(Node *n);
 
 private:

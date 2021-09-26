@@ -361,8 +361,8 @@ int CallLog::get_bbs_tot_msgpost(Node* n) {
 }
 
 
-int CallLog::get_bbs_tot_uploads(Node* n) {
-    int tot = 0;
+uint64_t CallLog::get_bbs_tot_uploads(Node* n) {
+    uint64_t tot = 0;
 
     sqlite3 *db;
     sqlite3_stmt *stmt;
@@ -378,7 +378,7 @@ int CallLog::get_bbs_tot_uploads(Node* n) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        tot += sqlite3_column_int(stmt, 0);
+        tot += sqlite3_column_int64(stmt, 0);
     }
 
     sqlite3_finalize(stmt);
@@ -387,8 +387,8 @@ int CallLog::get_bbs_tot_uploads(Node* n) {
     return tot;
 }
 
-int CallLog::get_bbs_tot_downloads(Node* n) {
-    int tot = 0;
+uint64_t CallLog::get_bbs_tot_downloads(Node* n) {
+    uint64_t tot = 0;
 
     sqlite3 *db;
     sqlite3_stmt *stmt;
@@ -404,7 +404,7 @@ int CallLog::get_bbs_tot_downloads(Node* n) {
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        tot += sqlite3_column_int(stmt, 0);
+        tot += sqlite3_column_int64(stmt, 0);
     }
 
     sqlite3_finalize(stmt);
@@ -442,8 +442,8 @@ int CallLog::get_tot_doors(Node* n, const char* username) {
     return tot;
 }
 
-int CallLog::get_tot_downloads(Node* n, const char* username) {
-    int tot = 0;
+uint64_t CallLog::get_tot_downloads(Node* n, const char* username) {
+    uint64_t tot = 0;
 
     sqlite3 *db;
     sqlite3_stmt *stmt;
@@ -470,8 +470,8 @@ int CallLog::get_tot_downloads(Node* n, const char* username) {
     return tot;
 }
 
-int CallLog::get_tot_uploads(Node* n, const char* username) {
-    int tot = 0;
+uint64_t CallLog::get_tot_uploads(Node* n, const char* username) {
+    uint64_t tot = 0;
 
     sqlite3 *db;
     sqlite3_stmt *stmt;
