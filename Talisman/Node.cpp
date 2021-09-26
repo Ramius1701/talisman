@@ -1108,7 +1108,7 @@ void Node::system_info() {
     print_f("|15Total Calls: |14%d\r\n", CallLog::total_bbs_calls(this));
     print_f("|15Msgs Posted: |14%d\r\n", CallLog::get_bbs_tot_msgpost(this));
     print_f("|15  Doors Run: |14%d\r\n", CallLog::get_bbs_tot_doors(this));
-    print_f("|15  Transfers: |14(Up: %d bytes / Down: %d bytes)\r\n", CallLog::get_bbs_tot_uploads(this), CallLog::get_bbs_tot_downloads(this));
+    print_f("|15  Transfers: |14(|15Up: |14%d bytes / |15Down: |14%d bytes)\r\n\r\n", CallLog::get_bbs_tot_uploads(this), CallLog::get_bbs_tot_downloads(this));
 
 	pause();
 
