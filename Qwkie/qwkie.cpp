@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <curl/curl.h>
 #include <sys/stat.h>
 #include "Archiver.h"
@@ -8,6 +9,10 @@
 #include "../Common/Squish.h"
 #include "qwkie.h"
 #include "Qwk.h"
+
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 
 static int safe_atoi(const char *str, int len) {
     int ret = 0;
