@@ -1309,7 +1309,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		}
 	}
 
-	print_f("Talisman v%d.%d-%s; Copyright (c) 2020; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+	print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2021; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
 	/* Load configuration */
 	if (!config.load(this, "talisman.ini")) {
