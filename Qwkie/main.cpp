@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        std::cerr << "Usage ./qwkie [scan|toss|poll]" << std::endl;
+        std::cerr << "Usage ./qwkie [scan|toss|poll] (network)" << std::endl;
         return -1;
     }
 
@@ -22,7 +22,11 @@ int main(int argc, char **argv) {
             q.scanall();
         }
     } else if (strcasecmp(argv[1], "toss") == 0) {
-        q.toss();
+        if (argc > 2) {
+            q.toss(std::string(argv[2]));
+        } else {
+            q.tossall();
+        }
     } else if (strcasecmp(argv[1], "poll") == 0) {
         if (argc > 2) {
             q.poll(std::string(argv[2]));
@@ -30,7 +34,7 @@ int main(int argc, char **argv) {
             q.pollall();
         }
     } else {
-        std::cerr << "Usage ./qwkie [scan|toss|poll]" << std::endl;
+        std::cerr << "Usage ./qwkie [scan|toss|poll] (network)" << std::endl;
         return -1;
     }
 

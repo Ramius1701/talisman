@@ -27,7 +27,9 @@ public:
     bool scan(int net);
     bool scan(std::string network);
     bool scanall();
-    bool toss();
+    bool toss(int net);
+    bool toss(std::string network);
+    bool tossall();
     bool poll(int net);
     bool poll(std::string network);
     bool pollall();
