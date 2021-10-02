@@ -1,5 +1,8 @@
 #include <cstring>
 #include <iostream>
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
 #include "qwkie.h"
 
 int main(int argc, char **argv) {
