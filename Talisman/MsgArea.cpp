@@ -2413,6 +2413,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 
 		fwrite(&q, sizeof(struct QwkHeader), 1, msgs_dat_fptr);
 		fwrite(msgbuf, lenbytes, 1, msgs_dat_fptr);
+        free(msgbuf);
 		*last_msg_packed = msgid;
 		tot++;
 	}
