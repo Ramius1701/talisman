@@ -60,8 +60,8 @@ Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}"; F
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "C:\Users\Admin\Downloads\curl-7.79.1\build\Win32\VC14\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-1_1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Apamm\Downloads\curl-7.79.1\build\Win32\VC15\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}\dist"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
