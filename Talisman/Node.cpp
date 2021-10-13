@@ -1357,25 +1357,57 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	int tries = 0;
 
 	bool login_pause = false;
+	bool login_script = false;
+
+	if (std::filesystem::exists(config.script_path() + "/login.lua")) {
+		login_script = true;
+	}
 
 	if (sshusername == nullptr || sshpassword == nullptr) {
-		while (!logged_in) {
-			print_f("\r\nEnter USERNAME or NEW\r\n");
-			print_f("LOGIN: ");
-			std::string login = get_string(16, false);
-			if (strcasecmp(login.c_str(), "NEW") == 0) {
-				logged_in = newuser();
-			}
-			else {
-				print_f("\r\nPASSW: ");
-				std::string password = get_string(16, true);
 
-				if (u.load_user(login, password)) {
-					logged_in = true;
+
+		while (!logged_in) {
+			if (login_script) {
+				std::string script_username;
+				std::string script_password;
+
+				if (!Script::login(this, std::string(config.script_path() + "/login.lua"), &script_username, &script_password)) {
+					login_script = false;
+					continue;
 				}
 				else {
-					log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", login.c_str(), node);
-					tries++;
+					if (strcasecmp(script_username.c_str(), "NEW") == 0) {
+						logged_in = newuser();
+					}
+					else {
+						if (u.load_user(script_username, script_password)) {
+							logged_in = true;
+						}
+						else {
+							log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", script_username.c_str(), node);
+							tries++;
+						}
+					}
+				}
+			}
+			else {
+				print_f("\r\nEnter USERNAME or NEW\r\n");
+				print_f("LOGIN: ");
+				std::string login = get_string(16, false);
+				if (strcasecmp(login.c_str(), "NEW") == 0) {
+					logged_in = newuser();
+				}
+				else {
+					print_f("\r\nPASSW: ");
+					std::string password = get_string(16, true);
+
+					if (u.load_user(login, password)) {
+						logged_in = true;
+					}
+					else {
+						log->log(LOG_INFO, "%s failed to login on node %d (wrong password)", login.c_str(), node);
+						tries++;
+					}
 				}
 			}
 			if (tries == 3) {

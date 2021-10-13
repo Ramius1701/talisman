@@ -9,12 +9,6 @@
 #include "../Common/Logger.h"
 #include "../Common/Squish.h"
 
-extern "C" {
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-}
-
 extern "C" Node *lua_getNode(lua_State *L) {
     lua_pushstring(L, "bbs_node");
     lua_gettable(L, LUA_REGISTRYINDEX);
@@ -370,8 +364,8 @@ extern "C" int lua_getCallLogX(lua_State * L) {
     }
 }
 
-void Script::exec(Node *n, std::string script) {
-	lua_State *l = luaL_newstate();
+void Script::init_state(Node* n, lua_State* l) {
+	
 	luaL_openlibs(l);
 
 	lua_pushstring(l, "bbs_node");
@@ -413,17 +407,17 @@ void Script::exec(Node *n, std::string script) {
 
 	lua_pushcfunction(l, lua_getBBSMsg);
 	lua_setglobal(l, "bbs_get_message");
-	
+
 	lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
 
-    lua_pushcfunction(l, lua_BBSTermWidth);
+	lua_pushcfunction(l, lua_BBSTermWidth);
 	lua_setglobal(l, "bbs_get_term_width");
 
-    lua_pushcfunction(l, lua_BBSTermHeight);
+	lua_pushcfunction(l, lua_BBSTermHeight);
 	lua_setglobal(l, "bbs_get_term_height");
 
-    lua_pushcfunction(l, lua_bbsPostMsg);
+	lua_pushcfunction(l, lua_bbsPostMsg);
 	lua_setglobal(l, "bbs_post_message");
 
 	lua_pushcfunction(l, lua_Pause);
@@ -432,38 +426,70 @@ void Script::exec(Node *n, std::string script) {
 	lua_pushcfunction(l, lua_GetAttrib);
 	lua_setglobal(l, "bbs_get_user_attribute");
 
-    lua_pushcfunction(l, lua_getCallLogX);
-    lua_setglobal(l, "bbs_get_calllog_x");
+	lua_pushcfunction(l, lua_getCallLogX);
+	lua_setglobal(l, "bbs_get_calllog_x");
 
-    lua_pushcfunction(l, lua_getTotCalls);
-    lua_setglobal(l, "bbs_user_get_total_calls");
+	lua_pushcfunction(l, lua_getTotCalls);
+	lua_setglobal(l, "bbs_user_get_total_calls");
 
-    lua_pushcfunction(l, lua_getTotUploads);
-    lua_setglobal(l, "bbs_user_get_total_uploads");
+	lua_pushcfunction(l, lua_getTotUploads);
+	lua_setglobal(l, "bbs_user_get_total_uploads");
 
-    lua_pushcfunction(l, lua_getTotDownloads);
-    lua_setglobal(l, "bbs_user_get_total_downloads");
+	lua_pushcfunction(l, lua_getTotDownloads);
+	lua_setglobal(l, "bbs_user_get_total_downloads");
 
-    lua_pushcfunction(l, lua_getTotMsgPosts);
-    lua_setglobal(l, "bbs_user_get_total_msgposts");
+	lua_pushcfunction(l, lua_getTotMsgPosts);
+	lua_setglobal(l, "bbs_user_get_total_msgposts");
 
-    lua_pushcfunction(l, lua_getTotDoorRuns);
-    lua_setglobal(l, "bbs_user_get_total_doorsrun");
+	lua_pushcfunction(l, lua_getTotDoorRuns);
+	lua_setglobal(l, "bbs_user_get_total_doorsrun");
 
-    lua_pushcfunction(l, lua_getTotBBSCalls);
-    lua_setglobal(l, "bbs_get_total_calls");
+	lua_pushcfunction(l, lua_getTotBBSCalls);
+	lua_setglobal(l, "bbs_get_total_calls");
 
-    lua_pushcfunction(l, lua_getTotBBSUploads);
-    lua_setglobal(l, "bbs_get_total_uploads");
+	lua_pushcfunction(l, lua_getTotBBSUploads);
+	lua_setglobal(l, "bbs_get_total_uploads");
 
-    lua_pushcfunction(l, lua_getTotBBSDownloads);
-    lua_setglobal(l, "bbs_get_total_downloads");
+	lua_pushcfunction(l, lua_getTotBBSDownloads);
+	lua_setglobal(l, "bbs_get_total_downloads");
 
-    lua_pushcfunction(l, lua_getTotBBSMsgPosts);
-    lua_setglobal(l, "bbs_get_total_msgposts");
+	lua_pushcfunction(l, lua_getTotBBSMsgPosts);
+	lua_setglobal(l, "bbs_get_total_msgposts");
 
-    lua_pushcfunction(l, lua_getTotBBSDoorRuns);
-    lua_setglobal(l, "bbs_get_total_doorsrun");
+	lua_pushcfunction(l, lua_getTotBBSDoorRuns);
+	lua_setglobal(l, "bbs_get_total_doorsrun");
+}
+
+bool Script::login(Node* n, std::string script, std::string* uname, std::string* password) {
+	lua_State* l = luaL_newstate();
+
+	init_state(n, l);
+	luaL_loadfile(l, script.c_str());
+
+	int ret = lua_pcall(l , 0, 1, 0);
+	if (ret) {
+		n->log->log(LOG_ERROR, "Error executing login script. \%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+		lua_close(l);
+		return false;
+	}
+
+	lua_getglobal(l, "login");
+	ret = lua_pcall(l, 0, 2, 0);
+	if (ret) {
+		n->log->log(LOG_ERROR, "Error executing login script. \%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+		lua_close(l);
+		return false;
+	}
+	*uname = std::string(lua_tostring(l, -2));
+	*password = std::string(lua_tostring(l, -1));
+	lua_close(l);
+	return true;
+}
+
+void Script::exec(Node *n, std::string script) {
+	lua_State *l = luaL_newstate();
+
+	init_state(n, l);
 
 	int ret = luaL_dofile(l, script.c_str());
 	if(ret != 0){
