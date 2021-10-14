@@ -364,6 +364,13 @@ extern "C" int lua_getCallLogX(lua_State * L) {
     }
 }
 
+extern "C" int lua_hasAnsi(lua_State * L) {
+	Node* n = lua_getNode(L);
+	bool hasAnsi = n->hasANSI;
+	lua_pushboolean(L, hasAnsi);
+	return 1;
+}
+
 void Script::init_state(Node* n, lua_State* l) {
 	
 	luaL_openlibs(l);
@@ -458,6 +465,10 @@ void Script::init_state(Node* n, lua_State* l) {
 
 	lua_pushcfunction(l, lua_getTotBBSDoorRuns);
 	lua_setglobal(l, "bbs_get_total_doorsrun");
+
+	lua_pushcfunction(l, lua_hasAnsi);
+	lua_setglobal(l, "bbs_user_has_ansi");
+
 }
 
 bool Script::login(Node* n, std::string script, std::string* uname, std::string* password) {
