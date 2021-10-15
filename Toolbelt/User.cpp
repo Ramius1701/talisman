@@ -241,7 +241,7 @@ bool User::delete_user(std::string datapath, std::string username)
     static const char *delete_subscriptions = "DELETE FROM subs WHERE uid = ?";
     static const char *delete_user = "DELETE FROM users WHERE id = ?";
     static const char *delete_lastread = "DELETE FROM lastr WHERE uid = ?";
-    static const char *delete_emails = "DELETE FROM email WHERE recpient = ?";
+    static const char *delete_emails = "DELETE FROM email WHERE recipient = ?";
     static const char *delete_phlogs = "DELETE FROM phlog WHERE uid = ?";
     sqlite3 *db;
     sqlite3_stmt *stmt;
