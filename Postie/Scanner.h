@@ -13,7 +13,7 @@ class Scanner
 {
 public:
 	bool run();
-	static std::string get_bundle_name(NETADDR* orig, NETADDR* dest, std::string packetpath, bool bundle_ts);
+	static std::string get_bundle_name(NETADDR* orig, NETADDR* dest, std::string packetpath, bool bundle_ts, std::string data_path);
 	static bool append_flo_file(struct link_conf_t* link, Config* c, std::string bundlefname, std::string flowtype);
 	static void write_msg_to_pkt(struct area_conf_t* area, struct link_conf_t* link, sq_msg_t* msg, bool local);
 	static void write_netmail_to_pkt(NETADDR* orig, NETADDR* dest, sq_msg_t* msg, bool local, FILE* fptr, std::string flavour);

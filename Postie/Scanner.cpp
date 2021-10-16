@@ -908,10 +908,16 @@ bool Scanner::run() {
 			fclose(c.links.at(fil).fptr);
 
 			// create bundle
-			std::string bundlename = c.packetdir() + "/" + get_bundle_name(c.links.at(fil).ouraka, c.links.at(fil).aka, c.packetdir(), c.bundlename_ts());
+			std::string bundlename = get_bundle_name(c.links.at(fil).ouraka, c.links.at(fil).aka, c.packetdir(), c.bundlename_ts(), _datapath);
 			if (bundlename == "") {
 				log.log(LOG_ERROR, "Unable to get bundle name");
 				continue;
+			}
+
+			std::filesystem::path bpath(c.packetdir() + "/" + bundlename);
+
+			if (!bpath.is_absolute()) {
+				bundlename = std::filesystem::absolute(bpath).u8string();
 			}
 
 			for (size_t arc = 0; arc < c.archivers.size(); arc++) {
@@ -1012,7 +1018,7 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
 	return true;
 }
 
-std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath, bool bundle_ts) {
+std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath, bool bundle_ts, std::string data_path) {
 	time_t ttime;
 	struct tm thetm;
 	static const char* days[] = { "su", "mo", "tu", "we", "th", "fr", "sa" };
@@ -1020,14 +1026,63 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 	std::stringstream ss;
 	std::filesystem::path finalpath;
 	bool found = false;
+	time_t postieid;
+
 
 	char buffer[9];
 
 	ttime = time(NULL);
+	FILE * fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "rb");
 
+	if (!fptr) {
+		postieid = ttime;
+	}
+	else {
+		fread(&postieid, sizeof(time_t), 1, fptr);
+		fclose(fptr);
+
+		if (ttime > postieid) {
+			postieid = ttime;
+		}
+		else {
+			postieid++;
+		}
+	}
 
 	if (bundle_ts) {
-		snprintf(buffer, sizeof buffer, "%08" PRIx64 , ttime & 0xffffffff);
+		if (postieid > 0xffffffff) {
+			postieid -= 0x100000000;
+		}
+		while (true) {
+			ss.str("");
+			snprintf(buffer, sizeof buffer, "%08" PRIx64, postieid & 0xffffffff);
+#ifdef _MSC_VER
+			localtime_s(&thetm, &ttime);
+#else 
+			localtime_r(&ttime, &thetm);
+#endif
+			ss << buffer << "." << days[thetm.tm_wday];
+
+			for (int i = 0; i < 37; i++) {
+				ss << ext[i];
+				finalpath = packetpath;
+				finalpath.append(ss.str());
+				if (!std::filesystem::exists(finalpath)) {
+					found = true;
+					break;
+				}
+				ss.seekp(-1, ss.cur);
+			}
+			if (found) {
+				fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "wb");
+				if (fptr) {
+					fwrite(&postieid, sizeof(time_t), 1, fptr);
+					fclose(fptr);
+				}
+				return ss.str();
+			}
+			postieid++;
+		}
 	}
 	else {
 		if (dest->point != 0) {
@@ -1036,27 +1091,26 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 		else {
 			snprintf(buffer, sizeof buffer, "%04x%04x", abs(orig->net - dest->net), abs(orig->node - dest->node));
 		}
-	}
-	
 #ifdef _MSC_VER
-	localtime_s(&thetm, &ttime);
+		localtime_s(&thetm, &ttime);
 #else 
-	localtime_r(&ttime, &thetm);
+		localtime_r(&ttime, &thetm);
 #endif
-	ss << buffer << "." << days[thetm.tm_wday];
+		ss << buffer << "." << days[thetm.tm_wday];
 
-	for (int i = 0; i < 37; i++) {
-		ss << ext[i];
-		finalpath = packetpath;
-		finalpath.append(ss.str());
-		if (!std::filesystem::exists(finalpath)) {
-			found = true;
-			break;
+		for (int i = 0; i < 37; i++) {
+			ss << ext[i];
+			finalpath = packetpath;
+			finalpath.append(ss.str());
+			if (!std::filesystem::exists(finalpath)) {
+				found = true;
+				break;
+			}
+			ss.seekp(-1, ss.cur);
 		}
-		ss.seekp(-1, ss.cur);
+		if (found) {
+			return ss.str();
+		}
+		return "";
 	}
-	if (found) {
-		return ss.str();
-	}
-	return "";
 }

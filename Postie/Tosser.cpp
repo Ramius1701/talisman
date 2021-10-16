@@ -1381,7 +1381,7 @@ bool Tosser::run(bool protinbound) {
 			fclose(c.links.at(lid).fptr);
 			c.links.at(lid).fptr = NULL;
 			// create bundle
-			std::string bundlename = c.packetdir() + "/" + Scanner::get_bundle_name(c.links.at(lid).ouraka, c.links.at(lid).aka, c.packetdir(), c.bundlename_ts());
+			std::string bundlename = c.packetdir() + "/" + Scanner::get_bundle_name(c.links.at(lid).ouraka, c.links.at(lid).aka, c.packetdir(), c.bundlename_ts(), _datapath);
 			if (bundlename == "") {
 				log.log(LOG_ERROR, "Unable to get bundle name");
 				continue;
