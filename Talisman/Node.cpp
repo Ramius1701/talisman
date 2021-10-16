@@ -1050,7 +1050,7 @@ void Node::print_f(const char* fmt, ...)
 std::string Node::operating_system() {
 #ifdef _MSC_VER
 	SYSTEM_INFO si;
-	GetSystemInfo(&si);
+	GetNativeSystemInfo(&si);
 
 	switch (si.wProcessorArchitecture) {
 	case PROCESSOR_ARCHITECTURE_AMD64:
