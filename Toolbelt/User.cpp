@@ -325,8 +325,6 @@ bool User::delete_user(std::string datapath, std::string username)
 
     std::cout << "Done" << std::endl;
 
-    sqlite3_close(db);
-
     std::cout << "Deleting user last read pointers...";
 
     if (sqlite3_prepare_v2(db, delete_lastread, -1, &stmt, NULL) != SQLITE_OK) {
