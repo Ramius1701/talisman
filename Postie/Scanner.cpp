@@ -1044,9 +1044,6 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 		if (ttime > postieid) {
 			postieid = ttime;
 		}
-		else {
-			postieid++;
-		}
 	}
 
 	if (bundle_ts) {
