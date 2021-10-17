@@ -9,8 +9,13 @@
 #else
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/select.h>
+#include <limits.h>
+#include <arpa/inet.h>
+#define _w_inet_ntop inet_ntop 
+#define _w_inet_pton inet_pton
 #endif
 
 #include <fstream>
@@ -36,8 +41,6 @@ void remove_from_flo(struct outfile_t o) {
     char buffer[PATH_MAX];
 
     bool empty = true;
-
-
 
     snprintf(buffer, PATH_MAX, "%s.b", o.flo.c_str());
 
