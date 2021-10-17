@@ -919,6 +919,9 @@ bool Scanner::run() {
 			if (!bpath.is_absolute()) {
 				bundlename = std::filesystem::absolute(bpath).u8string();
 			}
+			else {
+				bundlename = bpath.u8string();
+			}
 
 			for (size_t arc = 0; arc < c.archivers.size(); arc++) {
 				if (strcasecmp(c.archivers.at(arc)->name.c_str(), c.links.at(fil).archiver.c_str()) == 0) {
