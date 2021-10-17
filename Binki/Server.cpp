@@ -1194,9 +1194,6 @@ int Server::runall() {
             ss << c.outbound;
         }
 
-
-        char flowfname[9];
-
         memset(flowfname, 0, 9);
 
         if (c.links.at(i).addr->point == 0) {
