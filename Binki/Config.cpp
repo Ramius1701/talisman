@@ -7,6 +7,16 @@ bool Config::load(std::string datapath) {
 	try {
 		auto data = toml::parse_file(datapath + "/binki.toml");
 
+        auto _sem = data["binki"]["semaphore"].as_string();
+
+        if (_sem == nullptr) {
+            semaphore = "";
+        }
+        else {
+            semaphore = _sem->value_or("");
+        }
+
+
 		auto _inbound = data["binki"]["inbound"].as_string();
 
 		if (_inbound == nullptr) {
@@ -73,7 +83,7 @@ bool Config::load(std::string datapath) {
 			}
 		}
 
-		auto linkitems = data.get_as<toml::array>("links");
+		auto linkitems = data.get_as<toml::array>("link");
         if (linkitems != nullptr) {
             for (size_t i = 0; i < linkitems->size(); i++) {
                 struct link_t newlink;
@@ -85,6 +95,24 @@ bool Config::load(std::string datapath) {
                     newlink.network = _network->as_string()->value_or("");
                 } else {
                     newlink.network = "";
+                }
+
+                auto _host = itemtable->get("host");
+
+                if (_host != nullptr) {
+                    newlink.host = _host->as_string()->value_or("");
+                }
+                else {
+                    newlink.host = "";
+                }
+
+                auto _port = itemtable->get("port");
+
+                if (_port != nullptr) {
+                    newlink.port = _port->as_integer()->value_or(24554);
+                }
+                else {
+                    newlink.port = 24554;
                 }
 
                 auto _addr = itemtable->get("address");

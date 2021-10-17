@@ -137,7 +137,9 @@ void EventMgr::executor(EventMgr *ev)
             }
 
             if (shouldrun) {
-                std::cout << norm() << ts() << "EventManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << rst() << std::endl;
+                if (ev->events.at(i).name != "SILENT") {
+                    std::cout << norm() << ts() << "EventManager: Running " << ev->events.at(i).name << " (Reason: " << reason << ")" << rst() << std::endl;
+                }
 
 #ifdef _MSC_VER
 				char* cmd = strdup(ev->events.at(i).execute.c_str());

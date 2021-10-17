@@ -119,10 +119,11 @@ int main()
 {
 	int sshport;
 	int gopherport;
+	int binkport;
     bool ipv6 = false;
 	int port;
-	struct sockaddr_in gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr;
-    struct sockaddr_in6 gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6;
+	struct sockaddr_in gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr, bink_serv_addr;
+    struct sockaddr_in6 gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6, bink_serv_addr6;
 	int csockfd;
 	int on = 1;
 	int max_nodes = 4;
@@ -159,6 +160,7 @@ int main()
 	sshport = inir.GetInteger("main", "ssh port", -1);
 	max_nodes = inir.GetInteger("main", "max nodes", 4);
 	gopherport = inir.GetInteger("main", "gopher port", -1);
+	binkport = inir.GetInteger("main", "binkp port", -1);
 	datapath = inir.Get("paths", "data path", "data");
     ipv6 = inir.GetBoolean("main", "enable ipv6", false);
 
@@ -372,6 +374,64 @@ int main()
 		std::cout << norm() << ts() << "GopherServer: Listening on port " << gopherport << "(Gopher)" << rst() << std::endl;
 	}
 
+	int binkfd = -1;
+	int binkfd6 = -1;
+
+	if (binkport != -1) {
+		binkfd = socket(AF_INET, SOCK_STREAM, 0);
+
+		memset(&bink_serv_addr, 0, sizeof(struct sockaddr_in));
+
+		bink_serv_addr.sin_family = AF_INET;
+		bink_serv_addr.sin_addr.s_addr = INADDR_ANY;
+		bink_serv_addr.sin_port = htons(binkport);
+		if (setsockopt(binkfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << err() << ts() << "BinkpServer : Error setting SO_REUSEADDR (Binkp)" << rst() << std::endl;
+			return -1;
+		}
+		if (setsockopt(binkfd, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+			std::cerr << err() << ts() << "BinkpServer : Error setting TCP_NODELAY (Binkp)" << rst() << std::endl;
+			return -1;
+		}
+		if (bind(binkfd, (struct sockaddr*)&bink_serv_addr, sizeof(struct sockaddr_in)) < 0) {
+			std::cerr << err() << ts() << "BinkpServer : Error binding. (Binkp)" << rst() << std::endl;
+			return -1;
+		}
+
+
+		if (ipv6) {
+			binkfd6 = socket(AF_INET6, SOCK_STREAM, 0);
+
+			memset(&bink_serv_addr6, 0, sizeof(struct sockaddr_in6));
+
+			bink_serv_addr6.sin6_family = AF_INET6;
+			bink_serv_addr6.sin6_addr = in6addr_any;
+			bink_serv_addr6.sin6_port = htons(binkport);
+
+			if (setsockopt(binkfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char*)&on, sizeof(on)) < 0) {
+				std::cerr << err() << ts() << "BinkpServer : Error setting IPV6_V6ONLY (Binkp - ipv6)" << rst() << std::endl;
+				return -1;
+			}
+			if (setsockopt(binkfd6, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on)) < 0) {
+				std::cerr << err() << ts() << "BinkpServer : Error setting SO_REUSEADDR (Binkp - ipv6)" << rst() << std::endl;
+				return -1;
+			}
+			if (setsockopt(binkfd6, IPPROTO_TCP, TCP_NODELAY, (char*)&on, sizeof(on)) < 0) {
+				std::cerr << err() << ts() << "BinkpServer : Error setting TCP_NODELAY (Binkp - ipv6)" << rst() << std::endl;
+				return -1;
+			}
+			if (bind(binkfd6, (struct sockaddr*)&bink_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
+				std::cerr << err() << ts() << "BinkpServer : Error binding. (Binkp - ipv6)" << rst() << std::endl;
+				return -1;
+			}
+
+			listen(binkfd6, 5);
+			std::cout << norm() << ts() << "BinkpServer : Listening on port " << binkport << "(Binkp - ipv6)" << rst() << std::endl;
+		}
+		listen(binkfd, 5);
+		std::cout << norm() << ts() << "BinkpServer : Listening on port " << binkport << "(Binkp)" << rst() << std::endl;
+	}
+
 	int nfds;
 	int maxfd = telnetfd;
 	fd_set server_fds;
@@ -381,6 +441,13 @@ int main()
 		FD_SET(gopherfd, &server_fds);
 		if (gopherfd > maxfd) {
 			maxfd = gopherfd;
+		}
+	}
+
+	if (binkport != -1) {
+		FD_SET(binkfd, &server_fds);
+		if (binkfd > maxfd) {
+			maxfd = binkfd;
 		}
 	}
 
@@ -395,6 +462,13 @@ int main()
 	if (ipv6) {
         FD_SET(telnetfd6, &server_fds);
         if (telnetfd6 > maxfd) maxfd = telnetfd6;
+
+		if (binkport != -1) {
+			FD_SET(binkfd6, &server_fds);
+			if (binkfd6 > maxfd) {
+				maxfd = binkfd6;
+			}
+		}
 
         if (gopherport != -1) {
             FD_SET(gopherfd6, &server_fds);
@@ -458,6 +532,115 @@ int main()
                 }
             }
 		}
+		if (binkport != -1) {
+			if (FD_ISSET(binkfd, &copy_fds)) {
+				csockfd = accept(binkfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
+#ifdef _MSC_VER
+				std::stringstream ss;
+				ss.str("");
+				ss << "\"binki.exe\" -S " << csockfd;
+
+				char* cmd = strdup(ss.str().c_str());
+
+				std::cout << norm() << ts() << "BinkpServer : Launching Binki" << rst() << std::endl;
+
+				STARTUPINFOA si;
+				PROCESS_INFORMATION pi;
+
+				ZeroMemory(&si, sizeof(si));
+				si.cb = sizeof(si);
+				//	si.dwFlags = STARTF_USESTDHANDLES;
+				//	si.hStdInput = INVALID_HANDLE_VALUE;
+				//	si.hStdError = INVALID_HANDLE_VALUE;
+				//	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+				ZeroMemory(&pi, sizeof(pi));
+
+				if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+					std::cerr << err() << ts() << "BinkpServer: Failed to create process!" << rst() << std::endl;
+					free(cmd);
+					closesocket(csockfd);
+					continue;
+				}
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+				free(cmd);
+				closesocket(csockfd);
+#else
+				pid_t pid = fork();
+				if (pid == 0) {
+					snprintf(sockstr, 10, "%d", csockfd);
+					if (execlp("./binki", "./binki", "-S", sockstr, NULL) == -1) {
+						perror("Execlp: ");
+						exit(-1);
+					}
+				}
+				else if (pid == -1) {
+					std::cerr << err() << ts() << "BinkpServer: Failed to create process!" << rst() << std::endl;
+					close(csockfd);
+				}
+				else {
+					close(csockfd);
+				}
+#endif
+				continue;
+			}
+			if (ipv6) {
+				if (FD_ISSET(binkfd6, &copy_fds)) {
+					csockfd = accept(binkfd6, (struct sockaddr*)&client_addr6, (socklen_t*)&clen6);
+#ifdef _MSC_VER
+					std::stringstream ss;
+					ss.str("");
+					ss << "\"binki.exe\" -S " << csockfd;
+
+					char* cmd = strdup(ss.str().c_str());
+					
+					std::cout << norm() << ts() << "BinkpServer : Launching Binki (IPv6)" << rst() << std::endl;
+
+					STARTUPINFOA si;
+					PROCESS_INFORMATION pi;
+
+					ZeroMemory(&si, sizeof(si));
+					si.cb = sizeof(si);
+					//	si.dwFlags = STARTF_USESTDHANDLES;
+					//	si.hStdInput = INVALID_HANDLE_VALUE;
+					//	si.hStdError = INVALID_HANDLE_VALUE;
+					//	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+					ZeroMemory(&pi, sizeof(pi));
+
+					if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+						std::cerr << err() << ts() << "BinkpServer: Failed to create process!" << rst() << std::endl;
+						free(cmd);
+						closesocket(csockfd);
+						continue;
+					}
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
+					free(cmd);
+					closesocket(csockfd);
+#else
+					pid_t pid = fork();
+					if (pid == 0) {
+						snprintf(sockstr, 10, "%d", csockfd);
+						if (execlp("./binki", "./binki", "-S", sockstr, NULL) == -1) {
+							perror("Execlp: ");
+							exit(-1);
+						}
+					}
+					else if (pid == -1) {
+						std::cerr << err() << ts() << "BinkpServer: Failed to create process!" << rst() << std::endl;
+						close(csockfd);
+					}
+					else {
+						close(csockfd);
+					}
+#endif
+					continue;
+				}
+			}
+		}
+
 		if (gopherport != -1) {
 			if (FD_ISSET(gopherfd, &copy_fds)) {
                 csockfd = accept(gopherfd, (struct sockaddr*)&client_addr, (socklen_t*)&clen);
