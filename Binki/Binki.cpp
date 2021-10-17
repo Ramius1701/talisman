@@ -15,6 +15,7 @@ int main(int argc, char **argv)
 		int ret = s.load_config();
 		if (ret == 0) {
 			ret = s.run(strtol(argv[2], NULL, 10));
+			s.cleanup();
 		}
 		return ret;
 	}
@@ -28,6 +29,7 @@ int main(int argc, char **argv)
 				int ret = s.load_config();
 				if (ret == 0) {
 					ret = s.run(addr, arg.substr(arg.find('@') + 1));
+					s.cleanup();
 				}
 				free(addr);
 				return ret;
@@ -41,6 +43,7 @@ int main(int argc, char **argv)
 				int ret = s.load_config();
 				if (ret == 0) {
 					ret = s.run(addr, "");
+					s.cleanup();
 				}
 				free(addr);
 				return ret;
@@ -53,6 +56,7 @@ int main(int argc, char **argv)
 		int ret = s.load_config();
 		if (ret == 0) {
 			ret = s.runall();
+			s.cleanup();
 		}
 
 		return ret;

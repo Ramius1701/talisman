@@ -49,6 +49,9 @@ static inline void trim(std::string& s) {
 Server::Server() {
     cram5_init = false;
     cram5_opt = false;
+#ifdef _MSC_VER
+	winsock_init = false;
+#endif    
 }
 
 void Server::cram5_init_challenge_data() {
@@ -674,6 +677,14 @@ bool Server::process_data(uint16_t header, int timeout) {
     return true;
 }
 
+void Server::cleanup() {
+#ifdef _MSC_VER
+    if (winsock_init) {
+        WSACleanup();
+    }
+#endif
+}
+
 uint8_t Server::process_command(uint16_t header, int timeout) {
     uint8_t cmd;
     if (receive(socket, (char*)&cmd, 1, timeout) != 1) {
@@ -977,9 +988,12 @@ int Server::run(NETADDR* addr, std::string domain) {
 #ifdef _MSC_VER
     WSADATA wsaData;
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "Error initializing winsock!" << std::endl;
-        return -1;
+    if (!winsock_init) {
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+            std::cerr << "Error initializing winsock!" << std::endl;
+            return -1;
+        }
+        winsock_init = true;
     }
 #endif
 
@@ -1140,9 +1154,12 @@ int Server::run(int socket) {
 #ifdef _MSC_VER
     WSADATA wsaData;
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "Error initializing winsock!" << std::endl;
-        return -1;
+    if (!winsock_init) {
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+            std::cerr << "Error initializing winsock!" << std::endl;
+            return -1;
+        }
+        winsock_init = true;
     }
 #endif
     // Send

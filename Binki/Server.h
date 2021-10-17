@@ -33,9 +33,12 @@ public:
 	int load_config();
 	int runall();
 	bool send_data_packet(int size, char* data);
-
+	void cleanup();
 
 private:
+#ifdef _MSC_VER
+	bool winsock_init;
+#endif
 	void cram5_init_challenge_data();
 	std::string cram5_create_hashed_pwd(std::string challenge, std::string password);
 	bool cram5_validate_password(std::string challenge, std::string password, std::string hash);
