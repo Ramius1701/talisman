@@ -3,6 +3,8 @@
 #include <filesystem>
 #include "Config.h"
 
+#define BINKI_VERSION "0.1"
+
 #define M_NUL 0
 #define M_ADR 1
 #define M_PWD 2
@@ -18,6 +20,7 @@
 class Server
 {
 public:
+	Server();
 	static int receive(int socket, char* buffer, int size, int timeout);
 	bool send_file_packet(std::filesystem::path file);
 	int run(int socket);
@@ -30,7 +33,15 @@ public:
 	int load_config();
 	int runall();
 	bool send_data_packet(int size, char* data);
+
+
 private:
+	void cram5_init_challenge_data();
+	std::string cram5_create_hashed_pwd(std::string challenge, std::string password);
+	bool cram5_validate_password(std::string challenge, std::string password, std::string hash);
+	bool cram5_init;
+	bool cram5_opt;
+	std::string cram5_challenge_data;
 	std::string _datapath;
 	std::string _logpath;
 	std::string _tmppath;

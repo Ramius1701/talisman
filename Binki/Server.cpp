@@ -17,14 +17,136 @@
 #define _w_inet_ntop inet_ntop 
 #define _w_inet_pton inet_pton
 #endif
-
+#include <openssl/md5.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 #include <filesystem>
 #include "Server.h"
 #include "Config.h"
 #include "../Common/INIReader.h"
+
+static inline void ltrim(std::string& s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+        }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string& s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+        }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string& s) {
+    ltrim(s);
+    rtrim(s);
+}
+
+Server::Server() {
+    cram5_init = false;
+    cram5_opt = false;
+}
+
+void Server::cram5_init_challenge_data() {
+    std::stringstream data;
+
+    data << "BINKI " << BINKI_VERSION << " " << rand() << " " << time(NULL);
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+
+    unsigned char hash[16];
+    MD5_Update(&ctx, data.str().c_str(), data.str().size());
+    MD5_Final(hash, &ctx);
+
+    std::stringstream ss;
+    for (unsigned char c : hash) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)c;
+    }
+    cram5_challenge_data = ss.str();
+    cram5_init = true;
+}
+
+bool Server::cram5_validate_password(std::string challenge, std::string password, std::string hash) {
+    std::string expected = cram5_create_hashed_pwd(challenge, password);
+
+    return (expected == hash);
+}
+
+std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::string password) {
+    MD5_CTX ctx;
+
+    if (!cram5_init) {
+        cram5_init_challenge_data();
+    }
+
+    trim(challenge_hex);
+
+    char result[128];
+    auto len = 0;
+    auto it = challenge_hex.begin();
+    while (it != challenge_hex.end()) {
+        std::string s;
+        s.push_back(*it++);
+        s.push_back(*it++);
+
+        const auto chl = strtoul(s.c_str(), NULL, 16);
+        const char ch = chl & 0xff;
+        result[len++] = ch;
+    }
+    std::string challenge(result, len);
+
+    std::string secret;
+
+    if (password.size() > 64) {
+        MD5_Init(&ctx);
+
+        unsigned char hash[16];
+        MD5_Update(&ctx, password.c_str(), password.size());
+        MD5_Final(hash, &ctx);
+        secret = std::string((char*)hash, 16);
+    }
+    else {
+        secret = password;
+    }
+
+    uint8_t ipad = 0x36;
+    uint8_t opad = 0x5c;
+
+    unsigned char ip[65];
+    unsigned char op[65];
+
+    memset(ip, 0, 65);
+    memset(op, 0, 65);
+
+    memcpy(ip, secret.c_str(), secret.size());
+    memcpy(op, secret.c_str(), secret.size());
+
+    for (int i = 0; i < 65; i++) {
+        ip[i] ^= ipad;
+        op[i] ^= opad;
+    }
+
+    unsigned char digest[16];
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, ip, 64);
+    MD5_Update(&ctx, challenge.c_str(), challenge.size());
+    MD5_Final(digest, &ctx);
+
+    MD5_Init(&ctx);
+    MD5_Update(&ctx, op, 64);
+    MD5_Update(&ctx, digest, 16);
+    MD5_Final(digest, &ctx);
+    std::stringstream ss;
+    for (unsigned char c : digest) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)c;
+    }
+
+    return ss.str();
+}
 
 struct outfile_t {
     std::filesystem::path file;
@@ -619,6 +741,15 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
     }
         break;
     case M_NUL:
+    {
+        std::string s(data);
+        if (s.size() >= 3 && s.substr(0, 3) == "OPT") {
+            if (s.size() > 14 && s.substr(0, 14) == "OPT CRAM-MD5-") {
+                cram5_challenge_data = s.substr(14);
+                cram5_opt = true;
+            }
+        }
+    }
         break;
     case M_EOB:
         goteob = true;
@@ -896,7 +1027,7 @@ int Server::run(NETADDR* addr, std::string domain) {
     send_command_packet(M_NUL, "SYS " + _system_name);
     send_command_packet(M_NUL, "ZYZ " + _sysop_name);
     send_command_packet(M_NUL, "LOC " + _location);
-    send_command_packet(M_NUL, "VER binki/0.1 binkp/1.0");
+    send_command_packet(M_NUL, "VER binki/" + std::string(BINKI_VERSION) + " binkp / 1.0");
     std::stringstream ss;
 
     for (size_t i = 0; i < c.addresses.size(); i++) {
@@ -907,7 +1038,12 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
     send_command_packet(M_ADR, ss.str());
 
-    send_command_packet(M_PWD, match->password);
+    if (cram5_opt == true) {
+        send_command_packet(M_PWD, "CRAM-MD5-" + cram5_create_hashed_pwd(cram5_challenge_data, match->password));
+    }
+    else {
+        send_command_packet(M_PWD, match->password);
+    }
 
     pwdack = true;
 
@@ -1023,6 +1159,9 @@ int Server::run(int socket) {
     // Send
     goteob = false;
 
+    cram5_init_challenge_data();
+
+    send_command_packet(M_NUL, "OPT CRAM-MD5-" + cram5_challenge_data);
     send_command_packet(M_NUL, "SYS " + _system_name);
     send_command_packet(M_NUL, "ZYZ " + _sysop_name);
     send_command_packet(M_NUL, "LOC " + _location);
@@ -1075,9 +1214,24 @@ int Server::run(int socket) {
                 if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
                     gotmatch = true;
                     secure = true;
-                    if (remote_password != l.password) {
-                        send_command_packet(M_ERR, "Password mismatch!");
-                        return 0;
+                    if (!(remote_password.substr(0, 5) == "CRAM-")) {
+                        if (remote_password != l.password) {
+                            send_command_packet(M_ERR, "Password mismatch!");
+                            return 0;
+                        }
+                    }
+                    else {
+                        if (remote_password.substr(0, 9) == "CRAM-MD5-") {
+                            if (!cram5_validate_password(cram5_challenge_data, l.password, remote_password.substr(9))) {
+                                send_command_packet(M_ERR, "Password mismatch!");
+                                std::cerr << "R:" << remote_password.substr(9) << " E:" << cram5_create_hashed_pwd(cram5_challenge_data, l.password) << std::endl;
+                                return 0;
+                            }
+                        }
+                        else {
+                            send_command_packet(M_ERR, "Unavailable Digest!");
+                            return 0;
+                        }
                     }
                 }
             }
