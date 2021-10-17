@@ -63,8 +63,8 @@ void Server::cram5_init_challenge_data() {
     MD5_Final(hash, &ctx);
 
     std::stringstream ss;
-    for (unsigned char c : hash) {
-        ss << std::setw(2) << std::setfill('0') << std::hex << (int)c;
+    for (int i = 0; i < 16; i++) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)hash[i];
     }
     cram5_challenge_data = ss.str();
     cram5_init = true;
@@ -78,27 +78,24 @@ bool Server::cram5_validate_password(std::string challenge, std::string password
 
 std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::string password) {
     MD5_CTX ctx;
+    std::stringstream ss;
 
     if (!cram5_init) {
         cram5_init_challenge_data();
     }
-
     trim(challenge_hex);
-
     char result[128];
     auto len = 0;
-    auto it = challenge_hex.begin();
-    while (it != challenge_hex.end()) {
-        std::string s;
-        s.push_back(*it++);
-        s.push_back(*it++);
 
+    for (int i = 0; i < challenge_hex.size(); i+=2) {
+        std::string s;
+        s.push_back(challenge_hex[i]);
+        s.push_back(challenge_hex[i+1]);
         const auto chl = strtoul(s.c_str(), NULL, 16);
         const char ch = chl & 0xff;
         result[len++] = ch;
     }
     std::string challenge(result, len);
-
     std::string secret;
 
     if (password.size() > 64) {
@@ -112,7 +109,6 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
     else {
         secret = password;
     }
-
     uint8_t ipad = 0x36;
     uint8_t opad = 0x5c;
 
@@ -124,7 +120,6 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
 
     memcpy(ip, secret.c_str(), secret.size());
     memcpy(op, secret.c_str(), secret.size());
-
     for (int i = 0; i < 65; i++) {
         ip[i] ^= ipad;
         op[i] ^= opad;
@@ -140,9 +135,8 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
     MD5_Update(&ctx, op, 64);
     MD5_Update(&ctx, digest, 16);
     MD5_Final(digest, &ctx);
-    std::stringstream ss;
-    for (unsigned char c : digest) {
-        ss << std::setw(2) << std::setfill('0') << std::hex << (int)c;
+    for (int i = 0; i < 16; i++) {
+        ss << std::setw(2) << std::setfill('0') << std::hex << (int)digest[i];
     }
 
     return ss.str();
@@ -206,7 +200,6 @@ void remove_from_flo(struct outfile_t o) {
 
 bool Server::send_data_packet(int len, char* data) {
     char* buffer;
-    std::cout << "Sending data packet of size " << len << std::endl;
     buffer = (char *)malloc(len + 2);
 
     if (!buffer) {
@@ -625,7 +618,6 @@ int Server::receive(int socket, char* buffer, int size, int timeout) {
             return 0;
         }
         else if (rs == -1 && errno != EINTR) {
-            std::cerr << "RS = " << rs << "ERRNO = " << err << std::endl;
             return -1;
         }
         else if (FD_ISSET(socket, &rfd)) {
@@ -648,8 +640,6 @@ bool Server::process_data(uint16_t header, int timeout) {
         std::cerr << "Out of memory!" << std::endl;
         exit(-1);
     }
-
-    std::cerr << "Receiving Data " << header << std::endl;
 
     memset(data, 0, header);
     if (receive(socket, data, header, timeout) != header) {
@@ -699,7 +689,6 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         memset(data, 0, header);
 
         int len = receive(socket, data, header - 1, timeout);
-        
         if (len != header - 1) {
             free(data);
             return 0xff;
@@ -737,15 +726,15 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         sending_filename = "";
         sending_len = stoul(frags.at(1));
         sending_timestamp = stoul(frags.at(2));
-        std::cerr << "M_GOT !" << std::endl;
     }
         break;
     case M_NUL:
     {
         std::string s(data);
         if (s.size() >= 3 && s.substr(0, 3) == "OPT") {
-            if (s.size() > 14 && s.substr(0, 14) == "OPT CRAM-MD5-") {
-                cram5_challenge_data = s.substr(14);
+            if (s.size() > 14 && s.substr(0, 13) == "OPT CRAM-MD5-") {
+                cram5_challenge_data = s.substr(13);
+                cram5_init = true;
                 cram5_opt = true;
             }
         }
@@ -756,7 +745,6 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         break;
     case M_ADR:
     {
-        std::cerr << "Got ADR: " << data << std::endl;
         std::stringstream ss(data);
         std::string fragment;
         while (std::getline(ss, fragment, ' ')) {
@@ -845,10 +833,11 @@ bool Server::process_frames(int timeout, uint8_t upto) {
         else if (ret == 0) {
             return true; // timeout
         } else {
-            std::cerr << "RET = " << ret << std::endl;
             return false;
         }
     } while (upto != cmd && upto != 0xff);
+
+
 
     return true;
 }
@@ -866,9 +855,6 @@ int Server::send_command_packet(uint8_t type, std::string data) {
     out[1] = (uint8_t)(size & 0x00FF);
 
     out[2] = type;
-
-    std::cout << data << std::endl;
-
 
     memcpy(&out[3], data.c_str(), data.size());
 
@@ -1027,7 +1013,7 @@ int Server::run(NETADDR* addr, std::string domain) {
     send_command_packet(M_NUL, "SYS " + _system_name);
     send_command_packet(M_NUL, "ZYZ " + _sysop_name);
     send_command_packet(M_NUL, "LOC " + _location);
-    send_command_packet(M_NUL, "VER binki/" + std::string(BINKI_VERSION) + " binkp / 1.0");
+    send_command_packet(M_NUL, "VER binki/" + std::string(BINKI_VERSION) + " binkp/1.0");
     std::stringstream ss;
 
     for (size_t i = 0; i < c.addresses.size(); i++) {
@@ -1038,8 +1024,11 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
     send_command_packet(M_ADR, ss.str());
 
+    process_frames(1, 0xff);
+
     if (cram5_opt == true) {
-        send_command_packet(M_PWD, "CRAM-MD5-" + cram5_create_hashed_pwd(cram5_challenge_data, match->password));
+         std::string hash("CRAM-MD5-" + cram5_create_hashed_pwd(cram5_challenge_data, match->password));
+         send_command_packet(M_PWD, hash);
     }
     else {
         send_command_packet(M_PWD, match->password);
@@ -1181,7 +1170,7 @@ int Server::run(int socket) {
     }
 
     if (remote_addresses.empty()) {
-        send_command_packet(M_ERR, "Unable to find common address! 1");
+        send_command_packet(M_ERR, "Unable to find common address!");
         return 0;
     }
 
@@ -1224,7 +1213,6 @@ int Server::run(int socket) {
                         if (remote_password.substr(0, 9) == "CRAM-MD5-") {
                             if (!cram5_validate_password(cram5_challenge_data, l.password, remote_password.substr(9))) {
                                 send_command_packet(M_ERR, "Password mismatch!");
-                                std::cerr << "R:" << remote_password.substr(9) << " E:" << cram5_create_hashed_pwd(cram5_challenge_data, l.password) << std::endl;
                                 return 0;
                             }
                         }
@@ -1245,7 +1233,7 @@ int Server::run(int socket) {
         send_command_packet(M_OK, "No Password, Insecure Session.");
     }
     else {
-        send_command_packet(M_ERR, "Unable to find common address! 2");
+        send_command_packet(M_ERR, "Unable to find common address!");
         return 0;
     }
 
@@ -1298,7 +1286,6 @@ int Server::runall() {
     std::vector<std::string> addrs_to_poll;
 
     for (size_t i = 0; i < c.links.size(); i++) {
-        std::cerr << c.links.at(i).outbox << std::endl;
         if (!std::filesystem::is_empty(c.links.at(i).outbox)) {
             addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
             continue;
