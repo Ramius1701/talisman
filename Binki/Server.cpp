@@ -1185,8 +1185,45 @@ int Server::runall() {
             addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
             continue;
         }
-    }
+#ifndef _MSC_VER
+        ss.str("");
+        if (c.links.at(i).addr->zone != c.defaultzone) {
+            ss << c.outbound << "." << std::setfill('0') << std::setw(3) << std::uppercase << std::hex << c.links.at(i).addr->zone;
+        }
+        else {
+            ss << c.outbound;
+        }
 
+
+        char flowfname[9];
+
+        memset(flowfname, 0, 9);
+
+        if (c.links.at(i).addr->point == 0) {
+            snprintf(flowfname, 9, "%04X%04X", c.links.at(i).addr->net, c.links.at(i).addr->node);
+        }
+        else {
+            snprintf(flowfname, 9, "%08X", c.links.at(i).addr->point);
+        }
+
+        if (std::filesystem::exists(ss.str() + "/" + flowfname + ".CLO")) {
+            addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
+            continue;
+        }
+        if (std::filesystem::exists(ss.str() + "/" + flowfname + ".FLO")) {
+            addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
+            continue;
+        }
+        if (std::filesystem::exists(ss.str() + "/" + flowfname + ".CUT")) {
+            addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
+            continue;
+        }
+        if (std::filesystem::exists(ss.str() + "/" + flowfname + ".OUT")) {
+            addrs_to_poll.push_back(std::to_string(c.links.at(i).addr->zone) + ":" + std::to_string(c.links.at(i).addr->net) + "/" + std::to_string(c.links.at(i).addr->node) + "." + std::to_string(c.links.at(i).addr->point) + "@" + c.links.at(i).network);
+            continue;
+        }
+#endif
+    }
     for (size_t i = 0; i < addrs_to_poll.size(); i++) {
         NETADDR* addr = parse_fido_addr(addrs_to_poll.at(i).substr(0, addrs_to_poll.at(i).find('@')).c_str());
         if (addr) {
