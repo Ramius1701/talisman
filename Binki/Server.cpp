@@ -693,6 +693,7 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
     char* data = NULL;
     if (header > 1) {
         data = (char*)malloc(header);
+
         if (!data) {
             std::cerr << "Out of memory!" << std::endl;
             exit(-1);
@@ -703,6 +704,18 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         if (len != header - 1) {
             free(data);
             return 0xff;
+        }
+    }
+
+    if (data == NULL) {
+        log.log(LOG_INFO, "%s: No Data", commands[cmd]);
+    }
+    else {
+        if (cmd == M_PWD) {
+            log.log(LOG_INFO, "%s: ************", commands[cmd]);
+        }
+        else {
+            log.log(LOG_INFO, "%s: %s", commands[cmd], data);
         }
     }
 
@@ -802,8 +815,6 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
             fname = c.inbound + "/" + current_filename;
         }
         current_file = fopen(fname.c_str(), "wb");
-
-        std::cerr << "Receiving " << current_filename << " (" << fname << ")" << std::endl;
     }
         break;
     }
@@ -859,6 +870,7 @@ int Server::send_command_packet(uint8_t type, std::string data) {
 
     if (!out) {
         std::cerr << "Out of Memory!" << std::endl;
+        log.log(LOG_ERROR, "Out of Memory!");
         exit(-1);
     }
 
@@ -938,7 +950,6 @@ int hostname_to_ip(const char* hostname, char* ip) {
     hints.ai_socktype = SOCK_STREAM;
 
     if ((status = getaddrinfo(hostname, NULL, &hints, &res)) != 0) {
-        std::cerr << "getaddrinfo failed" << std::endl;
         return 1;
     }
 
@@ -951,7 +962,6 @@ int hostname_to_ip(const char* hostname, char* ip) {
         }
     }
     freeaddrinfo(res);
-    std::cerr << "no ipv4 addr" << std::endl;
     return 1;
 }
 
@@ -1018,6 +1028,7 @@ int Server::run(NETADDR* addr, std::string domain) {
         return -1;
     }
     if (!binkp_connect_ipv4(match->host.c_str(), match->port, &socket)) {
+        log.log(LOG_ERROR, "Error connecting to %s", match->host.c_str());
         return -1;
     }
 
@@ -1144,6 +1155,9 @@ int Server::load_config() {
         std::cerr << "Error loading config!" << std::endl;
         return -1;
     }
+
+    log.load(_logpath + "/binki.log");
+
     return 0;
 }
 
@@ -1183,11 +1197,13 @@ int Server::run(int socket) {
     send_command_packet(M_ADR, ss.str());
 
     if (!process_frames(60, M_PWD)) {
-        std::cerr << "Error waiting for password" << std::endl;
+        log.log(LOG_ERROR, "Error waiting for password");
+        return 0;
     }
 
     if (remote_addresses.empty()) {
         send_command_packet(M_ERR, "Unable to find common address!");
+        log.log(LOG_ERROR, "Unable to find common address");
         return 0;
     }
 
@@ -1223,6 +1239,7 @@ int Server::run(int socket) {
                     if (!(remote_password.substr(0, 5) == "CRAM-")) {
                         if (remote_password != l.password) {
                             send_command_packet(M_ERR, "Password mismatch!");
+                            log.log(LOG_ERROR, "Password mismatch!");
                             return 0;
                         }
                     }
@@ -1230,11 +1247,13 @@ int Server::run(int socket) {
                         if (remote_password.substr(0, 9) == "CRAM-MD5-") {
                             if (!cram5_validate_password(cram5_challenge_data, l.password, remote_password.substr(9))) {
                                 send_command_packet(M_ERR, "Password mismatch!");
+                                log.log(LOG_ERROR, "Password mismatch!");
                                 return 0;
                             }
                         }
                         else {
                             send_command_packet(M_ERR, "Unavailable Digest!");
+                            log.log(LOG_ERROR, "Unavailable Digest");
                             return 0;
                         }
                     }
@@ -1244,12 +1263,15 @@ int Server::run(int socket) {
     }
 
     if (secure == true) {
+        log.log(LOG_INFO, "Passwords match, Secure Session.");
         send_command_packet(M_OK, "Passwords match, Secure Session.");
     }
     else if (gotmatch == true) {
+        log.log(LOG_INFO, "No Password, Insecure Session.");
         send_command_packet(M_OK, "No Password, Insecure Session.");
     }
     else {
+        log.log(LOG_ERROR, "Unable to find common address");
         send_command_packet(M_ERR, "Unable to find common address!");
         return 0;
     }

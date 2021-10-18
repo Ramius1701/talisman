@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include "Config.h"
+#include "../Common/Logger.h"
 
 #define BINKI_VERSION "0.1"
 
@@ -16,6 +17,8 @@
 #define M_BSY 8
 #define M_GET 9
 #define M_SKIP 10
+
+static const char* commands[] = { "M_NUL", "M_ADR", "M_PWD", "M_FILE", "M_OK", "M_EOB", "M_GOT", "M_ERR", "M_GET", "M_BSY", "M_GET", "M_SKIP" };
 
 class Server
 {
@@ -66,6 +69,8 @@ private:
 	std::string sending_filename;
 	uint32_t sending_len;
 	time_t sending_timestamp;
+
+	Logger log;
 
 	bool senteob;
 	bool goteob;
