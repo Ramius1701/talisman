@@ -937,7 +937,6 @@ bool Tosser::run(bool protinbound) {
 					NETADDR* emaddr = get_echomail_addr(ctrlstr.str(), msgstr.str());
 
 					if (emaddr != NULL) {
-						log.log(LOG_INFO, "Found echomail address %d:%d/%d.%d", emaddr->zone, emaddr->net, emaddr->node, emaddr->point);
 						sqmsg.xmsg.orig.zone = emaddr->zone;
 						sqmsg.xmsg.orig.node = emaddr->node;
 						sqmsg.xmsg.orig.net = emaddr->net;
@@ -1056,6 +1055,8 @@ bool Tosser::run(bool protinbound) {
 								SquishWriteMsg(mb, &sqmsg);
 								SquishUnlockMsgBase(mb);
 								SquishCloseMsgBase(mb);
+
+								log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
 							}
 							else {
 								log.log(LOG_ERROR, "Unable to open message base! : %s", std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
@@ -1089,8 +1090,6 @@ bool Tosser::run(bool protinbound) {
 					int intlpoint = 0;
 					int intlfpoint = 0;
 
-					log.log(LOG_INFO, "Got a netmail!");
-
 					for (size_t z = 0; z < ctrlstr.str().size(); z++) {
 						if (ctrlstr.str().at(z) == '\001') {
 							if (kludge.str().size() > 0) {
@@ -1107,8 +1106,6 @@ bool Tosser::run(bool protinbound) {
 
 									intldest = parse_fido_addr(intld.c_str());
 									intlorig = parse_fido_addr(intlo.c_str());
-
-									log.log(LOG_INFO, "Found intl line \"%s\" -> dest \"%s\"  orig \"%s\"", intl.c_str(), intld.c_str(), intlo.c_str());
 								}
 								else if (kludge.str().find("TOPT ") == 0) {
 									try {
@@ -1153,8 +1150,6 @@ bool Tosser::run(bool protinbound) {
 
 							intldest = parse_fido_addr(intld.c_str());
 							intlorig = parse_fido_addr(intlo.c_str());
-
-							log.log(LOG_INFO, "Found intl line \"%s\" -> dest \"%s\"  orig \"%s\"", intl.c_str(), intld.c_str(), intlo.c_str());
 						}
 						else if (kludge.str().find("TOPT ") == 0) {
 							try {
@@ -1318,6 +1313,7 @@ bool Tosser::run(bool protinbound) {
 								SquishWriteMsg(mb, &sqmsg);
 								SquishUnlockMsgBase(mb);
 								SquishCloseMsgBase(mb);
+								log.log(LOG_INFO, "Added netmail \"%s\" to netmail area", sqmsg.xmsg.subject);
 							}
 							else {
 								log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());

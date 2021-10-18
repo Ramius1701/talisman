@@ -1060,6 +1060,7 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
 
     pwdack = true;
+    secure = false;
 
     while (pwdack) {
         if (!process_frames(60, 0xFF)) {
@@ -1068,7 +1069,6 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
 
     bool gotmatch = false;
-    secure = false;
     senteob = false;
     std::vector<struct link_t> common_links;
 
