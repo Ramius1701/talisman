@@ -127,51 +127,41 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
 
 	std::stringstream ss(msgbuf);
 	std::string buff;
-	bool gotorigin = false;
 	while (getline(ss, buff, '\r')) {
-		if (buff.substr(0, 11) == " * Origin: ") {
-			gotorigin = true;
-			continue;
-		}
-		if (gotorigin) {
-			if (buff.find("\001PATH: ") == 0) {
-				std::stringstream ss2(buff);
-				std::string sb;
-				uint16_t last_net = 0;
-				while (getline(ss2, sb, ' ')) {
-					if (sb.find(":")) {
-						std::string sb2 = sb.substr(sb.find(":") + 1);
-						sb = sb2;
-					}
-					if (sb.find("/") != std::string::npos) {
-						try {
-							last_net = stoi(sb.substr(0, sb.find("/")));
-							struct seenby_t nsb;
-							nsb.net = last_net;
-							nsb.node = stoi(sb.substr(sb.find("/") + 1));
-							seenbys.push_back(nsb);
-						}
-						catch (std::invalid_argument) {
-
-						}
-						catch (std::out_of_range) {
-
-						}
-					}
-					else {
+		if (buff.find("\001PATH: ") == 0) {
+			std::stringstream ss2(buff);
+			std::string sb;
+			uint16_t last_net = 0;
+			while (getline(ss2, sb, ' ')) {
+				if (sb.find(":")) {
+					std::string sb2 = sb.substr(sb.find(":") + 1);
+					sb = sb2;
+				}
+				if (sb.find("/") != std::string::npos) {
+					try {
+						last_net = stoi(sb.substr(0, sb.find("/")));
 						struct seenby_t nsb;
 						nsb.net = last_net;
-						try {
-							nsb.node = stoi(sb);
-							seenbys.push_back(nsb);
-						}
-						catch (std::invalid_argument) {
+						nsb.node = stoi(sb.substr(sb.find("/") + 1));
+						seenbys.push_back(nsb);
+					}
+					catch (std::invalid_argument) {
 
-						}
-						catch (std::out_of_range) {
+					}
+					catch (std::out_of_range) {
 
-						}
-
+					}
+				}
+				else {
+					struct seenby_t nsb;
+					nsb.net = last_net;
+					try {
+						nsb.node = stoi(sb);
+						seenbys.push_back(nsb);
+					}
+					catch (std::invalid_argument) {
+					}
+					catch (std::out_of_range) {
 					}
 				}
 			}
@@ -186,50 +176,58 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
 
 	std::stringstream ss(msgbuf);
 	std::string buff;
-	bool gotorigin = false;
+	std::vector<std::string> lines;
 	while (getline(ss, buff, '\r')) {
-		if (buff.substr(0, 11) == " * Origin: ") {
-			gotorigin = true;
-			continue;
+		lines.push_back(buff);
+	}
+
+	size_t start_seenby = 0;
+
+	for (size_t z = lines.size() - 1; z >= 0; z--) {
+		if (lines.at(z).find("SEEN-BY: ") == 0) {
+			start_seenby = z;
 		}
-		if (gotorigin) {
-			if (buff.find("SEEN-BY: ") == 0) {
-				std::stringstream ss2(buff);
-				std::string sb;
-				uint16_t last_net = 0;
-				while (getline(ss2, sb, ' ')) {
-					if (sb.find(":")) {
-						sb = sb.substr(sb.find(":") + 1);
+		else {
+			if (start_seenby != 0) {
+				break;
+			}
+		}
+	}
+
+	for (size_t z = start_seenby; z < lines.size(); z++) {
+		buff = lines.at(z);
+		if (buff.find("SEEN-BY: ") == 0) {
+			std::stringstream ss2(buff);
+			std::string sb;
+			uint16_t last_net = 0;
+			while (getline(ss2, sb, ' ')) {
+				if (sb.find(":")) {
+					sb = sb.substr(sb.find(":") + 1);
+				}
+				if (sb.find("/") != std::string::npos) {
+					try {
+						last_net = stoi(sb.substr(0, sb.find("/")));
+						struct seenby_t nsb;
+						nsb.net = last_net;
+						nsb.node = stoi(sb.substr(sb.find("/") + 1));
+						seenbys.push_back(nsb);
 					}
-					if (sb.find("/") != std::string::npos) {
+					catch (std::invalid_argument) {
+					}
+					catch (std::out_of_range) {
+					}
+				}
+				else {
+					if (sb.size() > 0) {
+						struct seenby_t nsb;
+						nsb.net = last_net;
 						try {
-							last_net = stoi(sb.substr(0, sb.find("/")));
-							struct seenby_t nsb;
-							nsb.net = last_net;
-							nsb.node = stoi(sb.substr(sb.find("/") + 1));
+							nsb.node = stoi(sb);
 							seenbys.push_back(nsb);
 						}
 						catch (std::invalid_argument) {
-
 						}
 						catch (std::out_of_range) {
-
-						}
-					}
-					else {
-						if (sb.size() > 0) {
-							struct seenby_t nsb;
-							nsb.net = last_net;
-							try {
-								nsb.node = stoi(sb);
-								seenbys.push_back(nsb);
-							}
-							catch (std::invalid_argument) {
-
-							}
-							catch (std::out_of_range) {
-
-							}
 						}
 					}
 				}
