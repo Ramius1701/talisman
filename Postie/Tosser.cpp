@@ -1036,7 +1036,7 @@ bool Tosser::run(bool protinbound) {
 	
 									// check seenbys
 	
-									if (seenbys.size() == 0 || Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka)) {
+									if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka)) {
 										continue;
 									}
 								}
