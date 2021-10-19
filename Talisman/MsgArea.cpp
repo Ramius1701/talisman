@@ -1068,6 +1068,11 @@ void MsgArea::attach_sig(std::vector<std::string> *msg, std::string sig) {
 }
 
 void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer) {
+	if (write_sec_level > n->get_user().get_sec_level()) {
+		n->print_f("\r\n|12Sorry, you don't have access to post in this area!|07\r\n");
+		n->pause();
+		return;
+	}
 	if (_is_netmail) {
 		std::stringstream netaddr;
 		if (wwivnode == 0) {
