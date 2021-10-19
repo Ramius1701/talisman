@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.25"
+#define MyAppVersion "0.26"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismandocs.com/"
 #define MyAppExeName "Servo.exe"
@@ -40,6 +40,7 @@ Source: "C:\Users\apamm\Talisman\Release\Postie.exe"; DestDir: "{app}"; Flags: i
 Source: "C:\Users\apamm\Talisman\Release\Gofer.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Falcon.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Qwkie.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\Talisman\Release\Binki.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
