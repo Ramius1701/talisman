@@ -62,7 +62,7 @@ Node::Node(int node, int socket, bool telnet) {
 	timeout = 0;
 	stop_timeout = false;
 	last_time_check = 0;
-	timeleft = 120;
+	timeleft = 300;
 	log = new Logger();
 	override_on = -1;
 	override_width = 0;
@@ -1228,6 +1228,8 @@ bool Node::newuser() {
 			if (u.inst_user(newusername, password, firstname, lastname, location, email)) {
 				u.set_attribute("seclevel", std::to_string(config.new_user_sec_level()));
 				
+				timeleft = config.get_sec_level_info(config.new_user_sec_level())->time_online * 60;
+
 				bool found = false;
 
 				for (size_t msgconf = 0; msgconf < config.msgconfs.size(); msgconf++) {
