@@ -1237,10 +1237,15 @@ int Server::run(int socket) {
                     gotmatch = true;
                     secure = true;
                     if (!(remote_password.substr(0, 5) == "CRAM-")) {
-                        if (remote_password != l.password) {
-                            send_command_packet(M_ERR, "Password mismatch!");
-                            log.log(LOG_ERROR, "Password mismatch!");
-                            return 0;
+                        if (l.crammd5) {
+                            send_command_packet(M_ERR, "Sorry, unencrypted passwords are not acceptable.");
+                        }
+                        else {
+                            if (remote_password != l.password) {
+                                send_command_packet(M_ERR, "Password mismatch!");
+                                log.log(LOG_ERROR, "Password mismatch!");
+                                return 0;
+                            }
                         }
                     }
                     else {
