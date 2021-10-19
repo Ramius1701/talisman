@@ -149,12 +149,19 @@
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Qwk.h" />
     <ClInclude Include="qwkie.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="qwkie.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Qwkie.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Talisman\win32_deps\qwkie_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
