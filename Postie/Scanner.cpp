@@ -183,7 +183,7 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
 
 	size_t start_seenby = 0;
 
-	for (size_t z = lines.size() - 1; z >= 0; z--) {
+	for (size_t z = lines.size() - 1; z > 0; z--) {
 		if (lines.at(z).find("SEEN-BY: ") == 0) {
 			start_seenby = z;
 		}
