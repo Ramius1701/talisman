@@ -681,9 +681,20 @@ bool Server::process_data(uint16_t header, int timeout) {
 void Server::cleanup() {
     if (socket != -1) {
 #ifdef _MSC_VER
-        closesocket(socket);
+        int ret = shutdown(socket, SD_BOTH);
+        if (ret == 0) {
+            closesocket(socket);
+        }
+        else {
+            ret = WSAGetLastError();
+            if (ret == WSAECONNABORTED || ret == WSAECONNRESET) {
+                closesocket(socket);
+            }
+        }
 #else
-        close(socket);
+        if (shutdown(socket, SD_RDWR) == 0) {
+            close(socket);
+        }
 #endif
     }
 #ifdef _MSC_VER
