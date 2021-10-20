@@ -730,7 +730,6 @@ bool Tosser::run(bool protinbound) {
 	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
 	tempdir = _tmppath + "/postie-" + std::to_string(pid);
 
-	std::vector<std::filesystem::path> removelist;
     std::vector<std::filesystem::path> totoss;
 
 	for (auto& p : std::filesystem::directory_iterator(inbound)) {
@@ -742,21 +741,10 @@ bool Tosser::run(bool protinbound) {
     std::filesystem::create_directories(tempdir);
 
     for (std::filesystem::path packetpth : totoss) {
-
-        if (removelist.size() > 0) {
-            for (auto& rm : removelist) {
-                std::filesystem::remove(rm);
-            }
-            removelist.clear();
-        }
-
         std::filesystem::path temp_name(packetpth);
         std::filesystem::path e(packetpth.extension().u8string() + ".toss");
 
-
-        temp_name.replace_extension(e);
-
-
+		temp_name.replace_extension(e);
 
 		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
             std::filesystem::rename(packetpth, temp_name);
@@ -813,8 +801,6 @@ bool Tosser::run(bool protinbound) {
 
 		for (auto& pkt : std::filesystem::directory_iterator(tempdir)) {
 			FILE* fptr = fopen(pkt.path().u8string().c_str(), "rb");
-
-            removelist.push_back(pkt.path());
 
 			if (!fptr) {
 				log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());

@@ -7,12 +7,13 @@
 #include <conio.h>
 
 #define strcasecmp _stricmp
-
+#define socklen_t int
 #else
 #include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
 #include <sys/utsname.h>
+#include <arpa/inet.h>
 #endif
 #include <cinttypes>
 #include <filesystem>
@@ -1331,7 +1332,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	log->load(config.get_logpath() + "/talisman.log");
 
 	struct sockaddr sa;
-	int slen = sizeof (struct sockaddr);
+	socklen_t slen = sizeof (struct sockaddr);
 	int csock;
 
 	if (telnet) {
