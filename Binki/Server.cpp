@@ -584,9 +584,6 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
         }
     }
 
-    send_command_packet(M_EOB, "All Done!");
-    senteob = true;
-
     for (size_t i = 0; i < files.size(); i++) {
         if (files.at(i).sent) {
             if (files.at(i).del) {
@@ -728,14 +725,14 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
     }
 
     if (data == NULL) {
-        log.log(LOG_INFO, "%s: No Data", commands[cmd]);
+        log.log(LOG_INFO, ">>> %s: No Data", commands[cmd]);
     }
     else {
         if (cmd == M_PWD) {
-            log.log(LOG_INFO, "%s: ************", commands[cmd]);
+            log.log(LOG_INFO, ">>> %s: ************", commands[cmd]);
         }
         else {
-            log.log(LOG_INFO, "%s: %s", commands[cmd], data);
+            log.log(LOG_INFO, ">>> %s: %s", commands[cmd], data);
         }
     }
 
@@ -899,6 +896,8 @@ bool Server::process_frames(int timeout, uint8_t upto) {
 int Server::send_command_packet(uint8_t type, std::string data) {
     uint16_t size = (uint16_t)data.size() + 1;
     uint8_t *out = (uint8_t *)malloc(size + 2);
+
+    log.log(LOG_INFO, "<<< %s: %s", commands[type], data.c_str());
 
     if (!out) {
         std::cerr << "Out of Memory!" << std::endl;
@@ -1151,6 +1150,10 @@ int Server::run(NETADDR* addr, std::string domain) {
         }
 
         transfer_files(l.network, l.addr, fspath, std::filesystem::path(l.outbox));
+    }
+
+    if (!process_frames(2, 0xff)) {
+        return 0;
     }
 
     if (!senteob) {
