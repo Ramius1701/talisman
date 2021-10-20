@@ -776,10 +776,14 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         if (data != NULL) {
             std::string s(data);
             if (s.size() >= 3 && s.substr(0, 3) == "OPT") {
-                if (s.size() > 14 && s.substr(0, 13) == "OPT CRAM-MD5-") {
-                    cram5_challenge_data = s.substr(13);
-                    cram5_init = true;
-                    cram5_opt = true;
+                std::stringstream ss(s.substr(3));
+                std::string fragment;
+                while (std::getline(ss, fragment, ' ')) {
+                    if (fragment.size() > 9 && fragment.substr(0, 9) == "CRAM-MD5-") {
+                        cram5_challenge_data = fragment.substr(9);
+                        cram5_init = true;
+                        cram5_opt = true;
+                    }
                 }
             }
         }
