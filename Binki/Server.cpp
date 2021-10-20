@@ -49,6 +49,7 @@ static inline void trim(std::string& s) {
 Server::Server() {
     cram5_init = false;
     cram5_opt = false;
+    current_file = NULL;
 #ifdef _MSC_VER
 	winsock_init = false;
     socket = -1;
@@ -759,26 +760,30 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
     break;
     case M_GOT:
     {
-        std::stringstream ss(data);
-        std::string fragment;
-        std::vector<std::string> frags;
-        while (std::getline(ss, fragment, ' ')) {
-            frags.push_back(fragment);
-        }
+        if (data != NULL) {
+            std::stringstream ss(data);
+            std::string fragment;
+            std::vector<std::string> frags;
+            while (std::getline(ss, fragment, ' ')) {
+                frags.push_back(fragment);
+            }
 
-        sending_filename = "";
-        sending_len = stoul(frags.at(1));
-        sending_timestamp = stoul(frags.at(2));
+            sending_filename = "";
+            sending_len = stoul(frags.at(1));
+            sending_timestamp = stoul(frags.at(2));
+        }
     }
         break;
     case M_NUL:
     {
-        std::string s(data);
-        if (s.size() >= 3 && s.substr(0, 3) == "OPT") {
-            if (s.size() > 14 && s.substr(0, 13) == "OPT CRAM-MD5-") {
-                cram5_challenge_data = s.substr(13);
-                cram5_init = true;
-                cram5_opt = true;
+        if (data != NULL) {
+            std::string s(data);
+            if (s.size() >= 3 && s.substr(0, 3) == "OPT") {
+                if (s.size() > 14 && s.substr(0, 13) == "OPT CRAM-MD5-") {
+                    cram5_challenge_data = s.substr(13);
+                    cram5_init = true;
+                    cram5_opt = true;
+                }
             }
         }
     }
@@ -788,52 +793,60 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         break;
     case M_ADR:
     {
-        std::stringstream ss(data);
-        std::string fragment;
-        while (std::getline(ss, fragment, ' ')) {
-            NETADDR* newaddr = parse_fido_addr(fragment.substr(0, fragment.find_first_of('@')).c_str());
-            if (!newaddr) {
-                continue;
+        if (data != NULL) {
+            std::stringstream ss(data);
+            std::string fragment;
+            while (std::getline(ss, fragment, ' ')) {
+                NETADDR* newaddr = parse_fido_addr(fragment.substr(0, fragment.find_first_of('@')).c_str());
+                if (!newaddr) {
+                    continue;
+                }
+                struct address_t addr;
+
+                addr.addr = newaddr;
+                addr.domain = fragment.substr(fragment.find_first_of('@') + 1).c_str();
+
+                remote_addresses.push_back(addr);
             }
-            struct address_t addr;
-
-            addr.addr = newaddr;
-            addr.domain = fragment.substr(fragment.find_first_of('@') + 1).c_str();
-
-            remote_addresses.push_back(addr);
         }
     }
         break;
     case M_PWD:
-        remote_password = data;
+        if (data != NULL) {
+            remote_password = data;
+        }
         break;
     case M_FILE:
         // receive a file
     {
-        std::stringstream ss(data);
-        std::string fragment;
-        std::vector<std::string> frags;
-        while (std::getline(ss, fragment, ' ')) {
-            frags.push_back(fragment);
-        }
+        if (data != NULL) {
+            std::stringstream ss(data);
+            std::string fragment;
+            std::vector<std::string> frags;
+            while (std::getline(ss, fragment, ' ')) {
+                frags.push_back(fragment);
+            }
 
-        current_filename = std::filesystem::path(frags.at(0)).filename().u8string();
-        current_len = stoul(frags.at(1));
-        current_timestamp = stoul(frags.at(2));
-        current_received = 0;
-        if (current_file != NULL) {
-            fclose(current_file);
-        }
+            if (frags.size() >= 3) {
+                current_filename = std::filesystem::path(frags.at(0)).filename().u8string();
+                current_len = stoul(frags.at(1));
+                current_timestamp = stoul(frags.at(2));
+                current_received = 0;
+                if (current_file != NULL) {
+                    fclose(current_file);
+                }
 
-        std::string fname;
+                std::string fname;
 
-        if (secure) {
-            fname = c.inbound_secure + "/" + current_filename;
+                if (secure) {
+                    fname = c.inbound_secure + "/" + current_filename;
+                }
+                else {
+                    fname = c.inbound + "/" + current_filename;
+                }
+                current_file = fopen(fname.c_str(), "wb");
+            }
         }
-        else {
-            fname = c.inbound + "/" + current_filename;
-        }
-        current_file = fopen(fname.c_str(), "wb");
     }
         break;
     }
