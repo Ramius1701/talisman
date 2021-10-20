@@ -2,6 +2,7 @@
 #ifdef _MSC_VER
 #define _WIN32_LEAN_AND_MEAN 1
 #include <WinSock2.h>
+#include <WS2tcpip.h>
 #include <Windows.h>
 #include <conio.h>
 
@@ -32,6 +33,7 @@
 #include "Script.h"
 #include "Door.h"
 #include "Editor.h"
+#include "SshClient.h"
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -1327,6 +1329,30 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	std::filesystem::remove(nmsgp);
 
 	log->load(config.get_logpath() + "/talisman.log");
+
+	struct sockaddr sa;
+	int slen = sizeof (struct sockaddr);
+	int csock;
+
+	if (telnet) {
+		csock = socket;
+	}
+	else {
+		csock = sshc->csock;
+	}
+
+	if (getpeername(csock, &sa, &slen) == 0) {
+		char dst[46];
+		if (sa.sa_family == AF_INET) {
+			log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in*)&sa)->sin_addr, dst, 46), node);
+		}
+		else {
+			log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in6*)&sa)->sin6_addr, dst, 46), node);
+		}
+	}
+	else {
+		log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
+	}
 
 	u.set_config(config);
 
