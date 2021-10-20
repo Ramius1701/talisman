@@ -7,6 +7,7 @@
 #include <thread>
 #include "Config.h"
 #include "User.h"
+#include "Strings.h"
 
 class Bulletins;
 class Logger;
@@ -119,6 +120,7 @@ private:
 	std::vector<struct gfile_t> get_gfiles(std::string filename, bool ansi);
 	std::vector<std::string> pausefiles;
 	bool pause_loaded;
+	Strings fmt_strings;
 #ifdef _MSC_VER
 	HANDLE hOutput;
 #endif

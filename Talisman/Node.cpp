@@ -952,7 +952,7 @@ void Node::print_f(const char* fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 
-	vsnprintf(buffer, sizeof buffer, fmt, args);
+	vsnprintf(buffer, sizeof buffer, fmt_strings.fetch(fmt), args);
 
 	for (size_t i = 0; i < strlen(buffer); i++) {
 		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
@@ -1322,6 +1322,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 		return -1;
 	}
 
+	fmt_strings.load(config.data_path() + "/strings.dat");
+
 	std::filesystem::path nmsgp(config.tmp_path());
 
 	nmsgp.append(std::to_string(node));
@@ -1335,26 +1337,27 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	socklen_t slen = sizeof (struct sockaddr);
 	int csock;
 
-	if (telnet) {
-		csock = socket;
-	}
-	else {
-		csock = sshc->csock;
-	}
-
-	if (getpeername(csock, &sa, &slen) == 0) {
-		char dst[46];
-		if (sa.sa_family == AF_INET) {
-			log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in*)&sa)->sin_addr, dst, 46), node);
+	if (socket != 0) {
+		if (telnet) {
+			csock = socket;
 		}
 		else {
-			log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in6*)&sa)->sin6_addr, dst, 46), node);
+			csock = sshc->csock;
+		}
+
+		if (getpeername(csock, &sa, &slen) == 0) {
+			char dst[46];
+			if (sa.sa_family == AF_INET) {
+				log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in*)&sa)->sin_addr, dst, 46), node);
+			}
+			else {
+				log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in6*)&sa)->sin6_addr, dst, 46), node);
+			}
+		}
+		else {
+			log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
 		}
 	}
-	else {
-		log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
-	}
-
 	u.set_config(config);
 
 	if (socket) {

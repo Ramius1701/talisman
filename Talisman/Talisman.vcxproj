@@ -171,6 +171,7 @@
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SshClient.cpp" />
+    <ClCompile Include="Strings.cpp" />
     <ClCompile Include="User.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +203,7 @@
     <ClInclude Include="Script.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SshClient.h" />
+    <ClInclude Include="Strings.h" />
     <ClInclude Include="User.h" />
   </ItemGroup>
   <ItemGroup>
