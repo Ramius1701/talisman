@@ -692,7 +692,7 @@ void Server::cleanup() {
             }
         }
 #else
-        if (shutdown(socket, SD_RDWR) == 0) {
+        if (shutdown(socket, SHUT_RDWR) == 0) {
             close(socket);
         }
 #endif
