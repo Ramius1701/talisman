@@ -51,6 +51,7 @@ Server::Server() {
     cram5_opt = false;
 #ifdef _MSC_VER
 	winsock_init = false;
+    socket = -1;
 #endif    
 }
 
@@ -678,6 +679,13 @@ bool Server::process_data(uint16_t header, int timeout) {
 }
 
 void Server::cleanup() {
+    if (socket != -1) {
+#ifdef _MSC_VER
+        closesocket(socket);
+#else
+        close(socket);
+#endif
+    }
 #ifdef _MSC_VER
     if (winsock_init) {
         WSACleanup();
