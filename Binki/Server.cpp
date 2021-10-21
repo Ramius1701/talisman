@@ -1069,7 +1069,6 @@ int Server::run(NETADDR* addr, std::string domain) {
 
     // connected!
     goteob = false;
-
     send_command_packet(M_NUL, "SYS " + _system_name);
     send_command_packet(M_NUL, "ZYZ " + _sysop_name);
     send_command_packet(M_NUL, "LOC " + _location);
@@ -1084,7 +1083,7 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
     send_command_packet(M_ADR, ss.str());
 
-    process_frames(5, M_ADR);
+    process_frames(60, M_ADR);
     //process_frames(1, 0xff);
 
     if (cram5_opt == true) {
