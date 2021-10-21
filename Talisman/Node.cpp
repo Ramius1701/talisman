@@ -384,7 +384,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, config.fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 					}
 					else {
-						print_f("%-.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
+						print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "None.");
 					}
 				}
 				else if (compare_token(ss.str(), "PHLOGURL")) {
