@@ -1224,7 +1224,7 @@ int Server::run(int socket) {
     send_command_packet(M_NUL, "SYS " + _system_name);
     send_command_packet(M_NUL, "ZYZ " + _sysop_name);
     send_command_packet(M_NUL, "LOC " + _location);
-    send_command_packet(M_NUL, "VER binki/0.1 binkp/1.0");
+    send_command_packet(M_NUL, "VER binki/" + std::string(BINKI_VERSION) + " binkp/1.0");
     std::stringstream ss;
 
     for (size_t i = 0; i < c.addresses.size(); i++) {
