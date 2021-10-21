@@ -1084,7 +1084,8 @@ int Server::run(NETADDR* addr, std::string domain) {
     }
     send_command_packet(M_ADR, ss.str());
 
-    process_frames(1, 0xff);
+    process_frames(5, M_ADR);
+    //process_frames(1, 0xff);
 
     if (cram5_opt == true) {
          std::string hash("CRAM-MD5-" + cram5_create_hashed_pwd(cram5_challenge_data, match->password));
