@@ -24,6 +24,7 @@ bool FileConf::load(Node* n)
 			std::string mypath;
 			int my_d_sec_level;
 			int my_u_sec_level;
+            int my_v_sec_level;
 			auto name = itemtable->get("name");
 			if (name != nullptr) {
 				myname = name->as_string()->value_or("Invalid Name");
@@ -62,11 +63,19 @@ bool FileConf::load(Node* n)
 				my_u_sec_level = 10;
 			}
 
+			auto v_sec_level = itemtable->get("visible_sec_level");
+			if (v_sec_level != nullptr) {
+				my_v_sec_level = v_sec_level->as_integer()->value_or(my_d_sec_level);
+			}
+			else {
+				my_v_sec_level = my_d_sec_level;
+			}
+
 			if (mydatabase == "" || mypath == "") {
 				continue;
 			}
 
-			FileArea f(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level);
+			FileArea f(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level, my_v_sec_level);
 
 			areas.push_back(f);
 		}

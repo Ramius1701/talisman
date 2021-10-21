@@ -298,7 +298,7 @@ bool Menu::run() {
 					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
 					n->get_user().set_attribute("cur_file_area", "-1");
 					for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
-						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 							n->get_user().set_attribute("cur_file_area", std::to_string(fa));
 							break;
 						}
@@ -318,7 +318,7 @@ bool Menu::run() {
 					n->get_user().set_attribute("cur_file_conf", std::to_string(fileconf));
 					n->get_user().set_attribute("cur_file_area", "-1");
 					for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
-						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+						if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 							n->get_user().set_attribute("cur_file_area", std::to_string(fa));
 							break;
 						}
@@ -360,7 +360,7 @@ bool Menu::run() {
 						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
 						if (filearea < (int)(n->get_config()->fileconfs.at(fileconf).areas.size() - 1)) {
 							for (size_t nfa = filearea + 1; nfa < n->get_config()->fileconfs.at(fileconf).areas.size(); nfa++) {
-								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 									filearea = nfa;
 									break;
 								}
@@ -376,7 +376,7 @@ bool Menu::run() {
 						int filearea = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
 						if (filearea > 0) {
 							for (int nfa = filearea - 1; nfa >= 0; nfa--) {
-								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+								if (n->get_config()->fileconfs.at(fileconf).areas.at(nfa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 									filearea = nfa;
 									break;
 								}
@@ -643,7 +643,7 @@ bool Menu::run() {
 							n->get_user().set_attribute("cur_file_conf", std::to_string(fc));
 							n->get_user().set_attribute("cur_file_area", "-1");
 							for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fc).areas.size(); fa++) {
-								if (n->get_config()->fileconfs.at(fc).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+								if (n->get_config()->fileconfs.at(fc).areas.at(fa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 									n->get_user().set_attribute("cur_file_area", std::to_string(fa));
 									break;
 								}
@@ -664,7 +664,7 @@ bool Menu::run() {
 						int newarea = n->get_config()->fileconfs.at(fileconf).list_areas(n, n->get_user().get_sec_level());
 						int count = 1;
 						for (size_t fa = 0; fa < n->get_config()->fileconfs.at(fileconf).areas.size(); fa++) {
-							if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_d_sec_level() <= n->get_user().get_sec_level()) {
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(fa).get_v_sec_level() <= n->get_user().get_sec_level()) {
 								if (count == newarea) {
 									n->get_user().set_attribute("cur_file_area", std::to_string(fa));
 									break;
@@ -874,7 +874,7 @@ bool Menu::run() {
 						if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
 						n->print_f("|14Scanning conference: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
 						for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
-							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_v_sec_level() > n->get_user().get_sec_level()) continue;
 							n->print_f("|14... Scanning area: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 							n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, n->get_last_on());
 						}
@@ -901,7 +901,7 @@ bool Menu::run() {
 								if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
 								n->print_f("\r\n|14Searching File Conference: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).get_name().c_str());
 								for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
-									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_v_sec_level() > n->get_user().get_sec_level()) continue;
 									n->print_f("\r\n|14Searching File Area: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 									n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, 0, &keywords);
 								}
@@ -918,7 +918,7 @@ bool Menu::run() {
 							}
 							else {
 								for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
-									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > n->get_user().get_sec_level()) continue;
+									if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_v_sec_level() > n->get_user().get_sec_level()) continue;
 									n->print_f("\r\n|14Searching File Area: |15%s|14...\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
 									n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, 0, &keywords);
 								}

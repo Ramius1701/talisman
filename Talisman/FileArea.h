@@ -18,12 +18,13 @@ struct file_list_t {
 class FileArea
 {
 public:
-	FileArea(std::string name, std::string file_path, std::string database, int dl_sec_level, int ul_sec_level) {
+	FileArea(std::string name, std::string file_path, std::string database, int dl_sec_level, int ul_sec_level, int vis_sec_level) {
 		this->name = name;
 		this->file_path = file_path;
 		this->database = database;
 		this->dl_sec_level = dl_sec_level;
 		this->ul_sec_level = ul_sec_level;
+        this->vis_sec_level = vis_sec_level;
 	}
 	int get_d_sec_level() {
 		return dl_sec_level;
@@ -31,6 +32,10 @@ public:
 	int get_u_sec_level() {
 		return ul_sec_level;
 	}
+	int get_v_sec_level() {
+		return vis_sec_level;
+	}
+
 	std::string get_name() {
 		return name;
 	}
@@ -52,6 +57,7 @@ private:
 	std::string file_path;
 	std::string database;
 	int dl_sec_level;
+    int vis_sec_level;
 	int ul_sec_level;
 };
 

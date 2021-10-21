@@ -1535,6 +1535,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				}
 				if (found) break;
 			}
+			if (!found) {
+                u.set_attribute("cur_msg_conf", "-1");
+				u.set_attribute("cur_msg_area", "-1");
+            }
 		}
 	}
 
@@ -1556,6 +1560,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				}
 				if (found) break;
 			}
+			if (!found) {
+                u.set_attribute("cur_file_conf", "-1");
+				u.set_attribute("cur_file_area", "-1");
+            }
 		}
 	}
 	int cur_theme = stoi(u.get_attribute("theme", "0"));

@@ -403,7 +403,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		}
 		else if (c == ' ') {
 			// tag file
-			if (!filelist->at(selected).missing) {
+			if (!filelist->at(selected).missing && dl_sec_level <= n->get_user().get_sec_level()) {
 				tagged = false;
 				for (size_t j = 0; j < n->tagged_files.size(); j++) {
 					if (n->tagged_files.at(j).filename == filelist->at(selected).filename) {
@@ -478,7 +478,7 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 							ftag = 0;
 						}
 						if (ftag > 0 && ftag <= filelist->size()) {
-							if (!filelist->at(ftag - 1).missing) {
+							if (!filelist->at(ftag - 1).missing && dl_sec_level <= n->get_user().get_sec_level()) {
 								n->tag_file(filelist->at(ftag - 1).filename, this);
 							}
 						}
@@ -513,7 +513,7 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 					ftag = 0;
 				}
 				if (ftag > 0 && ftag <= filelist->size()) {
-					if (!filelist->at(ftag - 1).missing) {
+					if (!filelist->at(ftag - 1).missing && dl_sec_level <= n->get_user().get_sec_level()) {
 						n->tag_file(filelist->at(ftag - 1).filename, this);
 					}
 				}
@@ -538,7 +538,7 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 				ftag = 0;
 			}
 			if (ftag > 0 && ftag <= filelist->size()) {
-				if (!filelist->at(ftag - 1).missing) {
+				if (!filelist->at(ftag - 1).missing && dl_sec_level <= n->get_user().get_sec_level()) {
 					n->tag_file(filelist->at(ftag - 1).filename, this);
 				}
 			}
