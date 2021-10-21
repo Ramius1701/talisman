@@ -270,7 +270,7 @@ int FileConf::list_areas_fsr(Node* n, int sec)
 	std::vector<struct filearea_list_entry_t > area_entries;
 	int selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
 	for (size_t i = 0; i < areas.size(); i++) {
-		if (areas.at(i).get_d_sec_level() > sec) continue;
+		if (areas.at(i).get_v_sec_level() > sec) continue;
 		struct filearea_list_entry_t entry;
 
 		entry.name = areas.at(i).get_name();
@@ -371,7 +371,7 @@ int FileConf::list_areas_old(Node* n, int sec)
 		n->cls();
 
 		for (size_t i = 0; i < areas.size(); i++) {
-			if (areas.at(i).get_d_sec_level() > sec) continue;
+			if (areas.at(i).get_v_sec_level() > sec) continue;
 			
 			if (i == stoi(n->get_user().get_attribute("cur_file_area", "-1"))) {
 				n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_files(n));
