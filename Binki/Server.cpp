@@ -1278,6 +1278,8 @@ int Server::run(int socket) {
                     if (!(remote_password.substr(0, 5) == "CRAM-")) {
                         if (l.crammd5) {
                             send_command_packet(M_ERR, "Sorry, unencrypted passwords are not acceptable.");
+                            log.log(LOG_ERROR, "Unencrypted password offered, CRAM-MD5 required for link.");
+                            return 0;
                         }
                         else {
                             if (remote_password != l.password) {
