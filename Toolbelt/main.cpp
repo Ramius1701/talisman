@@ -350,8 +350,75 @@ int main(int argc, char** argv) {
                             std::cout << std::endl;
                         }
                     }
+                    infile.close();
+                }
+            }
+        } else if (strcasecmp(argv[1], "convertfilena") == 0) {
+            if (argc >= 11) {
+                if (strcasecmp(argv[10], "true") != 0 && strcasecmp(argv[10], "false")) {
+                    std::cerr << "create argument must be true or false!" << std::endl;
+                    return -1;
+                }
+                int up_sl = strtol(argv[4], NULL, 10);
+                int dl_sl = strtol(argv[5], NULL, 10);
+                int vis_sl = strtol(argv[6], NULL, 10);
+                std::string src = std::string(argv[3]);
+                std::string myaka = std::string(argv[7]);
+                std::string uplink = std::string(argv[8]);
+                std::string root = std::string(argv[9]);
+                std::string prefix = "";
+
+                bool create = (strcasecmp(argv[10], "true") == 0);
+
+                if (argc == 12) {
+                    prefix = std::string(argv[11]) + " ";
                 }
 
+                std::ifstream infile(src);
+                if (infile.is_open()) {
+                    std::string line;
+                    while (std::getline(infile, line))
+                    {
+                        std::stringstream ss(line);
+                        std::string fragment;
+                        std::vector<std::string> frags;
+                        while (std::getline(ss, fragment, ' ')) {
+                            frags.push_back(fragment);
+                        }
+                        if (frags.size() > 0 && frags.at(0) == "Area") {
+                            std::string tag = frags.at(1);
+                            std::string desc = line.substr(28);
+                            trim(desc);
+
+                            if (create) {
+                                std::filesystem::path filepath(root + "/" + lower(tag));
+                                if (!std::filesystem::exists(filepath)) {
+                                    std::filesystem::create_directories(filepath);
+                                }
+                            }
+
+                            if (std::string(argv[2]) == "-f") {
+                                std::cout << "[[filearea]]" << std::endl;
+                                std::cout << "name = \"" << prefix << desc << "\"" << std::endl;
+                                std::cout << "database = \"fb_" << lower(tag) << "\"" << std::endl;
+                                std::cout << "filepath = \"" << root << "/" << lower(tag) << "\"" << std::endl;
+                                std::cout << "upload_sec_level = " << up_sl << std::endl;
+                                std::cout << "download_sec_level = " << dl_sl << std::endl;
+                                std::cout << "visible_sec_level = " << vis_sl << std::endl;
+                                std::cout << std::endl;
+                            } else {
+                                std::cout << "[[filearea]]" << std::endl;
+                                std::cout << "aka = \"" << myaka << "\"" << std::endl;
+                                std::cout << "database = \"fb_" << lower(tag) << "\"" << std::endl;
+                                std::cout << "directory = \"" << root << "/" << lower(tag) << "\"" << std::endl;
+                                std::cout << "links = \"" << uplink << "\"" << std::endl;
+                                std::cout << "tag = \"" << tag << "\"" << std::endl;
+                                std::cout << std::endl;
+                            }
+                        }
+                    }
+                    infile.close();
+                }
             }
         }
 	}
@@ -372,5 +439,6 @@ int main(int argc, char** argv) {
         std::cerr << "   COMMAND clearlrbaseuser  ARGS msgbasefile username" << std::endl;
         std::cerr << "   COMMAND deleteuser       ARGS username" << std::endl;
         std::cerr << "   COMMAND convertmsgna     ARGS [-m|-p] srcfilename read_sl post_sl myaka uplink qwkid_start [prefix]" << std::endl;
+        std::cerr << "   COMMAND convertfilena    ARGS [-f|-p] srcfilename up_sl dl_sl vis_sl myaka uplink root create [prefix]" << std::endl;
 	}
 }
