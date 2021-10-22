@@ -63,6 +63,7 @@ std::string Strings::escapechars(std::string in) {
                         counting = false;
                         escape = false;
                         out << num;
+                        out << c;
                     }
                 }
                 else {
@@ -73,6 +74,7 @@ std::string Strings::escapechars(std::string in) {
                         counting = false;
                         escape = false;
                         out << num;
+                        out << c;
                     }
                 }
             } else if (escape == true) {
@@ -117,7 +119,7 @@ std::string Strings::escapechars(std::string in) {
                 case 'U':
                     break;
                 default:
-                    if (c >= '0' || c <= '8') {
+                    if (c >= '0' && c <= '8') {
                         counting = true;
                         hex = false;
                         num = c - '0';
