@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <algorithm>
@@ -11,6 +12,14 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
+
+std::string lower(std::string in) {
+    std::stringstream ss;
+    for (size_t c : in) {
+        ss << (char)(tolower(c));
+    }
+    return ss.str();
+}
 
 static inline void ltrim(std::string& s) {
 	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
@@ -300,6 +309,50 @@ int main(int argc, char** argv) {
                     std::cout << "Failed" << std::endl;
                 }
             }
+        } else if (strcasecmp(argv[1], "convertmsgna") == 0) {
+            if (argc >= 9) {
+                int read_sl = strtol(argv[4], NULL, 10);
+                int post_sl = strtol(argv[5], NULL, 10);
+                std::string src = std::string(argv[3]);
+                std::string myaka = std::string(argv[6]);
+                std::string uplink = std::string(argv[7]);
+                int qwk_id = strtol(argv[8], NULL, 10);
+                std::string prefix = "";
+                if (argc == 10) {
+                    prefix = std::string(argv[9]) + " ";
+                }
+
+                std::ifstream infile(src);
+                if (infile.is_open()) {
+                    std::string line;
+                    while (std::getline(infile, line))
+                    {
+                        std::string tag = line.substr(0, line.find(" "));
+                        std::string desc = line.substr(line.find(" "));
+                        trim(desc);
+
+                        if (std::string(argv[2]) == "-m") {
+                            std::cout << "[[messagearea]]" << std::endl;
+                            std::cout << "name = \"" << prefix << desc << "\"" << std::endl;
+                            std::cout << "file = \"" << lower(tag) << "\"" << std::endl;
+                            std::cout << "read_sec_level = " << read_sl << std::endl;
+                            std::cout << "write_sec_level = " << post_sl << std::endl;
+                            std::cout << "aka = \"" << myaka << "\"" << std::endl;
+                            std::cout << "qwk_base_no = " << qwk_id << std::endl;
+                            qwk_id++;
+                            std::cout << std::endl;
+                        } else {
+                            std::cout << "[[area]]" << std::endl;
+                            std::cout << "aka = \"" << myaka << "\"" << std::endl;
+                            std::cout << "file = \"" << lower(tag) << "\"" << std::endl;
+                            std::cout << "links = \"" << uplink << "\"" << std::endl;
+                            std::cout << "tag = \"" << tag << "\"" << std::endl;
+                            std::cout << std::endl;
+                        }
+                    }
+                }
+
+            }
         }
 	}
 	else {
@@ -318,5 +371,6 @@ int main(int argc, char** argv) {
         std::cerr << "   COMMAND clearlrbase      ARGS msgbasefile" << std::endl;
         std::cerr << "   COMMAND clearlrbaseuser  ARGS msgbasefile username" << std::endl;
         std::cerr << "   COMMAND deleteuser       ARGS username" << std::endl;
+        std::cerr << "   COMMAND convertmsgna     ARGS [-m|-p] srcfilename read_sl post_sl myaka uplink qwkid_start [prefix]" << std::endl;
 	}
 }
