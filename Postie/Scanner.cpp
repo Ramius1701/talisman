@@ -6,6 +6,7 @@
 #endif
 #include <filesystem>
 #include <sstream>
+#include <csignal>
 #include <iostream>
 #include "Scanner.h"
 #include "../Common/Logger.h"
@@ -15,8 +16,7 @@
 #include "GenDefs.h"
 #include "Archiver.h"
 
-
-
+extern void sig_handler(int signal);
 
 std::string add_cr_to_kludges(sq_msg_t* msg) {
 	std::stringstream ss;
@@ -745,6 +745,12 @@ bool Scanner::run() {
     }
     fprintf(fptr, "%lu\r\n", pid);
     fclose(fptr);
+
+    signal(SIGTERM, sig_handler);
+#ifndef _MSC_VER
+    signal(SIGHUP, sig_handler);
+    signal(SIGINT, sig_handler);
+#endif
 
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);

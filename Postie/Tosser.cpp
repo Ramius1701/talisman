@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <sstream>
 #include <iomanip>
+#include <csignal>
 #include "../Common/INIReader.h"
 #include "Config.h"
 #include "Tosser.h"
@@ -19,7 +20,7 @@
 #include "../Common/toml.hpp"
 #include <fstream>
 
-
+extern void sig_handler(int signal);
 
 bool Tosser::update(std::string tag, std::string links, bool filearea) {
 	auto config = toml::parse_file(_datapath + "/postie.toml");
@@ -709,7 +710,11 @@ bool Tosser::run(bool protinbound) {
     }
     fprintf(fptr, "%lu\r\n", pid);
     fclose(fptr);
-
+    signal(SIGTERM, sig_handler);
+#ifndef _MSC_VER
+    signal(SIGHUP, sig_handler);
+    signal(SIGINT, sig_handler);
+#endif
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);
 		return false;

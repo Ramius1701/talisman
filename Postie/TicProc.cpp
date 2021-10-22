@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fnmatch.h>
 #endif
+#include <csignal>
 #include <fstream>
 #include <filesystem>
 #include <ctime>
@@ -20,6 +21,8 @@
 #include "Dupe.h"
 #include "Archiver.h"
 #include "GenDefs.h"
+
+extern void sig_handler(int signal);
 
 static inline void rtrim(std::string& s) {
 	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
@@ -430,6 +433,12 @@ bool TicProc::run() {
     }
     fprintf(fptr, "%lu\r\n", pid);
     fclose(fptr);
+
+    signal(SIGTERM, sig_handler);
+#ifndef _MSC_VER
+    signal(SIGHUP, sig_handler);
+    signal(SIGINT, sig_handler);
+#endif
 
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);

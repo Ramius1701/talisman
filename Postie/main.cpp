@@ -33,11 +33,7 @@ void sig_handler(int signal) {
 
 
 int main(int argc, char** argv) {
-    signal(SIGTERM, sig_handler);
-#ifndef _MSC_VER
-    signal(SIGHUP, sig_handler);
-    signal(SIGINT, sig_handler);
-#endif
+
 
 	if (argc < 2) {
 		std::cout << "Usage: " << argv[0] << " [scan|toss|ticproc|tichatch]" << std::endl;
