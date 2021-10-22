@@ -954,7 +954,22 @@ void Node::print_f(const char* fmt, ...)
 
 	vsnprintf(buffer, sizeof buffer, fmt_strings.fetch(fmt), args);
 
+
 	for (size_t i = 0; i < strlen(buffer); i++) {
+        if (i + 8 < strlen(buffer) && buffer[i] == '@' && buffer[i + 1] == 'g' && buffer[i + 2] == 'f' && buffer[i + 3] == 'i' && buffer[i + 4] == 'l' && buffer[i + 5] == 'e' && buffer[i+6] == ':') {
+            size_t z;
+            std::stringstream gfss;
+            for (z = i + 7;z < strlen(buffer); z++) {
+                if (buffer[z] != '@') {
+                    gfss << buffer[z];
+                } else {
+                    i = z + 1;
+                    send_gfile(gfss.str());
+                    break;
+                }
+            }
+            if ( i >= strlen(buffer)) break;
+        }
 		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
 			int pipecolor = (buffer[i + 1] - '0') * 10 + (buffer[i + 2] - '0');
 			if (hasANSI) {
