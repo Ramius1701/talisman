@@ -1546,13 +1546,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	int cur_file_area = stoi(u.get_attribute("cur_file_area", "-1"));
 
 	if (cur_file_conf != -1 && cur_file_area != -1) {
-		if (config.fileconfs.at(cur_file_conf).get_sec_level() > u.get_sec_level() || config.fileconfs.at(cur_file_conf).areas.at(cur_file_area).get_d_sec_level() > u.get_sec_level()) {
+		if (config.fileconfs.at(cur_file_conf).get_sec_level() > u.get_sec_level() || config.fileconfs.at(cur_file_conf).areas.at(cur_file_area).get_v_sec_level() > u.get_sec_level()) {
 			bool found = false;
 
 			for (size_t fileconf = 0; fileconf < config.fileconfs.size(); fileconf++) {
 				if (config.fileconfs.at(fileconf).get_sec_level() > u.get_sec_level()) continue;
 				for (size_t filearea = 0; filearea < config.fileconfs.at(fileconf).areas.size(); filearea++) {
-					if (config.fileconfs.at(fileconf).areas.at(filearea).get_d_sec_level() > u.get_sec_level()) continue;
+					if (config.fileconfs.at(fileconf).areas.at(filearea).get_v_sec_level() > u.get_sec_level()) continue;
 					u.set_attribute("cur_file_conf", std::to_string(fileconf));
 					u.set_attribute("cur_file_area", std::to_string(filearea));
 					found = true;
