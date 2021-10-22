@@ -102,7 +102,7 @@ std::string remove_seenby_path(std::string msgbuf) {
 	std::stringstream ss2;
 	std::string buff;
 	bool gotseenby = false;
-
+    bool pastseenby = false;
     std::vector<std::string> lines;
     std::vector<std::string> noseenby;
 	while (getline(ss, buff, '\r')) {
@@ -110,11 +110,12 @@ std::string remove_seenby_path(std::string msgbuf) {
     }
 
     for (int i = lines.size() - 1; i >= 0; i--) {
-        if (lines.at(i).find("SEEN-BY: ") == 0) {
+        if (lines.at(i).find("SEEN-BY: ") == 0 && !pastseenby) {
             gotseenby = true;
-        } else if (gotseenby) {
-            break;
         } else {
+            if (gotseenby == true) {
+                pastseenby = true;
+            }
             noseenby.insert(noseenby.begin(), lines.at(i));
         }
     }
