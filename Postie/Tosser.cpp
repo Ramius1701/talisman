@@ -1046,7 +1046,6 @@ bool Tosser::run(bool protinbound) {
 								SquishWriteMsg(mb, &sqmsg);
 								SquishUnlockMsgBase(mb);
 								SquishCloseMsgBase(mb);
-
 								log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
 							}
 							else {
@@ -1057,6 +1056,8 @@ bool Tosser::run(bool protinbound) {
 							break;
 						}
 					}
+					free(sqmsg.msg);
+                    free(sqmsg.ctrl);
 					if (!msgprocessed) {
 						log.log(LOG_ERROR, "Message for area %s not processed!", areatag.c_str());
 					}
@@ -1330,6 +1331,7 @@ bool Tosser::run(bool protinbound) {
 										}
 										Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, &sqmsg, false, c.links.at(l).fptr, c.links.at(l).flavour);
 										log.log(LOG_INFO, "Netmail not to us... wrote packet.");
+
 										break;
 									}
 								}

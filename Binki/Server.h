@@ -25,7 +25,7 @@ class Server
 public:
 	Server();
 	static int receive(int socket, char* buffer, int size, int timeout);
-	bool send_file_packet(std::filesystem::path file);
+	bool send_file_packet(std::filesystem::path file, std::string name);
 	int run(int socket);
 	int run(NETADDR* addr, std::string domain);
 	int send_command_packet(uint8_t type, std::string data);
@@ -37,6 +37,7 @@ public:
 	int runall();
 	bool send_data_packet(int size, char* data);
 	void cleanup();
+    std::string genpktname();
 
 private:
 #ifdef _MSC_VER
@@ -74,5 +75,6 @@ private:
 
 	bool senteob;
 	bool goteob;
+    time_t last_time;
 };
 

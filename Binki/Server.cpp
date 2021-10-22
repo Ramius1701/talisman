@@ -50,11 +50,37 @@ Server::Server() {
     cram5_init = false;
     cram5_opt = false;
     current_file = NULL;
+    last_time = 0;
 #ifdef _MSC_VER
 	winsock_init = false;
     socket = -1;
 #endif    
 }
+
+std::string Server::genpktname()
+{
+    char buffer[13];
+    pid_t pid;
+
+    time_t now = time(NULL);
+
+    if (last_time >= now) {
+        last_time++;
+    } else {
+        last_time = now;
+    }
+
+#ifdef _MSC_VER
+	pid = GetCurrentProcessId();
+#else
+	pid = getpid();
+#endif
+
+    snprintf(buffer, 13, "%04x%04x.pkt", (uint16_t)(pid & 0xFFFF), (uint16_t)(last_time & 0xFFFF));
+
+    return std::string(buffer);
+}
+
 
 void Server::cram5_init_challenge_data() {
     std::stringstream data;
@@ -92,7 +118,7 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
     char result[128];
     auto len = 0;
 
-    for (int i = 0; i < challenge_hex.size(); i+=2) {
+    for (size_t i = 0; i < challenge_hex.size(); i+=2) {
         std::string s;
         s.push_back(challenge_hex[i]);
         s.push_back(challenge_hex[i+1]);
@@ -149,6 +175,7 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
 
 struct outfile_t {
     std::filesystem::path file;
+    std::string name;
     bool del;
     bool trunc;
     std::string flo;
@@ -223,7 +250,7 @@ bool Server::send_data_packet(int len, char* data) {
     return true;
 }
 
-bool Server::send_file_packet(std::filesystem::path file) {
+bool Server::send_file_packet(std::filesystem::path file, std::string name) {
     std::stringstream filecmd;
     time_t ts = time(NULL);
 
@@ -233,11 +260,11 @@ bool Server::send_file_packet(std::filesystem::path file) {
     if (!fptr) {
         return false;
     }
-    sending_filename = file.filename().u8string();
+    sending_filename = name;
     sending_len = std::filesystem::file_size(file);
     sending_timestamp = ts;
 
-    filecmd << file.filename().u8string() << " " << std::filesystem::file_size(file) << " " << ts << " 0";
+    filecmd << name << " " << std::filesystem::file_size(file) << " " << ts << " 0";
     send_command_packet(M_FILE, filecmd.str());
     process_frames(1, 0xFF);
     char* buffer;
@@ -296,18 +323,21 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".cut")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".cut");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".out")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".out");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".hut")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".hut");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
@@ -319,6 +349,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 {
                     if (str[0] == '^' || str[0] == '-') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = true;
                         outf.trunc = false;
                     }
@@ -328,16 +359,19 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                     }
                     else if (str[0] == '#') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = true;
                     }
                     else if (str[0] == '@') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
                     else {
                         outf.file = std::filesystem::path(str);
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
@@ -353,6 +387,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 {
                     if (str[0] == '^' || str[0] == '-') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = true;
                         outf.trunc = false;
                     }
@@ -362,16 +397,19 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                     }
                     else if (str[0] == '#') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = true;
                     }
                     else if (str[0] == '@') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
                     else {
                         outf.file = std::filesystem::path(str);
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
@@ -387,6 +425,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 {
                     if (str[0] == '^' || str[0] == '-') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = true;
                         outf.trunc = false;
                     }
@@ -396,16 +435,19 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                     }
                     else if (str[0] == '#') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = true;
                     }
                     else if (str[0] == '@') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
                     else {
                         outf.file = std::filesystem::path(str);
+                        outf.name = outf.file.filename().u8string();
                         outf.del = false;
                         outf.trunc = false;
                     }
@@ -428,18 +470,21 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".CUT")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".CUT");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".OUT")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".OUT");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
             }
             if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".HUT")) {
                 outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".HUT");
+                outf.name = genpktname();
                 outf.del = true;
                 outf.trunc = false;
                 files.push_back(outf);
@@ -451,27 +496,31 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 {
                     if (str[0] == '^' || str[0] == '-') {
                         outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
                         outf.del = true;
                         outf.trunc = false;
                     }
                     else if (str[0] == '~' || str[0] == '!') {
-                    // skip
-                    continue;
+                        // skip
+                        continue;
                     }
                     else if (str[0] == '#') {
-                    outf.file = std::filesystem::path(str.substr(1));
-                    outf.del = false;
-                    outf.trunc = true;
+                        outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
+                        outf.del = false;
+                        outf.trunc = true;
                     }
                     else if (str[0] == '@') {
-                    outf.file = std::filesystem::path(str.substr(1));
-                    outf.del = false;
-                    outf.trunc = false;
+                        outf.file = std::filesystem::path(str.substr(1));
+                        outf.name = outf.file.filename().u8string();
+                        outf.del = false;
+                        outf.trunc = false;
                     }
                     else {
-                    outf.file = std::filesystem::path(str);
-                    outf.del = false;
-                    outf.trunc = false;
+                        outf.file = std::filesystem::path(str);
+                        outf.name = outf.file.filename().u8string();
+                        outf.del = false;
+                        outf.trunc = false;
                     }
                     outf.flo = dir.u8string() + "/" + flowfname.str() + ".CLO";
                     files.push_back(outf);
@@ -486,6 +535,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
             {
                 if (str[0] == '^' || str[0] == '-') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = true;
                     outf.trunc = false;
                 }
@@ -495,16 +545,19 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 }
                 else if (str[0] == '#') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = true;
                 }
                 else if (str[0] == '@') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = false;
                 }
                 else {
                     outf.file = std::filesystem::path(str);
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = false;
                 }
@@ -521,6 +574,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
             {
                 if (str[0] == '^' || str[0] == '-') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = true;
                     outf.trunc = false;
                 }
@@ -530,16 +584,19 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 }
                 else if (str[0] == '#') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = true;
                 }
                 else if (str[0] == '@') {
                     outf.file = std::filesystem::path(str.substr(1));
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = false;
                 }
                 else {
                     outf.file = std::filesystem::path(str);
+                    outf.name = outf.file.filename().u8string();
                     outf.del = false;
                     outf.trunc = false;
                 }
@@ -557,6 +614,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
         struct outfile_t outf;
 
         outf.file = std::filesystem::absolute(dir.path());
+        outf.name = outf.file.filename().u8string();
         outf.del = true;
         outf.flo = "";
         outf.sent = false;
@@ -572,7 +630,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
                 return false;
             }
         }
-        if (!send_file_packet(files.at(i).file)) {
+        if (!send_file_packet(files.at(i).file, files.at(i).name)) {
             break;
         }
         files.at(i).sent = true;
@@ -611,11 +669,7 @@ int Server::receive(int socket, char* buffer, int size, int timeout) {
         tv.tv_usec = 0;
 
         int rs = select(socket + 1, &rfd, NULL, NULL, &tv);
-#if _MSC_VER
-        int err = WSAGetLastError();
-#else
-        int err = errno;
-#endif
+
         if (rs == 0) {
             return 0;
         }
@@ -1004,7 +1058,6 @@ int binkp_connect_ipv4(const char* server, uint16_t port, int* socketp) {
     struct sockaddr_in servaddr;
     int bink_socket;
     char buffer[513];
-    u_long iMode = 1;
     memset(&servaddr, 0, sizeof(struct sockaddr_in));
     if (_w_inet_pton(AF_INET, server, &servaddr.sin_addr) != 1) {
         if (hostname_to_ip(server, buffer)) {
@@ -1103,7 +1156,6 @@ int Server::run(NETADDR* addr, std::string domain) {
         }
     }
 
-    bool gotmatch = false;
     senteob = false;
     std::vector<struct link_t> common_links;
 
