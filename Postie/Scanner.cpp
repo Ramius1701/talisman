@@ -101,23 +101,31 @@ std::string remove_seenby_path(std::string msgbuf) {
 	std::stringstream ss(msgbuf);
 	std::stringstream ss2;
 	std::string buff;
-	bool gotorigin = false;
+	bool gotseenby = false;
+
+    std::vector<std::string> lines;
+    std::vector<std::string> noseenby;
 	while (getline(ss, buff, '\r')) {
-		if (buff.substr(0, 11) == " * Origin: ") {
-			gotorigin = true;
-			ss2 << buff << '\r';
+        lines.push_back(buff);
+    }
+
+    for (int i = lines.size() - 1; i >= 0; i--) {
+        if (lines.at(i).find("SEEN-BY: ") == 0) {
+            gotseenby = true;
+        } else if (gotseenby) {
+            break;
+        } else {
+            noseenby.insert(noseenby.begin(), lines.at(i));
+        }
+    }
+
+    for (size_t i = 0; i < noseenby.size(); i++) {
+        if (noseenby.at(i).find("\001PATH: ") == 0) {
 			continue;
 		}
-		if (gotorigin) {
-			if (buff.find("SEEN-BY: ") == 0) {
-				continue;
-			}
-			if (buff.find("\001PATH: ") == 0) {
-				continue;
-			}
-		}
-		ss2 << buff << '\r';
-	}
+		ss2 << noseenby.at(i) << "\r";
+    }
+
 
 	return ss2.str();
 }
@@ -183,7 +191,7 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
 
 	size_t start_seenby = 0;
 
-	for (size_t z = lines.size() - 1; z > 0; z--) {
+	for (int z = lines.size() - 1; z > 0; z--) {
 		if (lines.at(z).find("SEEN-BY: ") == 0) {
 			start_seenby = z;
 		}

@@ -615,15 +615,20 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 	std::stringstream ss(msgbody);
 	std::string line;
 	NETADDR* ftnaddr = NULL;
+    std::vector<std::string> lines;
 
 	while (getline(ss, line, '\r')) {
-		if (line.find(" * Origin: ") == 0) {
+        lines.push_back(line);
+    }
+
+    for (int z = lines.size() -1; z >= 0; z--) {
+		if (lines.at(z).find(" * Origin: ") == 0) {
 			// found origin line.
 
-			int start = line.rfind("(") + 1;
-			int size = line.substr(start).find(")");
+			int start = lines.at(z).rfind("(") + 1;
+			int size = lines.at(z).substr(start).find(")");
 
-			std::string addr = line.substr(start, size);
+			std::string addr = lines.at(z).substr(start, size);
 			if (ftnaddr != NULL) {
 				free(ftnaddr);
 			}
@@ -645,16 +650,31 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 		if (ctrlbody.at(z) == '\001') {
 			if (kludge.str().size() > 0) {
 				if (kludge.str().find("MSGID: ") == 0) {
-					int start = 7;
-					int size = kludge.str().substr(start).find(" ");
+                    size_t start = 7;
+                    size_t size = kludge.str().substr(start).find(" ");
 
-					std::string addr = kludge.str().substr(start, size - 1);
-					ftnaddr = parse_fido_addr(addr.c_str());
+                    if (size != std::string::npos) {
+                        std::string addr = kludge.str().substr(start, size - 1);
+                        ftnaddr = parse_fido_addr(addr.c_str());
 
-					if (ftnaddr != NULL) {
-						return ftnaddr;
-					}
-				}
+                        if (ftnaddr != NULL) {
+                            return ftnaddr;
+                        } else {
+                            start = kludge.str().find("@");
+                            if (start != std::string::npos) {
+                                size = kludge.str().substr(start).find(" ");
+                                if (size != std::string::npos) {
+                                    std::string addr = kludge.str().substr(start, size - 1);
+                                    ftnaddr = parse_fido_addr(addr.c_str());
+
+                                    if (ftnaddr != NULL) {
+                                        return ftnaddr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 			}
 			kludge.str("");
 			continue;
