@@ -479,7 +479,7 @@ bool Script::login(Node* n, std::string script, std::string* uname, std::string*
 
 	int ret = lua_pcall(l , 0, 1, 0);
 	if (ret) {
-		n->log->log(LOG_ERROR, "Error executing login script. \%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+		n->log->log(LOG_ERROR, "Error executing login script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
 		lua_close(l);
 		return false;
 	}
@@ -487,7 +487,7 @@ bool Script::login(Node* n, std::string script, std::string* uname, std::string*
 	lua_getglobal(l, "login");
 	ret = lua_pcall(l, 0, 2, 0);
 	if (ret) {
-		n->log->log(LOG_ERROR, "Error executing login script. \%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+		n->log->log(LOG_ERROR, "Error executing login script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
 		lua_close(l);
 		return false;
 	}

@@ -66,7 +66,7 @@ std::string Strings::escapechars(std::string in) {
                     }
                 }
                 else {
-                    if (c >= '0' && c <= '8' && counted < 4) {
+                    if (c >= '0' && c <= '8' && counted < 3) {
                         num = num * 8 + (c - '0');
                     }
                     else {
@@ -87,7 +87,7 @@ std::string Strings::escapechars(std::string in) {
                     out << '\b';
                     break;
                 case 'e':
-                    out << '\x1b';
+                    out << '\033';
                     break;
                 case 'f':
                     out << '\f';
@@ -117,11 +117,14 @@ std::string Strings::escapechars(std::string in) {
                 case 'U':
                     break;
                 default:
-                    counting = true;
-                    hex = false;
-                    num = 0;
-                    counted = 0;
+                    if (c >= '0' || c <= '8') {
+                        counting = true;
+                        hex = false;
+                        num = c - '0';
+                        counted = 0;
+                    }
                     break;
+
                 }
                 escape = false;
             }
