@@ -60,7 +60,7 @@ Server::Server() {
 std::string Server::genpktname()
 {
     char buffer[13];
-    pid_t pid;
+    unsigned long pid;
 
     time_t now = time(NULL);
 
