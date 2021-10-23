@@ -952,23 +952,50 @@ void Node::print_f(const char* fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 
-	vsnprintf(buffer, sizeof buffer, fmt_strings.fetch(fmt), args);
+    const char *fmt_string = fmt_strings.fetch(fmt);
+    std::vector<std::string> gfiles_allowed;
 
-
-	for (size_t i = 0; i < strlen(buffer); i++) {
-        if (i + 8 < strlen(buffer) && buffer[i] == '@' && buffer[i + 1] == 'g' && buffer[i + 2] == 'f' && buffer[i + 3] == 'i' && buffer[i + 4] == 'l' && buffer[i + 5] == 'e' && buffer[i+6] == ':') {
+    for (size_t i = 0; i < strlen(fmt_string); i++) {
+        if (i + 8 < strlen(fmt_string) && fmt_string[i] == '@' && fmt_string[i + 1] == 'g' && fmt_string[i + 2] == 'f' && fmt_string[i + 3] == 'i' && fmt_string[i + 4] == 'l' && fmt_string[i + 5] == 'e' && fmt_string[i+6] == ':') {
             size_t z;
             std::stringstream gfss;
-            for (z = i + 7;z < strlen(buffer); z++) {
-                if (buffer[z] != '@') {
-                    gfss << buffer[z];
+            for (z = i + 7;z < strlen(fmt_string); z++) {
+                if (fmt_string[z] != '@') {
+                    gfss << fmt_string[z];
                 } else {
                     i = z + 1;
-                    send_gfile(gfss.str());
+                    gfiles_allowed.push_back(gfss.str());
                     break;
                 }
             }
-            if ( i >= strlen(buffer)) break;
+            if ( i >= strlen(fmt_string)) break;
+        }
+    }
+
+    vsnprintf(buffer, sizeof buffer, fmt_strings.fetch(fmt), args);
+
+
+	for (size_t i = 0; i < strlen(buffer); i++) {
+        if (gfiles_allowed.size() > 0) {
+            if (i + 8 < strlen(buffer) && buffer[i] == '@' && buffer[i + 1] == 'g' && buffer[i + 2] == 'f' && buffer[i + 3] == 'i' && buffer[i + 4] == 'l' && buffer[i + 5] == 'e' && buffer[i+6] == ':') {
+                size_t z;
+                std::stringstream gfss;
+                for (z = i + 7;z < strlen(buffer); z++) {
+                    if (buffer[z] != '@') {
+                        gfss << buffer[z];
+                    } else {
+                        i = z + 1;
+                        for (size_t x = 0; x < gfiles_allowed.size(); x++) {
+                            if (gfiles_allowed.at(x) == gfss.str()) {
+                                send_gfile(gfss.str());
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if ( i >= strlen(buffer)) break;
+            }
         }
 		if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {
 			int pipecolor = (buffer[i + 1] - '0') * 10 + (buffer[i + 2] - '0');
