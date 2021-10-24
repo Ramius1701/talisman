@@ -491,10 +491,16 @@ bool Script::login(Node* n, std::string script, std::string* uname, std::string*
 		lua_close(l);
 		return false;
 	}
-	*uname = std::string(lua_tostring(l, -2));
-	*password = std::string(lua_tostring(l, -1));
-	lua_close(l);
-	return true;
+	if (lua_tostring(l, -2) != NULL && lua_tostring(l, -1) != NULL) {
+        *uname = std::string(lua_tostring(l, -2));
+        *password = std::string(lua_tostring(l, -1));
+        lua_close(l);
+        return true;
+    } else {
+        lua_close(l);
+        n->disconnected();
+        return false;
+    }
 }
 
 void Script::exec(Node *n, std::string script) {
