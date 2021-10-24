@@ -309,7 +309,11 @@ bool Qwkie::poll(int net)
 
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".QWK").c_str());
+        if (networks.at(net).port != 21) {
+            curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" + std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".QWK").c_str());
+        } else {
+            curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".QWK").c_str());
+        }
         //printf("%s\n", std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".QWK").c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fptr);
         res = curl_easy_perform(curl);
@@ -344,7 +348,11 @@ bool Qwkie::poll(int net)
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
         curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-        curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".REP").c_str());
+        if (networks.at(net).port != 21) {
+            curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" + std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".REP").c_str());
+        } else {
+            curl_easy_setopt(curl, CURLOPT_URL, std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".REP").c_str());
+        }
         //printf("%s\n", std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" + networks.at(net).qwkid + ".REP").c_str());
         curl_easy_setopt(curl, CURLOPT_READDATA, fptr);
         curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)fsize);

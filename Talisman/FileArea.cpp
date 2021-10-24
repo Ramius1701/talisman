@@ -338,10 +338,10 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 				}
 				else {
 					if (tagged) {
-						n->print_f("*%-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+						n->print_f("*%-20.20s %5d%c ", p.filename().u8string().c_str(), fsz, units[unit]);
 					}
 					else {
-						n->print_f(" %-20.20s %5d%c", p.filename().u8string().c_str(), fsz, units[unit]);
+						n->print_f(" %-20.20s %5d%c ", p.filename().u8string().c_str(), fsz, units[unit]);
 					}
 				}
 				n->print_f("\x1b[0;37;40m");
@@ -370,7 +370,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		for (size_t i = 0; i < n->get_term_height() - 8; i++) {
 			n->print_f("\x1b[%d;34H", i + 6);
 			if (i < filelist->at(selected).desc.size()) {
-				n->print_f("%-44.44s", filelist->at(selected).desc.at(i).c_str());
+				n->print_f("%-44.44s\x1b[K", filelist->at(selected).desc.at(i).c_str());
 			}
 			else {
 				n->print_f("\x1b[K");
