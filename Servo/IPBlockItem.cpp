@@ -3,13 +3,15 @@
 #include <vector>
 #include "IPBlockItem.h"
 
-IPBlockItem::IPBlockItem(std::string ipaddress, std::string datapath, bool block, bool pass) {
+IPBlockItem::IPBlockItem(std::string ipaddress, std::string datapath, bool block, bool pass, time_t span, int count) {
 	blocklist = block;
 	passlist = pass;
 	ipaddr = ipaddress;
 	first_try = time(NULL);
 	times = 0;
 	data_path = datapath;
+    this->span = span;
+    this->count = count;
 }
 
 IPBlockItem::~IPBlockItem() {
@@ -27,13 +29,13 @@ bool IPBlockItem::should_pass() {
 		return true;
 	}
 
-	if (curtime > first_try + 300) {
+	if (curtime > first_try + span) {
 		first_try = curtime;
 		times = 0;
 		return true;
 	} else {
 		times++;
-		if (times > 5) {
+		if (times > count) {
 			blocklist = true;
 			FILE *fptr = fopen(std::string(data_path + "/blocklist.ip").c_str(), "a");
 			if (fptr) {

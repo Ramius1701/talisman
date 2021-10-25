@@ -28,6 +28,9 @@
 #include "IPBlockItem.h"
 #include "EventMgr.h"
 
+static time_t span;
+static int count;
+
 #ifndef _MSC_VER
 void sigchld_handler(int s) {
 	// waitpid() might overwrite errno, so we save and restore it:
@@ -100,7 +103,7 @@ bool should_pass(std::string ip) {
 		}
 	}
 
-	IPBlockItem* blockitem = new IPBlockItem(ip, datapath, false, false);
+	IPBlockItem* blockitem = new IPBlockItem(ip, datapath, false, false, span, count);
 	blocklist->push_back(blockitem);
 	return true;
 }
@@ -163,6 +166,8 @@ int main()
 	binkport = inir.GetInteger("main", "binkp port", -1);
 	datapath = inir.Get("paths", "data path", "data");
     ipv6 = inir.GetBoolean("main", "enable ipv6", false);
+    span = inir.GetInteger("main", "ip block timeout", 300);
+    count = inir.GetInteger("main", "ip block attempts", 5);
 
     EventMgr ev;
 
@@ -174,14 +179,14 @@ int main()
 	std::string line;
 
 	while (std::getline(passlistf, line)) {
-		IPBlockItem* item = new IPBlockItem(line, datapath, false, true);
+		IPBlockItem* item = new IPBlockItem(line, datapath, false, true, span, count);
 		blocklist->push_back(item);
 	}
 	passlistf.close();
 
 	std::ifstream blocklistf(datapath + "/blocklist.ip");
 	while (std::getline(blocklistf, line)) {
-		IPBlockItem* item = new IPBlockItem(line, datapath, true, false);
+		IPBlockItem* item = new IPBlockItem(line, datapath, true, false, span, count);
 		blocklist->push_back(item);
 	}
 	blocklistf.close();

@@ -5,7 +5,7 @@
 
 class IPBlockItem {
 	public:
-		IPBlockItem(std::string ipaddress, std::string data_path, bool block, bool pass);
+		IPBlockItem(std::string ipaddress, std::string data_path, bool block, bool pass, time_t span, int count);
 		~IPBlockItem();
 		bool should_pass();
 		std::string getip();
@@ -16,4 +16,6 @@ class IPBlockItem {
 		bool blocklist;
 		int times;
 		time_t first_try;
+        time_t span;
+        int count;
 };
