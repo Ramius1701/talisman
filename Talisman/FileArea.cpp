@@ -370,7 +370,11 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 		for (size_t i = 0; i < n->get_term_height() - 8; i++) {
 			n->print_f("\x1b[%d;34H", i + 6);
 			if (i < filelist->at(selected).desc.size()) {
-				n->print_f("%-44.44s\x1b[K", filelist->at(selected).desc.at(i).c_str());
+                if (filelist->at(selected).desc.at(i).rfind("\r") != std::string::npos) {
+                    n->print_f("%-44.44s\x1b[K", filelist->at(selected).desc.at(i).substr(0, filelist->at(selected).desc.at(i).size() - 2).c_str());
+                } else {
+                    n->print_f("%-44.44s\x1b[K", filelist->at(selected).desc.at(i).c_str());
+                }
 			}
 			else {
 				n->print_f("\x1b[K");
