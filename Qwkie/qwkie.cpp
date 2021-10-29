@@ -520,190 +520,193 @@ bool Qwkie::toss(int net)
 
             size_t a;
 
-            for (a = 0; a < networks.at(net).areas.size(); a++) {
-                if (networks.at(net).areas.at(a).qwkbaseno == msgbase) {
-                    found = true;
-                    break;
-                }
-            }
-            if (found == true) {
-                std::string subject;
-                std::string to;
-                std::string from;
+            if ((char)qwkrec.Msgstat != 'V') {
 
-                std::stringstream ss;
-                std::stringstream msgbody;
-
-                msgbody.str("");
-
-                bool gotkludge = false;
-                size_t x = 0;
-                std::vector<std::string> text;
-                while (true) {
-                    ss.str("");
-                    for (; x < strlen(msgcontent); x++) {
-                        if (msgcontent[x] == '\r') {
-                            x++;
-                            break;
-                        }
-                        ss << msgcontent[x];
-                    }
-                    if (strcasecmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
-                        gotkludge = true;
-                        size_t y;
-                        for (y = 8; y < ss.str().length(); y++) {
-                            if (ss.str().at(y) != ' ') break;
-                        }
-                        subject = ss.str().substr(y);
-                    }
-                    else if (strcasecmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
-                        gotkludge = true;
-                        size_t y;
-                        for (y = 3; y < ss.str().length(); y++) {
-                            if (ss.str().at(y) != ' ') break;
-                        }
-                        to = ss.str().substr(y);
-                    }
-                    else if (strcasecmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
-                        gotkludge = true;
-                        size_t y;
-                        for (y = 5; y < ss.str().length(); y++) {
-                            if (ss.str().at(y) != ' ') break;
-                        }
-                        from = ss.str().substr(y);
-                    }
-                    else {
-                        if (gotkludge) {
-                            msgbody << &msgcontent[x];
-                        }
-                        else {
-                            msgbody << msgcontent;
-                        }
+                for (a = 0; a < networks.at(net).areas.size(); a++) {
+                    if (networks.at(net).areas.at(a).qwkbaseno == msgbase) {
+                        found = true;
                         break;
                     }
                 }
+                if (found == true) {
+                    std::string subject;
+                    std::string to;
+                    std::string from;
 
-                free(msgcontent);
+                    std::stringstream ss;
+                    std::stringstream msgbody;
 
-                ss.str("");
-                for (size_t x = 0; x < msgbody.str().size(); x++) {
-                    if (msgbody.str().at(x) == '\r') {
-                        text.push_back(ss.str());
+                    msgbody.str("");
+
+                    bool gotkludge = false;
+                    size_t x = 0;
+                    std::vector<std::string> text;
+                    while (true) {
                         ss.str("");
-                        continue;
-                    }
-                    ss << msgbody.str().at(x);
-                }
-                if (ss.str().size() > 0) {
-                    text.push_back(ss.str());
-                }
-                if (subject.length() == 0) {
-                    subject.append((const char*)qwkrec.MsgSubj, 25);
-                    for (int j = subject.length() - 1; j >= 0; j--) {
-                        if (subject.at(j) == ' ') {
-                            subject.pop_back();
+                        for (; x < strlen(msgcontent); x++) {
+                            if (msgcontent[x] == '\r') {
+                                x++;
+                                break;
+                            }
+                            ss << msgcontent[x];
+                        }
+                        if (strcasecmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
+                            gotkludge = true;
+                            size_t y;
+                            for (y = 8; y < ss.str().length(); y++) {
+                                if (ss.str().at(y) != ' ') break;
+                            }
+                            subject = ss.str().substr(y);
+                        }
+                        else if (strcasecmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
+                            gotkludge = true;
+                            size_t y;
+                            for (y = 3; y < ss.str().length(); y++) {
+                                if (ss.str().at(y) != ' ') break;
+                            }
+                            to = ss.str().substr(y);
+                        }
+                        else if (strcasecmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
+                            gotkludge = true;
+                            size_t y;
+                            for (y = 5; y < ss.str().length(); y++) {
+                                if (ss.str().at(y) != ' ') break;
+                            }
+                            from = ss.str().substr(y);
                         }
                         else {
+                            if (gotkludge) {
+                                msgbody << &msgcontent[x];
+                            }
+                            else {
+                                msgbody << msgcontent;
+                            }
                             break;
                         }
                     }
-                }
-                if (to.length() == 0) {
-                    to.append((const char*)qwkrec.MsgTo, 25);
-                    for (int j = to.length() - 1; j >= 0; j--) {
-                        if (to.at(j) == ' ') {
-                            to.pop_back();
+
+                    free(msgcontent);
+
+                    ss.str("");
+                    for (size_t x = 0; x < msgbody.str().size(); x++) {
+                        if (msgbody.str().at(x) == '\r') {
+                            text.push_back(ss.str());
+                            ss.str("");
+                            continue;
                         }
-                        else {
-                            break;
+                        ss << msgbody.str().at(x);
+                    }
+                    if (ss.str().size() > 0) {
+                        text.push_back(ss.str());
+                    }
+                    if (subject.length() == 0) {
+                        subject.append((const char*)qwkrec.MsgSubj, 25);
+                        for (int j = subject.length() - 1; j >= 0; j--) {
+                            if (subject.at(j) == ' ') {
+                                subject.pop_back();
+                            }
+                            else {
+                                break;
+                            }
                         }
                     }
-                }
-                if (from.length() == 0) {
-                    from.append((const char*)qwkrec.MsgFrom, 25);
-                    for (int j = from.length() - 1; j >= 0; j--) {
-                        if (from.at(j) == ' ') {
-                            from.pop_back();
-                        }
-                        else {
-                            break;
+                    if (to.length() == 0) {
+                        to.append((const char*)qwkrec.MsgTo, 25);
+                        for (int j = to.length() - 1; j >= 0; j--) {
+                            if (to.at(j) == ' ') {
+                                to.pop_back();
+                            }
+                            else {
+                                break;
+                            }
                         }
                     }
+                    if (from.length() == 0) {
+                        from.append((const char*)qwkrec.MsgFrom, 25);
+                        for (int j = from.length() - 1; j >= 0; j--) {
+                            if (from.at(j) == ' ') {
+                                from.pop_back();
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                    }
+                    struct tm thedate;
+                    memset(&thedate, 0, sizeof(struct tm));
+                    thedate.tm_mday = (qwkrec.Msgdate[3] - '0') * 10 + (qwkrec.Msgdate[4] - '0');
+                    thedate.tm_mon = ((qwkrec.Msgdate[0] - '0') * 10 + (qwkrec.Msgdate[1] - '0')) - 1;
+                    int year = (qwkrec.Msgdate[6] - '0') * 10 + (qwkrec.Msgdate[7] - '0');
+                    if (year < 80) {
+                        year += 100;
+                    }
+                    thedate.tm_year = year;
+                    thedate.tm_hour = (qwkrec.Msgtime[0] - '0') * 10 + (qwkrec.Msgtime[1] - '0');
+                    thedate.tm_min = (qwkrec.Msgtime[3] - '0') * 10 + (qwkrec.Msgtime[4] - '0');
+
+                    // post message
+
+                    sq_msg_t sqmsg;
+
+                    memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+                    sqmsg.msg_len = msgbody.str().size();
+
+                    sqmsg.msg = (char *)malloc(sqmsg.msg_len);
+
+                    if (!sqmsg.msg) {
+                        std::cerr << "Out of memory!" << std::endl;
+                        return false;
+                    }
+                    memcpy(sqmsg.msg, msgbody.str().c_str(), msgbody.str().size());
+
+                    sqmsg.xmsg.date_written.date |= (((sq_word)thedate.tm_mday) & 31);
+                    sqmsg.xmsg.date_written.date |= (((sq_word)(thedate.tm_mon + 1)) & 15) << 5;
+                    sqmsg.xmsg.date_written.date |= (((sq_word)(thedate.tm_year - 80)) & 127) << 9;
+
+                    sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_sec) & 31);
+                    sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_min) & 63) << 5;
+                    sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_hour) & 31) << 11;
+
+                    char datestr[22];
+                    strftime(datestr, 22, "%d %b %y  %H:%M:%S", &thedate);
+
+                    std::tm at;
+
+                    time_t now = time(NULL);
+    #ifdef _MSC_VER
+                    localtime_s(&at, &now);
+    #else
+                    localtime_r(&now, &at);
+    #endif
+                    sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
+                    sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+                    sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+                    sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
+                    sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
+                    sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+                    strncpy(sqmsg.xmsg.subject, subject.c_str(), 72);
+                    strncpy(sqmsg.xmsg.from, from.c_str(), 36);
+                    strncpy(sqmsg.xmsg.to, to.c_str(), 36);
+
+                    strcpy(sqmsg.xmsg.__ftsc_date, datestr);
+
+                    sqmsg.xmsg.attr = MSGUID;
+                    sq_msg_base_t* mb = SquishOpenMsgBase(std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea).c_str());
+
+                    if (!mb) {
+                        std::cerr << "Unable to open message base: " << std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea) << std::endl;
+                    } else {
+                        SquishLockMsgBase(mb);
+                        SquishWriteMsg(mb, &sqmsg);
+                        SquishUnlockMsgBase(mb);
+                        SquishCloseMsgBase(mb);
+                    }
+
+                    free(sqmsg.msg);
                 }
-                struct tm thedate;
-                memset(&thedate, 0, sizeof(struct tm));
-                thedate.tm_mday = (qwkrec.Msgdate[3] - '0') * 10 + (qwkrec.Msgdate[4] - '0');
-                thedate.tm_mon = ((qwkrec.Msgdate[0] - '0') * 10 + (qwkrec.Msgdate[1] - '0')) - 1;
-                int year = (qwkrec.Msgdate[6] - '0') * 10 + (qwkrec.Msgdate[7] - '0');
-                if (year < 80) {
-                    year += 100;
-                }
-                thedate.tm_year = year;
-                thedate.tm_hour = (qwkrec.Msgtime[0] - '0') * 10 + (qwkrec.Msgtime[1] - '0');
-                thedate.tm_min = (qwkrec.Msgtime[3] - '0') * 10 + (qwkrec.Msgtime[4] - '0');
-
-                // post message
-
-                sq_msg_t sqmsg;
-
-                memset(&sqmsg, 0, sizeof(sq_msg_t));
-
-                sqmsg.msg_len = msgbody.str().size();
-
-                sqmsg.msg = (char *)malloc(sqmsg.msg_len);
-
-                if (!sqmsg.msg) {
-                    std::cerr << "Out of memory!" << std::endl;
-                    return false;
-                }
-                memcpy(sqmsg.msg, msgbody.str().c_str(), msgbody.str().size());
-
-                sqmsg.xmsg.date_written.date |= (((sq_word)thedate.tm_mday) & 31);
-                sqmsg.xmsg.date_written.date |= (((sq_word)(thedate.tm_mon + 1)) & 15) << 5;
-                sqmsg.xmsg.date_written.date |= (((sq_word)(thedate.tm_year - 80)) & 127) << 9;
-
-                sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_sec) & 31);
-                sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_min) & 63) << 5;
-                sqmsg.xmsg.date_written.time |= (((sq_word)thedate.tm_hour) & 31) << 11;
-
-                char datestr[22];
-                strftime(datestr, 22, "%d %b %y  %H:%M:%S", &thedate);
-
-                std::tm at;
-
-                time_t now = time(NULL);
-#ifdef _MSC_VER
-				localtime_s(&at, &now);
-#else
-				localtime_r(&now, &at);
-#endif
-                sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
-				sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
-                sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
-
-                sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
-                sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
-                sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
-
-                strncpy(sqmsg.xmsg.subject, subject.c_str(), 72);
-                strncpy(sqmsg.xmsg.from, from.c_str(), 36);
-                strncpy(sqmsg.xmsg.to, to.c_str(), 36);
-
-                strcpy(sqmsg.xmsg.__ftsc_date, datestr);
-
-                sqmsg.xmsg.attr = MSGUID;
-                sq_msg_base_t* mb = SquishOpenMsgBase(std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea).c_str());
-
-                if (!mb) {
-                    std::cerr << "Unable to open message base: " << std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea) << std::endl;
-                } else {
-                    SquishLockMsgBase(mb);
-                    SquishWriteMsg(mb, &sqmsg);
-                    SquishUnlockMsgBase(mb);
-                    SquishCloseMsgBase(mb);
-                }
-
-                free(sqmsg.msg);
             }
         }
 
