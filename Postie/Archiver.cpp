@@ -2,7 +2,14 @@
 #include <Windows.h>
 #endif
 #include <sstream>
+#include <algorithm>
 #include "Archiver.h"
+
+static inline void rtrim(std::string& s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
 
 void Archiver::extract(std::string archive, std::string outdir)
 {
@@ -75,6 +82,8 @@ void Archiver::compress(std::string archive, std::vector<std::string> filelist)
 }
 
 void Archiver::runexec(std::string cmd) {
+    rtrim(cmd);
+
 #ifdef _MSC_VER
 	STARTUPINFOA si;
 	PROCESS_INFORMATION pi;
