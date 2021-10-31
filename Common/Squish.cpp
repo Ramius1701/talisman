@@ -450,8 +450,8 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
         mb->basehdr.begin_frame = hdr.next_frame;
     }
 
-    if (mb->basehdr.end_frame == msg->ofs) {
-        mb->basehdr.end_frame = hdr.prev_frame;
+    if (mb->basehdr.last_frame == msg->ofs) {
+        mb->basehdr.last_frame = hdr.prev_frame;
     }
 
     // add message to free chain
