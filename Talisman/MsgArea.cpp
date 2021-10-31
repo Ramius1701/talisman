@@ -45,27 +45,14 @@ void MsgArea::delete_message(sq_msg_base_t* mb, sq_msg_t* msg)
     }
 }
 
-int MsgArea::umsgid_to_offset(UMSGID lr) {
+uint32_t MsgArea::umsgid_to_offset(UMSGID lr) {
 	sq_msg_base_t* mb;
-    sq_msg_t *msg;
-	unsigned int tot = 0;
+	uint32_t tot = 0;
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		return 0;
 	}
-	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
-        msg = SquishReadMsg(mb, i);
-        tot = i;
-        if (msg != NULL) {
-            if (msg->xmsg.umsgid == lr) {
-                SquishFreeMsg(msg);
-                break;
-            } else {
-                SquishFreeMsg(msg);
-            }
-        }
-    }
-
+    tot = SquishUMSGID2Offset(mb, lr);
     SquishCloseMsgBase(mb);
 	return tot;
 }

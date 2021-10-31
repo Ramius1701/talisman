@@ -33,7 +33,7 @@ extern "C" int lua_getBBSMsg(lua_State * L) {
 		return 5;
 	}
 
-	if (mid < 1 || mid > mb->basehdr.num_msg) {
+	if (mid < 1 || mid >= mb->basehdr.uid) {
 		SquishCloseMsgBase(mb);
 		lua_pushnumber(L, 0);
 		lua_pushstring(L, "Nobody");
@@ -43,10 +43,10 @@ extern "C" int lua_getBBSMsg(lua_State * L) {
 		return 5;
 	}
 
-	while (mid <= mb->basehdr.num_msg) {
+	while (mid < mb->basehdr.uid) {
 		sq_msg_t* msg;
 
-		msg = SquishReadMsg(mb, mid);
+		msg = SquishReadMsg(mb, SquishUMSGID2Offset(mb, mid));
 		if (!msg) {
 			SquishCloseMsgBase(mb);
 			lua_pushnumber(L, 0);

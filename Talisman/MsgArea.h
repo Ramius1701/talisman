@@ -33,7 +33,7 @@ public:
 
 	void delete_message(sq_msg_base_t *mb, sq_msg_t *msg);
 	void do_semaphore(std::string sem);
-    int umsgid_to_offset(UMSGID lr);
+    uint32_t umsgid_to_offset(UMSGID lr);
     int get_new_msgs(UMSGID lr);
 	int get_total_msgs();
 	int list_messages(int start);

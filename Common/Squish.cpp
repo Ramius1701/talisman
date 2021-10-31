@@ -487,6 +487,19 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     return 1;
 }
 
+sq_dword SquishUMSGID2Offset(sq_msg_base_t* mb, UMSGID mid) {
+    SQIDX sqidx;
+    for (sq_dword msgno = 1; msgno < mb->basehdr.num_msg; msgno++) {
+        fseek(mb->indexfile, (msgno - 1) * sizeof(SQIDX), SEEK_SET);
+        fread(&sqidx, sizeof(SQIDX), 1, mb->indexfile);
+
+        if (sqidx.umsgid == mid) {
+            return msgno;
+        }
+    }
+    return 0;
+}
+
 sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {
 	SQIDX sqidx;
 	SQHDR sqhdr;
