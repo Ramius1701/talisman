@@ -52,7 +52,8 @@ uint32_t MsgArea::umsgid_to_offset(UMSGID lr) {
 	if (!mb) {
 		return 0;
 	}
-    tot = SquishUMSGID2Offset(mb, lr);
+    tot = SquishUMSGID2Offset(mb, lr, 1);
+
     SquishCloseMsgBase(mb);
 	return tot;
 }

@@ -487,13 +487,21 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     return 1;
 }
 
-sq_dword SquishUMSGID2Offset(sq_msg_base_t* mb, UMSGID mid) {
+sq_dword SquishUMSGID2Offset(sq_msg_base_t* mb, UMSGID mid, int nextm) {
     SQIDX sqidx;
-    for (sq_dword msgno = 1; msgno < mb->basehdr.num_msg; msgno++) {
+
+    if (mid == 0 || mid >= mb->basehdr.uid) {
+        return 0;
+    }
+
+    for (sq_dword msgno = 1; msgno <= mb->basehdr.num_msg; msgno++) {
         fseek(mb->indexfile, (msgno - 1) * sizeof(SQIDX), SEEK_SET);
         fread(&sqidx, sizeof(SQIDX), 1, mb->indexfile);
 
         if (sqidx.umsgid == mid) {
+            return msgno;
+        }
+        if (nextm && sqidx.umsgid > mid) {
             return msgno;
         }
     }

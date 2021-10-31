@@ -46,7 +46,7 @@ extern "C" int lua_getBBSMsg(lua_State * L) {
 	while (mid < mb->basehdr.uid) {
 		sq_msg_t* msg;
 
-		msg = SquishReadMsg(mb, SquishUMSGID2Offset(mb, mid));
+		msg = SquishReadMsg(mb, SquishUMSGID2Offset(mb, mid, 1));
 		if (!msg) {
 			SquishCloseMsgBase(mb);
 			lua_pushnumber(L, 0);
