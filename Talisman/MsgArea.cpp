@@ -72,24 +72,13 @@ int MsgArea::umsgid_to_offset(UMSGID lr) {
 
 int MsgArea::get_new_msgs(UMSGID lr) {
 	sq_msg_base_t* mb;
-    sq_msg_t *msg;
 	unsigned int tot = 0;
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		return 0;
 	}
-	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
-        msg = SquishReadMsg(mb, i);
-        if (msg != NULL) {
-            if (msg->xmsg.umsgid > lr) {
-                tot = mb->basehdr.num_msg - i + 1;
-                SquishFreeMsg(msg);
-                break;
-            } else {
-                SquishFreeMsg(msg);
-            }
-        }
-    }
+
+	tot = mb->basehdr.uid - lr;
 
     SquishCloseMsgBase(mb);
 	return tot;
