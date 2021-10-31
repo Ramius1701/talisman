@@ -78,7 +78,7 @@ int MsgArea::get_new_msgs(UMSGID lr) {
 		return 0;
 	}
 
-	tot = mb->basehdr.uid - lr;
+	tot = mb->basehdr.uid - lr - 1;
 
     SquishCloseMsgBase(mb);
 	return tot;

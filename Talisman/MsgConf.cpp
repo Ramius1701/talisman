@@ -521,7 +521,7 @@ void MsgConf::scan(Node* n) {
 				n->print_f("   |15%-32.32s |08%6d TOTAL |07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
 			}
 			else {
-				n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr);
+				n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_new_msgs(lr));
 			}
 			lines++;
 			if (lines >= n->get_term_height() - 2) {
