@@ -13,13 +13,14 @@
 
 struct area_details_t {
 	MsgArea* ma;
-	int lr;
+	UMSGID lr;
 	size_t total;
 	size_t unread;
 	size_t unread_personal;
 	bool tagged;
 	bool subbed;
 	time_t last_post;
+    UMSGID top_msgid;
 };
 
 struct conf_details_t {
@@ -53,11 +54,12 @@ void IndexReader::run(Node* n) {
 				newarea.ma = &newconf.mc->areas.at(j);
 				newarea.lr = n->get_user().user_get_lastread(newarea.ma->get_file());
 				newarea.total = newarea.ma->get_total_msgs();
-				newarea.unread = newarea.total - newarea.lr;
+				newarea.unread = newconf.mc->areas.at(j).get_new_msgs(newarea.lr);
 				newarea.unread_personal = 0;
 				newarea.tagged = false;
 				newarea.last_post = 0;
 				newarea.subbed = n->get_user().is_subscribed(newarea.ma->get_file());
+                newarea.top_msgid = 0;
 				sq_msg_base_t* mb = SquishOpenMsgBase(newarea.ma->get_file().c_str());
 				if (!mb) continue;
 				if (mb->basehdr.num_msg > 0) {
@@ -71,7 +73,7 @@ void IndexReader::run(Node* n) {
 					localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
 					localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
 					localtm.tm_sec = msg->xmsg.date_written.time & 31;
-
+                    newarea.top_msgid = msg->xmsg.umsgid;
 					newarea.last_post = mktime(&localtm);
 					SquishFreeMsg(msg);
 				}
@@ -159,7 +161,7 @@ void IndexReader::run(Node* n) {
 			if (c == '\r' || c == '\n') {
 				if (conf.at(selected_conf).area.at(selected_area).unread > 0) {
 					
-					int msgno = conf.at(selected_conf).area.at(selected_area).lr + 1;
+					int msgno = conf.at(selected_conf).area.at(selected_area).ma->umsgid_to_offset(conf.at(selected_conf).area.at(selected_area).lr  + 1);
 					while (true) {
 						msgno = conf.at(selected_conf).area.at(selected_area).ma->list_messages(msgno);
 						if (msgno > 0 && msgno <= conf.at(selected_conf).area.at(selected_area).ma->get_total_msgs()) {
@@ -239,8 +241,8 @@ void IndexReader::run(Node* n) {
 					}
 				}
 				if (nothingtagged) {
-					n->get_user().user_set_lastread(conf.at(selected_conf).area.at(selected_area).ma->get_file(), conf.at(selected_conf).area.at(selected_area).total);
-					conf.at(selected_conf).area.at(selected_area).lr = conf.at(selected_conf).area.at(selected_area).total;
+					n->get_user().user_set_lastread(conf.at(selected_conf).area.at(selected_area).ma->get_file(), conf.at(selected_conf).area.at(selected_area).top_msgid);
+					conf.at(selected_conf).area.at(selected_area).lr = conf.at(selected_conf).area.at(selected_area).top_msgid;
 					conf.at(selected_conf).area.at(selected_area).unread = 0;
 				}
 			}

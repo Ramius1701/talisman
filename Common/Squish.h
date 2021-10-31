@@ -123,3 +123,4 @@ extern void SquishUnlockMsgBase(sq_msg_base_t* mb);
 extern int SquishWriteMsg(sq_msg_base_t* mb, sq_msg_t* msg);
 extern NETADDR* parse_fido_addr(const char* str);
 extern int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg);
+extern int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg);

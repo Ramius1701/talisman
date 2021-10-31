@@ -251,16 +251,20 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 
 	FOFS frame = mb->basehdr.free_frame;
 
-	while (frame != mb->basehdr.last_free_frame) {
+	while (frame != 0) {
 		fseek(mb->datafile, frame, SEEK_SET);
 		fread(&sqhdr, sizeof(SQHDR), 1, mb->datafile);
 		if (sqhdr.frame_type == 1 && sqhdr.frame_length >= sizeof(XMSG) + msg->ctrl_len + msg->msg_len) {
 			break;
 		}
+
+		if (frame == mb->basehdr.last_free_frame) {
+            break;
+        }
 		frame = sqhdr.next_frame;
 	}
 
-	if (sqhdr.frame_type == 1 && sqhdr.id != 0xAFAE4453) {
+	if (sqhdr.frame_type == 1 && sqhdr.id == 0xAFAE4453) {
 		// got free frame big enough;
 
 		// remove from free list
@@ -378,6 +382,109 @@ int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg) {
 	fwrite(&msg->xmsg, sizeof(XMSG), 1, mb->datafile);
 
 	return 1;
+}
+
+int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
+    SQHDR hdr;
+    SQHDR prev;
+    SQHDR nextf;
+    SQIDX *idx;
+
+    if (!mb->ihavelock) {
+        return 0;
+    }
+    fseek(mb->indexfile, 0, SEEK_END);
+    size_t fsize = ftell(mb->indexfile);
+    char *indexdata = (char *)malloc(fsize);
+    if (!indexdata) {
+        return 0;
+    }
+    fseek(mb->datafile, msg->ofs, SEEK_SET);
+    fread(&hdr, sizeof(SQHDR), 1, mb->datafile);
+
+    // set previous frame to next frame
+    fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
+    fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+
+    prev.next_frame = hdr.next_frame;
+    fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
+    fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+
+    // set next frame to prev frame
+    fseek(mb->datafile, hdr.next_frame, SEEK_SET);
+    fread(&nextf, sizeof(SQHDR), 1, mb->datafile);
+
+    nextf.next_frame = hdr.prev_frame;
+    fseek(mb->datafile, hdr.next_frame, SEEK_SET);
+    fwrite(&nextf, sizeof(SQHDR), 1, mb->datafile);
+
+    // delete message from index
+
+
+    fseek(mb->indexfile, 0, SEEK_SET);
+    fread(indexdata, 1, fsize, mb->indexfile);
+
+    int found = 0;
+    for (size_t i = 0; i < fsize / sizeof(SQIDX) ;i++) {
+        idx = (SQIDX *)(indexdata + (i * sizeof(SQIDX)));
+        if (idx->umsgid == msg->xmsg.umsgid) {
+            found = 1;
+            memmove(idx, &idx[1], fsize - (sizeof(SQIDX) * (i + 1)));
+            break;
+        }
+    }
+    if (!found) {
+        return 0;
+    }
+
+    fseek(mb->indexfile, 0, SEEK_SET);
+    fwrite(indexdata, 1, fsize - sizeof(SQIDX), mb->indexfile);
+#ifdef _MSC_VER
+    HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(mb->indexfile));
+    SetEndOfFile(hFile);
+#else
+    ftruncate(fileno(mb->indexfile), fsize - sizeof(SQIDX));
+#endif
+
+    if (mb->basehdr.begin_frame == msg->ofs) {
+        mb->basehdr.begin_frame = hdr.next_frame;
+    }
+
+    if (mb->basehdr.end_frame == msg->ofs) {
+        mb->basehdr.end_frame = hdr.prev_frame;
+    }
+
+    // add message to free chain
+    if (mb->basehdr.free_frame != 0) {
+        fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
+        fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+        fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
+        hdr.prev_frame = mb->basehdr.last_free_frame;
+        hdr.next_frame = 0;
+        prev.next_frame = msg->ofs;
+        mb->basehdr.last_free_frame = msg->ofs;
+        fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+    } else {
+        mb->basehdr.free_frame = msg->ofs;
+        mb->basehdr.last_free_frame = msg->ofs;
+        hdr.next_frame = 0;
+        hdr.prev_frame = 0;
+    }
+    hdr.frame_type = 1;
+
+
+    mb->basehdr.num_msg--;
+    mb->basehdr.high_msg = mb->basehdr.num_msg;
+
+    fseek(mb->datafile, 0, SEEK_SET);
+    fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+
+    fseek(mb->datafile, msg->ofs, SEEK_SET);
+    fwrite(&hdr, sizeof(SQHDR), 1, mb->datafile);
+
+    SquishFreeMsg(msg);
+
+    return 1;
 }
 
 sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {

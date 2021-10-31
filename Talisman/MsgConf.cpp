@@ -145,11 +145,11 @@ int MsgConf::list_areas_fsr(Node* n, int sec) {
 		if (areas.at(i).get_r_sec_level() > sec) continue;
 		struct area_list_entry_t entry;
 
-		int lr = n->get_user().user_get_lastread(areas.at(i).get_file());
+		UMSGID lr = n->get_user().user_get_lastread(areas.at(i).get_file());
 
 		entry.name = areas.at(i).get_name();
 		entry.total_msgs = areas.at(i).get_total_msgs();
-		entry.new_msgs = areas.at(i).get_total_msgs() - lr;
+		entry.new_msgs = areas.at(i).get_new_msgs(lr);
 
 		area_entries.push_back(entry);
 	}
@@ -276,9 +276,9 @@ int MsgConf::list_areas_old(Node* n, int sec)
 
 		for (size_t i = 0; i < areas.size(); i++) {
 			if (areas.at(i).get_r_sec_level() > sec) continue;
-			int lr = n->get_user().user_get_lastread(areas.at(i).get_file());
+			UMSGID lr = n->get_user().user_get_lastread(areas.at(i).get_file());
 			if (i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
-				if (areas.at(i).get_total_msgs() - lr > 0) {
+				if (areas.at(i).get_new_msgs(lr) > 0) {
 					n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
 				}
 				else {
@@ -286,7 +286,7 @@ int MsgConf::list_areas_old(Node* n, int sec)
 				}
 			}
 			else {
-				if (areas.at(i).get_total_msgs() - lr > 0) {
+				if (areas.at(i).get_new_msgs(lr) > 0) {
 					n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(), areas.at(i).get_total_msgs() - lr);
 				}
 				else {
@@ -516,8 +516,8 @@ void MsgConf::scan(Node* n) {
 			if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).areas.at(area).get_r_sec_level()) {
 				continue;
 			}
-			int lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file());
-			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs() - lr  == 0) {
+			UMSGID lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file());
+			if (n->get_config()->msgconfs.at(conf).areas.at(area).get_new_msgs(lr)  == 0) {
 				n->print_f("   |15%-32.32s |08%6d TOTAL |07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(), n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
 			}
 			else {

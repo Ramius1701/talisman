@@ -411,7 +411,7 @@ bool Menu::run() {
 									msgno = 1;
 								}
 								else {
-									msgno = lr + 1;
+									msgno = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).umsgid_to_offset(lr);
 								}
 							}
 							else {
@@ -778,9 +778,9 @@ bool Menu::run() {
 							for (size_t msgarea = 0; msgarea < n->get_config()->msgconfs.at(msgconf).areas.size(); msgarea++) {
 								if (n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_r_sec_level() <= n->get_user().get_sec_level()) {
 									if (!subonly || n->get_user().is_subscribed(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file())) {
-										int last_read = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file());
-										if (last_read < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
-											done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_read + 1, false, true, true, NULL);
+										int last_offt = n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).umsgid_to_offset(n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_file()));
+										if (last_offt < n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).get_total_msgs()) {
+											done = !n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).read_message(last_offt + 1, false, true, true, NULL);
 										}
 										if (done) {
 											break;

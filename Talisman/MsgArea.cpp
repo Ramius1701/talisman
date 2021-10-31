@@ -35,6 +35,66 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 	this->wwivnode = wwivnode;
 }
 
+void MsgArea::delete_message(sq_msg_base_t* mb, sq_msg_t* msg)
+{
+    if (n->get_user().get_sec_level() >= 99) {
+        if (SquishLockMsgBase(mb)) {
+            SquishDeleteMsg(mb, msg);
+            SquishUnlockMsgBase(mb);
+        }
+    }
+}
+
+int MsgArea::umsgid_to_offset(UMSGID lr) {
+	sq_msg_base_t* mb;
+    sq_msg_t *msg;
+	unsigned int tot = 0;
+	mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return 0;
+	}
+	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+        msg = SquishReadMsg(mb, i);
+        if (msg != NULL) {
+            if (msg->xmsg.umsgid == lr) {
+                tot = i;
+                SquishFreeMsg(msg);
+                break;
+            } else {
+                SquishFreeMsg(msg);
+            }
+        }
+    }
+
+    SquishCloseMsgBase(mb);
+	return tot;
+}
+
+int MsgArea::get_new_msgs(UMSGID lr) {
+	sq_msg_base_t* mb;
+    sq_msg_t *msg;
+	unsigned int tot = 0;
+	mb = SquishOpenMsgBase(file.c_str());
+	if (!mb) {
+		return 0;
+	}
+	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+        msg = SquishReadMsg(mb, i);
+        if (msg != NULL) {
+            if (msg->xmsg.umsgid > lr) {
+                tot = mb->basehdr.num_msg - i + 1;
+                SquishFreeMsg(msg);
+                break;
+            } else {
+                SquishFreeMsg(msg);
+            }
+        }
+    }
+
+    SquishCloseMsgBase(mb);
+	return tot;
+}
+
 int MsgArea::get_total_msgs()
 {
 	sq_msg_base_t* mb;
@@ -1361,8 +1421,8 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 		}
 
 		if (set_last_read) {
-			if (n->get_user().user_get_lastread(file) < msg_to_read) {
-				n->get_user().user_set_lastread(file, msg_to_read);
+			if (n->get_user().user_get_lastread(file) < msg->xmsg.umsgid) {
+				n->get_user().user_set_lastread(file, msg->xmsg.umsgid);
 			}
 		}
 
@@ -1486,6 +1546,10 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 			}
 			else {
 				switch (tolower(res[0])) {
+                case 'd':
+                    delete_message(mb, msg);
+					SquishCloseMsgBase(mb);
+					return false;
 				case 'r':
 					reply_to_msg(msg, &quotebuffer);
 					break;
@@ -1677,6 +1741,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 							return true;
 						}
 					}
+					if (tolower(c) == 'd') {
+                        delete_message(mb, msg);
+						SquishCloseMsgBase(mb);
+						return false;
+                    }
 					if (tolower(c) == 'r') {
 						n->cls();
 						reply_to_msg(msg, &quotebuffer);
@@ -1790,6 +1859,7 @@ struct msg_list_t {
 	std::string subject;
 	std::string from;
 	std::string to;
+    UMSGID umsgid;
 };
 
 int MsgArea::list_messages_full(int start) {
@@ -1799,7 +1869,7 @@ int MsgArea::list_messages_full(int start) {
 
 	std::vector<struct msg_list_t> msgs;
 
-	int lr = n->get_user().user_get_lastread(file);
+	UMSGID lr = n->get_user().user_get_lastread(file);
 
 	sq_msg_base_t *mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
@@ -1832,6 +1902,7 @@ int MsgArea::list_messages_full(int start) {
 		mli.subject = std::string(msg->xmsg.subject);
 		mli.from = std::string(msg->xmsg.from);
 		mli.to = std::string(msg->xmsg.to);
+        mli.umsgid = msg->xmsg.umsgid;
 		msgs.push_back(mli);
 		SquishFreeMsg(msg);
 	}
@@ -1866,7 +1937,7 @@ int MsgArea::list_messages_full(int start) {
 			n->print_f("\x1b[1;1H%s Msg#    Subject                          From             To\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
 
 			for (size_t i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
-				if (msgs.at(i).msgno <= lr) {
+				if (msgs.at(i).umsgid <= lr) {
 					if (i == selected) {
 						n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
 					}
@@ -1916,13 +1987,13 @@ int MsgArea::list_messages_full(int start) {
 							redraw = true;
 						}
 						else {
-							if (msgs.at(selected).msgno <= lr) {
+							if (msgs.at(selected).umsgid <= lr) {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
 							}
 							else {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
 							}
-							if (msgs.at(selected + 1).msgno <= lr) {
+							if (msgs.at(selected + 1).umsgid <= lr) {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 3, msgs.at(selected + 1).msgno, msgs.at(selected + 1).subject.c_str(), msgs.at(selected + 1).from.c_str(), msgs.at(selected + 1).to.c_str());
 							}
 							else {
@@ -1945,13 +2016,13 @@ int MsgArea::list_messages_full(int start) {
 							redraw = true;
 						}
 						else {
-							if (msgs.at(selected).msgno <= lr) {
+							if (msgs.at(selected).umsgid <= lr) {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
 							}
 							else {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 2, msgs.at(selected).msgno, msgs.at(selected).subject.c_str(), msgs.at(selected).from.c_str(), msgs.at(selected).to.c_str());
 							}
-							if (msgs.at(selected - 1).msgno <= lr) {
+							if (msgs.at(selected - 1).umsgid <= lr) {
 								n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[1;37m%6d\x1b[1;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (selected - pos) + 1, msgs.at(selected - 1).msgno, msgs.at(selected - 1).subject.c_str(), msgs.at(selected - 1).from.c_str(), msgs.at(selected - 1).to.c_str());
 							}
 							else {
@@ -2014,7 +2085,7 @@ int MsgArea::list_messages_full(int start) {
 
 int MsgArea::list_messages_old(int start) {
 	sq_msg_base_t* mb;
-	int lr = n->get_user().user_get_lastread(file); 
+	UMSGID lr = n->get_user().user_get_lastread(file);
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
 		n->print_f("|14Unable to open message base!|07\r\n");
@@ -2035,7 +2106,7 @@ int MsgArea::list_messages_old(int start) {
 			continue;
 		}
 		else {
-			if ((int)i <= lr) {
+			if (msg->xmsg.umsgid <= lr) {
 				n->print_f("|08[|15%6d|08] |14%-32.32s |13%-16.16s |11%-16.16s\r\n", i, msg->xmsg.subject, msg->xmsg.from, msg->xmsg.to);
 			}
 			else {
@@ -2096,6 +2167,7 @@ int MsgArea::list_messages_old(int start) {
 
 void MsgArea::update_lr(time_t date) {
 	sq_msg_base_t* mb;
+    UMSGID prev_msg = 0;
 
 	mb = SquishOpenMsgBase(file.c_str());
 	if (!mb) {
@@ -2120,12 +2192,13 @@ void MsgArea::update_lr(time_t date) {
 		time_t msgtime = mktime(&msg_tm);
 
 		if (msgtime > date) {
-			n->get_user().user_set_lastread(file, i - 1);
+			n->get_user().user_set_lastread(file, prev_msg);
 			SquishCloseMsgBase(mb);
 			return;
 		}
+		prev_msg = msg->xmsg.umsgid;
 	}
-	n->get_user().user_set_lastread(file, totmsgs);
+	n->get_user().user_set_lastread(file, prev_msg);
 	SquishCloseMsgBase(mb);
 	return;
 }
@@ -2138,13 +2211,13 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 		return true;
 	}
 
-	size_t i;
+	UMSGID lastr;
 
 	if (newonly) {
-		i = n->get_user().user_get_lastread(file) + 1;
+		lastr = n->get_user().user_get_lastread(file) + 1;
 	}
 	else {
-		i = 1;
+		lastr = 1;
 	}
 
 	n->print_f("|14Scanning |15%s\r\n|07", name.c_str());
@@ -2157,6 +2230,11 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
 			SquishFreeMsg(msg);
 			continue;
 		}
+
+		if (msg->xmsg.umsgid < lastr) {
+			SquishFreeMsg(msg);
+			continue;
+        }
 
 		switch (type) {
 		case MSGSEARCH_BODY:
@@ -2237,7 +2315,7 @@ static int ieee_to_msbin(float* src4, float* dest4) {
 }
 
 int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* conf_ndx_fptr, int tot, int confno, unsigned int* last_msg_packed) {
-	int lastread = n->get_user().user_get_lastread(file);
+	UMSGID lastread = n->get_user().user_get_lastread(file);
 	char buffer[256];
 
 	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
@@ -2245,7 +2323,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 		return 0;
 	}
 
-	for (size_t msgno = lastread + 1; msgno <= mb->basehdr.num_msg; msgno++) {
+	for (size_t msgno = 1; msgno <= mb->basehdr.num_msg; msgno++) {
 		sq_msg_t* msg = SquishReadMsg(mb, msgno);
 
 		if (msg == NULL) {
@@ -2256,6 +2334,11 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 			SquishFreeMsg(msg);
 			continue;
 		}
+
+		if (msg->xmsg.umsgid <= lastread) {
+			SquishFreeMsg(msg);
+			continue;
+        }
 
 		std::string subject(msg->xmsg.subject);
 		std::string sender(msg->xmsg.from);
@@ -2429,7 +2512,7 @@ int MsgArea::qwk_scan(Node* n, FILE* msgs_dat_fptr, FILE* pers_ndx_fptr, FILE* c
 }
 
 int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr, int *last_read) {
-	int lastread = n->get_user().user_get_lastread(file);
+	UMSGID lastread = n->get_user().user_get_lastread(file);
 	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	int personal_msgs = 0;
 	int area_msgs = 0;
@@ -2457,6 +2540,11 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
 			SquishFreeMsg(msg);
 			continue;
 		}
+
+		if (msg->xmsg.umsgid <= lastread) {
+			SquishFreeMsg(msg);
+			continue;
+        }
 
 		if (istome) {
 			personal_msgs++;
@@ -2536,9 +2624,10 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
 
 		area_msgs++;
 		tot_msgs++;
+        *last_read = msg->xmsg.umsgid;
 		SquishFreeMsg(msg);
 	}
-	*last_read = mb->basehdr.num_msg;
+
 
 	SquishCloseMsgBase(mb);
 
