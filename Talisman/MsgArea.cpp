@@ -55,9 +55,9 @@ int MsgArea::umsgid_to_offset(UMSGID lr) {
 	}
 	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
         msg = SquishReadMsg(mb, i);
+        tot = i;
         if (msg != NULL) {
             if (msg->xmsg.umsgid == lr) {
-                tot = i;
                 SquishFreeMsg(msg);
                 break;
             } else {
