@@ -184,7 +184,7 @@ int FileConf::list_fsr(Node* n, int sec) {
 		}
 		else if (c == 'q' || c == 'Q') {
 			n->print_f("\x1b[0;40;37m");
-			return -1;
+			return 0;
 		}
 
 	}

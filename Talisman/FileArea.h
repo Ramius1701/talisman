@@ -41,17 +41,18 @@ public:
 	}
 
 	int get_total_files(Node *n);
-	void list_files(Node* n);
-	void list_files(Node* n, time_t date);
-	void list_files(Node* n, time_t date, std::vector<std::string> *keywords);
+	bool list_files(Node* n);
+	bool list_files(Node* n, time_t date);
+	bool list_files(Node* n, time_t date, std::vector<std::string> *keywords);
+    bool list_files(Node* n, time_t date, std::vector<std::string> *keywords, bool cancel);
 
 	void inc_download_count(Node* n, std::string filename);
 	bool upload_file(Node *n);
 	bool file_exists(Node* n, std::string filename);
 	bool insert_file(Node* n, std::string filename, std::vector<std::string> descr);
 private:
-	void do_list(Node *n, std::vector<struct file_list_t>* filelist);
-	void do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist);
+	bool do_list(Node *n, std::vector<struct file_list_t>* filelist, bool cancel);
+	bool do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist, bool cancel);
 	bool open_database(std::string filename, sqlite3** db);
 	std::string name;
 	std::string file_path;

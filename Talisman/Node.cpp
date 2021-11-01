@@ -1683,6 +1683,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 				}
 			}
 			else if (strcasecmp(config.get_login_items()->at(i).command.c_str(), "NEWFILES") == 0) {
+                bool done = false;
 				print_f("|14Scan for new files? (Y/N) : |07");
 				if (tolower(getche()) != 'n') {
 					print_f("\r\n\r\n");
@@ -1692,8 +1693,14 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 						for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
 							if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
 							print_f("|14... Scanning area: |15%s|14...|07\r\n", config.fileconfs.at(i).areas.at(j).get_name().c_str());
-							config.fileconfs.at(i).areas.at(j).list_files(this, last_on);
+							done = config.fileconfs.at(i).areas.at(j).list_files(this, last_on, nullptr, true);
+                            if (done) {
+                                break;
+                            }
 						}
+						if (done) {
+                            break;
+                        }
 					}
 				}
 			}

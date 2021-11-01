@@ -178,15 +178,19 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 }
 
 
-void FileArea::list_files(Node* n) {
-	list_files(n, 0, nullptr);
+bool FileArea::list_files(Node* n) {
+	return list_files(n, 0, nullptr, false);
 }
 
-void FileArea::list_files(Node* n, time_t date) {
-	list_files(n, date, nullptr);
+bool FileArea::list_files(Node* n, time_t date) {
+	return list_files(n, date, nullptr, false);
 }
 
-void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords) {
+bool FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords) {
+    return list_files(n, date, nullptr, false);
+}
+
+bool FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords, bool cancel) {
 	sqlite3* db;
 	sqlite3_stmt* stmt;
 	std::vector<file_list_t> filelist;
@@ -197,13 +201,13 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 	std::stringstream sql3;
 	
 	if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
-		return;
+		return false;
 	}
 
 	if (date > 0) {
 		if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 		sqlite3_bind_int64(stmt, 1, date);
 	}
@@ -218,7 +222,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 			std::string ssql3 = sql3.str();
 			if (sqlite3_prepare_v2(db, ssql3.c_str(), ssql3.size(), &stmt, NULL) != SQLITE_OK) {
 				sqlite3_close(db);
-				return;
+				return false;
 			}
 			for (size_t i = 0; i < keywords->size(); i++) {
 				std::string kw = "%" + keywords->at(i) + "%";
@@ -227,7 +231,7 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 		} else
 		if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
 			sqlite3_close(db);
-			return;
+			return false;
 		}
 	}
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -268,15 +272,15 @@ void FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywor
 	sqlite3_close(db);
 	bool fsr = (n->get_user().get_attribute("fullscreenreader", "true") == "true" && n->hasANSI);
 	if (fsr) {
-		do_list_fsr(n, &filelist);
+		return do_list_fsr(n, &filelist, cancel);
 	}
 	else {
-		do_list(n, &filelist);
+		return do_list(n, &filelist, cancel);
 	}
 
 }
 
-void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
+bool FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist, bool cancel) {
 	int unit;
 	bool tagged = false;
 	int start = 0;
@@ -284,7 +288,7 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 	//bool redraw = true;
 	static const char units[] = " KMGT";
 
-	if (filelist->size() == 0) return;
+	if (filelist->size() == 0) return false;
 
 	n->cls();
 	n->print_f("\x1b[1;1H");
@@ -294,7 +298,11 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 
 	n->print_f("\x1b[%d;1H", n->get_term_height() - 1);
 	n->print_f("%s", n->get_config()->get_prompt_colour());
-	n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
+    if (cancel) {
+        n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit, X to cancel scan");
+    } else {
+        n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
+    }
 	n->print_f("\x1b[K");
 
 	n->print_f("\x1b[0;37;40m");
@@ -422,12 +430,15 @@ void FileArea::do_list_fsr(Node* n, std::vector<struct file_list_t>* filelist) {
 			}
 		}
 		else if (c == 'Q' || c == 'q') {
-			return;
+			return false;
 		}
+		else if (cancel && (c == 'X' || c == 'x')) {
+            return true;
+        }
 	}
 }
 
-void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
+bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool cancel) {
 	static const char units[] = " KMGT";
 	int lines = 0;
 	for (size_t i = 0; i < filelist->size(); i++) {
@@ -465,12 +476,18 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 			lines++;
 			for (size_t z = 1; z < filelist->at(i).desc.size(); z++) {
 				if (lines == n->get_term_height() - 2) {
-					n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
+                    if (cancel) {
+                        n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15X|08=|14Cancel Scan|08, |15ENTER|08=|14Continue: ", filelist->size());
+                    } else {
+                        n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
+                    }
 					std::string res = n->get_string(5, false);
 					if (res.size() > 0) {
 						if (tolower(res.at(0) == 'q')) {
-							return;
-						}
+							return false;
+						} else if (cancel && tolower(res.at(0)) == 'x') {
+                            return true;
+                        }
 						size_t ftag;
 						try {
 							ftag = (size_t)stoi(res);
@@ -500,12 +517,18 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 			lines++;
 		}
 		if (lines == n->get_term_height() - 2) {
-			n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
+            if (cancel) {
+                n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15X|08=|14Cancel Scan|08, |15ENTER|08=|14Continue: ", filelist->size());
+            } else {
+                n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15ENTER|08=|14Continue: ", filelist->size());
+            }
 			std::string res = n->get_string(5, false);
 			if (res.size() > 0) {
 				if (tolower(res.at(0) == 'q')) {
-					return;
-				}
+					return false;
+				} else if (cancel && (tolower(res.at(0)) == 'x')) {
+                    return true;
+                }
 				size_t ftag;
 				try {
 					ftag = (size_t)stoi(res);
@@ -528,8 +551,15 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 		}
 	}
 	if (lines > 0) {
-		n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15ENTER|08=|14Quit: ", filelist->size());
+        if (cancel) {
+            n->print_f("|08[|151|08-|15%d|08] |14Tag File|08, |15X|08=|14Cancel Scan|08, |15ENTER|08=|14Quit: ", filelist->size());
+        } else {
+            n->print_f("|08[|151|08-|15%d|08] |14Tag File|08, |15ENTER|08=|14Quit: ", filelist->size());
+        }
 		std::string res = n->get_string(5, false);
+        if (cancel && tolower(res.at(0)) == 'x') {
+            return true;
+        }
 		if (res.size() > 0) {
 			size_t ftag;
 			try {
@@ -549,6 +579,7 @@ void FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist) {
 		}
 		n->print_f("\r\n");
 	}
+	return false;
 }
 
 bool FileArea::upload_file(Node *n) {
