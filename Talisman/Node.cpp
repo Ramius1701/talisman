@@ -1691,7 +1691,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 						if (config.fileconfs.at(i).get_sec_level() > u.get_sec_level()) continue;
 						print_f("|14Scanning conference: |15%s|14...|07\r\n", config.fileconfs.at(i).get_name().c_str());
 						for (size_t j = 0; j < config.fileconfs.at(i).areas.size(); j++) {
-							if (config.fileconfs.at(i).areas.at(j).get_d_sec_level() > u.get_sec_level()) continue;
+							if (config.fileconfs.at(i).areas.at(j).get_v_sec_level() > u.get_sec_level()) continue;
 							print_f("|14... Scanning area: |15%s|14...|07\r\n", config.fileconfs.at(i).areas.at(j).get_name().c_str());
 							done = config.fileconfs.at(i).areas.at(j).list_files(this, last_on, nullptr, true);
                             if (done) {

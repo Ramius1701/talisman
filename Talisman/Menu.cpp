@@ -869,6 +869,7 @@ bool Menu::run() {
 					}
 				}
 				else if (strcasecmp(items[i].command.c_str(), "newfiles") == 0) {
+                    bool done = false;
 					n->update_node_use("Scanning for New Files");
 					for (size_t fileconf = 0; fileconf < n->get_config()->fileconfs.size(); fileconf++) {
 						if (n->get_config()->fileconfs.at(fileconf).get_sec_level() > n->get_user().get_sec_level()) continue;
@@ -876,8 +877,14 @@ bool Menu::run() {
 						for (size_t filearea = 0; filearea < n->get_config()->fileconfs.at(fileconf).areas.size(); filearea++) {
 							if (n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_v_sec_level() > n->get_user().get_sec_level()) continue;
 							n->print_f("|14... Scanning area: |15%s|14...|07\r\n", n->get_config()->fileconfs.at(fileconf).areas.at(filearea).get_name().c_str());
-							n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, n->get_last_on());
+							done = n->get_config()->fileconfs.at(fileconf).areas.at(filearea).list_files(n, n->get_last_on(), nullptr, true);
+                            if (done) {
+                                break;
+                            }
 						}
+						if (done) {
+                            break;
+                        }
 					}
 					n->pause();
 				}
