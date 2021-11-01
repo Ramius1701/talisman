@@ -41,9 +41,9 @@ void MsgArea::delete_message(sq_msg_base_t* mb, sq_msg_t* msg)
 {
     bool candelete = false;
 
-    if (n->get_user().get_sec_level() >= delete_sec_level) {
+    if (delete_sec_level > 0 && n->get_user().get_sec_level() >= delete_sec_level) {
         candelete = true;
-    } else if (is_from_me(n, msg) && n->get_user().get_sec_level() >= delete_own_sec_level) {
+    } else if (delete_own_sec_level > 0 && is_from_me(n, msg) && n->get_user().get_sec_level() >= delete_own_sec_level) {
         candelete = true;
     }
 
