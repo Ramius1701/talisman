@@ -8,7 +8,7 @@ class Node;
 class MsgArea
 {
 public:
-	MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode);
+	MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode);
 	int get_r_sec_level() {
 		return read_sec_level;
 	}
@@ -76,6 +76,8 @@ private:
 	std::string file;
 	int read_sec_level;
 	int write_sec_level;
+    int delete_sec_level;
+    int delete_own_sec_level;
 	bool _is_netmail;
 	std::string orig_addr;
 	std::string tagline;

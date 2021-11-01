@@ -20,12 +20,14 @@
 #include "Qwk.h"
 #include "Nodelist.h"
 
-MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode)
+MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk, bool rn, int wwivnode)
 {
 	this->name = name;
 	this->file = filename;
 	this->read_sec_level = r;
 	this->write_sec_level = w;
+    this->delete_sec_level = d;
+    this->delete_own_sec_level = down;
 	this->n = n;
 	this->orig_addr = oaddr;
 	this->_is_netmail = netmail;
@@ -37,7 +39,23 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
 
 void MsgArea::delete_message(sq_msg_base_t* mb, sq_msg_t* msg)
 {
-    if (n->get_user().get_sec_level() >= 99) {
+    bool candelete = false;
+
+    if (n->get_user().get_sec_level() >= delete_sec_level) {
+        candelete = true;
+    } else if (is_from_me(n, msg) && n->get_user().get_sec_level() >= delete_own_sec_level) {
+        candelete = true;
+    }
+
+    if (!candelete) {
+        if (n->get_config()->get_sec_level_info(n->get_user().get_sec_level())->can_delete_msgs) {
+            candelete = true;
+        } else if (is_from_me(n, msg) && n->get_config()->get_sec_level_info(n->get_user().get_sec_level())->can_delete_own_msgs) {
+            candelete = true;
+        }
+    }
+
+    if (candelete) {
         if (SquishLockMsgBase(mb)) {
             SquishDeleteMsg(mb, msg);
             SquishUnlockMsgBase(mb);
@@ -1743,10 +1761,10 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 						else {
 							n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 4);
 						}
-						
-						n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 8) / 2 + 4) + 5);
-						n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 6);
-						n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 8) / 2 + 4) + 7);
+						n->print_f("\x1b[%d;20H|  (D) Delete Message        |", ((n->get_term_height() - 8) / 2 + 4) + 5);
+						n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 8) / 2 + 4) + 6);
+						n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 7);
+						n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 8) / 2 + 4) + 8);
 						n->getch();
 						break;
 					}

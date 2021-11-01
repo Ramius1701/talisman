@@ -15,6 +15,8 @@ struct sec_level_t {
 	int level;
 	int time_online;
 	int timeout;
+    int can_delete_msgs;
+    int can_delete_own_msgs;
 	bool bulk_msg_allowed;
 };
 

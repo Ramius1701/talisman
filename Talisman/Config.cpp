@@ -128,6 +128,8 @@ bool Config::load(Node *n, std::string filename) {
 			int mysec_level;
 			int mytimeonline;
 			int mytimeout;
+            bool my_can_delete_msgs;
+            bool my_can_delete_own_msgs;
 			bool mybulk;
 
 			auto name = itemtable->get("name");
@@ -168,6 +170,21 @@ bool Config::load(Node *n, std::string filename) {
 				mybulk = false;
 			}
 
+			auto can_delete_msgs = itemtable->get("can_delete_msgs");
+			if (can_delete_msgs != nullptr) {
+				my_can_delete_msgs = can_delete_msgs->as_boolean()->value_or(false);
+			}
+			else {
+				my_can_delete_msgs = false;
+			}
+
+			auto can_delete_own_msgs = itemtable->get("can_delete_own_msgs");
+			if (can_delete_own_msgs != nullptr) {
+				my_can_delete_own_msgs = can_delete_own_msgs->as_boolean()->value_or(false);
+			}
+			else {
+				my_can_delete_own_msgs = false;
+			}
 
 			if (mysec_level != 0) {
 				struct sec_level_t slvl;
@@ -176,6 +193,8 @@ bool Config::load(Node *n, std::string filename) {
 				slvl.timeout = mytimeout;
 				slvl.time_online = mytimeonline;
 				slvl.bulk_msg_allowed = mybulk;
+                slvl.can_delete_msgs = my_can_delete_msgs;
+                slvl.can_delete_own_msgs = my_can_delete_own_msgs;
 				seclevels.push_back(slvl);
 			}
 		}

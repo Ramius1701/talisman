@@ -25,6 +25,8 @@ bool MsgConf::load(Node *n, std::string filename) {
 		std::string myfile;
 		int my_r_sec_level;
 		int my_w_sec_level;
+        int my_d_sec_level;
+        int my_do_sec_level;
 		std::string myoaddr;
 		bool mynetmail;
 		int my_qwk_base_no;
@@ -59,6 +61,22 @@ bool MsgConf::load(Node *n, std::string filename) {
 		}
 		else {
 			my_w_sec_level = 10;
+		}
+
+		auto d_sec_level = itemtable->get("delete_sec_level");
+		if (d_sec_level != nullptr) {
+			my_d_sec_level = d_sec_level->as_integer()->value_or(99);
+		}
+		else {
+			my_d_sec_level = 99;
+		}
+
+		auto do_sec_level = itemtable->get("delete_own_sec_level");
+		if (do_sec_level != nullptr) {
+			my_do_sec_level = do_sec_level->as_integer()->value_or(99);
+		}
+		else {
+			my_do_sec_level = 99;
 		}
 
 		auto o_addr = itemtable->get("aka");
@@ -102,7 +120,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 		}
 
 		if (myfile != "") {
-			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode);
+			MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode);
 			areas.push_back(a);
 		}
 	}
