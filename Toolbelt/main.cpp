@@ -6,6 +6,7 @@
 #include <fstream>
 #include <algorithm>
 #include "../Common/INIReader.h"
+#include "../Common/Squish.h"
 #include "User.h"
 #include "Files.h"
 #include "Nodelist.h"
@@ -13,6 +14,209 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #endif
+
+
+bool save_message(std::string datapath, std::string file, std::string to, std::string from, std::string subject, std::string text, std::string orig_addr, time_t date)
+{
+	sq_msg_base_t* mb;
+
+	char charsbuffer[] = "\001CHRS: CP437 2";
+	char tzutcbuffer[256];
+	char msgidbuffer[256];
+	FILE* fptr;
+	uint32_t msgid;
+	time_t thetime;
+
+	int at;
+	struct tm lt;
+	const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	int ret;
+	std::stringstream ss;
+
+	if (date == 0) {
+		thetime = time(NULL);
+	}
+	else {
+		thetime = date;
+	}
+
+	sq_msg_t newmsg;
+
+	memset(&newmsg, 0, sizeof(newmsg));
+
+	if (orig_addr.find(":") != std::string::npos) {
+#ifdef _MSC_VER
+		TIME_ZONE_INFORMATION tz;
+		GetTimeZoneInformation(&tz);
+		int bias = tz.Bias;
+		if (bias > 0) {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+		else {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+#else
+		time_t gmt, rawtime = time(NULL);
+		struct tm* ptm;
+
+		struct tm gbuf;
+		ptm = gmtime_r(&rawtime, &gbuf);
+		// Request that mktime() looksup dst in timezone database
+		ptm->tm_isdst = -1;
+		gmt = mktime(ptm);
+
+		int bias = (int)difftime(rawtime, gmt);
+		bias /= 60;
+		if (bias < 0) {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+		else {
+			snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+		}
+#endif
+
+		memset(msgidbuffer, 0, 256);
+		if (orig_addr != "") {
+			fptr = fopen(std::string(datapath + "/msgserial.dat").c_str(), "rb");
+
+			if (!fptr) {
+				msgid = (uint32_t)thetime;
+			}
+			else {
+				fread(&msgid, sizeof(uint32_t), 1, fptr);
+				fclose(fptr);
+
+				if (thetime > msgid) {
+					msgid = (uint32_t)thetime;
+				}
+				else {
+					msgid++;
+				}
+			}
+
+			fptr = fopen(std::string(datapath + "/msgserial.dat").c_str(), "wb");
+			if (fptr) {
+				fwrite(&msgid, sizeof(uint32_t), 1, fptr);
+				fclose(fptr);
+			}
+			snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
+		}
+
+
+		// are we a netmail
+		newmsg.ctrl_len = strlen(msgidbuffer) + strlen(tzutcbuffer) + strlen(charsbuffer);
+
+		if (orig_addr != "") {
+			NETADDR* orig = parse_fido_addr(orig_addr.c_str());
+			if (orig != NULL) {
+				newmsg.xmsg.orig.zone = orig->zone;
+				newmsg.xmsg.orig.net = orig->net;
+				newmsg.xmsg.orig.node = orig->node;
+				newmsg.xmsg.orig.point = orig->point;
+				free(orig);
+			}
+			else {
+				newmsg.xmsg.orig.zone = 0;
+				newmsg.xmsg.orig.net = 0;
+				newmsg.xmsg.orig.node = 0;
+				newmsg.xmsg.orig.point = 0;
+			}
+		}
+		else {
+			newmsg.xmsg.orig.zone = 0;
+			newmsg.xmsg.orig.net = 0;
+			newmsg.xmsg.orig.node = 0;
+			newmsg.xmsg.orig.point = 0;
+		}
+
+		newmsg.ctrl = (char*)malloc(newmsg.ctrl_len);
+		if (!newmsg.ctrl) {
+			return false;
+		}
+		at = 0;
+		memcpy(newmsg.ctrl, tzutcbuffer, strlen(tzutcbuffer));
+		at += strlen(tzutcbuffer);
+		memcpy(&newmsg.ctrl[at], charsbuffer, strlen(charsbuffer));
+		at += strlen(charsbuffer);
+		if (orig_addr != "") {
+			memcpy(&newmsg.ctrl[at], msgidbuffer, strlen(msgidbuffer));
+			at += strlen(msgidbuffer);
+		}
+	}
+	else if (orig_addr != "") {
+		newmsg.ctrl = NULL;
+		newmsg.ctrl_len = 0;
+
+		newmsg.xmsg.orig.zone = 20000;
+		newmsg.xmsg.orig.net = 20000;
+		newmsg.xmsg.orig.node = stoi(orig_addr);
+		newmsg.xmsg.orig.point = 0;
+	} else {
+		newmsg.ctrl = NULL;
+		newmsg.ctrl_len = 0;
+
+		newmsg.xmsg.orig.zone = 0;
+		newmsg.xmsg.orig.net = 0;
+		newmsg.xmsg.orig.node = 0;
+		newmsg.xmsg.orig.point = 0;
+    }
+
+
+    newmsg.msg_len = text.size();
+    newmsg.msg = (char *)malloc(text.size());
+    if (!newmsg.msg) {
+        free(newmsg.ctrl);
+        return false;
+    }
+	memcpy(newmsg.msg, text.c_str(), text.size());
+
+
+	strncpy(newmsg.xmsg.subject, subject.c_str(), 72);
+	strncpy(newmsg.xmsg.from, from.c_str(), 36);
+	strncpy(newmsg.xmsg.to, to.c_str(), 36);
+
+	newmsg.xmsg.replyto = 0;
+	newmsg.xmsg.attr = MSGLOCAL | MSGUID;
+
+#if _MSC_VER
+	localtime_s(&lt, &thetime);
+#else
+	localtime_r(&thetime, &lt);
+#endif
+	newmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
+	newmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
+	newmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
+
+	newmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
+	newmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
+	newmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
+
+	newmsg.xmsg.date_arrived.date = newmsg.xmsg.date_written.date;
+	newmsg.xmsg.date_arrived.time = newmsg.xmsg.date_written.time;
+
+
+
+	snprintf(newmsg.xmsg.__ftsc_date, 20, "%02d %s %02d  %02d:%02d:%02d", lt.tm_mday, months[lt.tm_mon], lt.tm_year - 100, lt.tm_hour, lt.tm_min, lt.tm_sec);
+
+    mb = SquishOpenMsgBase(file.c_str());
+
+    if (!mb) {
+        free(newmsg.msg);
+        free(newmsg.ctrl);
+        return false;
+    }
+
+
+	SquishLockMsgBase(mb);
+	ret = SquishWriteMsg(mb, &newmsg);
+    SquishUnlockMsgBase(mb);
+	SquishCloseMsgBase(mb);
+
+	free(newmsg.msg);
+	free(newmsg.ctrl);
+
+	return (ret == 1);
+}
 
 std::string lower(std::string in) {
     std::stringstream ss;
@@ -421,6 +625,48 @@ int main(int argc, char** argv) {
                     infile.close();
                 }
             }
+        } else if (strcasecmp(argv[1], "adpost") == 0) {
+            if (argc > 2) {
+                INIReader mailinir(argv[2]);
+              	if (mailinir.ParseError() != 0) {
+                    std::cerr << "Unable to parse " << argv[2] << "!" << std::endl;
+                    return -1;
+                }
+                std::string msgbase = mailinir.Get("main", "Message Base", "");
+                std::string oaddr = mailinir.Get("main", "Origin Address", "");
+                std::string tagline = mailinir.Get("main", "Tagline", "A Talisman BBS");
+                std::string to = mailinir.Get("main", "To", "All");
+                std::string from = mailinir.Get("main", "From", "Toolbelt");
+                std::string subject = mailinir.Get("main", "Subject", "");
+                std::string content = mailinir.Get("main", "Message File", "");
+
+                if (content == "" || subject == "" || msgbase == "") {
+                    return -1;
+                }
+
+                std::ifstream infile(content);
+
+                std::string line;
+                std::stringstream msgcontent;
+                while (std::getline(infile, line))
+                {
+                    if (line.find("\r") != std::string::npos) {
+                        msgcontent << line;
+                    } else {
+                        msgcontent << line << "\r";
+                    }
+                }
+
+                if (oaddr != "") {
+                    msgcontent << "\r---\r * Origin: " << tagline << " (" << oaddr << ")" << "\r";
+                }
+
+                if (!save_message(inir.Get("paths", "data path", "data"), inir.Get("paths", "message path", "msgs") + "/" + msgbase, to, from, subject, msgcontent.str(), oaddr, time(NULL))) {
+                    std::cerr << "Message failed to save!" << std::endl;
+                } else {
+                    std::cerr << "Message saved!" << std::endl;
+                }
+            }
         }
 	}
 	else {
@@ -441,5 +687,6 @@ int main(int argc, char** argv) {
         std::cerr << "   COMMAND deleteuser       ARGS username" << std::endl;
         std::cerr << "   COMMAND convertmsgna     ARGS [-m|-p] srcfilename read_sl post_sl myaka uplink qwkid_start [prefix]" << std::endl;
         std::cerr << "   COMMAND convertfilena    ARGS [-f|-p] srcfilename up_sl dl_sl vis_sl myaka uplink root create [prefix]" << std::endl;
+        std::cerr << "   COMMAND adpost           ARGS message.ini" << std::endl;
 	}
 }

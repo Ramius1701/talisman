@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -std=c++17")
 find_package(SQLite3 REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_executable(toolbelt main.cpp User.cpp Files.cpp Archiver.cpp Nodelist.cpp)
+add_executable(toolbelt main.cpp User.cpp Files.cpp Archiver.cpp Nodelist.cpp ../Common/Squish.cpp)
 include_directories(${SQLITE3_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ../Common)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_link_libraries (toolbelt ${SQLITE3_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
