@@ -12,6 +12,7 @@
 #include "Nodelist.h"
 
 #ifdef _MSC_VER
+#include <Windows.h>
 #define strcasecmp _stricmp
 #endif
 

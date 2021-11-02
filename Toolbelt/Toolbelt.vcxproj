@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Files.cpp" />
     <ClCompile Include="main.cpp" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\INIReader.h" />
+    <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="Files.h" />
     <ClInclude Include="Nodelist.h" />
