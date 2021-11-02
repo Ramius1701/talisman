@@ -187,7 +187,7 @@ bool FileArea::list_files(Node* n, time_t date) {
 }
 
 bool FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords) {
-    return list_files(n, date, nullptr, false);
+    return list_files(n, date, keywords, false);
 }
 
 bool FileArea::list_files(Node* n, time_t date, std::vector<std::string> *keywords, bool cancel) {
