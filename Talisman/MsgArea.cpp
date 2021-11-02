@@ -141,6 +141,11 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 bool MsgArea::save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to, time_t date)
 {
 	sq_msg_base_t* mb = SquishOpenMsgBase(file.c_str());
+
+    if (!mb) {
+        return false;
+    }
+
 	char replyidbuffer[256];
 	char charsbuffer[] = "\001CHRS: CP437 2";
 	char tzutcbuffer[256];

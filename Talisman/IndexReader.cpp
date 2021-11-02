@@ -61,28 +61,30 @@ void IndexReader::run(Node* n) {
 				newarea.subbed = n->get_user().is_subscribed(newarea.ma->get_file());
                 newarea.top_msgid = 0;
 				sq_msg_base_t* mb = SquishOpenMsgBase(newarea.ma->get_file().c_str());
-				if (!mb) continue;
-				if (mb->basehdr.num_msg > 0) {
-					sq_msg_t* msg;
-					msg = SquishReadMsg(mb, mb->basehdr.num_msg);
-					struct tm localtm;
+				if (mb != NULL) {
+                    if (mb->basehdr.num_msg > 0) {
+                        sq_msg_t* msg;
+                        msg = SquishReadMsg(mb, mb->basehdr.num_msg);
+                        struct tm localtm;
 
-					localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
-					localtm.tm_mday = msg->xmsg.date_written.date & 31;
-					localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
-					localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
-					localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
-					localtm.tm_sec = msg->xmsg.date_written.time & 31;
-                    newarea.top_msgid = msg->xmsg.umsgid;
-					newarea.last_post = mktime(&localtm);
-					SquishFreeMsg(msg);
-				}
-				SquishCloseMsgBase(mb);
-
+                        localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
+                        localtm.tm_mday = msg->xmsg.date_written.date & 31;
+                        localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
+                        localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
+                        localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
+                        localtm.tm_sec = msg->xmsg.date_written.time & 31;
+                        newarea.top_msgid = msg->xmsg.umsgid;
+                        newarea.last_post = mktime(&localtm);
+                        SquishFreeMsg(msg);
+                    }
+                    SquishCloseMsgBase(mb);
+                }
 				newconf.area.push_back(newarea);
 			}
 
-			conf.push_back(newconf);
+            if (newconf.area.size() > 0) {
+                conf.push_back(newconf);
+            }
 		}
 
 		n->cls();
