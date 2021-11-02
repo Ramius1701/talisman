@@ -319,6 +319,7 @@ bool Qwkie::poll(int net)
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
+            fclose(fptr);
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
             std::filesystem::remove(temppath + "/qwknet/" + networks.at(net).qwkid + ".QWK");
         } else {
@@ -359,6 +360,7 @@ bool Qwkie::poll(int net)
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
+            fclose(fptr);
             fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         } else {
             fclose(fptr);
