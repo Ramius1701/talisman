@@ -41,6 +41,7 @@ bool Qwkie::scan(int net) {
 
     if (std::filesystem::exists(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP")) {
         std::cerr << "Outbound REP packet exists... bailing." << std::endl;
+        std::filesystem::remove_all(packpath);
         return false;
     }
     FILE *fptr = NULL;
