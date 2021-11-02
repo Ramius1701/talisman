@@ -239,6 +239,17 @@ extern "C" int lua_GetAttrib(lua_State * L) {
 	return 1;
 }
 
+extern "C" int lua_SetAttrib(lua_State * L) {
+    const char* attrib = lua_tostring(L, 1);
+    const char* value = lua_tostring(L, 2);
+    Node* n = lua_getNode(L);
+
+    n->get_user().set_attribute(std::string(attrib), std::string(value));
+
+    return 0;
+
+}
+
 extern "C" int lua_Pause(lua_State * L) {
 	Node* n = lua_getNode(L);
 	n->pause();
@@ -432,6 +443,9 @@ void Script::init_state(Node* n, lua_State* l) {
 
 	lua_pushcfunction(l, lua_GetAttrib);
 	lua_setglobal(l, "bbs_get_user_attribute");
+
+    lua_pushcfunction(l, lua_SetAttrib);
+	lua_setglobal(l, "bbs_set_user_attribute");
 
 	lua_pushcfunction(l, lua_getCallLogX);
 	lua_setglobal(l, "bbs_get_calllog_x");
