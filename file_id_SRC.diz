@@ -1,16 +1,9 @@
-Talisman BBS v0.28 (Source TAR)
-   https://talismandocs.com/
+      ______      __ _
+     /     /__ _ / /_/____ _ _  __ _ _ _
+     `/  -'/ .` / / /_ -/ ' ' // .` / ' \
+     /__/ \__._/_/_/___/_/\/_/\__._/_/\_/
 
- * Uses Squish Message Bases
- * Supports door32.sys, door.sys
-   and chain.txt
- * Configured via INI and TOML
-   text files.
- * Works on Linux & Windows 10
- * IP auto blocking
- * SSH support, latest libssh
- * QWK-E offline mail
- * LUA Scripting
- * Support for Terminal sizes
-   larger than 80x25
- * Open Source, GNU GPLv3
+       Talisman BBS v0.29 (Source TAR)
+         https://talismandocs.com/
+
+     Open Source Bulletin Board System.
