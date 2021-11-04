@@ -1070,7 +1070,7 @@ bool Tosser::run(bool protinbound) {
 
                                 if (c.areas.at(a).thook != "") {
                                     std::stringstream hss;
-                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \"" << sqmsg.xmsg.subject << "\"" << "\"" << sqmsg.xmsg.from << "\"";
+                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \"" << sqmsg.xmsg.subject << "\" \"" << sqmsg.xmsg.from << "\"";
                                     log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
                                     Archiver::runexec(hss.str());
                                 }

@@ -818,7 +818,7 @@ bool Scanner::run() {
 
                 if (c.areas.at(i).shook != "") {
                     std::stringstream hss;
-                    hss << c.areas.at(i).shook << " " << c.areas.at(i).areatag << " \"" << msg->xmsg.subject << "\"" << "\"" << msg->xmsg.from << "\"";
+                    hss << c.areas.at(i).shook << " " << c.areas.at(i).areatag << " \"" << msg->xmsg.subject << "\" \"" << msg->xmsg.from << "\"";
                     log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
                     Archiver::runexec(hss.str());
                 }
