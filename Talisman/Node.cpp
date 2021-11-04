@@ -1323,6 +1323,9 @@ bool Node::newuser() {
 						}
 					}
 				}
+				if (std::filesystem::exists(config.script_path() + "/newuser.lua")) {
+                    Script::exec(this, config.script_path() + "/newuser.lua");
+                }
 				return true;
 			}
 			else {
