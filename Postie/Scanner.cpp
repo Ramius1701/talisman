@@ -823,7 +823,7 @@ bool Scanner::run() {
 
                     for (size_t j=0;j< strlen(msg->xmsg.subject);j++) {
                         if (msg->xmsg.subject[j] == '\"') {
-                            hss << "&quot;";
+                            hss << "'";
                         } else {
                             hss << msg->xmsg.subject[j];
                         }
@@ -832,7 +832,7 @@ bool Scanner::run() {
 
                     for (size_t j=0;j< strlen(msg->xmsg.from);j++) {
                         if (msg->xmsg.from[j] == '\"') {
-                            hss << "&quot;";
+                            hss << "'";
                         } else {
                             hss << msg->xmsg.from[j];
                         }

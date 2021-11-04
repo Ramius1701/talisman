@@ -1075,7 +1075,7 @@ bool Tosser::run(bool protinbound) {
 
                                     for (size_t i=0;i< strlen(sqmsg.xmsg.subject);i++) {
                                         if (sqmsg.xmsg.subject[i] == '\"') {
-                                            hss << "&quot;";
+                                            hss << "'";
                                         } else {
                                             hss << sqmsg.xmsg.subject[i];
                                         }
@@ -1084,7 +1084,7 @@ bool Tosser::run(bool protinbound) {
 
                                     for (size_t i=0;i< strlen(sqmsg.xmsg.from);i++) {
                                         if (sqmsg.xmsg.from[i] == '\"') {
-                                            hss << "&quot;";
+                                            hss << "'";
                                         } else {
                                             hss << sqmsg.xmsg.from[i];
                                         }
