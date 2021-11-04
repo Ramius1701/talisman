@@ -4,6 +4,7 @@
 #include <thread>
 #ifdef _MSC_VER
 #include <Windows.h>
+#define strncasecmp strnicmp
 #else
 #include <unistd.h>
 #endif
