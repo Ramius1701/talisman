@@ -27,6 +27,9 @@ bool EventMgr::load_config(std::string datapath)
             int myinterval;
 			std::string myexec;
             std::string myfiletowatch;
+            int mystart_day;
+            int mystart_hour;
+            int mystart_minute;
 
             auto itemtable = eventitems->get(i)->as_table();
 
@@ -36,7 +39,7 @@ bool EventMgr::load_config(std::string datapath)
 			}
 			else {
 				myname = "Unnamed Event";
-			}
+            }
 
 			auto interval = itemtable->get("interval");
 			if (interval != nullptr) {
@@ -45,6 +48,49 @@ bool EventMgr::load_config(std::string datapath)
 			else {
 				myinterval = 0;
 			}
+
+			auto start_day = itemtable->get("start");
+            if (start_day != nullptr) {
+                std::string startstr = start_day->as_string()->value_or("");
+                mystart_day = 0;
+                mystart_hour = 0;
+                mystart_minute = 0;
+
+                if (startstr.find(",") != std::string::npos && startstr.find(":") != std::string::npos) {
+
+                    std::string startday = startstr.substr(0, startstr.find(","));
+                    std::string starttime = startstr.substr(startstr.find(",") + 1);
+
+                    if (strncasecmp(startday.c_str(), "sun", 3) == 0) {
+                        mystart_day = 0;
+                    } else
+                    if (strncasecmp(startday.c_str(), "mon", 3) == 0) {
+                        mystart_day = 1;
+                    } else
+                    if (strncasecmp(startday.c_str(), "tue", 3) == 0) {
+                        mystart_day = 2;
+                    } else
+                    if (strncasecmp(startday.c_str(), "wed", 3) == 0) {
+                        mystart_day = 3;
+                    } else
+                    if (strncasecmp(startday.c_str(), "thu", 3) == 0) {
+                        mystart_day = 4;
+                    } else
+                    if (strncasecmp(startday.c_str(), "fri", 3) == 0) {
+                        mystart_day = 5;
+                    } else
+                    if (strncasecmp(startday.c_str(), "sat", 3) == 0) {
+                        mystart_day = 6;
+                    }
+
+                    mystart_hour = stoi(starttime.substr(0, starttime.find(":")));
+                    mystart_minute = stoi(starttime.substr(starttime.find(":") + 1));
+                }
+            } else {
+                mystart_day = 0;
+                mystart_hour = 0;
+                mystart_minute = 0;
+            }
 
 			auto filetowatch = itemtable->get("watchfile");
             if (filetowatch != nullptr) {
@@ -66,11 +112,19 @@ bool EventMgr::load_config(std::string datapath)
                 continue;
             }
 
+            if (myinterval > 10080) {
+                std::cerr << err() << ts() << "EventManager: Event Interval greater than 1 week for " << myname << "." << rst() << std::endl;
+                continue;
+            }
+
             struct event_t ev;
 
             ev.name = myname;
             ev.execute = myexec;
             ev.interval = myinterval;
+            ev.start_day = mystart_day;
+            ev.start_hour = mystart_hour;
+            ev.start_minute = mystart_minute;
 
             if (myfiletowatch != "") {
                 ev.file_to_watch = myfiletowatch;
@@ -85,7 +139,29 @@ bool EventMgr::load_config(std::string datapath)
             }
 
             if (ev.interval != 0) {
-                ev.nextrun = time(NULL) + (myinterval * 60);
+                time_t now = time(NULL);
+                struct tm start_tm;
+
+#ifdef _MSC_VER
+                localtime_s(&start_tm, &now);
+#else
+                localtime_r(&now, &start_tm);
+#endif
+                start_tm.tm_mday = start_tm.tm_mday % 7 + (ev.start_day - start_tm.tm_wday);
+                start_tm.tm_hour = ev.start_hour;
+                start_tm.tm_min = ev.start_minute;
+                start_tm.tm_sec = 0;
+
+                time_t starttime = mktime(&start_tm);
+
+                if (starttime > now) {
+                    starttime -= 604800;
+                }
+
+                ev.nextrun = now + ((myinterval * 60) - (std::abs(starttime - now) % (myinterval * 60)));
+
+                //std::cout << "Next run in " << (ev.nextrun - now) << " seconds..." << std::endl;
+
             }
             events.push_back(ev);
         }

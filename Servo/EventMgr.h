@@ -8,6 +8,9 @@ struct event_t {
     std::string name;
     std::string execute;
     int interval;
+    int start_day;
+    int start_hour;
+    int start_minute;
     time_t nextrun;
     std::string file_to_watch;
     bool file_exists;
