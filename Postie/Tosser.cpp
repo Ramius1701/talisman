@@ -1075,21 +1075,21 @@ bool Tosser::run(bool protinbound) {
 
                                     for (size_t i=0;i< strlen(sqmsg.xmsg.subject);i++) {
                                         if (sqmsg.xmsg.subject[i] == '\"') {
-                                            hss << "\\\"";
+                                            hss << "\\\\\"";
                                         } else {
                                             hss << sqmsg.xmsg.subject[i];
                                         }
                                     }
-                                    hss << "\" \"";
+                                    hss << "\\\" \\\"";
 
                                     for (size_t i=0;i< strlen(sqmsg.xmsg.from);i++) {
                                         if (sqmsg.xmsg.from[i] == '\"') {
-                                            hss << "\\\"";
+                                            hss << "\\\\\"";
                                         } else {
                                             hss << sqmsg.xmsg.from[i];
                                         }
                                     }
-                                    hss << "\"";
+                                    hss << "\\\"";
                                     log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
                                     Archiver::runexec(hss.str());
                                 }

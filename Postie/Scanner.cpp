@@ -819,25 +819,25 @@ bool Scanner::run() {
                 if (c.areas.at(i).shook != "") {
                     std::stringstream hss;
 
-                    hss << c.areas.at(i).shook << " " << c.areas.at(i).areatag << " \"";
+                    hss << c.areas.at(i).shook << " " << c.areas.at(i).areatag << " \\\"";
 
                     for (size_t j=0;j< strlen(msg->xmsg.subject);j++) {
                         if (msg->xmsg.subject[j] == '\"') {
-                            hss << "\\\"";
+                            hss << "\\\\\"";
                         } else {
                             hss << msg->xmsg.subject[j];
                         }
                     }
-                    hss << "\" \"";
+                    hss << "\\\" \\\"";
 
                     for (size_t j=0;j< strlen(msg->xmsg.from);j++) {
                         if (msg->xmsg.from[j] == '\"') {
-                            hss << "\\\"";
+                            hss << "\\\\\"";
                         } else {
                             hss << msg->xmsg.from[j];
                         }
                     }
-                    hss << "\"";
+                    hss << "\\\"";
                     log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
                     Archiver::runexec(hss.str());
                 }
