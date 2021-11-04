@@ -1067,6 +1067,13 @@ bool Tosser::run(bool protinbound) {
 								SquishUnlockMsgBase(mb);
 								SquishCloseMsgBase(mb);
 								log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
+
+                                if (c.areas.at(a).thook != "") {
+                                    std::stringstream hss;
+                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \"" << sqmsg.xmsg.subject << "\"" << "\"" << sqmsg.xmsg.from << "\"";
+                                    log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
+                                    Archiver::runexec(hss.str());
+                                }
 							}
 							else {
 								log.log(LOG_ERROR, "Unable to open message base! : %s", std::string(_msgpath + "/" + c.areas.at(a).file).c_str());

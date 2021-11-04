@@ -41,6 +41,8 @@ struct area_conf_t {
 	std::string file;
 	std::string areatag;
 	char group;
+    std::string thook;
+    std::string shook;
 	std::vector <struct link_conf_t*> links;
 };
 

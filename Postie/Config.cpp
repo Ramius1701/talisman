@@ -508,6 +508,8 @@ bool Config::load(std::string datapath) {
 				std::string mytag;
 				std::string mylinklist;
 				std::string mygroup;
+                std::string myohook;
+                std::string myihook;
 
 				auto addr = itemtable->get("aka");
 				if (addr != nullptr) {
@@ -541,6 +543,23 @@ bool Config::load(std::string datapath) {
 				else {
 					mygroup = "0";
 				}
+
+				auto thook = itemtable->get("toss_hook");
+				if (thook != nullptr) {
+					myihook = thook->as_string()->value_or("");
+				}
+				else {
+					myihook = "";
+				}
+
+                auto shook = itemtable->get("scan_hook");
+				if (shook != nullptr) {
+					myohook = shook->as_string()->value_or("");
+				}
+				else {
+					myohook = "";
+				}
+
 
 				auto linklist = itemtable->get("links");
 				if (linklist != nullptr) {
@@ -579,6 +598,8 @@ bool Config::load(std::string datapath) {
 				aconf.areatag = mytag;
 				aconf.file = myfile;
 				aconf.group = mygroup.at(0);
+                aconf.shook = myohook;
+                aconf.thook = myihook;
 				areas.push_back(aconf);
 			}
 		}
