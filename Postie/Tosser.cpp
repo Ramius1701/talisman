@@ -1071,7 +1071,7 @@ bool Tosser::run(bool protinbound) {
                                 if (c.areas.at(a).thook != "") {
                                     std::stringstream hss;
 
-                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \"";
+                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \\\"";
 
                                     for (size_t i=0;i< strlen(sqmsg.xmsg.subject);i++) {
                                         if (sqmsg.xmsg.subject[i] == '\"') {
