@@ -257,9 +257,9 @@ void Tosser::areafix(Config *c, sq_msg_t* msg) {
 		sqmsg.xmsg.dest.point = link->aka->point;
 		sqmsg.xmsg.dest.node = link->aka->node;
 
-		strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 72);
-		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 36);
-		strncpy(sqmsg.xmsg.from, "AREAFIX", 36);
+		strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 71);
+		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
+		strncpy(sqmsg.xmsg.from, "AREAFIX", 35);
 
 		std::tm at;
 
@@ -504,9 +504,9 @@ void Tosser::filefix(Config *c, sq_msg_t* msg) {
 		sqmsg.xmsg.dest.point = link->aka->point;
 		sqmsg.xmsg.dest.node = link->aka->node;
 
-		strncpy(sqmsg.xmsg.subject, "FILEFIX Response", 72);
-		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 36);
-		strncpy(sqmsg.xmsg.from, "FILEFIX", 36);
+		strncpy(sqmsg.xmsg.subject, "FILEFIX Response", 71);
+		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
+		strncpy(sqmsg.xmsg.from, "FILEFIX", 35);
 
 		std::tm at;
 
@@ -958,9 +958,9 @@ bool Tosser::run(bool protinbound) {
 						free(emaddr);
 					}
 
-					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 72);
-					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 36);
-					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 36);
+					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
+					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
+					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
 
 					std::tm lt;
 
@@ -1297,9 +1297,9 @@ bool Tosser::run(bool protinbound) {
 					sqmsg.xmsg.dest.point = intldest->point;
 					sqmsg.xmsg.dest.node = intldest->node;
 
-					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 72);
-					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 36);
-					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 36);
+					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
+					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
+					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
 
 					std::tm lt;
 
