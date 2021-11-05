@@ -735,6 +735,9 @@ bool Tosser::run(bool protinbound) {
     signal(SIGHUP, sig_handler);
     signal(SIGINT, sig_handler);
 #endif
+
+    log.log(LOG_DEBUG, "Starting Tosser");
+
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);
 		return false;

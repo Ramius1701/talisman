@@ -198,6 +198,8 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
     fprintf(fptr, "%lu\r\n", pid);
     fclose(fptr);
 
+    log.log(LOG_DEBUG, "Starting TicHatch");
+
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);
 		return false;
@@ -439,6 +441,8 @@ bool TicProc::run() {
     signal(SIGHUP, sig_handler);
     signal(SIGINT, sig_handler);
 #endif
+
+    log.log(LOG_DEBUG, "Starting TicProc");
 
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);
