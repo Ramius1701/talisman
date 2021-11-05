@@ -761,6 +761,8 @@ bool Scanner::run() {
     signal(SIGINT, sig_handler);
 #endif
 
+    log.log(LOG_DEBUG, "Starting Scanner");
+
 	if (!c.load(_datapath)) {
         std::filesystem::remove(pidfile);
 		return false;
