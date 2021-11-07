@@ -1878,16 +1878,11 @@ void Node::chat(int othernode) {
 
 
 
-	outfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str(), "a+b");
+	outfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str(), "w+b");
 	if (!outfile) {
 		return;
 	}
-	infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "a+b");
-	if (!infile) {
-		fclose(outfile);
-		return;
-
-	}
+	infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "r+b");
 
 	if (hasANSI) {
 
@@ -1949,45 +1944,50 @@ void Node::chat(int othernode) {
 			}
 
 			// check for data on remote side
-			c = fgetc(infile);
-			if (c != EOF) {
-				if (c == '\x1b') {
-					fclose(infile);
-					fclose(outfile);
-					std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str());
-					std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str());
-					pause();
-					return;
-				}
-				if (c == '\r') {
-					remote_x = 1;
-					remote_y++;
-				}
-				else {
-					if (c == '\b') {
-						if (remote_x > 1) {
-							remote_x--;
-							print_f("\x1b[%d;%dH ", remote_y, remote_x);
-						}
+			if (!infile) {
+				infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "r+b");
+			}
+			if (infile) {
+				c = fgetc(infile);
+				if (c != EOF) {
+					if (c == '\x1b') {
+						fclose(infile);
+						fclose(outfile);
+						std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str());
+						std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str());
+						pause();
+						return;
+					}
+					if (c == '\r') {
+						remote_x = 1;
+						remote_y++;
 					}
 					else {
-						print_f("\x1b[%d;%dH%c", remote_y, remote_x, c);
-						remote_x++;
-						if (remote_x > get_term_width()) {
-							remote_x = 1;
-							remote_y++;
+						if (c == '\b') {
+							if (remote_x > 1) {
+								remote_x--;
+								print_f("\x1b[%d;%dH ", remote_y, remote_x);
+							}
+						}
+						else {
+							print_f("\x1b[%d;%dH%c", remote_y, remote_x, c);
+							remote_x++;
+							if (remote_x > get_term_width()) {
+								remote_x = 1;
+								remote_y++;
+							}
 						}
 					}
-				}
-				if (remote_y > get_term_height() - 2) {
-					for (size_t i = (get_term_height() - 3) / 2 + 3; i <= get_term_height() - 1; i++) {
-						print_f("\x1b[%d;1H\x1b[K", i);
-					}
+					if (remote_y > get_term_height() - 2) {
+						for (size_t i = (get_term_height() - 3) / 2 + 3; i <= get_term_height() - 1; i++) {
+							print_f("\x1b[%d;1H\x1b[K", i);
+						}
 
-					remote_x = 1;
-					remote_y = (get_term_height() - 3) / 2 + 3;
+						remote_x = 1;
+						remote_y = (get_term_height() - 3) / 2 + 3;
+					}
+					print_f("\x1b[%d;%dH", local_y, local_x);
 				}
-				print_f("\x1b[%d;%dH", local_y, local_x);
 			}
 		}
 	}
