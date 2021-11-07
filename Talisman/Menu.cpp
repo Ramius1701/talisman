@@ -1239,7 +1239,7 @@ bool Menu::run() {
 						try {
 							n->print_f("\r\n");
 							int nn = stoi(res);
-							if (nn < 1 || nn > n->get_config()->max_nodes()) {
+							if (nn < 1 || nn > n->get_config()->max_nodes() || nn == n->getnodenum()) {
 								n->print_f("|12Invalid Node!|07");
 							}
 							else {
