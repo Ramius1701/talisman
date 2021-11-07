@@ -1758,9 +1758,9 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 									}
 								}
 							}
-							if (done) {
-								break;
-							}
+if (done) {
+break;
+}
 						}
 					}
 				}
@@ -1803,7 +1803,7 @@ void Node::disconnected() {
 	std::filesystem::remove(nusep);
 
 	log->log(LOG_INFO, "Node %d logged off (disconnected)", node);
- 	exit(-1);
+	exit(-1);
 }
 
 void Node::display_nodes() {
@@ -1832,6 +1832,136 @@ void Node::display_nodes() {
 		}
 		else {
 			print_f("|14Node %d|08: Waiting for call.\r\n", i);
+		}
+	}
+}
+
+void Node::chat(int othernode) {
+	char buffer2[256];
+	bool quit = false;
+	char c;
+	int local_x = 1;
+	int local_y = 2;
+
+	int remote_x = 1;
+	int remote_y = (get_term_height() - 3) / 2 + 3;
+	FILE* infile;
+	FILE* outfile;
+	FILE* nfile;
+
+	std::string uname;
+
+	nfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/node.use").c_str(), "r");
+	if (!nfile) {
+		return;
+	}
+	else {
+		fgets(buffer2, 256, nfile);
+		uname = buffer2;
+		rtrim(uname);
+		fclose(nfile);
+	}
+
+
+
+	outfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str(), "w+b");
+	if (!outfile) {
+		return;
+	}
+	infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "w+b");
+	if (!infile) {
+		fclose(outfile);
+		return;
+	}
+
+	if (hasANSI) {
+
+		print_f("\x1b[2J\x1b[1;1H\x1b[%s Node %d: %s\x1b[K\x1b[0m", config.get_prompt_colour(), node, u.get_username().c_str());
+		print_f("\x1b[%d;1H\x1b[%s Node %d: %s\x1b[K\x1b[0m", get_term_height() / 2 + 1, config.get_prompt_colour(), othernode, uname.c_str());
+		print_f("\x1b[%d;1H\x1b[%s InterNode Chat, Press ESCAPE to exit.\x1b[K\x1b[0m", get_term_height() + 1, config.get_prompt_colour());
+		while (!quit) {
+			// draw screen
+			
+			c = getch(100);
+			if (c != -1) {
+				if (c == 0x1b) {
+					fprintf(outfile, "\r%s has left the chat...\r", u.get_username().c_str());
+					fclose(infile);
+					fclose(outfile);
+					return;
+				}
+
+				if (c == '\r') {
+					local_x = 1;
+					local_y++;
+					fputc(c, outfile);
+					fflush(outfile);
+				}
+				else {
+					if (c == '\b') {
+						if (local_x > 1) {
+							local_x--;
+							print_f("\x1b[%d;%dH ", local_y, local_x);
+							fputc(c, outfile);
+							fflush(outfile);
+						}
+					}
+					else {
+						// draw char on local side
+						print_f("\x1b[%d;%dH%c", local_y, local_x, c);
+						fputc(c, outfile);
+						fflush(outfile);
+						local_x++;
+						if (local_x > get_term_width()) {
+							local_x = 1;
+							local_y++;
+						}
+					}
+				}
+				if (local_y > get_term_height() / 2 - 1) {
+					for (size_t i = 2; i <= get_term_height() / 2 - 1; i++) {
+						print_f("\x1b[%d;1H\x1b[K", i);
+					}					
+
+					local_x = 1;
+					local_y = 2;
+				}
+				print_f("\x1b[%d;%dH", local_y, local_x);
+			}
+
+			// check for data on remote side
+			c = fgetc(infile);
+			if (c != EOF) {
+				if (c == '\r') {
+					remote_x = 1;
+					remote_y++;
+				}
+				else {
+					if (c == '\b') {
+						if (remote_x > 1) {
+							remote_x--;
+							print_f("\x1b[%d;%dH ", remote_y, remote_x);
+						}
+					}
+					else {
+						print_f("\x1b[%d;%dH%c", remote_y, remote_x, c);
+						remote_x++;
+						if (remote_x > get_term_width()) {
+							remote_x = 1;
+							remote_y++;
+						}
+					}
+				}
+				if (remote_y > get_term_height() - 2) {
+					for (size_t i = (get_term_height() - 3) / 2 + 3; i <= get_term_height() - 1; i++) {
+						print_f("\x1b[%d;1H\x1b[K", i);
+					}
+
+					remote_x = 1;
+					remote_y = (get_term_height() - 3) / 2 + 3;
+				}
+				print_f("\x1b[%d;%dH", local_y, local_x);
+			}
 		}
 	}
 }

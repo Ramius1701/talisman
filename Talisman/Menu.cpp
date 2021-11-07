@@ -131,14 +131,44 @@ bool Menu::run() {
 			n->cls();
 			std::ifstream file(nmsgp);
 			std::string str;
+			int nn = 0;
 			while (std::getline(file, str))
 			{
-				n->print_f("%s\r\n", str.c_str());
+				if (str.find("@CHATREQUEST:") == 0) {
+					
+					try {
+						nn = stoi(str.substr(13));
+					}
+					catch (std::exception) {
+
+					}
+				}
+				else {
+					n->print_f("%s\r\n", str.c_str());
+				}
 			}
 			file.close();
 			std::filesystem::remove(nmsgp);
 
-			n->pause();
+			if (nn == 0) {
+				n->pause();
+			}
+			else {
+				n->print_f("\r\nChat (Y/N) ? ");
+				char c = n->getch();
+
+				if (tolower(c) == 'y') {
+					n->chat(nn);
+				}
+				else {
+					FILE* fptr;
+					fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/NODECHAT.TXT").c_str(), "w+b");
+					if (fptr) {
+						fprintf(fptr, "%s declines your chat invitation.\r\n", n->get_user().get_username().c_str());
+						fclose(fptr);
+					}
+				}
+			}
 		}
 
 		n->update_node_use("Browsing Menus");
@@ -1203,7 +1233,7 @@ bool Menu::run() {
 					n->cls();
 					n->display_nodes();
 
-					n->print_f("|14Message Node |08[|151|08-|15%d|08], |15ENTER|08=|14Quit |08: ", n->get_config()->max_nodes());
+					n->print_f("|14Select Node |08[|151|08-|15%d|08], |15ENTER|08=|14Quit |08: ", n->get_config()->max_nodes());
 					std::string res = n->get_string(3, false);
 					if (res.size() > 0) {
 						try {
@@ -1213,28 +1243,49 @@ bool Menu::run() {
 								n->print_f("|12Invalid Node!|07");
 							}
 							else {
-								n->print_f("\r\nYour Message: ");
-								std::string msg = n->get_string(65, false);
-								if (msg.size() > 0) {
+								n->print_f("\r\nRequest Chat? (Y/N): ");
+								char chat = tolower(n->getch());
+
+								if (chat == 'y') {
 									std::filesystem::path nmsgp(n->get_config()->tmp_path());
 									nmsgp.append(std::to_string(nn));
 									std::filesystem::create_directories(nmsgp);
 									nmsgp.append("node.msg");
-
-									
-
 									FILE* fptr = fopen(nmsgp.u8string().c_str(), "a");
 									if (fptr) {
-										fprintf(fptr, "|14Message from |15%s |14on Node %d|08:|07\r\n\r\n%s\r\n\r\n", n->get_user().get_username().c_str(), n->getnodenum(), msg.c_str());
+										fprintf(fptr, "|15%s |14on Node %d |07 Wishes to Chat with you!\n@CHATREQUEST:%d@", n->get_user().get_username().c_str(), n->getnodenum(), n->getnodenum());
 										fclose(fptr);
 										n->print_f("\r\n|10Sent!|07\r\n");
+										n->chat(nn);
 									}
 									else {
 										n->print_f("\r\n|12Failed!|07\r\n");
 									}
 								}
 								else {
-									n->print_f("\r\n|12Aborted!|07\r\n");
+									n->print_f("\r\nYour Message: ");
+									std::string msg = n->get_string(65, false);
+									if (msg.size() > 0) {
+										std::filesystem::path nmsgp(n->get_config()->tmp_path());
+										nmsgp.append(std::to_string(nn));
+										std::filesystem::create_directories(nmsgp);
+										nmsgp.append("node.msg");
+
+
+
+										FILE* fptr = fopen(nmsgp.u8string().c_str(), "a");
+										if (fptr) {
+											fprintf(fptr, "|14Message from |15%s |14on Node %d|08:|07\r\n\r\n%s\r\n\r\n", n->get_user().get_username().c_str(), n->getnodenum(), msg.c_str());
+											fclose(fptr);
+											n->print_f("\r\n|10Sent!|07\r\n");
+										}
+										else {
+											n->print_f("\r\n|12Failed!|07\r\n");
+										}
+									}
+									else {
+										n->print_f("\r\n|12Aborted!|07\r\n");
+									}
 								}
 							}
 						}

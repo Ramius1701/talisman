@@ -98,6 +98,7 @@ public:
 	std::thread* ssht;
 
 	std::vector<struct tagged_file_t> tagged_files;
+	void chat(int othernode);
 private:
 	int node;
 	int socket;
