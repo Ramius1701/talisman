@@ -1436,6 +1436,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 	bool login_pause = false;
 	bool login_script = false;
 
+	if (std::filesystem::exists(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT")) {
+		std::filesystem::remove(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT");
+	}
+
 	if (std::filesystem::exists(config.script_path() + "/login.lua")) {
 		login_script = true;
 	}
@@ -1802,6 +1806,16 @@ void Node::disconnected() {
 
 	std::filesystem::remove(nusep);
 
+	std::filesystem::path nodechat(config.tmp_path());
+	nodechat.append(std::to_string(node));
+	nodechat.append("NODECHAT.TXT");
+
+	if (std::filesystem::exists(nodechat)) {
+		FILE* fptr = fopen(nodechat.u8string().c_str(), "a+b");
+		fprintf(fptr, "\r\rNode %d disconnected...\r\r\x1b", node);
+		fclose(fptr);
+	}
+
 	log->log(LOG_INFO, "Node %d logged off (disconnected)", node);
 	exit(-1);
 }
@@ -1868,10 +1882,11 @@ void Node::chat(int othernode) {
 	if (!outfile) {
 		return;
 	}
-	infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "w+b");
+	infile = fopen(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str(), "a+b");
 	if (!infile) {
 		fclose(outfile);
 		return;
+
 	}
 
 	if (hasANSI) {
@@ -1879,15 +1894,19 @@ void Node::chat(int othernode) {
 		print_f("\x1b[2J\x1b[1;1H\x1b[%s Node %d: %s\x1b[K\x1b[0m", config.get_prompt_colour(), node, u.get_username().c_str());
 		print_f("\x1b[%d;1H\x1b[%s Node %d: %s\x1b[K\x1b[0m", get_term_height() / 2 + 1, config.get_prompt_colour(), othernode, uname.c_str());
 		print_f("\x1b[%d;1H\x1b[%s InterNode Chat, Press ESCAPE to exit.\x1b[K\x1b[0m", get_term_height() + 1, config.get_prompt_colour());
+
+		fprintf(outfile, "\r%s has entered the chat...\r", u.get_username().c_str());
+		fflush(outfile);
 		while (!quit) {
 			// draw screen
 			
 			c = getch(100);
 			if (c != -1) {
 				if (c == 0x1b) {
-					fprintf(outfile, "\r%s has left the chat...\r", u.get_username().c_str());
+					fprintf(outfile, "\r%s has left the chat...\r\x1b", u.get_username().c_str());
 					fclose(infile);
 					fclose(outfile);
+					
 					return;
 				}
 
@@ -1932,6 +1951,14 @@ void Node::chat(int othernode) {
 			// check for data on remote side
 			c = fgetc(infile);
 			if (c != EOF) {
+				if (c == '\x1b') {
+					fclose(infile);
+					fclose(outfile);
+					std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str());
+					std::filesystem::remove(std::string(config.tmp_path() + "/" + std::to_string(othernode) + "/NODECHAT.TXT").c_str());
+					pause();
+					return;
+				}
 				if (c == '\r') {
 					remote_x = 1;
 					remote_y++;
