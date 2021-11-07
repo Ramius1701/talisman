@@ -1889,6 +1889,8 @@ void Node::chat(int othernode) {
 
 	}
 
+	fseek(infile, SEEK_SET, 0);
+
 	if (hasANSI) {
 
 		print_f("\x1b[2J\x1b[1;1H\x1b[%s Node %d: %s\x1b[K\x1b[0m", config.get_prompt_colour(), node, u.get_username().c_str());
