@@ -1265,7 +1265,7 @@ bool Menu::run() {
 								else {
 									n->print_f("\r\nYour Message: ");
 									std::string msg = n->get_string(65, false);
-									if (msg.size() > 0) {
+									if (msg.size() > 0 && msg.find("@CHATREQUEST:") == std::string::npos) {
 										std::filesystem::path nmsgp(n->get_config()->tmp_path());
 										nmsgp.append(std::to_string(nn));
 										std::filesystem::create_directories(nmsgp);
