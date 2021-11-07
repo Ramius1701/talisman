@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.29"
+#define MyAppVersion "0.30"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismandocs.com/"
 #define MyAppExeName "Servo.exe"
@@ -41,7 +41,7 @@ Source: "C:\Users\apamm\Talisman\Release\Gofer.exe"; DestDir: "{app}"; Flags: ig
 Source: "C:\Users\apamm\Talisman\Release\Falcon.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Qwkie.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\Talisman\Release\Binki.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist 
+Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\gfiles\pause\"; Flags: onlyifdoesntexist
@@ -179,7 +179,7 @@ begin
       'BBS Details', 'Tell me about your BBS...',
       'Please specify your BBS Details, ' +
       'then click Next.');
-    BBSDetailsPage.Add('BBS Name', false); 
+    BBSDetailsPage.Add('BBS Name', false);
     BBSDetailsPage.Add('Sysop Username', false);
     BBSDetailsPage.Add('Location', false);
     BBSDetailsPage.Add('QWK ID', false);
@@ -200,7 +200,7 @@ begin
         BBSName := BBSDetailsPage.Values[0]
       else
         BBSName := 'Talisman BBS';
-      
+
       if (Length(BBSDetailsPage.Values[1]) > 0) then
         SysopName := BBSDetailsPage.Values[1]
       else
@@ -221,7 +221,7 @@ begin
         HostnameStr := 'localhost';
 
       InstallPath := ExpandConstant('{app}');
-             
+
       StringChangeEx(InstallPath, '\', '\\', True)
 
       FileReplaceString(ExpandConstant('{app}\talisman.ini'), '__BBS_NAME__', BBSName);
