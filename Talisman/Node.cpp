@@ -1878,7 +1878,7 @@ void Node::chat(int othernode) {
 
 
 
-	outfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str(), "w+b");
+	outfile = fopen(std::string(config.tmp_path() + "/" + std::to_string(node) + "/NODECHAT.TXT").c_str(), "a+b");
 	if (!outfile) {
 		return;
 	}
@@ -1888,8 +1888,6 @@ void Node::chat(int othernode) {
 		return;
 
 	}
-
-	fseek(infile, SEEK_SET, 0);
 
 	if (hasANSI) {
 
