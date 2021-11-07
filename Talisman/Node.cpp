@@ -1988,6 +1988,7 @@ void Node::chat(int othernode) {
 					}
 					print_f("\x1b[%d;%dH", local_y, local_x);
 				}
+				clearerr(infile);
 			}
 		}
 	}
