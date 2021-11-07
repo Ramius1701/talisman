@@ -627,3 +627,122 @@ NETADDR *parse_fido_addr(const char* str) {
 	}
 	return ret;
 }
+
+int SquishPackMsgBase(const char* str) {
+	sq_msg_base_t* mb = SquishOpenMsgBase(str);
+	sq_msg_t* msg;
+	FILE* psqi;
+	FILE* psqd;
+	SQBASE bhdr;
+	SQHDR sqhdr;
+	FOFS frame;
+	int ret = 0;
+
+	char psqi_str[MAX_PATH];
+	char psqd_str[MAX_PATH];
+
+	char sqi_str[MAX_PATH];
+	char sqd_str[MAX_PATH];
+
+	if (!mb) {
+		return -1;
+	}
+
+	snprintf(sqi_str, MAX_PATH, "%s.sqi", str);
+	snprintf(sqd_str, MAX_PATH, "%s.sqd", str);
+	snprintf(psqi_str, MAX_PATH, "%s.sqi.pack", str);
+	psqi = fopen(psqi_str, "w+b");
+	if (psqi == NULL) {
+		SquishCloseMsgBase(mb);
+		return -1;
+	}
+
+	snprintf(psqd_str, MAX_PATH, "%s.sqd.pack", str);
+	psqd = fopen(psqd_str, "w+b");
+	if (psqd == NULL) {
+		fclose(psqi);
+		unlink(psqi_str);
+		SquishCloseMsgBase(mb);
+		return -1;
+	}
+
+	SquishLockMsgBase(mb);
+
+	memcpy(&bhdr, &mb->basehdr, sizeof(SQBASE));
+	bhdr.begin_frame = 0;
+	bhdr.last_frame = 0;
+	bhdr.free_frame = 0;
+	bhdr.last_free_frame = 0;
+	bhdr.end_frame = sizeof(SQBASE);
+	bhdr.sz_sqhdr = sizeof(SQHDR);
+
+	fwrite(&bhdr, sizeof(SQBASE), 1, psqd);
+
+	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+		msg = SquishReadMsg(mb, i);
+
+		if (msg != NULL) {
+			frame = bhdr.end_frame;
+
+			SQHDR temphdr;
+			if (bhdr.last_frame != 0) {
+				fseek(psqd, bhdr.last_frame, SEEK_SET);
+				fread(&temphdr, sizeof(SQHDR), 1, psqd);
+				temphdr.next_frame = frame;
+				fseek(psqd, bhdr.last_frame, SEEK_SET);
+				fwrite(&temphdr, sizeof(SQHDR), 1, psqd);
+			}
+			sqhdr.clen = msg->ctrl_len;
+			sqhdr.msg_length = msg->msg_len + msg->ctrl_len + sizeof(XMSG);
+			sqhdr.next_frame = 0;
+			sqhdr.prev_frame = bhdr.last_frame;
+			sqhdr.frame_length = sizeof(XMSG) + msg->ctrl_len + msg->msg_len;
+			sqhdr.frame_type = 0;
+			sqhdr.id = 0xAFAE4453;
+
+			fseek(psqd, frame, SEEK_SET);
+			fwrite(&sqhdr, sizeof(SQHDR), 1, psqd);
+			fwrite(&msg->xmsg, sizeof(XMSG), 1, psqd);
+			fwrite(msg->ctrl, msg->ctrl_len, 1, psqd);
+			fwrite(msg->msg, msg->msg_len, 1, psqd);
+
+			if (bhdr.begin_frame == 0) {
+				bhdr.begin_frame = frame;
+			}
+			bhdr.last_frame = frame;
+			bhdr.end_frame = frame + sqhdr.frame_length + sizeof(SQHDR);
+
+			if (bhdr.uid <= msg->xmsg.umsgid) {
+				bhdr.uid = msg->xmsg.umsgid + 1;
+			}
+
+			SQIDX idx;
+
+			idx.hash = SquishHash((unsigned char*)msg->xmsg.to);
+			idx.ofs = frame;
+			idx.umsgid = msg->xmsg.umsgid;
+
+			fseek(psqi, 0, SEEK_END);
+			fwrite(&idx, sizeof(SQIDX), 1, psqi);
+
+			SquishFreeMsg(msg);
+			ret++;
+		}
+	}
+
+	fseek(psqd, 0, SEEK_SET);
+	fwrite(&bhdr, sizeof(SQBASE), 1, psqd);
+
+	SquishUnlockMsgBase(mb);
+	SquishCloseMsgBase(mb);
+	fclose(psqd);
+	fclose(psqi);
+
+	unlink(sqi_str);
+	unlink(sqd_str);
+
+	rename(psqi_str, sqi_str);
+	rename(psqd_str, sqd_str);
+
+	return ret;
+}

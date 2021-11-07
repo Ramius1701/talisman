@@ -668,7 +668,18 @@ int main(int argc, char** argv) {
                     std::cerr << "Message saved!" << std::endl;
                 }
             }
-        }
+		}
+		else if (strcasecmp(argv[1], "pack") == 0) {
+			if (argc > 2) {
+				int ret = SquishPackMsgBase(std::string(inir.Get("paths", "message path", "msgs") + "/" + argv[2]).c_str());
+				if (ret != -1) {
+					std::cout << "Packed " << ret << " messages into " << argv[2] << "." << std::endl;
+				}
+				else {
+					std::cout << "An error occured, msg base not packed!" << std::endl;
+				}
+			}
+		}
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;
@@ -689,5 +700,6 @@ int main(int argc, char** argv) {
         std::cerr << "   COMMAND convertmsgna     ARGS [-m|-p] srcfilename read_sl post_sl myaka uplink qwkid_start [prefix]" << std::endl;
         std::cerr << "   COMMAND convertfilena    ARGS [-f|-p] srcfilename up_sl dl_sl vis_sl myaka uplink root create [prefix]" << std::endl;
         std::cerr << "   COMMAND adpost           ARGS message.ini" << std::endl;
+		std::cerr << "   COMMAND pack	          ARGS msgbasefile" << std::endl;
 	}
 }
