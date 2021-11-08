@@ -401,7 +401,7 @@ bool User::check_fullname(Config c, std::string fullname) {
   }
 }
 
-void User::user_set_lastread(std::string msgbase, int mid) {
+void User::user_set_lastread(std::string msgbase, size_t mid) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
 
@@ -441,7 +441,7 @@ void User::user_set_lastread(std::string msgbase, int mid) {
   sqlite3_close(db);
 }
 
-int User::user_get_lastread(std::string msgbase) {
+size_t User::user_get_lastread(std::string msgbase) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
 
@@ -572,7 +572,7 @@ std::string User::user_exists(Config *c, std::string usern) {
 void User::user_list(Node *n) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
-  int lines = 0;
+  size_t lines = 0;
   static const char *sql = "SELECT id, username FROM users";
 
   if (!open_database(n->get_config()->data_path() + "/users.sqlite3", &db)) {

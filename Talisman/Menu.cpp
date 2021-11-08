@@ -97,7 +97,7 @@ bool Menu::load(std::string filename) {
         items.push_back(item);
       }
     }
-  } catch (std::exception e) {
+  } catch (std::exception const&) {
     return false;
   }
   isloaded = true;
@@ -125,7 +125,7 @@ bool Menu::run() {
 
           try {
             nn = stoi(str.substr(13));
-          } catch (std::exception) {
+          } catch (std::exception const&) {
           }
         } else {
           n->print_f("%s\r\n", str.c_str());
@@ -412,9 +412,9 @@ bool Menu::run() {
                   msgno = stoi(start);
                   if (msgno == 0)
                     msgno++;
-                } catch (std::invalid_argument) {
+                } catch (std::invalid_argument const&) {
                   msgno = 1;
-                } catch (std::out_of_range) {
+                } catch (std::out_of_range const&) {
                   msgno = 1;
                 }
               }
@@ -476,9 +476,9 @@ bool Menu::run() {
                       } else {
                         n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
                       }
-                    } catch (std::out_of_range) {
+                    } catch (std::out_of_range const&) {
                       doabort = true;
-                    } catch (std::invalid_argument) {
+                    } catch (std::invalid_argument const&) {
                       doabort = true;
                     }
                   }
@@ -807,9 +807,9 @@ bool Menu::run() {
                   }
                 }
               }
-            } catch (std::invalid_argument) {
+            } catch (std::invalid_argument const&) {
               n->print_f("\r\n|12Invalid Argument!\r\n");
-            } catch (std::out_of_range) {
+            } catch (std::out_of_range const&) {
               n->print_f("\r\n|12Out of Range!\r\n");
             }
           }
@@ -987,8 +987,8 @@ bool Menu::run() {
                 int selconf = -1;
                 try {
                   selconf = stoi(res) - 1;
-                } catch (std::invalid_argument) {
-                } catch (std::out_of_range) {
+                } catch (std::invalid_argument const&) {
+                } catch (std::out_of_range const&) {
                 }
 
                 if (selconf >= 0 && selconf < confcounter) {
@@ -1047,8 +1047,8 @@ bool Menu::run() {
                           int selarea = -1;
                           try {
                             selarea = stoi(res) - 1;
-                          } catch (std::invalid_argument) {
-                          } catch (std::out_of_range) {
+                          } catch (std::invalid_argument const&) {
+                          } catch (std::out_of_range const&) {
                           }
                           if (selarea >= 0 && selarea < areacounter) {
                             areacounter = 0;
@@ -1180,9 +1180,9 @@ bool Menu::run() {
                   }
                 }
               }
-            } catch (std::invalid_argument) {
+            } catch (std::invalid_argument const&) {
               n->print_f("\r\n|12Invalid Node!|07\r\n");
-            } catch (std::out_of_range) {
+            } catch (std::out_of_range const&) {
               n->print_f("\r\n|12Invalid Node!|07\r\n");
             }
             n->pause();
@@ -2190,7 +2190,7 @@ void Menu::qwk_up(Node *n) {
       fclose(msgsfptr);
       return;
     }
-    int msgrecs = safe_atoi((const char *)qhdr.Msgrecs, 6);
+    size_t msgrecs = safe_atoi((const char *)qhdr.Msgrecs, 6);
     char *msgcontent = (char *)malloc((msgrecs - 1) * 128 + 1);
     if (!msgcontent) {
       n->print_f("|12Error allocating memory|07\r\n");

@@ -243,7 +243,7 @@ public:
               lines.erase(lines.begin() + line_at + 1);
               refresh_down(line_at);
             } else {
-              int first_space = lines.at(line_at + 1).substr(0, 74 - lines.at(line_at).size()).rfind(' ');
+              size_t first_space = lines.at(line_at + 1).substr(0, 74 - lines.at(line_at).size()).rfind(' ');
               if (first_space != std::string::npos) {
                 if (lines.at(line_at).size() + first_space <= 74) {
                   ss.str("");
@@ -283,7 +283,7 @@ public:
             std::stringstream ss1;
             std::stringstream ss2;
 
-            int last_space = lines.at(lineno).substr(0, 74).rfind(' ');
+            size_t last_space = lines.at(lineno).substr(0, 74).rfind(' ');
             if (last_space == std::string::npos) {
               ss1 << lines.at(lineno).substr(0, 74);
               ss2 << lines.at(lineno).substr(74);
@@ -300,7 +300,7 @@ public:
             std::stringstream ss1;
             std::stringstream ss2;
 
-            int last_space = lines.at(lineno).substr(0, 74).rfind(' ');
+            size_t last_space = lines.at(lineno).substr(0, 74).rfind(' ');
             if (last_space == std::string::npos) {
               ss1 << lines.at(lineno).substr(0, 74);
               ss2 << lines.at(lineno).substr(74) << lines.at(lineno + 1);
@@ -439,7 +439,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
     }
 
     for (size_t i = start; i < start + (n->get_term_height() - 4) / 2 - 1 && i < quotelines.size(); i++) {
-      if (i == selected) {
+      if ((int)i == selected) {
         n->print_f_nc("\x1b[%d;1H\x1b[1;47;30m%s\x1b[K\x1b[0m", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());
       } else {
         n->print_f_nc("\x1b[%d;1H\x1b[0m%s\x1b[K", (i - start) + ((n->get_term_height() - 4) / 2) + 5, quotelines.at(i).c_str());

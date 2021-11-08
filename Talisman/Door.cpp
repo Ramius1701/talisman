@@ -282,7 +282,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
   }
 
   argv[0] = strdup(command.c_str());
-  for (int i = 0; i < args.size(); i++) {
+  for (size_t i = 0; i < args.size(); i++) {
     argv[i + 1] = strdup(args.at(i).c_str());
   }
   argv[args.size() + 1] = NULL;
@@ -296,7 +296,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART | SA_SIGINFO;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-      for (int j = 0; j < args.size(); j++) {
+      for (size_t j = 0; j < args.size(); j++) {
         free(argv[j]);
       }
       free(argv);
@@ -313,7 +313,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
     if (pid < 0) {
       n->print_f("\r\nFailed to run door\r\n");
       n->stop_timeout = false;
-      for (int j = 0; j < args.size(); j++) {
+      for (size_t j = 0; j < args.size(); j++) {
         free(argv[j]);
       }
       free(argv);
@@ -333,7 +333,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
       while (running_door) {
         if (door_in == -1) {
           // ssh client disconnected, closed the socket on us.
-          for (int j = 0; j < args.size(); j++) {
+          for (size_t j = 0; j < args.size(); j++) {
             free(argv[j]);
           }
           free(argv);
@@ -359,7 +359,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
             len = read(door_in, inbuf, 256);
             if (len == 0) {
               close(master);
-              for (int i = 0; i < args.size() + 1; i++) {
+              for (size_t i = 0; i < args.size() + 1; i++) {
                 free(argv[i]);
               }
               free(argv);
@@ -455,7 +455,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
     }
   }
 
-  for (int i = 0; i < args.size() + 1; i++) {
+  for (size_t i = 0; i < args.size() + 1; i++) {
     free(argv[i]);
   }
   free(argv);

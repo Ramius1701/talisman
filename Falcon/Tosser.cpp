@@ -126,7 +126,7 @@ bool Tosser::import_email(std::string to, std::string from, int fromsys, std::st
   newmsg.xmsg.orig.node = fromsys;
   newmsg.xmsg.orig.point = 0;
 
-  int hashloc = from.rfind('#');
+  size_t hashloc = from.rfind('#');
   if (hashloc != std::string::npos) {
     strncpy(newmsg.xmsg.from, from.substr(0, hashloc - 1).c_str(), 35);
   } else {
@@ -241,7 +241,7 @@ bool Tosser::import_message(std::string subtype, std::string from, int fromsys, 
       newmsg.xmsg.orig.node = fromsys;
       newmsg.xmsg.orig.point = 0;
 
-      int hashloc = from.rfind('#');
+      size_t hashloc = from.rfind('#');
       if (hashloc != std::string::npos) {
         strncpy(newmsg.xmsg.from, from.substr(0, hashloc - 1).c_str(), 35);
       } else {
@@ -325,7 +325,7 @@ void Tosser::run() {
 
   for (size_t i = 0; i < config.networks.size(); i++) {
     std::filesystem::path ibpath = config.inbound();
-    for (auto di : std::filesystem::directory_iterator(ibpath)) {
+    for (const auto &di : std::filesystem::directory_iterator(ibpath)) {
       std::string lookingfor = "s" + std::to_string(config.networks.at(i).mynode) + ".net";
       if (di.path().filename().u8string() == lookingfor || di.path().stem().u8string() == lookingfor) {
 
@@ -685,7 +685,7 @@ void Tosser::run() {
         try {
           std::cerr << fspath << std::endl;
           std::filesystem::remove(fspath);
-        } catch (std::exception) {
+        } catch (std::exception const&) {
           std::cerr << "failed to remove file" << std::endl;
         }
       }

@@ -141,7 +141,7 @@ bool Config::load_archivers(std::string datapath) {
     }
   }
 
-  catch (toml::parse_error) {
+  catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << datapath << "/archivers.toml" << std::endl;
     return false;
   }
@@ -708,7 +708,7 @@ bool Config::load(std::string datapath) {
         fileareas.push_back(faconf);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing config file!!!" << std::endl;
     return false;
   }

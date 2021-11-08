@@ -315,7 +315,7 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
         }
 
         n->print_f("\x1b[%d;%dH", i - start + 3, 2);
-        if (i == selected) {
+        if ((int)i == selected) {
           n->print_f("%s", n->get_config()->get_prompt_colour());
         } else {
           n->print_f("|16|07");
@@ -382,9 +382,9 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
             }
           }
         } else if (c == 'B') {
-          if (selected < filelist->size() - 1) {
+          if (selected < (int)filelist->size() - 1) {
             selected++;
-            if (selected > start + (n->get_term_height() - 6)) {
+            if (selected > start + ((int)n->get_term_height() - 6)) {
               start = selected;
             }
           }
@@ -450,7 +450,7 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
       }
       lines++;
       for (size_t z = 1; z < filelist->at(i).desc.size(); z++) {
-        if (lines == n->get_term_height() - 2) {
+        if (lines == (int)n->get_term_height() - 2) {
           if (cancel) {
             n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15X|08=|14Cancel Scan|08, |15ENTER|08=|14Continue: ", filelist->size());
           } else {
@@ -466,9 +466,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
             size_t ftag;
             try {
               ftag = (size_t)stoi(res);
-            } catch (std::invalid_argument) {
+            } catch (std::invalid_argument const&) {
               ftag = 0;
-            } catch (std::out_of_range) {
+            } catch (std::out_of_range const&) {
               ftag = 0;
             }
             if (ftag > 0 && ftag <= filelist->size()) {
@@ -489,7 +489,7 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
                  filelist->at(i).dlcount);
       lines++;
     }
-    if (lines == n->get_term_height() - 2) {
+    if (lines == (int)n->get_term_height() - 2) {
       if (cancel) {
         n->print_f("|08[|151|08-|15%d|08] |14Tag File, |15Q|08=|14Quit|08, |15X|08=|14Cancel Scan|08, |15ENTER|08=|14Continue: ", filelist->size());
       } else {
@@ -505,9 +505,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
         size_t ftag;
         try {
           ftag = (size_t)stoi(res);
-        } catch (std::invalid_argument) {
+        } catch (std::invalid_argument const&) {
           ftag = 0;
-        } catch (std::out_of_range) {
+        } catch (std::out_of_range const&) {
           ftag = 0;
         }
         if (ftag > 0 && ftag <= filelist->size()) {
@@ -534,9 +534,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
       size_t ftag;
       try {
         ftag = (size_t)stoi(res);
-      } catch (std::invalid_argument) {
+      } catch (std::invalid_argument const&) {
         ftag = 0;
-      } catch (std::out_of_range) {
+      } catch (std::out_of_range const&) {
         ftag = 0;
       }
       if (ftag > 0 && ftag <= filelist->size()) {

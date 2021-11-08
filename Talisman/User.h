@@ -28,8 +28,8 @@ public:
   static bool check_fullname(Config c, std::string fullname);
   static void user_list(Node *n);
   static std::string get_attribute_s(Config *c, int id, std::string attrib, std::string def);
-  int user_get_lastread(std::string msgbase);
-  void user_set_lastread(std::string msgbase, int mid);
+  size_t user_get_lastread(std::string msgbase);
+  void user_set_lastread(std::string msgbase, size_t mid);
 
 private:
   int sec_level;

@@ -27,6 +27,8 @@
 #include <openssl/md5.h>
 #include <sstream>
 
+static const char *commands[] = {"M_NUL", "M_ADR", "M_PWD", "M_FILE", "M_OK", "M_EOB", "M_GOT", "M_ERR", "M_GET", "M_BSY", "M_GET", "M_SKIP"};
+
 static inline void ltrim(std::string &s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
 }
@@ -288,7 +290,7 @@ bool Server::send_file_packet(std::filesystem::path file, std::string name) {
 bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesystem::path dir, std::filesystem::path outbox) {
   std::vector<struct outfile_t> files;
 
-  for (struct address_t a : c.addresses) {
+  for (const struct address_t &a : c.addresses) {
     if (a.domain == domain) {
       std::stringstream flowfname;
       char buffer[13];
@@ -559,7 +561,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
     }
   }
 
-  for (auto const &dir : std::filesystem::directory_iterator{outbox}) {
+  for (const auto &dir : std::filesystem::directory_iterator{outbox}) {
     struct outfile_t outf;
 
     outf.file = std::filesystem::absolute(dir.path());
@@ -1078,8 +1080,8 @@ int Server::run(NETADDR *addr, std::string domain) {
   senteob = false;
   std::vector<struct link_t> common_links;
 
-  for (struct address_t a : remote_addresses) {
-    for (struct link_t l : c.links) {
+  for (const struct address_t &a : remote_addresses) {
+    for (const struct link_t &l : c.links) {
       if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
         bool found = false;
         for (size_t lc = 0; lc < common_links.size(); lc++) {
@@ -1103,7 +1105,7 @@ int Server::run(NETADDR *addr, std::string domain) {
 
   char buffer[5];
 
-  for (struct link_t l : common_links) {
+  for (const struct link_t &l : common_links) {
     memset(buffer, 0, 5);
 
     std::filesystem::path fspath;
@@ -1221,8 +1223,8 @@ int Server::run(int socket) {
   senteob = false;
   std::vector<struct link_t> common_links;
 
-  for (struct address_t a : remote_addresses) {
-    for (struct link_t l : c.links) {
+  for (const struct address_t & a : remote_addresses) {
+    for (const struct link_t &l : c.links) {
       if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
         bool found = false;
         for (size_t lc = 0; lc < common_links.size(); lc++) {
@@ -1240,8 +1242,8 @@ int Server::run(int socket) {
   }
 
   if (remote_password != "-") {
-    for (struct address_t a : remote_addresses) {
-      for (struct link_t l : common_links) {
+    for (const struct address_t& a : remote_addresses) {
+      for (const struct link_t& l : common_links) {
         if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
           gotmatch = true;
           secure = true;
@@ -1295,7 +1297,7 @@ int Server::run(int socket) {
 
   char buffer[5];
 
-  for (struct link_t l : common_links) {
+  for (const struct link_t &l : common_links) {
     memset(buffer, 0, 5);
 
     std::filesystem::path fspath;

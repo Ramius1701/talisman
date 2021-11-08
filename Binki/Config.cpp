@@ -142,7 +142,7 @@ bool Config::load(std::string datapath) {
         links.push_back(newlink);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     return false;
   }
 

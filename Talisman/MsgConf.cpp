@@ -182,7 +182,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
       n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
       for (size_t i = start; i - start < n->get_term_height() - 3 && i < area_entries.size(); i++) {
-        if (i == selected) {
+        if ((int)i == selected) {
           if (area_entries.at(i).new_msgs > 0) {
             n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K\x1b[%d;%dHTotal: %d\x1b[%d;%dHNew: %d", (i - start) + 2, area_entries.at(i).name.c_str(),
                        (i - start) + 2, n->get_term_width() - 24, area_entries.at(i).total_msgs, (i - start) + 2, n->get_term_width() - 10,
@@ -281,7 +281,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
 
 int MsgConf::list_areas_old(Node *n, int sec) {
   int cur_area = 1;
-  int lines = 0;
+  size_t lines = 0;
 
   while (true) {
     n->cls();
@@ -290,7 +290,7 @@ int MsgConf::list_areas_old(Node *n, int sec) {
       if (areas.at(i).get_r_sec_level() > sec)
         continue;
       UMSGID lr = n->get_user().user_get_lastread(areas.at(i).get_file());
-      if (i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
+      if ((int)i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
         if (areas.at(i).get_new_msgs(lr) > 0) {
           n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(),
                      areas.at(i).get_total_msgs() - lr);
@@ -319,7 +319,7 @@ int MsgConf::list_areas_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             return 0;
           }
         }
@@ -335,7 +335,7 @@ int MsgConf::list_areas_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument) {
+      } catch (std::invalid_argument const&) {
         return 0;
       }
     }
@@ -367,7 +367,7 @@ int MsgConf::list_fsr(Node *n, int sec) {
       n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
       for (size_t i = start; i - start < n->get_term_height() - 3 && i < n->get_config()->msgconfs.size(); i++) {
-        if (i == selected) {
+        if ((int)i == selected) {
           n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
         } else {
           n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
@@ -431,7 +431,7 @@ int MsgConf::list_old(Node *n, int sec) {
     for (size_t i = 0; i < c->msgconfs.size(); i++) {
       if (c->msgconfs.at(i).get_sec_level() > sec)
         continue;
-      if (i == stoi(n->get_user().get_attribute("cur_msg_conf", "-1"))) {
+      if ((int)i == stoi(n->get_user().get_attribute("cur_msg_conf", "-1"))) {
         n->print_f("|08[|14%3d|08]|11->|07%s\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
       } else {
         n->print_f("|08[|14%3d|08]  |07%s\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
@@ -450,7 +450,7 @@ int MsgConf::list_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             return 0;
           }
         }
@@ -466,7 +466,7 @@ int MsgConf::list_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument) {
+      } catch (std::invalid_argument const&) {
         return 0;
       }
     }

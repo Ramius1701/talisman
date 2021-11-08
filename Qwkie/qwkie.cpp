@@ -493,7 +493,7 @@ bool Qwkie::toss(int net) {
       if (fread(&qwkrec, sizeof(struct QwkHeader), 1, fptr) != 1) {
         break;
       }
-      int msgrecs = safe_atoi((const char *)qwkrec.Msgrecs, 6);
+      size_t msgrecs = safe_atoi((const char *)qwkrec.Msgrecs, 6);
 
       char *msgcontent = (char *)malloc(((msgrecs - 1) * 128) + 1);
 
@@ -853,7 +853,7 @@ bool Qwkie::loadConfig() {
       }
     }
 
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing qwkie.toml" << std::endl;
     return false;
   }
@@ -948,7 +948,7 @@ bool Qwkie::load_archivers() {
     }
   }
 
-  catch (toml::parse_error) {
+  catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << datapath << "/archivers.toml" << std::endl;
     return false;
   }

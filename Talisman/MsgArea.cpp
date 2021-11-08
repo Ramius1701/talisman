@@ -1121,9 +1121,9 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
         } else {
           n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
         }
-      } catch (std::out_of_range) {
+      } catch (std::out_of_range const&) {
         doabort = true;
-      } catch (std::invalid_argument) {
+      } catch (std::invalid_argument const&) {
         doabort = true;
       }
     }
@@ -1313,7 +1313,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
   int total_msgs = mb->basehdr.num_msg;
   int msg_to_read = start;
   int direction = 1;
-  int lines;
+  size_t lines;
   std::vector<struct line_t> linesv;
   std::vector<std::string> quotebuffer;
 
@@ -1746,7 +1746,7 @@ struct msg_list_t {
   UMSGID umsgid;
 };
 
-int MsgArea::list_messages_full(int start) {
+int MsgArea::list_messages_full(size_t start) {
   bool redraw = true;
   int pos = 0;
   int selected = 0;
@@ -1760,7 +1760,7 @@ int MsgArea::list_messages_full(int start) {
     n->print_f("|14Unable to open message base!|07\r\n");
     return 0;
   }
-  if (start > (int)mb->basehdr.num_msg) {
+  if (start > mb->basehdr.num_msg) {
     n->print_f("|14Empty message base!|07\r\n");
     SquishCloseMsgBase(mb);
     return 0;
@@ -1802,8 +1802,8 @@ int MsgArea::list_messages_full(int start) {
     selected = 0;
   }
 
-  if ((int)msgs.size() - selected < n->get_term_height() - 3) {
-    pos = (int)msgs.size() - (n->get_term_height() - 3);
+  if (msgs.size() - selected < n->get_term_height() - 3) {
+    pos = msgs.size() - (n->get_term_height() - 3);
   }
 
   if (pos >= (int)msgs.size()) {
@@ -1821,7 +1821,7 @@ int MsgArea::list_messages_full(int start) {
 
       for (size_t i = pos; i - pos < n->get_term_height() - 3 && i < msgs.size(); i++) {
         if (msgs.at(i).umsgid <= lr) {
-          if (i == selected) {
+          if ((int)i == selected) {
             n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m] \x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K", (i - pos) + 2,
                        msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
           } else {
@@ -1829,7 +1829,7 @@ int MsgArea::list_messages_full(int start) {
                        msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
           }
         } else {
-          if (i == selected) {
+          if ((int)i == selected) {
             n->print_f("\x1b[%d;1H\x1b[1;30m[\x1b[0;47;30m%6d\x1b[1;40;30m]\x1b[1;31m*\x1b[1;33m%-32.32s \x1b[1;35m%-16.16s \x1b[1;36m%-16.16s\x1b[K",
                        (i - pos) + 2, msgs.at(i).msgno, msgs.at(i).subject.c_str(), msgs.at(i).from.c_str(), msgs.at(i).to.c_str());
           } else {
@@ -1897,7 +1897,7 @@ int MsgArea::list_messages_full(int start) {
 
             if (selected - pos >= (int)n->get_term_height() - 3 && pos + n->get_term_height() - 3 < msgs.size()) {
               pos += n->get_term_height() - 3;
-              if ((int)msgs.size() - selected < n->get_term_height() - 3) {
+              if (msgs.size() - selected < n->get_term_height() - 3) {
                 pos = (int)msgs.size() - (n->get_term_height() - 3);
               }
               if (pos < 0)
@@ -1962,7 +1962,7 @@ int MsgArea::list_messages_full(int start) {
           }
           selected = pos;
           if (pos > 0) {
-            if ((int)msgs.size() - selected < n->get_term_height() - 3) {
+            if (msgs.size() - selected < n->get_term_height() - 3) {
               pos = (int)msgs.size() - (n->get_term_height() - 3);
             }
           }
@@ -1986,7 +1986,7 @@ int MsgArea::list_messages_old(int start) {
     SquishCloseMsgBase(mb);
     return 0;
   }
-  int lines = 1;
+  size_t lines = 1;
   n->cls();
   n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
   for (size_t i = start; i <= mb->basehdr.num_msg; i++) {
@@ -2019,9 +2019,9 @@ int MsgArea::list_messages_old(int start) {
         SquishCloseMsgBase(mb);
         try {
           return std::stoi(res);
-        } catch (std::invalid_argument) {
+        } catch (std::invalid_argument const&) {
           return 0;
-        } catch (std::out_of_range) {
+        } catch (std::out_of_range const&) {
           return 0;
         }
       }
@@ -2038,9 +2038,9 @@ int MsgArea::list_messages_old(int start) {
   } else {
     try {
       return std::stoi(res);
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
       return 0;
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
       return 0;
     }
   }

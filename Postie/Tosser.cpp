@@ -155,13 +155,13 @@ void Tosser::areafix(Config *c, sq_msg_t *msg) {
                   int count = 0;
                   mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
                   if (mb != NULL) {
-                    int start = 1;
+                    sq_dword start = 1;
 
                     if (mb->basehdr.num_msg > 100) {
                       start = mb->basehdr.num_msg - 100;
                     }
 
-                    for (int m = start; m < mb->basehdr.num_msg; m++) {
+                    for (sq_dword m = start; m < mb->basehdr.num_msg; m++) {
                       sq_msg_t *msg = SquishReadMsg(mb, m);
                       if (msg != NULL) {
                         if (link->fptr == NULL) {
@@ -743,7 +743,7 @@ bool Tosser::run(bool protinbound) {
   std::filesystem::remove_all(tempdir);
   std::filesystem::create_directories(tempdir);
 
-  for (std::filesystem::path packetpth : totoss) {
+  for (const std::filesystem::path &packetpth : totoss) {
     std::filesystem::path temp_name(packetpth);
     std::filesystem::path e(packetpth.extension().u8string() + ".toss");
 
@@ -968,7 +968,7 @@ bool Tosser::run(bool protinbound) {
           sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
           sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-          strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+          strncpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str(), sizeof(sqmsg.xmsg.__ftsc_date));
 
           sqmsg.xmsg.attr = MSGUID;
 
@@ -1121,16 +1121,16 @@ bool Tosser::run(bool protinbound) {
                 } else if (kludge.str().find("TOPT ") == 0) {
                   try {
                     intlpoint = stoi(kludge.str().substr(5));
-                  } catch (std::invalid_argument) {
+                  } catch (std::invalid_argument const&) {
 
-                  } catch (std::out_of_range) {
+                  } catch (std::out_of_range const&) {
                   }
                 } else if (kludge.str().find("FMPT ") == 0) {
                   try {
                     intlfpoint = stoi(kludge.str().substr(5));
-                  } catch (std::invalid_argument) {
+                  } catch (std::invalid_argument const&) {
 
-                  } catch (std::out_of_range) {
+                  } catch (std::out_of_range const&) {
                   }
                 }
               }
@@ -1157,16 +1157,16 @@ bool Tosser::run(bool protinbound) {
             } else if (kludge.str().find("TOPT ") == 0) {
               try {
                 intlpoint = stoi(kludge.str().substr(5));
-              } catch (std::invalid_argument) {
+              } catch (std::invalid_argument const&) {
 
-              } catch (std::out_of_range) {
+              } catch (std::out_of_range const&) {
               }
             } else if (kludge.str().find("FMPT ") == 0) {
               try {
                 intlfpoint = stoi(kludge.str().substr(5));
-              } catch (std::invalid_argument) {
+              } catch (std::invalid_argument const&) {
 
-              } catch (std::out_of_range) {
+              } catch (std::out_of_range const&) {
               }
             }
           }
@@ -1298,7 +1298,7 @@ bool Tosser::run(bool protinbound) {
           sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
           sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-          strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+          strncpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str(), sizeof(sqmsg.xmsg.__ftsc_date));
 
           sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 

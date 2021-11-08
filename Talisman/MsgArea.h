@@ -25,7 +25,7 @@ public:
   int get_total_msgs();
   int list_messages(int start);
   int list_messages_old(int start);
-  int list_messages_full(int start);
+  int list_messages_full(size_t start);
 
   void read_message(int start, int *last);
   bool is_from_me(Node *n, sq_msg_t *msg);

@@ -184,9 +184,9 @@ void Nodelist::browse_nodelist(Node *n) {
       if (i >= 0 && i < domains.size()) {
         browse_nodelist(n, domains.at(i));
       }
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
 
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
     }
   }
 }

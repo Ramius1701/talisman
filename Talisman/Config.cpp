@@ -104,7 +104,7 @@ bool Config::load(Node *n, std::string filename) {
         msgconfs.push_back(c);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/msgconfs.toml" << std::endl;
     return false;
   }
@@ -183,7 +183,7 @@ bool Config::load(Node *n, std::string filename) {
         seclevels.push_back(slvl);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/seclevels.toml" << std::endl;
     return false;
   }
@@ -248,7 +248,7 @@ bool Config::load(Node *n, std::string filename) {
         loginitems.push_back(litm);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/loginitems.toml" << std::endl;
     return false;
   }
@@ -314,7 +314,7 @@ bool Config::load(Node *n, std::string filename) {
       Protocol *p = new Protocol(myname, mydl_cmd, myssh_dl_cmd, myul_cmd, myssh_ul_cmd, mybatch, myprompt);
       protocols.push_back(p);
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/protocols.toml" << std::endl;
     return false;
   }
@@ -360,7 +360,7 @@ bool Config::load(Node *n, std::string filename) {
       Archiver *a = new Archiver(myname, myext, myunarc, myarc);
       archivers.push_back(a);
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/archivers.toml" << std::endl;
     return false;
   }
@@ -402,7 +402,7 @@ bool Config::load(Node *n, std::string filename) {
         fileconfs.push_back(f);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << _datapath << "/fileconfs.toml" << std::endl;
     return false;
   }
@@ -458,7 +458,7 @@ bool Config::load(Node *n, std::string filename) {
         theme.req_ansi = myansi;
         themes.push_back(theme);
       }
-    } catch (toml::parse_error) {
+    } catch (toml::parse_error const&) {
       std::cerr << "Error parsing " << _datapath << "/themes.toml" << std::endl;
       return false;
     }
@@ -493,9 +493,9 @@ Protocol *Config::select_protocol(Node *n) {
       if (prot > 0 && prot <= protocols.size()) {
         return protocols.at(prot - 1);
       }
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
 
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
     }
   }
   return nullptr;
@@ -524,9 +524,9 @@ int Config::select_theme(Node *n, bool apply) {
         }
         return theme - 1;
       }
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
 
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
     }
   }
   return -1;
@@ -550,9 +550,9 @@ int Config::select_archiver(Node *n) {
       if (arc > 0 && arc <= archivers.size()) {
         return arc - 1;
       }
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
 
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
     }
   }
   return -1;

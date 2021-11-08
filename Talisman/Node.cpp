@@ -148,7 +148,7 @@ void Node::pause() {
       std::filesystem::path fspath(config.gfile_path() + "/pause");
 
       if (std::filesystem::exists(fspath) && std::filesystem::is_directory(fspath)) {
-        for (auto de : std::filesystem::directory_iterator(fspath)) {
+        for (const auto &de : std::filesystem::directory_iterator(fspath)) {
           pausefiles.push_back(de.path().u8string());
         }
       }
@@ -166,9 +166,9 @@ void Node::pause() {
         if (gotspeed == false) {
           try {
             speed = stoi(str);
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             speed = 1000;
-          } catch (std::out_of_range) {
+          } catch (std::out_of_range const&) {
             speed = 1000;
           }
           gotspeed = true;
@@ -184,7 +184,7 @@ void Node::pause() {
         }
       }
 
-      int i = 0;
+      size_t i = 0;
       int milsec = 0;
 
       print_f("\x1b[s");
@@ -249,8 +249,8 @@ bool Node::detectANSI() {
   int len;
   int gotnum = 0;
   int gotnum1 = 0;
-  int w = 0;
-  int h = 0;
+  size_t w = 0;
+  size_t h = 0;
   do {
     fd_set fds;
     FD_ZERO(&fds);
@@ -329,7 +329,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
   bool gottag = false;
   std::stringstream ss;
   std::ifstream in(p);
-  int lines = 1;
+  size_t lines = 1;
   bool stop = false;
   char c;
   if (in.is_open()) {
@@ -536,17 +536,17 @@ std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
           // size
           try {
             gfile.width = stoi(token.substr(0, token.find('x')));
-          } catch (std::out_of_range) {
+          } catch (std::out_of_range const&) {
             gfile.width = -1;
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             gfile.width = -1;
           }
 
           try {
             gfile.height = stoi(token.substr(token.find('x') + 1));
-          } catch (std::out_of_range) {
+          } catch (std::out_of_range const&) {
             gfile.height = -1;
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             gfile.height = -1;
           }
         }
@@ -1749,11 +1749,11 @@ void Node::chat(int othernode) {
   char buffer2[256];
   bool quit = false;
   char c;
-  int local_x = 1;
-  int local_y = 2;
+  size_t local_x = 1;
+  size_t local_y = 2;
 
-  int remote_x = 1;
-  int remote_y = (get_term_height() - 3) / 2 + 3;
+  size_t remote_x = 1;
+  size_t remote_y = (get_term_height() - 3) / 2 + 3;
   FILE *infile;
   FILE *outfile;
   FILE *nfile;

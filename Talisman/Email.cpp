@@ -179,7 +179,7 @@ void Email::list_email(Node *n) {
   sqlite3_finalize(stmt);
   sqlite3_close(db);
 
-  int lines = 1;
+  size_t lines = 1;
   while (true) {
     n->cls();
     n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
@@ -228,9 +228,9 @@ void Email::list_email(Node *n) {
                 emailno += ret;
               }
             }
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
             return;
-          } catch (std::out_of_range) {
+          } catch (std::out_of_range const&) {
             return;
           }
         }
@@ -257,9 +257,9 @@ void Email::list_email(Node *n) {
             emailno += ret;
           }
         }
-      } catch (std::invalid_argument) {
+      } catch (std::invalid_argument const&) {
         return;
-      } catch (std::out_of_range) {
+      } catch (std::out_of_range const&) {
         return;
       }
     }
@@ -268,7 +268,7 @@ void Email::list_email(Node *n) {
 
 int Email::view_email(Node *n, Email e) {
   struct tm time_tm;
-  int lines = 0;
+  size_t lines = 0;
   sqlite3 *db;
   sqlite3_stmt *stmt;
   static const char sql[] = "UPDATE email SET seen=1 WHERE id=?";

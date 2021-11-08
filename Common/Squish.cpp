@@ -384,7 +384,7 @@ int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg) {
 	return 1;
 }
 
-int SquishPruneMsgBase(sq_msg_base_t* mb, int leave) {
+int SquishPruneMsgBase(sq_msg_base_t* mb, sq_dword leave) {
 	if (mb->basehdr.num_msg <= leave) {
 		return 1;
 	}

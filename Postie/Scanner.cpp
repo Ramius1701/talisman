@@ -146,9 +146,9 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
             nsb.net = last_net;
             nsb.node = stoi(sb.substr(sb.find("/") + 1));
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument) {
+          } catch (std::invalid_argument const&) {
 
-          } catch (std::out_of_range) {
+          } catch (std::out_of_range const&) {
           }
         } else {
           struct seenby_t nsb;
@@ -156,8 +156,8 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
           try {
             nsb.node = stoi(sb);
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument) {
-          } catch (std::out_of_range) {
+          } catch (std::invalid_argument const&) {
+          } catch (std::out_of_range const&) {
           }
         }
       }
@@ -206,8 +206,8 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
             nsb.net = last_net;
             nsb.node = stoi(sb.substr(sb.find("/") + 1));
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument) {
-          } catch (std::out_of_range) {
+          } catch (std::invalid_argument const&) {
+          } catch (std::out_of_range const&) {
           }
         } else {
           if (sb.size() > 0) {
@@ -216,8 +216,8 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
             try {
               nsb.node = stoi(sb);
               seenbys.push_back(nsb);
-            } catch (std::invalid_argument) {
-            } catch (std::out_of_range) {
+            } catch (std::invalid_argument const&) {
+            } catch (std::out_of_range const&) {
             }
           }
         }

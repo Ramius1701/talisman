@@ -188,7 +188,7 @@ void Phlog::list_articles(Node *n) {
   }
   sqlite3_finalize(stmt);
   sqlite3_close(db);
-  int lines = 1;
+  size_t lines = 1;
   n->cls();
   n->print_f("|09Post#    Subject                          Date                 Draft       |07\r\n");
   for (size_t i = 0; i < articles.size(); i++) {
@@ -218,9 +218,9 @@ void Phlog::list_articles(Node *n) {
         size_t choice = 0;
         try {
           choice = std::stoi(res);
-        } catch (std::invalid_argument) {
+        } catch (std::invalid_argument const&) {
 
-        } catch (std::out_of_range) {
+        } catch (std::out_of_range const&) {
         }
 
         if (choice <= 0 || choice > articles.size()) {
@@ -265,9 +265,9 @@ void Phlog::list_articles(Node *n) {
     size_t choice = 0;
     try {
       choice = std::stoi(res);
-    } catch (std::invalid_argument) {
+    } catch (std::invalid_argument const&) {
 
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
     }
 
     if (choice <= 0 || choice > articles.size()) {

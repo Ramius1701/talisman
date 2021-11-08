@@ -81,12 +81,12 @@ std::vector<struct file_area_t> Files::load_areas(std::string datapath, int sec_
               ret.push_back(newfa);
             }
           }
-        } catch (toml::parse_error) {
+        } catch (toml::parse_error const&) {
           return std::vector<struct file_area_t>();
         }
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     return std::vector<struct file_area_t>();
   }
 
@@ -136,7 +136,7 @@ bool Files::load_archivers(std::string datapath) {
       Archiver *a = new Archiver(myname, myext, myunarc, myarc, 0, NULL, 0);
       archivers.push_back(a);
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     std::cerr << "Error parsing " << datapath << "/archivers.toml" << std::endl;
     return false;
   }

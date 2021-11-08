@@ -164,7 +164,7 @@ bool Config::load(std::string datapath) {
         areas.push_back(newarea);
       }
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     return false;
   }
 

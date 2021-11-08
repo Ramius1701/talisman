@@ -54,7 +54,7 @@ public:
   std::string get_string(size_t maxlen, bool masked, bool clear, std::string def);
   Config *get_config() { return &config; }
 
-  User get_user() { return u; }
+  User& get_user() { return u; }
   int getnodenum() { return node; }
 
   int get_socket() { return socket; }

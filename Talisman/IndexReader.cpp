@@ -97,7 +97,7 @@ void IndexReader::run(Node *n) {
     while (true) {
       int cur_conf = start_conf;
       int cur_area = start_area;
-      for (int i = 0; i < n->get_term_height() - 3; i++) {
+      for (size_t i = 0; i < n->get_term_height() - 3; i++) {
         n->print_f("\x1b[%d;1H", i + 2);
         if (cur_area == 0) {
           n->print_f("|14      %s\x1b[K", conf.at(cur_conf).mc->get_name().c_str());
@@ -149,7 +149,7 @@ void IndexReader::run(Node *n) {
 
         cur_area++;
 
-        if (cur_area >= conf.at(cur_conf).area.size()) {
+        if (cur_area >= (int)conf.at(cur_conf).area.size()) {
           cur_conf++;
           i++;
           cur_area = 0;
@@ -158,7 +158,7 @@ void IndexReader::run(Node *n) {
           n->print_f("\x1b[%d;1H\x1b[K", i + 2);
         }
 
-        if (cur_conf >= conf.size()) {
+        if (cur_conf >= (int)conf.size()) {
           break;
         }
       }
@@ -322,9 +322,9 @@ void IndexReader::run(Node *n) {
               } else {
                 n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
               }
-            } catch (std::out_of_range) {
+            } catch (std::out_of_range const&) {
               doabort = true;
-            } catch (std::invalid_argument) {
+            } catch (std::invalid_argument const&) {
               doabort = true;
             }
           }
@@ -417,11 +417,11 @@ void IndexReader::run(Node *n) {
             }
           } else if (c == 'B') {
             // down
-            if (selected_area < conf.at(selected_conf).area.size() - 1) {
+            if (selected_area < (int)conf.at(selected_conf).area.size() - 1) {
               selected_area++;
               x++;
             } else {
-              if (selected_conf < conf.size() - 1) {
+              if (selected_conf < (int)conf.size() - 1) {
                 selected_conf++;
                 selected_area = 0;
                 x += 3;
@@ -432,12 +432,12 @@ void IndexReader::run(Node *n) {
               n->getch();
             }
             // page up
-            for (int i = 0; i < n->get_term_height() - 4;) {
+            for (size_t i = 0; i < n->get_term_height() - 4;) {
               if (selected_area > 0) {
                 selected_area--;
                 i++;
               } else {
-                if (selected_conf > 0 && i + 3 < n->get_term_height() - 4) {
+                if (selected_conf > 0 && (int)i + 3 < (int)n->get_term_height() - 4) {
                   selected_conf--;
                   selected_area = conf.at(selected_conf).area.size() - 1;
                   i += 3;
@@ -454,13 +454,13 @@ void IndexReader::run(Node *n) {
               n->getch();
             }
             // page down
-            int i = 0;
+            size_t i = 0;
             for (; i < n->get_term_height() - 4;) {
-              if (selected_area < conf.at(selected_conf).area.size() - 1) {
+              if (selected_area < (int)conf.at(selected_conf).area.size() - 1) {
                 selected_area++;
                 i++;
               } else {
-                if (selected_conf < conf.size() - 1 && i + 3 < n->get_term_height() - 4) {
+                if (selected_conf < (int)conf.size() - 1 && (int)i + 3 < (int)n->get_term_height() - 4) {
                   selected_conf++;
                   selected_area = 0;
                   i += 3;
@@ -479,18 +479,18 @@ void IndexReader::run(Node *n) {
 
             int counter = 0;
 
-            for (; s_conf < conf.size(); s_conf++) {
-              for (; s_area < conf.at(s_conf).area.size(); s_area++) {
+            for (; s_conf < (int)conf.size(); s_conf++) {
+              for (; s_area < (int)conf.at(s_conf).area.size(); s_area++) {
                 counter++;
               }
-              if (s_conf < conf.size() - 1) {
+              if (s_conf < (int)conf.size() - 1) {
                 counter += 3;
               }
               s_area = 0;
             }
 
-            if (counter < n->get_term_height() - 3) {
-              for (int j = 0; j < n->get_term_height() - 3 - counter;) {
+            if (counter < (int)n->get_term_height() - 3) {
+              for (size_t j = 0; j < n->get_term_height() - 3 - counter;) {
                 if (start_area > 0) {
                   start_area--;
                   j++;
@@ -525,13 +525,13 @@ void IndexReader::run(Node *n) {
         }
       }
 
-      while (x >= n->get_term_height() - 3) {
+      while (x >= (int)n->get_term_height() - 3) {
         // scroll down
-        if (start_area < conf.at(start_conf).area.size() - 1) {
+        if (start_area < (int)conf.at(start_conf).area.size() - 1) {
           start_area++;
           x--;
         } else {
-          if (start_conf < conf.size() - 1) {
+          if (start_conf < (int)conf.size() - 1) {
             start_conf++;
             start_area = 0;
             x -= 3;

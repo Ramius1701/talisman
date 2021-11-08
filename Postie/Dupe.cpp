@@ -123,7 +123,7 @@ bool Dupe::crc32file(const char *name, uint32_t *crc) {
   }
   fclose(fin);
 
-  *crc = oldcrc32 = ~oldcrc32;
+  *crc = ~oldcrc32;
 
   return true;
 }

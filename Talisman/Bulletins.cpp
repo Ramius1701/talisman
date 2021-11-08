@@ -160,7 +160,7 @@ bool Bulletins::load(Node *n) {
     }
     isloaded = true;
     return true;
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     return false;
   }
 }

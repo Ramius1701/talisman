@@ -129,8 +129,8 @@ int main() {
   struct sockaddr_in6 gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6, bink_serv_addr6;
   int csockfd;
   int on = 1;
-  int max_nodes = 4;
-  int i;
+  size_t max_nodes = 4;
+
   char str[INET6_ADDRSTRLEN];
   std::vector<struct node_t> nodes;
   std::vector<std::string> multiallowed;
@@ -197,7 +197,7 @@ int main() {
   }
   multiallowf.close();
 
-  for (i = 0; i < max_nodes; i++) {
+  for (size_t i = 0; i < max_nodes; i++) {
     struct node_t n;
     n.pid = 0;
     n.ip = "";
@@ -787,8 +787,12 @@ int main() {
         closesocket(csockfd);
         continue;
       }
+
+      bool foundnode = false;
+
       for (i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid == 0) {
+          foundnode = true;
           std::stringstream ss;
           ss.str("");
           ss << "\"talisman.exe\""
@@ -830,13 +834,13 @@ int main() {
           break;
         }
       }
-      if (i == max_nodes) {
+      if (!foundnode) {
         send(csockfd, "BUSY\r\n", 6, 0);
       }
       closesocket(csockfd);
 #else
 
-      for (i = 0; i < max_nodes; i++) {
+      for (size_t i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid != 0) {
 #ifdef __APPLE__
           char buffer[PROC_PIDPATHINFO_MAXSIZE];
@@ -866,22 +870,23 @@ int main() {
         }
       }
       bool alreadyloggedin = false;
-      for (i = 0; i < nodes.size(); i++) {
+      for (size_t i = 0; i < nodes.size(); i++) {
         if (nodes.at(i).ip == ipaddr) {
           alreadyloggedin = true;
           break;
         }
       }
 
-      if (alreadyloggedin) {
+      if (alreadyloggedin && !in_multiallowed(&multiallowed, ipaddr)) {
         std::cout << norm() << ts() << "NodeManager : Blocking ip " << ipaddr << " (Already logged in)" << rst() << std::endl;
         close(csockfd);
         continue;
       }
 
-      for (i = 0; i < max_nodes; i++) {
+      bool foundnode = false;
+      for (size_t i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid == 0) {
-
+          foundnode = true;
           pid_t pid = fork();
 
           if (pid > 0) {
@@ -897,7 +902,7 @@ int main() {
             }
 
             snprintf(sockstr, 10, "%d", csockfd);
-            snprintf(nodestr, 10, "%d", i + 1);
+            snprintf(nodestr, 10, "%lu", i + 1);
             if (telnet) {
               std::cout << norm() << ts() << "NodeManager : Launching Talisman (Telnet - " << ipaddr << ")" << rst() << std::endl;
               if (execlp("./talisman", "./talisman", "-S", sockstr, "-N", nodestr, "-T", NULL) == -1) {
@@ -918,7 +923,7 @@ int main() {
           break;
         }
       }
-      if (i == max_nodes) {
+      if (!foundnode) {
         std::cerr << err() << ts() << "NodeManager : All nodes busy." << rst() << std::endl;
         send(csockfd, "BUSY\r\n", 6, 0);
         close(csockfd);

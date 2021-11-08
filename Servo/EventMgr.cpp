@@ -155,7 +155,7 @@ bool EventMgr::load_config(std::string datapath) {
       }
       events.push_back(ev);
     }
-  } catch (toml::parse_error) {
+  } catch (toml::parse_error const&) {
     return false;
   }
 
