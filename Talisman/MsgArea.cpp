@@ -800,16 +800,18 @@ std::vector<std::string> MsgArea::demangle_ansi(const char *msg, size_t len) {
         break;
       }
       if (!got_tearline) {
+        bool reset = false;
         if (fakescreen[i][j].bold != bold) {
           bold = fakescreen[i][j].bold;
           if (bold) {
             ss << "\x1b[1m";
           } else {
             ss << "\x1b[0m";
+            reset = true;
           }
         }
 
-        if (fakescreen[i][j].fg_color != fg_color) {
+        if (fakescreen[i][j].fg_color != fg_color || reset) {
           fg_color = fakescreen[i][j].fg_color;
           ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
         }
