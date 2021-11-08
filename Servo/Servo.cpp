@@ -1,7 +1,7 @@
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
-#include <Psapi.h>
 #include <windows.h>
+#include <Psapi.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #define strcasecmp _stricmp

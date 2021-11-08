@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#include <Windows.h>
+#endif
 #include "../Common/toml.hpp"
 #include "Config.h"
 #include "FileArea.h"

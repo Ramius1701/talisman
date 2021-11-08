@@ -1,11 +1,12 @@
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#include <Windows.h>
+#endif
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <sys/stat.h>
-#ifdef _MSC_VER
-#define strcasecmp _stricmp
-#endif
 #include "../Common/toml.hpp"
 #include "Bulletins.h"
 #include "Config.h"

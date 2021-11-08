@@ -1,3 +1,6 @@
+#ifdef _MSC_VER
+#include <Windows.h>
+#endif
 #include "../Common/INIReader.h"
 #include "../Common/Squish.h"
 #include "../Common/toml.hpp"
