@@ -5,1442 +5,1403 @@
 #else
 #include <unistd.h>
 #endif
-#include <filesystem>
-#include <sstream>
-#include <iomanip>
-#include <csignal>
 #include "../Common/INIReader.h"
-#include "Config.h"
-#include "Tosser.h"
 #include "../Common/Logger.h"
+#include "../Common/toml.hpp"
 #include "Archiver.h"
+#include "Config.h"
+#include "Dupe.h"
 #include "PacketStructs.h"
 #include "Scanner.h"
-#include "Dupe.h"
-#include "../Common/toml.hpp"
+#include "Tosser.h"
+#include <csignal>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 
 extern void sig_handler(int signal);
 
 bool Tosser::update(std::string tag, std::string links, bool filearea) {
-	auto config = toml::parse_file(_datapath + "/postie.toml");
+  auto config = toml::parse_file(_datapath + "/postie.toml");
 
-	auto areaitems = config.get_as<toml::array>((filearea ? "filearea" : "area"));
-	if (areaitems != nullptr) {
+  auto areaitems = config.get_as<toml::array>((filearea ? "filearea" : "area"));
+  if (areaitems != nullptr) {
 
-		for (size_t k = 0; k < areaitems->size(); k++) {
-			auto itemtable = areaitems->get(k)->as_table();
+    for (size_t k = 0; k < areaitems->size(); k++) {
+      auto itemtable = areaitems->get(k)->as_table();
 
-			auto areatag = itemtable->get("tag");
+      auto areatag = itemtable->get("tag");
 
-			std::string mytag;
+      std::string mytag;
 
-			if (areatag != nullptr) {
-				mytag = areatag->as_string()->value_or("");
-			}
-			else {
-				mytag = "";
-			}
+      if (areatag != nullptr) {
+        mytag = areatag->as_string()->value_or("");
+      } else {
+        mytag = "";
+      }
 
-			if (mytag == tag) {
-				//std::stringstream ss2;
+      if (mytag == tag) {
+        // std::stringstream ss2;
 
-				itemtable->insert_or_assign("links", links);
+        itemtable->insert_or_assign("links", links);
 
-				std::ofstream file(_datapath + "/postie.toml", std::ios_base::trunc);
-				
-				file << config;
-				file.close();
+        std::ofstream file(_datapath + "/postie.toml", std::ios_base::trunc);
 
-				return true;
-			}
-		}
-	}
+        file << config;
+        file.close();
 
-	return false;
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
-void Tosser::areafix(Config *c, sq_msg_t* msg) {
-	link_conf_t* link = NULL;
-	bool showhelp = false;
+void Tosser::areafix(Config *c, sq_msg_t *msg) {
+  link_conf_t *link = NULL;
+  bool showhelp = false;
 
-	for (size_t i = 0; i < c->links.size(); i++) {
-		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
-			c->links.at(i).aka->net == msg->xmsg.orig.net &&
-			c->links.at(i).aka->node == msg->xmsg.orig.node &&
-			c->links.at(i).aka->point == msg->xmsg.orig.point) {
-			link = &c->links.at(i);
-			break;
-		}
-	}
+  for (size_t i = 0; i < c->links.size(); i++) {
+    if (c->links.at(i).aka->zone == msg->xmsg.orig.zone && c->links.at(i).aka->net == msg->xmsg.orig.net && c->links.at(i).aka->node == msg->xmsg.orig.node &&
+        c->links.at(i).aka->point == msg->xmsg.orig.point) {
+      link = &c->links.at(i);
+      break;
+    }
+  }
 
-	if (link == NULL) {
-		log.log(LOG_INFO, "Got areafix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
-		return;
-	}
+  if (link == NULL) {
+    log.log(LOG_INFO, "Got areafix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node,
+            msg->xmsg.orig.point);
+    return;
+  }
 
-	// first check password
-	if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
-		// password is good.
-		std::vector<std::string> smsg;
-		std::stringstream ss;
-		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
-			if (msg->msg[i] == '\r') {
-				smsg.push_back(ss.str());
-				ss.str("");
-			}
-			else if (msg->msg[i] != '\n') {
-				ss << msg->msg[i];
-			}
- 		}
-		if (ss.str().size() > 0) {
-			smsg.push_back(ss.str());
-		}
+  // first check password
+  if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
+    // password is good.
+    std::vector<std::string> smsg;
+    std::stringstream ss;
+    for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
+      if (msg->msg[i] == '\r') {
+        smsg.push_back(ss.str());
+        ss.str("");
+      } else if (msg->msg[i] != '\n') {
+        ss << msg->msg[i];
+      }
+    }
+    if (ss.str().size() > 0) {
+      smsg.push_back(ss.str());
+    }
 
-		std::vector<std::string> msgout;
+    std::vector<std::string> msgout;
 
-		for (std::string line : smsg) {
-			if (line.size() > 0) {
-				if (line.at(0) == '-') {
-					// remove area
-					bool success = false;
+    for (std::string line : smsg) {
+      if (line.size() > 0) {
+        if (line.at(0) == '-') {
+          // remove area
+          bool success = false;
 
-					for (size_t i = 0; i < c->areas.size(); i++) {
-						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
-							std::stringstream ss2;
-							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
-								if (c->areas.at(i).links.at(j) == link) {
-									success = true;
-								}
-								else {
-									ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
-								}
-							}
-
-							if (success == true) {
-								if (ss2.str().size() > 1) {
-									success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), false);
-								}
-								else {
-									success = update(c->areas.at(i).areatag, ss2.str(), false);
-								}
-							}
-							if (success) {
-								msgout.push_back("You have been removed from " + c->areas.at(i).areatag + " successfully.");
-								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
-							}
-							else {
-								msgout.push_back("You have NOT been removed from " + c->areas.at(i).areatag);
-							}
-							break;
-						}
-					}
-
-				}
-				else if (line.at(0) == '%') {
-					if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
-						msgout.push_back("Areas you have access to:");
-						msgout.push_back("");
-						for (size_t i = 0; i < c->areas.size(); i++) {
-							if (link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
-								msgout.push_back(c->areas.at(i).areatag);
-							}
-						}
-					}
-					else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
-						showhelp = true;
-					}
-					else if (strncasecmp(line.substr(1).c_str(), "RESCAN", 6) == 0) {
-						if (line.size() > 8) {
-							std::string area = line.substr(8);
-							bool success = false;
-
-							for (size_t i = 0; i < c->areas.size(); i++) {
-								if (strcasecmp(c->areas.at(i).areatag.c_str(), area.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
-									sq_msg_base_t* mb;
-									int count = 0;
-									mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
-									if (mb != NULL) {
-										int start = 1;
-
-										if (mb->basehdr.num_msg > 100) {
-											start = mb->basehdr.num_msg - 100;
-										}
-
-										for (int m = start; m < mb->basehdr.num_msg; m++) {
-											sq_msg_t* msg = SquishReadMsg(mb, m);
-											if (msg != NULL) {
-												if (link->fptr == NULL) {
-													Scanner::initialize_packet(link, std::string(_tmppath + "/postie-" + std::to_string(pid)), link->ouraka);
-												}
-												// write message
-												if (msg->xmsg.attr & MSGLOCAL) {
-													Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, true);
-												}
-												else {
-													Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, false);
-												}
-												count++;
-												SquishFreeMsg(msg);
-											}
-										}
-										SquishCloseMsgBase(mb);
-										msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
-										success = true;
-									}
-									break;
-								}
-							}
-							if (!success) {
-								msgout.push_back("RESCAN " + area + ": Not successful!");
-							}
-						}
-						else {
-							msgout.push_back("RESCAN requires an area as an argument!");
-						}
-					}
-				}
-				else {
-					// add area
-					bool success = false;
-
-					for (size_t i = 0; i < c->areas.size(); i++) {
-						if (line.at(0) == '+') {
-							line = line.substr(1);
-						}
-						if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
-							std::stringstream ss2;
-							for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
-								if (c->areas.at(i).links.at(j) == link) {
-									success = false;
-									break;
-								}
-								else {
-									ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node << "." << c->areas.at(i).links.at(j)->aka->point << ",";
-								}
-							}
-
-							if (ss2.str().size() > 1 && success == true) {
-								ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->areas.at(i).areatag, ss2.str(), false);
-							}
-							else {
-								ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->areas.at(i).areatag, ss2.str(), false);
-							}
-							if (success) {
-								msgout.push_back("You have been added to " + c->areas.at(i).areatag + " successfully.");
-								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
-							}
-							else {
-								msgout.push_back("You have NOT been added to " + c->areas.at(i).areatag);
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		sq_msg_t sqmsg;
-
-		memset(&sqmsg, 0, sizeof(sq_msg_t));
-
-		sqmsg.xmsg.orig.zone = link->ouraka->zone;
-		sqmsg.xmsg.orig.net = link->ouraka->net;
-		sqmsg.xmsg.orig.point = link->ouraka->point;
-		sqmsg.xmsg.orig.node = link->ouraka->node;
-
-
-		sqmsg.xmsg.dest.zone = link->aka->zone;
-		sqmsg.xmsg.dest.net = link->aka->net;
-		sqmsg.xmsg.dest.point = link->aka->point;
-		sqmsg.xmsg.dest.node = link->aka->node;
-
-		strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 71);
-		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
-		strncpy(sqmsg.xmsg.from, "AREAFIX", 35);
-
-		std::tm at;
-
-		time_t now = time(NULL);
-#ifdef _MSC_VER
-		localtime_s(&at, &now);
-#else
-		localtime_r(&now, &at);
-#endif
-		sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
-		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
-		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
-
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
-
-		sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
-		
-		std::stringstream ctrlstr;
-
-		ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/" << link->ouraka->node;
-		if (link->aka->point > 0) {
-			ctrlstr << "\x01TOPT " << link->aka->point;
-		}
-		if (link->ouraka->point > 0) {
-			ctrlstr << "\001FMPT " << link->ouraka->point;
-		}
-
-		sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
-		if (!sqmsg.ctrl) {
-			return;
-		}
-		memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
-		sqmsg.ctrl_len = ctrlstr.str().size();
-
-		std::stringstream msgstr;
-
-		if (msgout.size() > 0) {
-			// send msgout
-
-			for (size_t i = 0; i < msgout.size(); i++) {
-				msgstr << msgout.at(i) << "\r";
-			}
-
-		}
-		if (showhelp) {
-			// send help text
-			msgstr << "\r\r----------------------------------------------------------\r";
-			msgstr << "AREAFIX HELP!\r";
-			msgstr << "----------------------------------------------------------\r";
-			msgstr << "+SOMEAREA\r\r";
-			msgstr << "This will add you to SOMEAREA\r\r";
-			msgstr << "-SOMEAREA\r\r";
-			msgstr << "This will remove you from SOMEAREA\r\r";
-			msgstr << "%LIST\r\r";
-			msgstr << "This will give you a list of everything available\r\r";
-			msgstr << "%RESCAN AREA_TAG\r\r";
-			msgstr << "(Re)send up to the last 100 messages in this base.\r\r";
-			msgstr << "%HELP\r\r";
-			msgstr << "This will show you this help\r\r";
-			msgstr << "----------------------------------------------------------\r";
-		}
-
-		sqmsg.msg = (char*)malloc(msgstr.str().size());
-		if (!sqmsg.msg) {
-			free(sqmsg.ctrl);
-			return;
-		}
-		memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
-		sqmsg.msg_len = msgstr.str().size();
-
-		if (link->fptr == NULL) {
-			Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
-		}
-		Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
-	}
-	else {
-		log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
-	}
-}
-
-void Tosser::filefix(Config *c, sq_msg_t* msg) {
-	link_conf_t* link = NULL;
-	bool showhelp = false;
-
-	for (size_t i = 0; i < c->links.size(); i++) {
-		if (c->links.at(i).aka->zone == msg->xmsg.orig.zone &&
-			c->links.at(i).aka->net == msg->xmsg.orig.net &&
-			c->links.at(i).aka->node == msg->xmsg.orig.node &&
-			c->links.at(i).aka->point == msg->xmsg.orig.point) {
-			link = &c->links.at(i);
-			break;
-		}
-	}
-
-	if (link == NULL) {
-		log.log(LOG_INFO, "Got filefix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
-		return;
-	}
-
-	// first check password
-	if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
-		// password is good.
-		std::vector<std::string> smsg;
-		std::stringstream ss;
-		for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
-			if (msg->msg[i] == '\r') {
-				smsg.push_back(ss.str());
-				ss.str("");
-			}
-			else if (msg->msg[i] != '\n') {
-				ss << msg->msg[i];
-			}
- 		}
-		if (ss.str().size() > 0) {
-			smsg.push_back(ss.str());
-		}
-
-		std::vector<std::string> msgout;
-
-		for (std::string line : smsg) {
-			if (line.size() > 0) {
-				if (line.at(0) == '-') {
-					// remove area
-					bool success = false;
-
-					for (size_t i = 0; i < c->fileareas.size(); i++) {
-						if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 && link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
-							std::stringstream ss2;
-							for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
-								if (c->fileareas.at(i).links.at(j).link == link) {
-									success = true;
-								}
-								else {
-                                    if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
-                                        ss2 << "!";
-                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
-                                        ss2 << "&";
-                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
-                                        ss2 << "=";
-                                    }
-									ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/" << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
-								}
-							}
-
-							if (success == true) {
-								if (ss2.str().size() > 1) {
-									success = update(c->fileareas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), true);
-								}
-								else {
-									success = update(c->fileareas.at(i).areatag, ss2.str(), true);
-								}
-							}
-							if (success) {
-								msgout.push_back("You have been removed from " + c->fileareas.at(i).areatag + " successfully.");
-								log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.substr(1).c_str());
-							}
-							else {
-								msgout.push_back("You have NOT been removed from " + c->fileareas.at(i).areatag);
-							}
-							break;
-						}
-					}
-
-				}
-				else if (line.at(0) == '%') {
-					if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
-						msgout.push_back("File areas you have access to:");
-						msgout.push_back("");
-						for (size_t i = 0; i < c->fileareas.size(); i++) {
-							if (link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
-								msgout.push_back(c->fileareas.at(i).areatag);
-							}
-						}
-					}
-					else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
-						showhelp = true;
-					}
+          for (size_t i = 0; i < c->areas.size(); i++) {
+            if (strcasecmp(c->areas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 &&
+                link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+              std::stringstream ss2;
+              for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+                if (c->areas.at(i).links.at(j) == link) {
+                  success = true;
+                } else {
+                  ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node
+                      << "." << c->areas.at(i).links.at(j)->aka->point << ",";
                 }
-				else {
-					// add area
-					bool success = false;
+              }
 
-					for (size_t i = 0; i < c->fileareas.size(); i++) {
-						if (line.at(0) == '+') {
-							line = line.substr(1);
-						}
-						if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
-							std::stringstream ss2;
-							for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
-								if (c->fileareas.at(i).links.at(j).link == link) {
-									success = false;
-									break;
-								}
-								else {
-                                    if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
-                                        ss2 << "!";
-                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
-                                        ss2 << "&";
-                                    } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
-                                        ss2 << "=";
-                                    }
-									ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/" << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
-								}
-							}
+              if (success == true) {
+                if (ss2.str().size() > 1) {
+                  success = update(c->areas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), false);
+                } else {
+                  success = update(c->areas.at(i).areatag, ss2.str(), false);
+                }
+              }
+              if (success) {
+                msgout.push_back("You have been removed from " + c->areas.at(i).areatag + " successfully.");
+                log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node,
+                        msg->xmsg.orig.point, line.substr(1).c_str());
+              } else {
+                msgout.push_back("You have NOT been removed from " + c->areas.at(i).areatag);
+              }
+              break;
+            }
+          }
 
-							if (ss2.str().size() > 1 && success == true) {
-								ss2 << ",!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
-							}
-							else {
-								ss2 << "!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-								success = update(c->fileareas.at(i).areatag, ss2.str(), true);
-							}
-							if (success) {
-								msgout.push_back("You have been added to " + c->fileareas.at(i).areatag + " successfully.");
-								log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point, line.c_str());
-							}
-							else {
-								msgout.push_back("You have NOT been added to " + c->fileareas.at(i).areatag);
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
+        } else if (line.at(0) == '%') {
+          if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
+            msgout.push_back("Areas you have access to:");
+            msgout.push_back("");
+            for (size_t i = 0; i < c->areas.size(); i++) {
+              if (link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+                msgout.push_back(c->areas.at(i).areatag);
+              }
+            }
+          } else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
+            showhelp = true;
+          } else if (strncasecmp(line.substr(1).c_str(), "RESCAN", 6) == 0) {
+            if (line.size() > 8) {
+              std::string area = line.substr(8);
+              bool success = false;
 
-		sq_msg_t sqmsg;
+              for (size_t i = 0; i < c->areas.size(); i++) {
+                if (strcasecmp(c->areas.at(i).areatag.c_str(), area.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+                  sq_msg_base_t *mb;
+                  int count = 0;
+                  mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c->areas.at(i).file).c_str());
+                  if (mb != NULL) {
+                    int start = 1;
 
-		memset(&sqmsg, 0, sizeof(sq_msg_t));
+                    if (mb->basehdr.num_msg > 100) {
+                      start = mb->basehdr.num_msg - 100;
+                    }
 
-		sqmsg.xmsg.orig.zone = link->ouraka->zone;
-		sqmsg.xmsg.orig.net = link->ouraka->net;
-		sqmsg.xmsg.orig.point = link->ouraka->point;
-		sqmsg.xmsg.orig.node = link->ouraka->node;
+                    for (int m = start; m < mb->basehdr.num_msg; m++) {
+                      sq_msg_t *msg = SquishReadMsg(mb, m);
+                      if (msg != NULL) {
+                        if (link->fptr == NULL) {
+                          Scanner::initialize_packet(link, std::string(_tmppath + "/postie-" + std::to_string(pid)), link->ouraka);
+                        }
+                        // write message
+                        if (msg->xmsg.attr & MSGLOCAL) {
+                          Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, true);
+                        } else {
+                          Scanner::write_msg_to_pkt(&c->areas.at(i), link, msg, false);
+                        }
+                        count++;
+                        SquishFreeMsg(msg);
+                      }
+                    }
+                    SquishCloseMsgBase(mb);
+                    msgout.push_back("RESCAN " + area + ": Sent " + std::to_string(count) + " Messages");
+                    success = true;
+                  }
+                  break;
+                }
+              }
+              if (!success) {
+                msgout.push_back("RESCAN " + area + ": Not successful!");
+              }
+            } else {
+              msgout.push_back("RESCAN requires an area as an argument!");
+            }
+          }
+        } else {
+          // add area
+          bool success = false;
 
+          for (size_t i = 0; i < c->areas.size(); i++) {
+            if (line.at(0) == '+') {
+              line = line.substr(1);
+            }
+            if (strcasecmp(c->areas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->areas.at(i).group) != std::string::npos) {
+              std::stringstream ss2;
+              for (size_t j = 0; j < c->areas.at(i).links.size(); j++) {
+                if (c->areas.at(i).links.at(j) == link) {
+                  success = false;
+                  break;
+                } else {
+                  ss2 << c->areas.at(i).links.at(j)->aka->zone << ":" << c->areas.at(i).links.at(j)->aka->net << "/" << c->areas.at(i).links.at(j)->aka->node
+                      << "." << c->areas.at(i).links.at(j)->aka->point << ",";
+                }
+              }
 
-		sqmsg.xmsg.dest.zone = link->aka->zone;
-		sqmsg.xmsg.dest.net = link->aka->net;
-		sqmsg.xmsg.dest.point = link->aka->point;
-		sqmsg.xmsg.dest.node = link->aka->node;
+              if (ss2.str().size() > 1 && success == true) {
+                ss2 << "," << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+                success = update(c->areas.at(i).areatag, ss2.str(), false);
+              } else {
+                ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+                success = update(c->areas.at(i).areatag, ss2.str(), false);
+              }
+              if (success) {
+                msgout.push_back("You have been added to " + c->areas.at(i).areatag + " successfully.");
+                log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point,
+                        line.c_str());
+              } else {
+                msgout.push_back("You have NOT been added to " + c->areas.at(i).areatag);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
 
-		strncpy(sqmsg.xmsg.subject, "FILEFIX Response", 71);
-		strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
-		strncpy(sqmsg.xmsg.from, "FILEFIX", 35);
+    sq_msg_t sqmsg;
 
-		std::tm at;
+    memset(&sqmsg, 0, sizeof(sq_msg_t));
 
-		time_t now = time(NULL);
+    sqmsg.xmsg.orig.zone = link->ouraka->zone;
+    sqmsg.xmsg.orig.net = link->ouraka->net;
+    sqmsg.xmsg.orig.point = link->ouraka->point;
+    sqmsg.xmsg.orig.node = link->ouraka->node;
+
+    sqmsg.xmsg.dest.zone = link->aka->zone;
+    sqmsg.xmsg.dest.net = link->aka->net;
+    sqmsg.xmsg.dest.point = link->aka->point;
+    sqmsg.xmsg.dest.node = link->aka->node;
+
+    strncpy(sqmsg.xmsg.subject, "AREAFIX Response", 71);
+    strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
+    strncpy(sqmsg.xmsg.from, "AREAFIX", 35);
+
+    std::tm at;
+
+    time_t now = time(NULL);
 #ifdef _MSC_VER
-		localtime_s(&at, &now);
+    localtime_s(&at, &now);
 #else
-		localtime_r(&now, &at);
+    localtime_r(&now, &at);
 #endif
-		sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
-		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
-		sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+    sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
+    sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+    sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
 
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
-		sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-		sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+    sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 
-		std::stringstream ctrlstr;
+    std::stringstream ctrlstr;
 
-		ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/" << link->ouraka->node;
-		if (link->aka->point > 0) {
-			ctrlstr << "\x01TOPT " << link->aka->point;
-		}
-		if (link->ouraka->point > 0) {
-			ctrlstr << "\001FMPT " << link->ouraka->point;
-		}
+    ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/"
+            << link->ouraka->node;
+    if (link->aka->point > 0) {
+      ctrlstr << "\x01TOPT " << link->aka->point;
+    }
+    if (link->ouraka->point > 0) {
+      ctrlstr << "\001FMPT " << link->ouraka->point;
+    }
 
-		sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
-		if (!sqmsg.ctrl) {
-			return;
-		}
-		memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
-		sqmsg.ctrl_len = ctrlstr.str().size();
+    sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
+    if (!sqmsg.ctrl) {
+      return;
+    }
+    memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+    sqmsg.ctrl_len = ctrlstr.str().size();
 
-		std::stringstream msgstr;
+    std::stringstream msgstr;
 
-		if (msgout.size() > 0) {
-			// send msgout
+    if (msgout.size() > 0) {
+      // send msgout
 
-			for (size_t i = 0; i < msgout.size(); i++) {
-				msgstr << msgout.at(i) << "\r";
-			}
+      for (size_t i = 0; i < msgout.size(); i++) {
+        msgstr << msgout.at(i) << "\r";
+      }
+    }
+    if (showhelp) {
+      // send help text
+      msgstr << "\r\r----------------------------------------------------------\r";
+      msgstr << "AREAFIX HELP!\r";
+      msgstr << "----------------------------------------------------------\r";
+      msgstr << "+SOMEAREA\r\r";
+      msgstr << "This will add you to SOMEAREA\r\r";
+      msgstr << "-SOMEAREA\r\r";
+      msgstr << "This will remove you from SOMEAREA\r\r";
+      msgstr << "%LIST\r\r";
+      msgstr << "This will give you a list of everything available\r\r";
+      msgstr << "%RESCAN AREA_TAG\r\r";
+      msgstr << "(Re)send up to the last 100 messages in this base.\r\r";
+      msgstr << "%HELP\r\r";
+      msgstr << "This will show you this help\r\r";
+      msgstr << "----------------------------------------------------------\r";
+    }
 
-		}
-		if (showhelp) {
-			// send help text
-			msgstr << "\r\r----------------------------------------------------------\r";
-			msgstr << "FILEFIX HELP!\r";
-			msgstr << "----------------------------------------------------------\r";
-			msgstr << "+SOMEAREA\r\r";
-			msgstr << "This will add you to SOMEAREA\r\r";
-			msgstr << "-SOMEAREA\r\r";
-			msgstr << "This will remove you from SOMEAREA\r\r";
-			msgstr << "%LIST\r\r";
-			msgstr << "This will give you a list of everything available\r\r";
-			msgstr << "%HELP\r\r";
-			msgstr << "This will show you this help\r\r";
-			msgstr << "----------------------------------------------------------\r";
-		}
+    sqmsg.msg = (char *)malloc(msgstr.str().size());
+    if (!sqmsg.msg) {
+      free(sqmsg.ctrl);
+      return;
+    }
+    memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+    sqmsg.msg_len = msgstr.str().size();
 
-		sqmsg.msg = (char*)malloc(msgstr.str().size());
-		if (!sqmsg.msg) {
-			free(sqmsg.ctrl);
-			return;
-		}
-		memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
-		sqmsg.msg_len = msgstr.str().size();
+    if (link->fptr == NULL) {
+      Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
+    }
+    Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
+  } else {
+    log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+  }
+}
 
-		if (link->fptr == NULL) {
-			Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
-		}
-		Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
-	}
-	else {
-		log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
-	}
+void Tosser::filefix(Config *c, sq_msg_t *msg) {
+  link_conf_t *link = NULL;
+  bool showhelp = false;
+
+  for (size_t i = 0; i < c->links.size(); i++) {
+    if (c->links.at(i).aka->zone == msg->xmsg.orig.zone && c->links.at(i).aka->net == msg->xmsg.orig.net && c->links.at(i).aka->node == msg->xmsg.orig.node &&
+        c->links.at(i).aka->point == msg->xmsg.orig.point) {
+      link = &c->links.at(i);
+      break;
+    }
+  }
+
+  if (link == NULL) {
+    log.log(LOG_INFO, "Got filefix message from someone not defined in links! (%d:%d/%d.%d)", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node,
+            msg->xmsg.orig.point);
+    return;
+  }
+
+  // first check password
+  if (link->areafixpwd != "" && strncasecmp(link->areafixpwd.c_str(), msg->xmsg.subject, link->areafixpwd.size()) == 0) {
+    // password is good.
+    std::vector<std::string> smsg;
+    std::stringstream ss;
+    for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
+      if (msg->msg[i] == '\r') {
+        smsg.push_back(ss.str());
+        ss.str("");
+      } else if (msg->msg[i] != '\n') {
+        ss << msg->msg[i];
+      }
+    }
+    if (ss.str().size() > 0) {
+      smsg.push_back(ss.str());
+    }
+
+    std::vector<std::string> msgout;
+
+    for (std::string line : smsg) {
+      if (line.size() > 0) {
+        if (line.at(0) == '-') {
+          // remove area
+          bool success = false;
+
+          for (size_t i = 0; i < c->fileareas.size(); i++) {
+            if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.substr(1).c_str()) == 0 &&
+                link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+              std::stringstream ss2;
+              for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
+                if (c->fileareas.at(i).links.at(j).link == link) {
+                  success = true;
+                } else {
+                  if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                    ss2 << "!";
+                  } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
+                    ss2 << "&";
+                  } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                    ss2 << "=";
+                  }
+                  ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/"
+                      << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
+                }
+              }
+
+              if (success == true) {
+                if (ss2.str().size() > 1) {
+                  success = update(c->fileareas.at(i).areatag, ss2.str().substr(0, ss2.str().size() - 1), true);
+                } else {
+                  success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+                }
+              }
+              if (success) {
+                msgout.push_back("You have been removed from " + c->fileareas.at(i).areatag + " successfully.");
+                log.log(LOG_INFO, "Successfully removed %d:%d/%d.%d from %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node,
+                        msg->xmsg.orig.point, line.substr(1).c_str());
+              } else {
+                msgout.push_back("You have NOT been removed from " + c->fileareas.at(i).areatag);
+              }
+              break;
+            }
+          }
+
+        } else if (line.at(0) == '%') {
+          if (strcasecmp(line.substr(1).c_str(), "LIST") == 0) {
+            msgout.push_back("File areas you have access to:");
+            msgout.push_back("");
+            for (size_t i = 0; i < c->fileareas.size(); i++) {
+              if (link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+                msgout.push_back(c->fileareas.at(i).areatag);
+              }
+            }
+          } else if (strcasecmp(line.substr(1).c_str(), "HELP") == 0) {
+            showhelp = true;
+          }
+        } else {
+          // add area
+          bool success = false;
+
+          for (size_t i = 0; i < c->fileareas.size(); i++) {
+            if (line.at(0) == '+') {
+              line = line.substr(1);
+            }
+            if (strcasecmp(c->fileareas.at(i).areatag.c_str(), line.c_str()) == 0 && link->allowedgroups.find(c->fileareas.at(i).group) != std::string::npos) {
+              std::stringstream ss2;
+              for (size_t j = 0; j < c->fileareas.at(i).links.size(); j++) {
+                if (c->fileareas.at(i).links.at(j).link == link) {
+                  success = false;
+                  break;
+                } else {
+                  if (c->fileareas.at(i).links.at(j).forward_allowed == false && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                    ss2 << "!";
+                  } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == true) {
+                    ss2 << "&";
+                  } else if (c->fileareas.at(i).links.at(j).forward_allowed == true && c->fileareas.at(i).links.at(j).process_allowed == false) {
+                    ss2 << "=";
+                  }
+                  ss2 << c->fileareas.at(i).links.at(j).link->aka->zone << ":" << c->fileareas.at(i).links.at(j).link->aka->net << "/"
+                      << c->fileareas.at(i).links.at(j).link->aka->node << "." << c->fileareas.at(i).links.at(j).link->aka->point << ",";
+                }
+              }
+
+              if (ss2.str().size() > 1 && success == true) {
+                ss2 << ",!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+                success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+              } else {
+                ss2 << "!" << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+                success = update(c->fileareas.at(i).areatag, ss2.str(), true);
+              }
+              if (success) {
+                msgout.push_back("You have been added to " + c->fileareas.at(i).areatag + " successfully.");
+                log.log(LOG_INFO, "Successfully added %d:%d/%d.%d to %s", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point,
+                        line.c_str());
+              } else {
+                msgout.push_back("You have NOT been added to " + c->fileareas.at(i).areatag);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    sq_msg_t sqmsg;
+
+    memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+    sqmsg.xmsg.orig.zone = link->ouraka->zone;
+    sqmsg.xmsg.orig.net = link->ouraka->net;
+    sqmsg.xmsg.orig.point = link->ouraka->point;
+    sqmsg.xmsg.orig.node = link->ouraka->node;
+
+    sqmsg.xmsg.dest.zone = link->aka->zone;
+    sqmsg.xmsg.dest.net = link->aka->net;
+    sqmsg.xmsg.dest.point = link->aka->point;
+    sqmsg.xmsg.dest.node = link->aka->node;
+
+    strncpy(sqmsg.xmsg.subject, "FILEFIX Response", 71);
+    strncpy(sqmsg.xmsg.to, msg->xmsg.from, 35);
+    strncpy(sqmsg.xmsg.from, "FILEFIX", 35);
+
+    std::tm at;
+
+    time_t now = time(NULL);
+#ifdef _MSC_VER
+    localtime_s(&at, &now);
+#else
+    localtime_r(&now, &at);
+#endif
+    sqmsg.xmsg.date_written.date |= (((sq_word)at.tm_mday) & 31);
+    sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+    sqmsg.xmsg.date_written.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_sec) & 31);
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_min) & 63) << 5;
+    sqmsg.xmsg.date_written.time |= (((sq_word)at.tm_hour) & 31) << 11;
+
+    sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+
+    std::stringstream ctrlstr;
+
+    ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/"
+            << link->ouraka->node;
+    if (link->aka->point > 0) {
+      ctrlstr << "\x01TOPT " << link->aka->point;
+    }
+    if (link->ouraka->point > 0) {
+      ctrlstr << "\001FMPT " << link->ouraka->point;
+    }
+
+    sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
+    if (!sqmsg.ctrl) {
+      return;
+    }
+    memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+    sqmsg.ctrl_len = ctrlstr.str().size();
+
+    std::stringstream msgstr;
+
+    if (msgout.size() > 0) {
+      // send msgout
+
+      for (size_t i = 0; i < msgout.size(); i++) {
+        msgstr << msgout.at(i) << "\r";
+      }
+    }
+    if (showhelp) {
+      // send help text
+      msgstr << "\r\r----------------------------------------------------------\r";
+      msgstr << "FILEFIX HELP!\r";
+      msgstr << "----------------------------------------------------------\r";
+      msgstr << "+SOMEAREA\r\r";
+      msgstr << "This will add you to SOMEAREA\r\r";
+      msgstr << "-SOMEAREA\r\r";
+      msgstr << "This will remove you from SOMEAREA\r\r";
+      msgstr << "%LIST\r\r";
+      msgstr << "This will give you a list of everything available\r\r";
+      msgstr << "%HELP\r\r";
+      msgstr << "This will show you this help\r\r";
+      msgstr << "----------------------------------------------------------\r";
+    }
+
+    sqmsg.msg = (char *)malloc(msgstr.str().size());
+    if (!sqmsg.msg) {
+      free(sqmsg.ctrl);
+      return;
+    }
+    memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+    sqmsg.msg_len = msgstr.str().size();
+
+    if (link->fptr == NULL) {
+      Scanner::initialize_packet(link, tempdir.u8string(), link->ouraka);
+    }
+    Scanner::write_netmail_to_pkt(link->ouraka, link->aka, &sqmsg, false, link->fptr, link->flavour);
+  } else {
+    log.log(LOG_ERROR, "Incorrect password for %d:%d/%d.%d", msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node, msg->xmsg.orig.point);
+  }
 }
 
 std::string Tosser::get_msgid(std::string ctrlbody) {
-	std::stringstream kludge;
+  std::stringstream kludge;
 
-	for (size_t z = 0; z < ctrlbody.size(); z++) {
-		if (ctrlbody.at(z) == '\001') {
-			if (kludge.str().size() > 0) {
-				if (kludge.str().find("MSGID: ") == 0) {
-					int start = 7;
+  for (size_t z = 0; z < ctrlbody.size(); z++) {
+    if (ctrlbody.at(z) == '\001') {
+      if (kludge.str().size() > 0) {
+        if (kludge.str().find("MSGID: ") == 0) {
+          int start = 7;
 
-					std::string msgid = kludge.str().substr(start);
+          std::string msgid = kludge.str().substr(start);
 
-					return msgid;
-				}
-			}
-			kludge.str("");
-			continue;
-		}
-		kludge << ctrlbody.at(z);
-	}
+          return msgid;
+        }
+      }
+      kludge.str("");
+      continue;
+    }
+    kludge << ctrlbody.at(z);
+  }
 
-	return "";
+  return "";
 }
 
 NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
-	// first try getting address from origin line
-	std::stringstream ss(msgbody);
-	std::string line;
-	NETADDR* ftnaddr = NULL;
-    std::vector<std::string> lines;
+  // first try getting address from origin line
+  std::stringstream ss(msgbody);
+  std::string line;
+  NETADDR *ftnaddr = NULL;
+  std::vector<std::string> lines;
 
-	while (getline(ss, line, '\r')) {
-        lines.push_back(line);
+  while (getline(ss, line, '\r')) {
+    lines.push_back(line);
+  }
+
+  for (int z = lines.size() - 1; z >= 0; z--) {
+    if (lines.at(z).find(" * Origin: ") == 0) {
+      // found origin line.
+
+      int start = lines.at(z).rfind("(") + 1;
+      int size = lines.at(z).substr(start).find(")");
+
+      std::string addr = lines.at(z).substr(start, size);
+      if (ftnaddr != NULL) {
+        free(ftnaddr);
+      }
+
+      ftnaddr = parse_fido_addr(addr.c_str());
     }
+  }
 
-    for (int z = lines.size() -1; z >= 0; z--) {
-		if (lines.at(z).find(" * Origin: ") == 0) {
-			// found origin line.
+  if (ftnaddr != NULL) {
 
-			int start = lines.at(z).rfind("(") + 1;
-			int size = lines.at(z).substr(start).find(")");
+    return ftnaddr;
+  }
 
-			std::string addr = lines.at(z).substr(start, size);
-			if (ftnaddr != NULL) {
-				free(ftnaddr);
-			}
+  // next try MSGID
+  std::stringstream kludge;
 
-			ftnaddr = parse_fido_addr(addr.c_str());
-		
-		}
-	}
+  for (size_t z = 0; z < ctrlbody.size(); z++) {
+    if (ctrlbody.at(z) == '\001') {
+      if (kludge.str().size() > 0) {
+        if (kludge.str().find("MSGID: ") == 0) {
+          size_t start = 7;
+          size_t size = kludge.str().substr(start).find(" ");
 
-	if (ftnaddr != NULL) {
-		
-		return ftnaddr;
-	}
+          if (size != std::string::npos) {
+            std::string addr = kludge.str().substr(start, size - 1);
+            ftnaddr = parse_fido_addr(addr.c_str());
 
-	// next try MSGID
-	std::stringstream kludge;
+            if (ftnaddr != NULL) {
+              return ftnaddr;
+            } else {
+              start = kludge.str().find("@");
+              if (start != std::string::npos) {
+                size = kludge.str().substr(start).find(" ");
+                if (size != std::string::npos) {
+                  std::string addr = kludge.str().substr(start, size - 1);
+                  ftnaddr = parse_fido_addr(addr.c_str());
 
-	for (size_t z = 0; z < ctrlbody.size(); z++) {
-		if (ctrlbody.at(z) == '\001') {
-			if (kludge.str().size() > 0) {
-				if (kludge.str().find("MSGID: ") == 0) {
-                    size_t start = 7;
-                    size_t size = kludge.str().substr(start).find(" ");
-
-                    if (size != std::string::npos) {
-                        std::string addr = kludge.str().substr(start, size - 1);
-                        ftnaddr = parse_fido_addr(addr.c_str());
-
-                        if (ftnaddr != NULL) {
-                            return ftnaddr;
-                        } else {
-                            start = kludge.str().find("@");
-                            if (start != std::string::npos) {
-                                size = kludge.str().substr(start).find(" ");
-                                if (size != std::string::npos) {
-                                    std::string addr = kludge.str().substr(start, size - 1);
-                                    ftnaddr = parse_fido_addr(addr.c_str());
-
-                                    if (ftnaddr != NULL) {
-                                        return ftnaddr;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                  if (ftnaddr != NULL) {
+                    return ftnaddr;
+                  }
                 }
-			}
-			kludge.str("");
-			continue;
-		}
-		kludge << ctrlbody.at(z);
-	}
-	// next fail
-	return NULL;
+              }
+            }
+          }
+        }
+      }
+      kludge.str("");
+      continue;
+    }
+    kludge << ctrlbody.at(z);
+  }
+  // next fail
+  return NULL;
 }
 
 bool Tosser::run(bool protinbound) {
-	INIReader inir("talisman.ini");
-	Config c;
+  INIReader inir("talisman.ini");
+  Config c;
 
-	if (inir.ParseError()) {
-		return false;
-	}
+  if (inir.ParseError()) {
+    return false;
+  }
 
-	_datapath = inir.Get("Paths", "Data Path", "data");
-	_msgpath = inir.Get("Paths", "Message Path", "msgs");
-	_logpath = inir.Get("Paths", "Log Path", "logs");
-	_tmppath = inir.Get("Paths", "Temp Path", "temp");
+  _datapath = inir.Get("Paths", "Data Path", "data");
+  _msgpath = inir.Get("Paths", "Message Path", "msgs");
+  _logpath = inir.Get("Paths", "Log Path", "logs");
+  _tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-
-
-	log.load(_logpath + "/postie.log");
+  log.load(_logpath + "/postie.log");
 
 #ifdef _MSC_VER
-	pid = GetCurrentProcessId();
+  pid = GetCurrentProcessId();
 #else
-	pid = getpid();
+  pid = getpid();
 #endif
 
-    std::filesystem::path pidfile(_datapath + "/postie.pid");
-    int tries = 0;
-    while (std::filesystem::exists(pidfile)) {
-        if (tries == 10) {
-            log.log(LOG_ERROR, "Timeout waiting for pid file...");
-            return false;
-        }
+  std::filesystem::path pidfile(_datapath + "/postie.pid");
+  int tries = 0;
+  while (std::filesystem::exists(pidfile)) {
+    if (tries == 10) {
+      log.log(LOG_ERROR, "Timeout waiting for pid file...");
+      return false;
+    }
 #ifdef _MSC_VER
-        Sleep(1000);
+    Sleep(1000);
 #else
-        sleep(1);
+    sleep(1);
 #endif
-        tries++;
-    }
+    tries++;
+  }
 
-    FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
-    if (!fptr) {
-        log.log(LOG_ERROR, "Failed to open pid file...");
-        return false;
-    }
-    fprintf(fptr, "%lu\r\n", pid);
-    fclose(fptr);
-    signal(SIGTERM, sig_handler);
+  FILE *fptr = fopen(pidfile.u8string().c_str(), "wx");
+  if (!fptr) {
+    log.log(LOG_ERROR, "Failed to open pid file...");
+    return false;
+  }
+  fprintf(fptr, "%lu\r\n", pid);
+  fclose(fptr);
+  signal(SIGTERM, sig_handler);
 #ifndef _MSC_VER
-    signal(SIGHUP, sig_handler);
-    signal(SIGINT, sig_handler);
+  signal(SIGHUP, sig_handler);
+  signal(SIGINT, sig_handler);
 #endif
 
-    log.log(LOG_DEBUG, "Starting Tosser");
+  log.log(LOG_DEBUG, "Starting Tosser");
 
-	if (!c.load(_datapath)) {
-        std::filesystem::remove(pidfile);
-		return false;
-	}
+  if (!c.load(_datapath)) {
+    std::filesystem::remove(pidfile);
+    return false;
+  }
 
-	if (!c.load_archivers(_datapath)) {
-        std::filesystem::remove(pidfile);
-		return false;
-	}
+  if (!c.load_archivers(_datapath)) {
+    std::filesystem::remove(pidfile);
+    return false;
+  }
 
+  static const char *fileext1 = "SMTWFsmtwf";
+  static const char *fileext2 = "UOEHRAuoehra";
+  static const char *fileext3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
+  // toss each file one at a time
+  std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
+  tempdir = _tmppath + "/postie-" + std::to_string(pid);
 
-	static const char* fileext1 = "SMTWFsmtwf";
-	static const char* fileext2 = "UOEHRAuoehra";
-	static const char* fileext3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+  std::vector<std::filesystem::path> totoss;
 
-	// toss each file one at a time
-	std::filesystem::path inbound((protinbound ? c.protinbound() : c.inbound()));
-	tempdir = _tmppath + "/postie-" + std::to_string(pid);
+  for (auto &p : std::filesystem::directory_iterator(inbound)) {
+    std::filesystem::path packetpth = p.path();
+    totoss.push_back(p.path());
+  }
 
-    std::vector<std::filesystem::path> totoss;
+  std::filesystem::remove_all(tempdir);
+  std::filesystem::create_directories(tempdir);
 
-	for (auto& p : std::filesystem::directory_iterator(inbound)) {
-        std::filesystem::path packetpth = p.path();
-        totoss.push_back(p.path());
+  for (std::filesystem::path packetpth : totoss) {
+    std::filesystem::path temp_name(packetpth);
+    std::filesystem::path e(packetpth.extension().u8string() + ".toss");
+
+    temp_name.replace_extension(e);
+
+    if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
+      std::filesystem::rename(packetpth, temp_name);
+      std::filesystem::copy(temp_name, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
+    } else {
+      if (!strchr(fileext1, packetpth.extension().u8string().substr(1, 1).c_str()[0])) {
+        continue;
+      }
+
+      if (!strchr(fileext2, packetpth.extension().u8string().substr(2, 1).c_str()[0])) {
+        continue;
+      }
+
+      if (!strchr(fileext3, packetpth.extension().u8string().substr(3, 1).c_str()[0])) {
+        continue;
+      }
+      std::filesystem::rename(packetpth, temp_name);
+
+      bool unarced = false;
+
+      // unarchive packet
+      for (size_t i = 0; i < c.archivers.size(); i++) {
+        FILE *fptr = fopen(temp_name.u8string().c_str(), "rb");
+        if (c.archivers.at(i)->offset >= 0) {
+          fseek(fptr, c.archivers.at(i)->offset, SEEK_SET);
+        } else {
+          fseek(fptr, c.archivers.at(i)->offset, SEEK_END);
+        }
+
+        uint8_t byte;
+        bool match = true;
+        for (int z = 0; z < c.archivers.at(i)->bytelen; z++) {
+          fread(&byte, 1, 1, fptr);
+
+          if (byte != c.archivers.at(i)->bytes[z]) {
+            match = false;
+            break;
+          }
+        }
+        fclose(fptr);
+        if (match == false)
+          continue;
+        c.archivers.at(i)->extract(temp_name.u8string(), tempdir.u8string());
+        unarced = true;
+        break;
+      }
+      if (unarced == false) {
+        log.log(LOG_ERROR, "Unable to find archiver for bundle!");
+        continue;
+      }
     }
 
-	std::filesystem::remove_all(tempdir);
-    std::filesystem::create_directories(tempdir);
+    for (auto &pkt : std::filesystem::directory_iterator(tempdir)) {
+      FILE *fptr = fopen(pkt.path().u8string().c_str(), "rb");
 
-    for (std::filesystem::path packetpth : totoss) {
-        std::filesystem::path temp_name(packetpth);
-        std::filesystem::path e(packetpth.extension().u8string() + ".toss");
+      if (!fptr) {
+        log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
+        continue;
+      }
+      // read packet header
+      struct packet_t phdr;
+      struct packed_message_t pmsg;
 
-		temp_name.replace_extension(e);
+      fread(&phdr, sizeof(struct packet_t), 1, fptr);
+      /*
+                              NETADDR pktorig;
+                              pktorig.zone = phdr.origZone;
+                              pktorig.node = phdr.orignode;
+                              if (phdr.origNet == 0xffff) {
+                                      pktorig.net = phdr.auxNet;
+                                      pktorig.point = phdr.origPoint;
+                              }
+                              else {
+                                      pktorig.net = phdr.origNet;
+                                      pktorig.point = 0;
+                              }
+      */
+      while (fread(&pmsg, sizeof(struct packed_message_t), 1, fptr) == 1) {
+        char ch;
+        std::stringstream datestr;
 
-		if (strcasecmp(packetpth.extension().u8string().c_str(), ".pkt") == 0) {
-            std::filesystem::rename(packetpth, temp_name);
-			std::filesystem::copy(temp_name, std::filesystem::path(tempdir.u8string() + "/" + packetpth.filename().u8string()));
-		}
-		else {
-			if (!strchr(fileext1, packetpth.extension().u8string().substr(1, 1).c_str()[0])) {
-				continue;
-			}
+        datestr.str("");
+        while ((ch = fgetc(fptr)) != '\0') {
+          if (feof(fptr))
+            break;
+          datestr << ch;
+        }
 
-			if (!strchr(fileext2, packetpth.extension().u8string().substr(2, 1).c_str()[0])) {
-				continue;
-			}
+        std::stringstream tostr;
 
-			if (!strchr(fileext3, packetpth.extension().u8string().substr(3, 1).c_str()[0])) {
-				continue;
-			}
-            std::filesystem::rename(packetpth, temp_name);
+        tostr.str("");
+        while ((ch = fgetc(fptr)) != '\0') {
+          if (feof(fptr))
+            break;
+          tostr << ch;
+        }
+        std::stringstream fromstr;
 
+        fromstr.str("");
+        while ((ch = fgetc(fptr)) != '\0') {
+          if (feof(fptr))
+            break;
+          fromstr << ch;
+        }
+        std::stringstream subjstr;
 
-			bool unarced = false;
+        subjstr.str("");
+        while ((ch = fgetc(fptr)) != '\0') {
+          if (feof(fptr))
+            break;
+          subjstr << ch;
+        }
 
-			// unarchive packet
-			for (size_t i = 0; i < c.archivers.size(); i++) {
-				FILE* fptr = fopen(temp_name.u8string().c_str(), "rb");
-				if (c.archivers.at(i)->offset >= 0) {
-					fseek(fptr, c.archivers.at(i)->offset, SEEK_SET);
-				}
-				else {
-					fseek(fptr, c.archivers.at(i)->offset, SEEK_END);
-				}
+        std::stringstream areastr;
+        std::stringstream bodystr;
+        std::stringstream msgstr;
+        std::stringstream ctrlstr;
+        std::string line;
+        std::string areatag;
 
-				uint8_t byte;
-				bool match = true;
-				for (int z = 0; z < c.archivers.at(i)->bytelen; z++) {
-					fread(&byte, 1, 1, fptr);
+        bool pastarea = false;
+        bool pastorigin = false;
+        bodystr.str("");
 
-					if (byte != c.archivers.at(i)->bytes[z]) {
-						match = false;
-						break;
-					}
-				}
-				fclose(fptr);
-				if (match == false) continue;
-				c.archivers.at(i)->extract(temp_name.u8string(), tempdir.u8string());
-				unarced = true;
-				break;
-			}
-			if (unarced == false) {
-				log.log(LOG_ERROR, "Unable to find archiver for bundle!");
-				continue;
-			}
-		}
+        while ((ch = fgetc(fptr)) != '\0') {
+          if (feof(fptr))
+            break;
+          // onto body
+          bodystr << ch;
+        }
 
-		for (auto& pkt : std::filesystem::directory_iterator(tempdir)) {
-			FILE* fptr = fopen(pkt.path().u8string().c_str(), "rb");
+        while (getline(bodystr, line, '\r')) {
+          if (line.find("AREA:") == 0 && !pastarea) {
+            areatag = line.substr(5);
+            pastarea = true;
+            continue;
+          } else if (!pastarea) {
+            areatag = "";
+            pastarea = true;
+          }
+          if (line.find("--- ") == 0 || line == "---") {
+            pastorigin = true;
+          }
+          if (line[0] == '\001' && !pastorigin) {
+            ctrlstr << line;
+          } else {
+            msgstr << line << "\r";
+          }
+        }
 
-			if (!fptr) {
-				log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
-				continue;
-			}
-			// read packet header
-			struct packet_t phdr;
-			struct packed_message_t pmsg;
+        bool msgprocessed = false;
 
-			fread(&phdr, sizeof(struct packet_t), 1, fptr);
-/*
-			NETADDR pktorig;
-			pktorig.zone = phdr.origZone;
-			pktorig.node = phdr.orignode;
-			if (phdr.origNet == 0xffff) {
-				pktorig.net = phdr.auxNet;
-				pktorig.point = phdr.origPoint;
-			}
-			else {
-				pktorig.net = phdr.origNet;
-				pktorig.point = 0;
-			}
-*/
-			while (fread(&pmsg, sizeof(struct packed_message_t), 1, fptr) == 1) {
-				char ch;
-				std::stringstream datestr;
+        if (areatag != "" && protinbound) {
 
-				datestr.str("");
-				while ((ch = fgetc(fptr)) != '\0') {
-					if (feof(fptr)) break;
-					datestr << ch;
-				}
+          // it's an echomail
+          sq_msg_t sqmsg;
 
-				std::stringstream tostr;
+          memset(&sqmsg, 0, sizeof(sq_msg_t));
 
-				tostr.str("");
-				while ((ch = fgetc(fptr)) != '\0') {
-					if (feof(fptr)) break;
-					tostr << ch;
-				}
-				std::stringstream fromstr;
+          sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
+          if (!sqmsg.ctrl) {
+            continue;
+          }
+          memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+          sqmsg.ctrl_len = ctrlstr.str().size();
 
-				fromstr.str("");
-				while ((ch = fgetc(fptr)) != '\0') {
-					if (feof(fptr)) break;
-					fromstr << ch;
-				}
-				std::stringstream subjstr;
+          sqmsg.msg = (char *)malloc(msgstr.str().size());
+          if (!sqmsg.msg) {
+            free(sqmsg.ctrl);
+            continue;
+          }
+          memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+          sqmsg.msg_len = msgstr.str().size();
 
-				subjstr.str("");
-				while ((ch = fgetc(fptr)) != '\0') {
-					if (feof(fptr)) break;
-					subjstr << ch;
-				}
+          NETADDR *emaddr = get_echomail_addr(ctrlstr.str(), msgstr.str());
 
-				std::stringstream areastr;
-				std::stringstream bodystr;
-				std::stringstream msgstr;
-				std::stringstream ctrlstr;
-				std::string line;
-				std::string areatag;
+          if (emaddr != NULL) {
+            sqmsg.xmsg.orig.zone = emaddr->zone;
+            sqmsg.xmsg.orig.node = emaddr->node;
+            sqmsg.xmsg.orig.net = emaddr->net;
+            sqmsg.xmsg.orig.point = emaddr->point;
+            free(emaddr);
+          }
 
-				bool pastarea = false;
-				bool pastorigin = false;
-				bodystr.str("");
+          strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
+          strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
+          strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
 
-				while ((ch = fgetc(fptr)) != '\0') {
-					if (feof(fptr)) break;
-					// onto body
-					bodystr << ch;
-				}
+          std::tm lt;
 
+          datestr >> std::get_time(&lt, "%d %b %y  %H:%M:%S");
+          if (lt.tm_year < 68) {
+            lt.tm_year += 100;
+          }
 
-				while (getline(bodystr, line, '\r')) {
-					if (line.find("AREA:") == 0 && !pastarea) {
-						areatag = line.substr(5);
-						pastarea = true;
-						continue;
-					}
-					else if (!pastarea) {
-						areatag = "";
-						pastarea = true;
-					}
-					if (line.find("--- ") == 0 || line == "---") {
-						pastorigin = true;
-					}
-					if (line[0] == '\001' && !pastorigin) {
-						ctrlstr << line;
-					}
-					else {
-						msgstr << line << "\r";
-					}
-				}
+          sqmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
+          sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
+          sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
 
-				bool msgprocessed = false;
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
 
-				if (areatag != "" && protinbound) {
+          std::tm at;
 
-
-					// it's an echomail
-					sq_msg_t sqmsg;
-
-					memset(&sqmsg, 0, sizeof(sq_msg_t));
-
-					sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
-					if (!sqmsg.ctrl) {
-						continue;
-					}
-					memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
-					sqmsg.ctrl_len = ctrlstr.str().size();
-
-					sqmsg.msg = (char*)malloc(msgstr.str().size());
-					if (!sqmsg.msg) {
-						free(sqmsg.ctrl);
-						continue;
-					}
-					memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
-					sqmsg.msg_len = msgstr.str().size();
-
-					NETADDR* emaddr = get_echomail_addr(ctrlstr.str(), msgstr.str());
-
-					if (emaddr != NULL) {
-						sqmsg.xmsg.orig.zone = emaddr->zone;
-						sqmsg.xmsg.orig.node = emaddr->node;
-						sqmsg.xmsg.orig.net = emaddr->net;
-						sqmsg.xmsg.orig.point = emaddr->point;
-						free(emaddr);
-					}
-
-					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
-					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
-					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
-
-					std::tm lt;
-
-					datestr >> std::get_time(&lt, "%d %b %y  %H:%M:%S");
-					if (lt.tm_year < 68) {
-						lt.tm_year += 100;
-					}
-
-					sqmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
-					sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
-					sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
-
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
-
-					std::tm at;
-
-					time_t now = time(NULL);
+          time_t now = time(NULL);
 #ifdef _MSC_VER
-					localtime_s(&at, &now);
+          localtime_s(&at, &now);
 #else
-					localtime_r(&now, &at);
+          localtime_r(&now, &at);
 #endif
 
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
 
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-					strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+          strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
 
-					sqmsg.xmsg.attr = MSGUID;
+          sqmsg.xmsg.attr = MSGUID;
 
-					// check if dupe
-					std::string msgid = get_msgid(ctrlstr.str());
+          // check if dupe
+          std::string msgid = get_msgid(ctrlstr.str());
 
-					if (msgid != "") {
-						if (Dupe::is_dupe(_datapath + "/dupehist.dat", msgid)) {
-							
-							if (c.dupebase() == "") {
-								log.log(LOG_INFO, "Found duplicate, discarding as no dupe base is configured.");
-							}
-							else {
-								sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.dupebase()).c_str());
+          if (msgid != "") {
+            if (Dupe::is_dupe(_datapath + "/dupehist.dat", msgid)) {
 
-								if (mb != NULL) {
-									SquishLockMsgBase(mb);
-									SquishWriteMsg(mb, &sqmsg);
-									SquishUnlockMsgBase(mb);
-									SquishCloseMsgBase(mb);
-									log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
-								}
-								else {
-									log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
-								}
-							}
-							free(sqmsg.msg);
-							free(sqmsg.ctrl);
-							continue;
-						}
-					}
+              if (c.dupebase() == "") {
+                log.log(LOG_INFO, "Found duplicate, discarding as no dupe base is configured.");
+              } else {
+                sq_msg_base_t *mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.dupebase()).c_str());
 
-					for (size_t a = 0; a < c.areas.size(); a++) {
-						if (strcasecmp(areatag.c_str(), c.areas.at(a).areatag.c_str()) == 0) {
-							// process message
-							// send to downlinks
-							std::vector<struct seenby_t> seenbys = Scanner::parse_seenbys(msgstr.str());
+                if (mb != NULL) {
+                  SquishLockMsgBase(mb);
+                  SquishWriteMsg(mb, &sqmsg);
+                  SquishUnlockMsgBase(mb);
+                  SquishCloseMsgBase(mb);
+                  log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
+                } else {
+                  log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
+                }
+              }
+              free(sqmsg.msg);
+              free(sqmsg.ctrl);
+              continue;
+            }
+          }
 
-							for (size_t l = 0; l < c.areas.at(a).links.size(); l++) {
-								// if it's to a point
-								if (c.areas.at(a).links.at(l)->aka->point != 0) {
-									if (phdr.origNet == 0xffff) {
-										if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
-											continue;
-										}
-									}
-									else {
-										if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.origNet && c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
-											continue;
-										}
-									}
-								} else {
-	
-									// check seenbys
-	
-									if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka)) {
-										continue;
-									}
-								}
+          for (size_t a = 0; a < c.areas.size(); a++) {
+            if (strcasecmp(areatag.c_str(), c.areas.at(a).areatag.c_str()) == 0) {
+              // process message
+              // send to downlinks
+              std::vector<struct seenby_t> seenbys = Scanner::parse_seenbys(msgstr.str());
 
-								if (c.areas.at(a).links.at(l)->fptr == NULL) {
-									Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
-								}
-								Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg, false);
-							}
-							// save to base
+              for (size_t l = 0; l < c.areas.at(a).links.size(); l++) {
+                // if it's to a point
+                if (c.areas.at(a).links.at(l)->aka->point != 0) {
+                  if (phdr.origNet == 0xffff) {
+                    if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet &&
+                        c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+                      continue;
+                    }
+                  } else {
+                    if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.origNet &&
+                        c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+                      continue;
+                    }
+                  }
+                } else {
 
-							sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
+                  // check seenbys
 
-							if (mb != NULL) {
-								SquishLockMsgBase(mb);
-								SquishWriteMsg(mb, &sqmsg);
-								SquishUnlockMsgBase(mb);
-								SquishCloseMsgBase(mb);
-								log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
+                  if (Scanner::check_seenby(&seenbys, c.areas.at(a).links.at(l)->aka)) {
+                    continue;
+                  }
+                }
 
-                                if (c.areas.at(a).thook != "") {
-                                    std::stringstream hss;
+                if (c.areas.at(a).links.at(l)->fptr == NULL) {
+                  Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
+                }
+                Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg, false);
+              }
+              // save to base
 
-                                    hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \\\"";
+              sq_msg_base_t *mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
 
-                                    for (size_t i=0;i< strlen(sqmsg.xmsg.subject);i++) {
-                                        if (sqmsg.xmsg.subject[i] == '\"') {
-                                            hss << "'";
-                                        } else {
-                                            hss << sqmsg.xmsg.subject[i];
-                                        }
-                                    }
-                                    hss << "\\\" \\\"";
+              if (mb != NULL) {
+                SquishLockMsgBase(mb);
+                SquishWriteMsg(mb, &sqmsg);
+                SquishUnlockMsgBase(mb);
+                SquishCloseMsgBase(mb);
+                log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
 
-                                    for (size_t i=0;i< strlen(sqmsg.xmsg.from);i++) {
-                                        if (sqmsg.xmsg.from[i] == '\"') {
-                                            hss << "'";
-                                        } else {
-                                            hss << sqmsg.xmsg.from[i];
-                                        }
-                                    }
-                                    hss << "\\\"";
-                                    log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
-                                    Archiver::runexec(hss.str());
-                                }
-							}
-							else {
-								log.log(LOG_ERROR, "Unable to open message base! : %s", std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
-							}
+                if (c.areas.at(a).thook != "") {
+                  std::stringstream hss;
 
-							msgprocessed = true;
-							break;
-						}
-					}
-					free(sqmsg.msg);
-                    free(sqmsg.ctrl);
-					if (!msgprocessed) {
-						log.log(LOG_ERROR, "Message for area %s not processed!", areatag.c_str());
-					}
-				}
-				else if (areatag == "") {
-					// it's a netmail...
-					// delete empty mail
-					if (bodystr.str().size() == 0) {
-						log.log(LOG_INFO, "Got an empty netmail, discarding...");
-						continue;
-					}
-					if (fromstr.str() == "ARCmail") {
-						log.log(LOG_INFO, "Got a message from ARCmail, discarding...");
-						continue;
-					}
-					// is it for us...
-					// look for intl kludge & topt kludge
-					std::stringstream kludge;
+                  hss << c.areas.at(a).thook << " " << c.areas.at(a).areatag << " \\\"";
 
-					NETADDR* intldest = NULL;
-					NETADDR* intlorig = NULL;
-					int intlpoint = 0;
-					int intlfpoint = 0;
+                  for (size_t i = 0; i < strlen(sqmsg.xmsg.subject); i++) {
+                    if (sqmsg.xmsg.subject[i] == '\"') {
+                      hss << "'";
+                    } else {
+                      hss << sqmsg.xmsg.subject[i];
+                    }
+                  }
+                  hss << "\\\" \\\"";
 
-					for (size_t z = 0; z < ctrlstr.str().size(); z++) {
-						if (ctrlstr.str().at(z) == '\001') {
-							if (kludge.str().size() > 0) {
-								if (kludge.str().find("INTL ") == 0) {
-									size_t addrsize = kludge.str().substr(5).find(" ");
+                  for (size_t i = 0; i < strlen(sqmsg.xmsg.from); i++) {
+                    if (sqmsg.xmsg.from[i] == '\"') {
+                      hss << "'";
+                    } else {
+                      hss << sqmsg.xmsg.from[i];
+                    }
+                  }
+                  hss << "\\\"";
+                  log.log(LOG_INFO, "Running hook: %s", hss.str().c_str());
+                  Archiver::runexec(hss.str());
+                }
+              } else {
+                log.log(LOG_ERROR, "Unable to open message base! : %s", std::string(_msgpath + "/" + c.areas.at(a).file).c_str());
+              }
 
-									if (intldest != NULL) {
-										free(intldest); // incase there is more than one intl line :O
-									}
+              msgprocessed = true;
+              break;
+            }
+          }
+          free(sqmsg.msg);
+          free(sqmsg.ctrl);
+          if (!msgprocessed) {
+            log.log(LOG_ERROR, "Message for area %s not processed!", areatag.c_str());
+          }
+        } else if (areatag == "") {
+          // it's a netmail...
+          // delete empty mail
+          if (bodystr.str().size() == 0) {
+            log.log(LOG_INFO, "Got an empty netmail, discarding...");
+            continue;
+          }
+          if (fromstr.str() == "ARCmail") {
+            log.log(LOG_INFO, "Got a message from ARCmail, discarding...");
+            continue;
+          }
+          // is it for us...
+          // look for intl kludge & topt kludge
+          std::stringstream kludge;
 
-									std::string intl = kludge.str();
-									std::string intld = kludge.str().substr(5, addrsize);
-									std::string intlo = kludge.str().substr(5 + addrsize + 1);
+          NETADDR *intldest = NULL;
+          NETADDR *intlorig = NULL;
+          int intlpoint = 0;
+          int intlfpoint = 0;
 
-									intldest = parse_fido_addr(intld.c_str());
-									intlorig = parse_fido_addr(intlo.c_str());
-								}
-								else if (kludge.str().find("TOPT ") == 0) {
-									try {
-										intlpoint = stoi(kludge.str().substr(5));
-									}
-									catch (std::invalid_argument) {
+          for (size_t z = 0; z < ctrlstr.str().size(); z++) {
+            if (ctrlstr.str().at(z) == '\001') {
+              if (kludge.str().size() > 0) {
+                if (kludge.str().find("INTL ") == 0) {
+                  size_t addrsize = kludge.str().substr(5).find(" ");
 
-									}
-									catch (std::out_of_range) {
+                  if (intldest != NULL) {
+                    free(intldest); // incase there is more than one intl line :O
+                  }
 
-									}
-								}
-								else if (kludge.str().find("FMPT ") == 0) {
-									try {
-										intlfpoint = stoi(kludge.str().substr(5));
-									}
-									catch (std::invalid_argument) {
+                  std::string intl = kludge.str();
+                  std::string intld = kludge.str().substr(5, addrsize);
+                  std::string intlo = kludge.str().substr(5 + addrsize + 1);
 
-									}
-									catch (std::out_of_range) {
+                  intldest = parse_fido_addr(intld.c_str());
+                  intlorig = parse_fido_addr(intlo.c_str());
+                } else if (kludge.str().find("TOPT ") == 0) {
+                  try {
+                    intlpoint = stoi(kludge.str().substr(5));
+                  } catch (std::invalid_argument) {
 
-									}
-								}
-							}
-							kludge.str("");
-							continue;
-						}
-						kludge << ctrlstr.str().at(z);
-					}
+                  } catch (std::out_of_range) {
+                  }
+                } else if (kludge.str().find("FMPT ") == 0) {
+                  try {
+                    intlfpoint = stoi(kludge.str().substr(5));
+                  } catch (std::invalid_argument) {
 
-					if (kludge.str().size() > 0) {
-						if (kludge.str().find("INTL ") == 0) {
-							size_t addrsize = kludge.str().substr(5).find(" ");
+                  } catch (std::out_of_range) {
+                  }
+                }
+              }
+              kludge.str("");
+              continue;
+            }
+            kludge << ctrlstr.str().at(z);
+          }
 
-							if (intldest != NULL) {
-								free(intldest); // incase there is more than one intl line :O
-							}
+          if (kludge.str().size() > 0) {
+            if (kludge.str().find("INTL ") == 0) {
+              size_t addrsize = kludge.str().substr(5).find(" ");
 
-							std::string intl = kludge.str();
-							std::string intld = kludge.str().substr(5, addrsize);
-							std::string intlo = kludge.str().substr(5 + addrsize + 1);
+              if (intldest != NULL) {
+                free(intldest); // incase there is more than one intl line :O
+              }
 
-							intldest = parse_fido_addr(intld.c_str());
-							intlorig = parse_fido_addr(intlo.c_str());
-						}
-						else if (kludge.str().find("TOPT ") == 0) {
-							try {
-								intlpoint = stoi(kludge.str().substr(5));
-							}
-							catch (std::invalid_argument) {
+              std::string intl = kludge.str();
+              std::string intld = kludge.str().substr(5, addrsize);
+              std::string intlo = kludge.str().substr(5 + addrsize + 1);
 
-							}
-							catch (std::out_of_range) {
+              intldest = parse_fido_addr(intld.c_str());
+              intlorig = parse_fido_addr(intlo.c_str());
+            } else if (kludge.str().find("TOPT ") == 0) {
+              try {
+                intlpoint = stoi(kludge.str().substr(5));
+              } catch (std::invalid_argument) {
 
-							}
-						}
-						else if (kludge.str().find("FMPT ") == 0) {
-							try {
-								intlfpoint = stoi(kludge.str().substr(5));
-							}
-							catch (std::invalid_argument) {
+              } catch (std::out_of_range) {
+              }
+            } else if (kludge.str().find("FMPT ") == 0) {
+              try {
+                intlfpoint = stoi(kludge.str().substr(5));
+              } catch (std::invalid_argument) {
 
-							}
-							catch (std::out_of_range) {
+              } catch (std::out_of_range) {
+              }
+            }
+          }
 
-							}
-						}
-					}
+          if (intldest != NULL) {
+            intldest->point = intlpoint;
+            if (intlorig != NULL) {
+              intlorig->point = intlfpoint;
+            }
+          } else {
+            // assume it's based on net / node
+            intldest = (NETADDR *)malloc(sizeof(NETADDR));
+            if (!intldest) {
+              // panic!
+              // oom?
+              continue;
+            }
+            intldest->zone = phdr.destZone;
+            intldest->net = pmsg.dest_net;
+            intldest->node = pmsg.dest_node;
+            intldest->point = intlpoint;
+            if (intlorig == NULL) {
+              intlorig = (NETADDR *)malloc(sizeof(NETADDR));
+              if (!intlorig) {
+                // panic!
+                // oom?
+                free(intldest);
+                continue;
+              }
+              intlorig->zone = phdr.origZone;
+              intlorig->net = pmsg.orig_net;
+              intlorig->node = pmsg.orig_node;
+              intlorig->point = intlfpoint;
+            }
+          }
 
-					if (intldest != NULL) {
-						intldest->point = intlpoint;
-						if (intlorig != NULL) {
-							intlorig->point = intlfpoint;
-						}
-					}
-					else {
-						// assume it's based on net / node
-						intldest = (NETADDR*)malloc(sizeof(NETADDR));
-						if (!intldest) {
-							// panic!
-							// oom?
-							continue;
-						}
-						intldest->zone = phdr.destZone;
-						intldest->net = pmsg.dest_net;
-						intldest->node = pmsg.dest_node;
-						intldest->point = intlpoint;
-						if (intlorig == NULL) {
-							intlorig = (NETADDR*)malloc(sizeof(NETADDR));
-							if (!intlorig) {
-								// panic!
-								// oom?
-								continue;
-							}
-							intlorig->zone = phdr.origZone;
-							intlorig->net = pmsg.orig_net;
-							intlorig->node = pmsg.orig_node;
-							intlorig->point = intlfpoint;
-						}
-					}
+          // if it is, import it
+          // to me?
+          bool found = false;
+          size_t nmarea = 0;
 
-					// if it is, import it
-					// to me?
-					bool found = false;
-					size_t nmarea = 0;
+          for (size_t a = 0; a < c.addresses.size(); a++) {
+            if (intldest->zone == c.addresses.at(a).aka->zone && intldest->net == c.addresses.at(a).aka->net && intldest->node == c.addresses.at(a).aka->node &&
+                intldest->point == c.addresses.at(a).aka->point) {
+              // it's for us!
+              found = true;
+              for (size_t ar = 0; ar < c.netmailareas.size(); ar++) {
+                if (intldest->zone == c.netmailareas.at(ar).aka->zone && intldest->net == c.netmailareas.at(ar).aka->net &&
+                    intldest->node == c.netmailareas.at(ar).aka->node && intldest->point == c.netmailareas.at(ar).aka->point) {
+                  // put it in this netmail area
+                  nmarea = ar;
+                  break;
+                }
+              }
+              break;
+            }
+          }
+          sq_msg_t sqmsg;
 
-					for (size_t a = 0; a < c.addresses.size(); a++) {
-						if (intldest->zone == c.addresses.at(a).aka->zone && intldest->net == c.addresses.at(a).aka->net && intldest->node == c.addresses.at(a).aka->node && intldest->point == c.addresses.at(a).aka->point) {
-							// it's for us!
-							found = true;
-							for (size_t ar = 0; ar < c.netmailareas.size(); ar++) {
-								if (intldest->zone == c.netmailareas.at(ar).aka->zone && intldest->net == c.netmailareas.at(ar).aka->net && intldest->node == c.netmailareas.at(ar).aka->node && intldest->point == c.netmailareas.at(ar).aka->point) {
-									// put it in this netmail area
-									nmarea = ar;
-									break;
-								}
-							}
-							break;
-						}
-					}
-					sq_msg_t sqmsg;
+          memset(&sqmsg, 0, sizeof(sq_msg_t));
 
-					memset(&sqmsg, 0, sizeof(sq_msg_t));
+          sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
+          if (!sqmsg.ctrl) {
+            free(intlorig);
+            free(intldest);
+            continue;
+          }
+          memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
+          sqmsg.ctrl_len = ctrlstr.str().size();
 
-					sqmsg.ctrl = (char*)malloc(ctrlstr.str().size());
-					if (!sqmsg.ctrl) {
-						continue;
-					}
-					memcpy(sqmsg.ctrl, ctrlstr.str().c_str(), ctrlstr.str().size());
-					sqmsg.ctrl_len = ctrlstr.str().size();
+          sqmsg.msg = (char *)malloc(msgstr.str().size());
+          if (!sqmsg.msg) {
+            free(intlorig);
+            free(intldest);
+            free(sqmsg.ctrl);
+            continue;
+          }
+          memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
+          sqmsg.msg_len = msgstr.str().size();
 
-					sqmsg.msg = (char*)malloc(msgstr.str().size());
-					if (!sqmsg.msg) {
-						free(sqmsg.ctrl);
-						continue;
-					}
-					memcpy(sqmsg.msg, msgstr.str().c_str(), msgstr.str().size());
-					sqmsg.msg_len = msgstr.str().size();
+          sqmsg.xmsg.orig.zone = intlorig->zone;
+          sqmsg.xmsg.orig.net = intlorig->net;
+          sqmsg.xmsg.orig.point = intlorig->point;
+          sqmsg.xmsg.orig.node = intlorig->node;
 
-					sqmsg.xmsg.orig.zone = intlorig->zone;
-					sqmsg.xmsg.orig.net = intlorig->net;
-					sqmsg.xmsg.orig.point = intlorig->point;
-					sqmsg.xmsg.orig.node = intlorig->node;
+          sqmsg.xmsg.dest.zone = intldest->zone;
+          sqmsg.xmsg.dest.net = intldest->net;
+          sqmsg.xmsg.dest.point = intldest->point;
+          sqmsg.xmsg.dest.node = intldest->node;
 
+          strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
+          strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
+          strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
 
-					sqmsg.xmsg.dest.zone = intldest->zone;
-					sqmsg.xmsg.dest.net = intldest->net;
-					sqmsg.xmsg.dest.point = intldest->point;
-					sqmsg.xmsg.dest.node = intldest->node;
+          free(intlorig);
+          free(intldest);
 
-					strncpy(sqmsg.xmsg.subject, subjstr.str().c_str(), 71);
-					strncpy(sqmsg.xmsg.to, tostr.str().c_str(), 35);
-					strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
+          std::tm lt;
 
-					std::tm lt;
+          memset(&lt, 0, sizeof(std::tm));
 
-					datestr >> std::get_time(&lt, "%d %b %y  %H:%M:%S");
-					if (lt.tm_year < 68) {
-						lt.tm_year += 100;
-					}
+          datestr >> std::get_time(&lt, "%d %b %y  %H:%M:%S");
+          if (lt.tm_year < 68) {
+            lt.tm_year += 100;
+          }
 
-					sqmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
-					sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
-					sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
+          sqmsg.xmsg.date_written.date |= (((sq_word)lt.tm_mday) & 31);
+          sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_mon + 1)) & 15) << 5;
+          sqmsg.xmsg.date_written.date |= (((sq_word)(lt.tm_year - 80)) & 127) << 9;
 
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
-					sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_sec) & 31);
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_min) & 63) << 5;
+          sqmsg.xmsg.date_written.time |= (((sq_word)lt.tm_hour) & 31) << 11;
 
-					std::tm at;
+          std::tm at;
 
-					time_t now = time(NULL);
+          time_t now = time(NULL);
 #ifdef _MSC_VER
-					localtime_s(&at, &now);
+          localtime_s(&at, &now);
 #else
-					localtime_r(&now, &at);
+          localtime_r(&now, &at);
 #endif
 
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
-					sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)at.tm_mday) & 31);
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_mon + 1)) & 15) << 5;
+          sqmsg.xmsg.date_arrived.date |= (((sq_word)(at.tm_year - 80)) & 127) << 9;
 
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
-					sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_sec) & 31);
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_min) & 63) << 5;
+          sqmsg.xmsg.date_arrived.time |= (((sq_word)at.tm_hour) & 31) << 11;
 
-					strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
+          strcpy(sqmsg.xmsg.__ftsc_date, datestr.str().c_str());
 
-					sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
+          sqmsg.xmsg.attr = MSGUID | MSGPRIVATE;
 
-					if (found) {
-						if (strcasecmp(sqmsg.xmsg.to, "areafix") == 0 && protinbound) {
-							log.log(LOG_INFO, "It's to areafix!");
-							areafix(&c, &sqmsg);
-						} else if (strcasecmp(sqmsg.xmsg.to, "filefix") == 0 && protinbound) {
-							log.log(LOG_INFO, "It's to filefix!");
-							filefix(&c, &sqmsg);
-						}
-						else {
+          if (found) {
+            if (strcasecmp(sqmsg.xmsg.to, "areafix") == 0 && protinbound) {
+              log.log(LOG_INFO, "It's to areafix!");
+              areafix(&c, &sqmsg);
+            } else if (strcasecmp(sqmsg.xmsg.to, "filefix") == 0 && protinbound) {
+              log.log(LOG_INFO, "It's to filefix!");
+              filefix(&c, &sqmsg);
+            } else {
 
-							sq_msg_base_t* mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+              sq_msg_base_t *mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
 
-							if (mb != NULL) {
-								SquishLockMsgBase(mb);
-								SquishWriteMsg(mb, &sqmsg);
-								SquishUnlockMsgBase(mb);
-								SquishCloseMsgBase(mb);
-								log.log(LOG_INFO, "Added netmail \"%s\" to netmail area", sqmsg.xmsg.subject);
-							}
-							else {
-								log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
-							}
-						}
+              if (mb != NULL) {
+                SquishLockMsgBase(mb);
+                SquishWriteMsg(mb, &sqmsg);
+                SquishUnlockMsgBase(mb);
+                SquishCloseMsgBase(mb);
+                log.log(LOG_INFO, "Added netmail \"%s\" to netmail area", sqmsg.xmsg.subject);
+              } else {
+                log.log(LOG_ERROR, "Unable to open message base! %s", std::string(_msgpath + "/" + c.netmailareas.at(nmarea).file).c_str());
+              }
+            }
 
-					}
-					else if (protinbound) {
-						// if not send it on
-						log.log(LOG_INFO, "Netmail not to us... forwarding.");
+          } else if (protinbound) {
+            // if not send it on
+            log.log(LOG_INFO, "Netmail not to us... forwarding.");
 
-						bool matchedroute = false;
-						for (size_t r = 0; r < c.routes.size(); r++) {
-							if (Scanner::matchroute(c.routes.at(r).route, intldest)) {
-								// found route
-								matchedroute = true;
-								log.log(LOG_INFO, "Netmail not to us... matched route.");
-								// find link relating to route
-								for (size_t l = 0; l < c.links.size(); l++) {
-									if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node && c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
-										if (c.links.at(l).fptr == NULL) {
-											Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), c.links.at(1).ouraka);
-										}
-										Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, &sqmsg, false, c.links.at(l).fptr, c.links.at(l).flavour);
-										log.log(LOG_INFO, "Netmail not to us... wrote packet.");
+            bool matchedroute = false;
+            for (size_t r = 0; r < c.routes.size(); r++) {
+              if (Scanner::matchroute(c.routes.at(r).route, intldest)) {
+                // found route
+                matchedroute = true;
+                log.log(LOG_INFO, "Netmail not to us... matched route.");
+                // find link relating to route
+                for (size_t l = 0; l < c.links.size(); l++) {
+                  if (c.links.at(l).aka->zone == c.routes.at(r).aka->zone && c.links.at(l).aka->node == c.routes.at(r).aka->node &&
+                      c.links.at(l).aka->net == c.routes.at(r).aka->net && c.links.at(l).aka->point == c.routes.at(r).aka->point) {
+                    if (c.links.at(l).fptr == NULL) {
+                      Scanner::initialize_packet(&c.links.at(l), tempdir.u8string(), c.links.at(1).ouraka);
+                    }
+                    Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, &sqmsg, false, c.links.at(l).fptr, c.links.at(l).flavour);
+                    log.log(LOG_INFO, "Netmail not to us... wrote packet.");
 
-										break;
-									}
-								}
-								break;
-							}
-						}
+                    break;
+                  }
+                }
+                break;
+              }
+            }
 
-						if (!matchedroute) {
-							log.log(LOG_ERROR, "Got netmail with no matching routes..");
-						}
-					}
-					else {
-						log.log(LOG_ERROR, "Got netmail not for me in unprotected inbound! Discarding...");
-					}
-					free(sqmsg.msg);
-					free(sqmsg.ctrl);
-				}
-				else if (areatag != "" && !protinbound) {
-					log.log(LOG_ERROR, "Got echomail in unprotected inbound! Discarding...");
-				}
-			}
-			fclose(fptr);
-		}
+            if (!matchedroute) {
+              log.log(LOG_ERROR, "Got netmail with no matching routes..");
+            }
+          } else {
+            log.log(LOG_ERROR, "Got netmail not for me in unprotected inbound! Discarding...");
+          }
+          free(sqmsg.msg);
+          free(sqmsg.ctrl);
+        } else if (areatag != "" && !protinbound) {
+          log.log(LOG_ERROR, "Got echomail in unprotected inbound! Discarding...");
+        }
+      }
+      fclose(fptr);
+    }
 
-		std::filesystem::remove(temp_name);
-	}
-	
+    std::filesystem::remove(temp_name);
+  }
 
-	for (size_t lid = 0; lid < c.links.size(); lid++) {
-		if (c.links.at(lid).fptr != NULL) {
-			char null[2];
-			memset(null, 0, 2);
+  for (size_t lid = 0; lid < c.links.size(); lid++) {
+    if (c.links.at(lid).fptr != NULL) {
+      char null[2];
+      memset(null, 0, 2);
 
-			fwrite(null, 2, 1, c.links.at(lid).fptr);
+      fwrite(null, 2, 1, c.links.at(lid).fptr);
 
-			fclose(c.links.at(lid).fptr);
-			c.links.at(lid).fptr = NULL;
-			// create bundle
-			std::string bundlename = c.packetdir() + "/" + Scanner::get_bundle_name(c.links.at(lid).ouraka, c.links.at(lid).aka, c.packetdir(), c.bundlename_ts(), _datapath);
-			if (bundlename == "") {
-				log.log(LOG_ERROR, "Unable to get bundle name");
-				continue;
-			}
+      fclose(c.links.at(lid).fptr);
+      c.links.at(lid).fptr = NULL;
+      // create bundle
+      std::string bundlename =
+          c.packetdir() + "/" + Scanner::get_bundle_name(c.links.at(lid).ouraka, c.links.at(lid).aka, c.packetdir(), c.bundlename_ts(), _datapath);
+      if (bundlename == "") {
+        log.log(LOG_ERROR, "Unable to get bundle name");
+        continue;
+      }
 
-			for (size_t arc = 0; arc < c.archivers.size(); arc++) {
-				if (strcasecmp(c.archivers.at(arc)->name.c_str(), c.links.at(lid).archiver.c_str()) == 0) {
-					std::vector<std::string> files;
+      for (size_t arc = 0; arc < c.archivers.size(); arc++) {
+        if (strcasecmp(c.archivers.at(arc)->name.c_str(), c.links.at(lid).archiver.c_str()) == 0) {
+          std::vector<std::string> files;
 
-					files.push_back(c.links.at(lid).packetpath.u8string());
+          files.push_back(c.links.at(lid).packetpath.u8string());
 
-					c.archivers.at(arc)->compress(bundlename, files);
-					Scanner::append_flo_file(&c.links.at(lid), &c, bundlename, "ref");
-					break;
-				}
-			}
-		}
-	}
-	std::filesystem::path temppath(_tmppath + "/postie-" + std::to_string(pid));
+          c.archivers.at(arc)->compress(bundlename, files);
+          Scanner::append_flo_file(&c.links.at(lid), &c, bundlename, "ref");
+          break;
+        }
+      }
+    }
+  }
+  std::filesystem::path temppath(_tmppath + "/postie-" + std::to_string(pid));
 
-	std::filesystem::remove_all(temppath);
-    std::filesystem::remove(pidfile);
-	return true;
+  std::filesystem::remove_all(temppath);
+  std::filesystem::remove(pidfile);
+  return true;
 }

@@ -2,10 +2,8 @@
 
 class Node;
 
-class Settings
-{
+class Settings {
 public:
-	Settings();
-	static void do_settings(Node* n);
+  Settings();
+  static void do_settings(Node *n);
 };
-

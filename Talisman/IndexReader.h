@@ -2,9 +2,7 @@
 
 class Node;
 
-class IndexReader
-{
+class IndexReader {
 public:
-	void run(Node* n);
+  void run(Node *n);
 };
-

@@ -3,51 +3,51 @@
 #include <inttypes.h>
 
 struct ftn_addr_t {
-	uint16_t zone;
-	uint16_t net;
-	uint16_t node;
-	uint16_t point;
+  uint16_t zone;
+  uint16_t net;
+  uint16_t node;
+  uint16_t point;
 };
 
 #pragma pack(push, 1)
 struct packet_t {
-	uint16_t orignode;
-	uint16_t destnode;
-	uint16_t year;
-	uint16_t month;
-	uint16_t day;
-	uint16_t hour;
-	uint16_t minute;
-	uint16_t second;
-	uint16_t baud;
-	uint16_t version;
-	uint16_t origNet;
-	uint16_t destNet;
-	uint8_t prodCode;
-	uint8_t prodVersionMajor;
-	char password[8];
-	uint16_t origZone;
-	uint16_t destZone;
-	uint16_t auxNet;
-	uint16_t capValid;
-	uint8_t prodCodeHi;
-	uint8_t prodVersionMinor;
-	uint16_t capWord;
-	uint16_t origZone2;
-	uint16_t destZone2;
-	uint16_t origPoint;
-	uint16_t destPoint;
-	uint32_t prodData;
+  uint16_t orignode;
+  uint16_t destnode;
+  uint16_t year;
+  uint16_t month;
+  uint16_t day;
+  uint16_t hour;
+  uint16_t minute;
+  uint16_t second;
+  uint16_t baud;
+  uint16_t version;
+  uint16_t origNet;
+  uint16_t destNet;
+  uint8_t prodCode;
+  uint8_t prodVersionMajor;
+  char password[8];
+  uint16_t origZone;
+  uint16_t destZone;
+  uint16_t auxNet;
+  uint16_t capValid;
+  uint8_t prodCodeHi;
+  uint8_t prodVersionMinor;
+  uint16_t capWord;
+  uint16_t origZone2;
+  uint16_t destZone2;
+  uint16_t origPoint;
+  uint16_t destPoint;
+  uint32_t prodData;
 };
 
 struct packed_message_t {
-	uint16_t message_type;
-	uint16_t orig_node;
-	uint16_t dest_node;
-	uint16_t orig_net;
-	uint16_t dest_net;
-	uint16_t attribute;
-	uint16_t cost;
+  uint16_t message_type;
+  uint16_t orig_node;
+  uint16_t dest_node;
+  uint16_t orig_net;
+  uint16_t dest_net;
+  uint16_t attribute;
+  uint16_t cost;
 };
 
 #pragma pack(pop)

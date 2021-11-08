@@ -6,28 +6,27 @@
 class Node;
 
 struct menuitem_t {
-	std::string command;
-	std::string data;
-	std::string hotkey;
-	int sec_level = 0;
+  std::string command;
+  std::string data;
+  std::string hotkey;
+  int sec_level = 0;
 };
 
-class Menu
-{
+class Menu {
 public:
-	Menu(Node *n);
+  Menu(Node *n);
 
-	bool load(std::string filename);
-	bool run();
+  bool load(std::string filename);
+  bool run();
 
 private:
-	static void bwave_down(Node* n);
-    static void bwave_up(Node *n);
-	static void qwk_down(Node* n);
-	static void qwk_up(Node* n);
-	std::string gfile;
-	std::string prompt;
-	std::vector<struct menuitem_t> items;
-	bool isloaded;
-	Node* n;
+  static void bwave_down(Node *n);
+  static void bwave_up(Node *n);
+  static void qwk_down(Node *n);
+  static void qwk_up(Node *n);
+  std::string gfile;
+  std::string prompt;
+  std::vector<struct menuitem_t> items;
+  bool isloaded;
+  Node *n;
 };

@@ -2,12 +2,12 @@
 //
 #ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
 #include <WinSock2.h>
+#include <Windows.h>
 #else
-#include <unistd.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 #include <iostream>
@@ -15,64 +15,59 @@
 
 #include "Request.h"
 
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    std::cout << "Do not call directly..." << std::endl;
+    exit(-1);
+  }
+  int socket = strtol(argv[1], NULL, 10);
 
-int main(int argc, char** argv)
-{
-    if (argc < 2) {
-        std::cout << "Do not call directly..." << std::endl;
-        exit(-1);
-    }
-    int socket = strtol(argv[1], NULL, 10);
-    
-    std::stringstream ss;
+  std::stringstream ss;
 
 #ifdef _MSC_VER
-    WSADATA wsaData;
+  WSADATA wsaData;
 
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cerr << "Error initializing winsock!" << std::endl;
-        return -1;
-    }
+  if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+    std::cerr << "Error initializing winsock!" << std::endl;
+    return -1;
+  }
 #endif
 
-    while (true) {
-        char c;
+  while (true) {
+    char c;
 
-        int ret = recv(socket, &c, 1, 0);
+    int ret = recv(socket, &c, 1, 0);
 
-        if (ret == 0) {
+    if (ret == 0) {
 #ifdef _MSC_VER
-            closesocket(socket);
-            WSACleanup();
+      closesocket(socket);
+      WSACleanup();
 #else
-            close(socket);
+      close(socket);
 #endif
-            return 0;
-        }
-        else if (ret == -1) {
+      return 0;
+    } else if (ret == -1) {
 #ifdef _MSC_VER
-            closesocket(socket);
-            WSACleanup();
+      closesocket(socket);
+      WSACleanup();
 #else
-            close(socket);
+      close(socket);
 #endif
-            return 0;
-        }
-        if (c == '\n') {
-            Request r;
-
-            r.dorequest(socket, ss.str());
-#ifdef _MSC_VER
-            closesocket(socket);
-            WSACleanup();
-#else
-            close(socket);
-#endif
-            exit(0);
-        }
-        else if (c != '\r') {
-            ss << c;
-        }
-
+      return 0;
     }
+    if (c == '\n') {
+      Request r;
+
+      r.dorequest(socket, ss.str());
+#ifdef _MSC_VER
+      closesocket(socket);
+      WSACleanup();
+#else
+      close(socket);
+#endif
+      exit(0);
+    } else if (c != '\r') {
+      ss << c;
+    }
+  }
 }

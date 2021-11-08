@@ -155,94 +155,94 @@ typedef unsigned int tDWORD;  /* 32 bit unsigned values */
 
 typedef struct /*  INF_HEADER  */
 {
-	tBYTE ver;                /* Packet version type (currently 2)        */
-	tBYTE readerfiles[5][13]; /* Files to be displayed by reader          */
-	tBYTE regnum[9];          /* User's registration number               */
-	tBYTE mashtype;           /* Currently unused (door fills with 0)     */
-	                          /*   Reserved for Blue Wave reader to store */
-	                          /*   the compression type the packet uses.  */
-	tBYTE loginname[43];      /* Name user types at BBS login             */
-	tBYTE aliasname[43];      /* User's "other" name                      */
-	tBYTE password[21];       /* Password                                 */
-	                          /*   All bytes should be the actually ASCII */
-	                          /*   value plus 10.  Lame security, yes,    */
-	                          /*   but it does prevent "TYPE *.INF" from  */
-	                          /*   showing the password.                  */
-	tBYTE passtype;           /* Password type                            */
-	                          /*   0=none 1=door 2=reader 3=both          */
-	tWORD zone;               /* Main network address of host BBS         */
-	tWORD net;                /*   (zone:net/node.point)                  */
-	tWORD node;
-	tWORD point;
-	tBYTE sysop[41];        /* Name of SysOp of host BBS                */
-	tWORD ctrl_flags;       /* Flags to control reader capabilities     */
-	                        /*   (* VERSION 3 AND LATER ONLY *)         */
-	tBYTE systemname[65];   /* Name of host BBS                         */
-	tBYTE maxfreqs;         /* Max number of file requests allowed      */
-	tWORD is_QWK;           /* Whether *.INF belongs to a QWK packet    */
-	tBYTE obsolete2[4];     /* OBSOLETE -- DO NOT USE!                  */
-	tWORD uflags;           /* Bit-mapped door options/toggles          */
-	tBYTE keywords[10][21]; /* User's entire set of door keywords       */
-	tBYTE filters[10][21];  /* User's entire set of door filters        */
-	tBYTE macros[3][80];    /* User's door bundling command macros      */
-	tWORD netmail_flags;    /* Bit-mapped NetMail options               */
-	tWORD credits;          /* NetMail credits                          */
-	tWORD debits;           /* NetMail debits                           */
-	tBYTE can_forward;      /* 0=Message forwarding not allowed         */
-	tWORD inf_header_len;   /* Size of INF_HEADER structure             */
-	tWORD inf_areainfo_len; /* Size of INF_AREA_INFO structure          */
-	tWORD mix_structlen;    /* Size of MIX_REC structure                */
-	tWORD fti_structlen;    /* Size of FTI_REC structure                */
-	tBYTE uses_upl_file;    /* If this field is not zero, the door that */
-	                        /*   created this packet can receive reply  */
-	                        /*   packets in the new *.UPL file format.  */
-	                        /*   Otherwise, the old *.UPI and *.NET     */
-	                        /*   files must be used.                    */
-	tBYTE from_to_len;      /* The maximum length of the FROM: and TO:  */
-	                        /*   fields that the host BBS can support.  */
-	                        /*   If this value is 0 or is greater than  */
-	                        /*   35, then 35 must be used (the upload   */
-	                        /*   file formats only allow for a maximum  */
-	                        /*   of 35 characters).                     */
-	tBYTE subject_len;      /* The maximum length of the SUBJECT: field */
-	                        /*   that the host BBS can support.  If     */
-	                        /*   this value is 0 or is greater than 71, */
-	                        /*   then 71 must be used (the upload file  */
-	                        /*   formats only allow for a maximum of 71 */
-	                        /*   characters).                           */
-	tBYTE packet_id[9];     /* Original root name of the mail packet,   */
-	                        /*   as specified by the mail door.  All    */
-	                        /*   files in the packet that are created   */
-	                        /*   by the mail door will use this root    */
-	                        /*   name, as will the reader when creating */
-	                        /*   the upload files.  Thus, even if the   */
-	                        /*   packets themselves are renamed to      */
-	                        /*   something completely different, the    */
-	                        /*   mail doors and readers will still be   */
-	                        /*   able to work with the proper files.    */
-	tBYTE file_list_type;   /* New file listing type                    */
-	                        /* (* VERSION 3 AND LATER ONLY *)           */
-	                        /*   Specifies the type of new file list    */
-	                        /*   that is generated by the door (see     */
-	                        /*   INF_FLIST_xxx, above).  This field is  */
-	                        /*   intended for use with offline config.  */
-	tBYTE auto_macro[3];    /* Auto-macro indicator flags               */
-	                        /* (* VERSION 3 AND LATER ONLY *)           */
-	                        /*   Specifies which macros are auto macros */
-	                        /*   (i.e. execute automatically after mail */
-	                        /*   is scanned).                           */
-	tINT max_packet_size;   /* Maximum size of uncompressed packet      */
-	                        /* (* VERSION 3 AND LATER ONLY *)           */
-	                        /*   Specifies, in K, the maximum size of   */
-	                        /*   an uncompressed mail packet.  A value  */
-	                        /*   of 0 indicates no maximum length.      */
-	                        /*   This field is intended for use with    */
-	                        /*   offline config.                        */
-	tBYTE reserved[228];    /* RESERVED FOR FUTURE USE                  */
-	                        /*   This field MUST be filled with ASCII   */
-	                        /*   NUL (0x00) characters in order for     */
-	                        /*   future additional features to work     */
-	                        /*   properly!                              */
+  tBYTE ver;                /* Packet version type (currently 2)        */
+  tBYTE readerfiles[5][13]; /* Files to be displayed by reader          */
+  tBYTE regnum[9];          /* User's registration number               */
+  tBYTE mashtype;           /* Currently unused (door fills with 0)     */
+                            /*   Reserved for Blue Wave reader to store */
+                            /*   the compression type the packet uses.  */
+  tBYTE loginname[43];      /* Name user types at BBS login             */
+  tBYTE aliasname[43];      /* User's "other" name                      */
+  tBYTE password[21];       /* Password                                 */
+                            /*   All bytes should be the actually ASCII */
+                            /*   value plus 10.  Lame security, yes,    */
+                            /*   but it does prevent "TYPE *.INF" from  */
+                            /*   showing the password.                  */
+  tBYTE passtype;           /* Password type                            */
+                            /*   0=none 1=door 2=reader 3=both          */
+  tWORD zone;               /* Main network address of host BBS         */
+  tWORD net;                /*   (zone:net/node.point)                  */
+  tWORD node;
+  tWORD point;
+  tBYTE sysop[41];        /* Name of SysOp of host BBS                */
+  tWORD ctrl_flags;       /* Flags to control reader capabilities     */
+                          /*   (* VERSION 3 AND LATER ONLY *)         */
+  tBYTE systemname[65];   /* Name of host BBS                         */
+  tBYTE maxfreqs;         /* Max number of file requests allowed      */
+  tWORD is_QWK;           /* Whether *.INF belongs to a QWK packet    */
+  tBYTE obsolete2[4];     /* OBSOLETE -- DO NOT USE!                  */
+  tWORD uflags;           /* Bit-mapped door options/toggles          */
+  tBYTE keywords[10][21]; /* User's entire set of door keywords       */
+  tBYTE filters[10][21];  /* User's entire set of door filters        */
+  tBYTE macros[3][80];    /* User's door bundling command macros      */
+  tWORD netmail_flags;    /* Bit-mapped NetMail options               */
+  tWORD credits;          /* NetMail credits                          */
+  tWORD debits;           /* NetMail debits                           */
+  tBYTE can_forward;      /* 0=Message forwarding not allowed         */
+  tWORD inf_header_len;   /* Size of INF_HEADER structure             */
+  tWORD inf_areainfo_len; /* Size of INF_AREA_INFO structure          */
+  tWORD mix_structlen;    /* Size of MIX_REC structure                */
+  tWORD fti_structlen;    /* Size of FTI_REC structure                */
+  tBYTE uses_upl_file;    /* If this field is not zero, the door that */
+                          /*   created this packet can receive reply  */
+                          /*   packets in the new *.UPL file format.  */
+                          /*   Otherwise, the old *.UPI and *.NET     */
+                          /*   files must be used.                    */
+  tBYTE from_to_len;      /* The maximum length of the FROM: and TO:  */
+                          /*   fields that the host BBS can support.  */
+                          /*   If this value is 0 or is greater than  */
+                          /*   35, then 35 must be used (the upload   */
+                          /*   file formats only allow for a maximum  */
+                          /*   of 35 characters).                     */
+  tBYTE subject_len;      /* The maximum length of the SUBJECT: field */
+                          /*   that the host BBS can support.  If     */
+                          /*   this value is 0 or is greater than 71, */
+                          /*   then 71 must be used (the upload file  */
+                          /*   formats only allow for a maximum of 71 */
+                          /*   characters).                           */
+  tBYTE packet_id[9];     /* Original root name of the mail packet,   */
+                          /*   as specified by the mail door.  All    */
+                          /*   files in the packet that are created   */
+                          /*   by the mail door will use this root    */
+                          /*   name, as will the reader when creating */
+                          /*   the upload files.  Thus, even if the   */
+                          /*   packets themselves are renamed to      */
+                          /*   something completely different, the    */
+                          /*   mail doors and readers will still be   */
+                          /*   able to work with the proper files.    */
+  tBYTE file_list_type;   /* New file listing type                    */
+                          /* (* VERSION 3 AND LATER ONLY *)           */
+                          /*   Specifies the type of new file list    */
+                          /*   that is generated by the door (see     */
+                          /*   INF_FLIST_xxx, above).  This field is  */
+                          /*   intended for use with offline config.  */
+  tBYTE auto_macro[3];    /* Auto-macro indicator flags               */
+                          /* (* VERSION 3 AND LATER ONLY *)           */
+                          /*   Specifies which macros are auto macros */
+                          /*   (i.e. execute automatically after mail */
+                          /*   is scanned).                           */
+  tINT max_packet_size;   /* Maximum size of uncompressed packet      */
+                          /* (* VERSION 3 AND LATER ONLY *)           */
+                          /*   Specifies, in K, the maximum size of   */
+                          /*   an uncompressed mail packet.  A value  */
+                          /*   of 0 indicates no maximum length.      */
+                          /*   This field is intended for use with    */
+                          /*   offline config.                        */
+  tBYTE reserved[228];    /* RESERVED FOR FUTURE USE                  */
+                          /*   This field MUST be filled with ASCII   */
+                          /*   NUL (0x00) characters in order for     */
+                          /*   future additional features to work     */
+                          /*   properly!                              */
 } INF_HEADER;
 
 #pragma pack(pop)
@@ -408,11 +408,11 @@ typedef struct /*  INF_HEADER  */
 
 typedef struct /*  INF_AREA_INFO  */
 {
-	tBYTE areanum[6];   /* Area number this record corresponds to  */
-	tBYTE echotag[21];  /* Area tag name (*.BRD name for Telegard) */
-	tBYTE title[50];    /* Area description/title                  */
-	tWORD area_flags;   /* Bit-mapped area options                 */
-	tBYTE network_type; /* Network mail type (see above)           */
+  tBYTE areanum[6];   /* Area number this record corresponds to  */
+  tBYTE echotag[21];  /* Area tag name (*.BRD name for Telegard) */
+  tBYTE title[50];    /* Area description/title                  */
+  tWORD area_flags;   /* Bit-mapped area options                 */
+  tBYTE network_type; /* Network mail type (see above)           */
 } INF_AREA_INFO;
 
 #pragma pack(pop)
@@ -431,15 +431,15 @@ typedef struct /*  INF_AREA_INFO  */
 **                  ...
 */
 
-#pragma pack(push , 1)
+#pragma pack(push, 1)
 typedef struct /*  MIX_REC  */
 {
-	tBYTE areanum[6]; /* Area number this record corresponds to         */
-	                  /*   This is the ASCII representation of the      */
-	                  /*   actual area number shown on the host BBS.    */
-	tWORD totmsgs;    /* Total number of messages for this area         */
-	tWORD numpers;    /* Total number of personal messages in this area */
-	tLONG msghptr;    /* Pointer to first message header in *.FTI file  */
+  tBYTE areanum[6]; /* Area number this record corresponds to         */
+                    /*   This is the ASCII representation of the      */
+                    /*   actual area number shown on the host BBS.    */
+  tWORD totmsgs;    /* Total number of messages for this area         */
+  tWORD numpers;    /* Total number of personal messages in this area */
+  tLONG msghptr;    /* Pointer to first message header in *.FTI file  */
 } MIX_REC;
 #pragma pack(pop)
 /*---------------------------------------------------------------------------*/
@@ -481,38 +481,37 @@ typedef struct /*  MIX_REC  */
 #define FTI_MSGUNUSED2 0x4000   /*                                      */
 #define FTI_MSGURQ 0x8000       /* Update Request = Req updated file(s) */
 
-
 #pragma pack(push, 1)
 typedef struct /*  FTI_REC  */
 {
-	tBYTE from[36];    /* Person message is from                       */
-	tBYTE to[36];      /* Person message is to                         */
-	tBYTE subject[72]; /* Subject/title of message                     */
-	tBYTE date[20];    /* Origin date of message                       */
-	                   /*   Depending on the host BBS's date storage   */
-	                   /*   format, the EXACT format of this field     */
-	                   /*   will change.  Some will take all 19 bytes, */
-	                   /*   others may take only 10.                   */
-	tWORD msgnum;      /* Number of THIS message on BBS                */
-	tWORD replyto;     /* "This is a reply to #xx"                     */
-	                   /*   Not used for every message.  When non-     */
-	                   /*   zero, there is a previous message in       */
-	                   /*   the thread.                                */
-	tWORD replyat;     /* "There is a reply at #xx"                    */
-	                   /*   Not used for every message.  When non-     */
-	                   /*   zero, there is a reply to this message.    */
-	tLONG msgptr;      /* Offset to start of message in *.DAT file     */
-	                   /*   Seek to this exact offset in the *.DAT     */
-	                   /*   file, then read "msglength" bytes from     */
-	                   /*   the file to load the entire message text.  */
-	tLONG msglength;   /* Length of message text (in bytes)            */
-	tWORD flags;       /* Bit-mapped message status flags              */
-	tWORD orig_zone;   /* Origin address of message                    */
-	                   /*   These three fields will most likely be 0,  */
-	                   /*   unless the current message belongs to a    */
-	                   /*   NetMail message base.                      */
-	tWORD orig_net;
-	tWORD orig_node;
+  tBYTE from[36];    /* Person message is from                       */
+  tBYTE to[36];      /* Person message is to                         */
+  tBYTE subject[72]; /* Subject/title of message                     */
+  tBYTE date[20];    /* Origin date of message                       */
+                     /*   Depending on the host BBS's date storage   */
+                     /*   format, the EXACT format of this field     */
+                     /*   will change.  Some will take all 19 bytes, */
+                     /*   others may take only 10.                   */
+  tWORD msgnum;      /* Number of THIS message on BBS                */
+  tWORD replyto;     /* "This is a reply to #xx"                     */
+                     /*   Not used for every message.  When non-     */
+                     /*   zero, there is a previous message in       */
+                     /*   the thread.                                */
+  tWORD replyat;     /* "There is a reply at #xx"                    */
+                     /*   Not used for every message.  When non-     */
+                     /*   zero, there is a reply to this message.    */
+  tLONG msgptr;      /* Offset to start of message in *.DAT file     */
+                     /*   Seek to this exact offset in the *.DAT     */
+                     /*   file, then read "msglength" bytes from     */
+                     /*   the file to load the entire message text.  */
+  tLONG msglength;   /* Length of message text (in bytes)            */
+  tWORD flags;       /* Bit-mapped message status flags              */
+  tWORD orig_zone;   /* Origin address of message                    */
+                     /*   These three fields will most likely be 0,  */
+                     /*   unless the current message belongs to a    */
+                     /*   NetMail message base.                      */
+  tWORD orig_net;
+  tWORD orig_node;
 } FTI_REC;
 
 #pragma pack(pop)
@@ -586,29 +585,29 @@ typedef struct /*  FTI_REC  */
 
 typedef struct /*  MSG_REC (will soon be obsolete)  */
 {
-	tBYTE from[36]; /* Person message is from                           */
-	tBYTE to[36];   /* Person message is to                             */
-	tBYTE subj[72]; /* Subject/title of message                         */
-	tBYTE date[20]; /* Creation date/time                               */
-	                /*   This date/time is usually in either of the     */
-	                /*   Fido-sanctioned formats "DD MMM YY  HH:MM:SS"  */
-	                /*   or "WWW DD MMM YY HH:MM", but due to the       */
-	                /*   chaotic nature of FidoNet-compatible software, */
-	                /*   this CANNOT be relied upon!                    */
-	tWORD times;    /* Number of times read (fairly obsolete)           */
-	tWORD dest;     /* Destination node (of net/node)                   */
-	tWORD orig;     /* Origin node (of net/node)                        */
-	tWORD cost;     /* Cost of sending message (usually in US cents)    */
-	tWORD orig_net; /* Origin net (of net/node)                         */
-	tWORD destnet;  /* Destination net (of net/node)                    */
-	tLONG unused1;  /* Undefined                                        */
-	tLONG unused2;  /*   Some software (Opus and Maximus, for example)  */
-	                /*   uses these fields to store the sent/received   */
-	                /*   date/time as bit-packed fields, using the same */
-	                /*   format used in MS-DOS directory entries.       */
-	tWORD reply;    /* Message # that this message replies to           */
-	tWORD attr;     /* Message attributes and behavior flags            */
-	tWORD up;       /* Message # that replies to this message           */
+  tBYTE from[36]; /* Person message is from                           */
+  tBYTE to[36];   /* Person message is to                             */
+  tBYTE subj[72]; /* Subject/title of message                         */
+  tBYTE date[20]; /* Creation date/time                               */
+                  /*   This date/time is usually in either of the     */
+                  /*   Fido-sanctioned formats "DD MMM YY  HH:MM:SS"  */
+                  /*   or "WWW DD MMM YY HH:MM", but due to the       */
+                  /*   chaotic nature of FidoNet-compatible software, */
+                  /*   this CANNOT be relied upon!                    */
+  tWORD times;    /* Number of times read (fairly obsolete)           */
+  tWORD dest;     /* Destination node (of net/node)                   */
+  tWORD orig;     /* Origin node (of net/node)                        */
+  tWORD cost;     /* Cost of sending message (usually in US cents)    */
+  tWORD orig_net; /* Origin net (of net/node)                         */
+  tWORD destnet;  /* Destination net (of net/node)                    */
+  tLONG unused1;  /* Undefined                                        */
+  tLONG unused2;  /*   Some software (Opus and Maximus, for example)  */
+                  /*   uses these fields to store the sent/received   */
+                  /*   date/time as bit-packed fields, using the same */
+                  /*   format used in MS-DOS directory entries.       */
+  tWORD reply;    /* Message # that this message replies to           */
+  tWORD attr;     /* Message attributes and behavior flags            */
+  tWORD up;       /* Message # that replies to this message           */
 } MSG_REC;
 
 #pragma pack(pop)
@@ -664,8 +663,8 @@ typedef struct /*  MSG_REC (will soon be obsolete)  */
 
 typedef struct /*  XTI_REC  */
 {
-	tBYTE flags; /* Bit-mapped message flags   */
-	tBYTE marks; /* Bit-mapped message markers */
+  tBYTE flags; /* Bit-mapped message flags   */
+  tBYTE marks; /* Bit-mapped message markers */
 } XTI_REC;
 
 #pragma pack(pop)
@@ -696,16 +695,16 @@ typedef struct /*  XTI_REC  */
 #pragma pack(push, 1)
 typedef struct /*  NET_REC  */
 {
-	MSG_REC msg;       /* The Fido-style *.MSG header                */
-	tBYTE fname[13];   /* Filename the message text is in            */
-	tBYTE echotag[21]; /* NetMail area tag (*.BRD name for Telegard) */
-	tWORD zone;        /* Destination zone (of zone:net/node.point)  */
-	tWORD point;       /* Destination point (of zone:net/node.point) */
-	tLONG unix_date;   /* Date/time of message                       */
-	                   /*   This Unix-style date/time value (number  */
-	                   /*   of seconds since 01/01/70) is converted  */
-	                   /*   to the date/time storage method used by  */
-	                   /*   the host BBS.                            */
+  MSG_REC msg;       /* The Fido-style *.MSG header                */
+  tBYTE fname[13];   /* Filename the message text is in            */
+  tBYTE echotag[21]; /* NetMail area tag (*.BRD name for Telegard) */
+  tWORD zone;        /* Destination zone (of zone:net/node.point)  */
+  tWORD point;       /* Destination point (of zone:net/node.point) */
+  tLONG unix_date;   /* Date/time of message                       */
+                     /*   This Unix-style date/time value (number  */
+                     /*   of seconds since 01/01/70) is converted  */
+                     /*   to the date/time storage method used by  */
+                     /*   the host BBS.                            */
 } NET_REC;
 #pragma pack(pop)
 /*---------------------------------------------------------------------------*/
@@ -734,21 +733,21 @@ typedef struct /*  NET_REC  */
 
 typedef struct /*  UPI_HEADER  */
 {
-	tBYTE regnum[9];  /* Reader registration number                   */
-	tBYTE vernum[13]; /* Reader version number                        */
-	                  /*   All bytes should be the actually ASCII     */
-	                  /*   value plus 10.  Lame security, yes, but it */
-	                  /*   does prevent "TYPE *.UPI" from showing the */
-	                  /*   version number.                            */
-	tBYTE future[33]; /* RESERVED FOR FUTURE USE                      */
+  tBYTE regnum[9];  /* Reader registration number                   */
+  tBYTE vernum[13]; /* Reader version number                        */
+                    /*   All bytes should be the actually ASCII     */
+                    /*   value plus 10.  Lame security, yes, but it */
+                    /*   does prevent "TYPE *.UPI" from showing the */
+                    /*   version number.                            */
+  tBYTE future[33]; /* RESERVED FOR FUTURE USE                      */
 #ifdef PAD_SIZES_EVEN
-	tBYTE evenpad; /* If your compiler pads structures out to even */
-	               /*   numbered sizes, define PAD_SIZES_EVEN      */
-	               /*   before including this header.  When the    */
-	               /*   *.UPI file is written, be sure to write    */
-	               /*   sizeof(UPI_HEADER) - 1 bytes, otherwise    */
-	               /*   your compiler may insert an extra byte not */
-	               /*   explicitly specified here.                 */
+  tBYTE evenpad; /* If your compiler pads structures out to even */
+                 /*   numbered sizes, define PAD_SIZES_EVEN      */
+                 /*   before including this header.  When the    */
+                 /*   *.UPI file is written, be sure to write    */
+                 /*   sizeof(UPI_HEADER) - 1 bytes, otherwise    */
+                 /*   your compiler may insert an extra byte not */
+                 /*   explicitly specified here.                 */
 #endif
 } UPI_HEADER;
 #pragma pack(pop)
@@ -772,21 +771,21 @@ typedef struct /*  UPI_HEADER  */
 
 typedef struct /*  UPI_REC  */
 {
-	tBYTE from[36];    /* Person message is from                     */
-	tBYTE to[36];      /* Person message is to                       */
-	tBYTE subj[72];    /* Subject/title of message                   */
-	tLONG unix_date;   /* Date/time of message                       */
-	                   /*   This Unix-style date/time value (number  */
-	                   /*   of seconds since 01/01/70) is converted  */
-	                   /*   to the date/time storage method used by  */
-	                   /*   the host BBS.                            */
-	tBYTE fname[13];   /* Filename the message text is in            */
-	tBYTE echotag[21]; /* Area tag name (*.BRD name for Telegard)    */
-	tBYTE flags;       /* Bit-mapped flags                           */
-	tBYTE reedit;      /* INTERNAL USE ONLY!                         */
-	                   /*   This flag is used internally by the Blue */
-	                   /*   Wave reader.  Doors should ignore this   */
-	                   /*   field during reply packet processing.    */
+  tBYTE from[36];    /* Person message is from                     */
+  tBYTE to[36];      /* Person message is to                       */
+  tBYTE subj[72];    /* Subject/title of message                   */
+  tLONG unix_date;   /* Date/time of message                       */
+                     /*   This Unix-style date/time value (number  */
+                     /*   of seconds since 01/01/70) is converted  */
+                     /*   to the date/time storage method used by  */
+                     /*   the host BBS.                            */
+  tBYTE fname[13];   /* Filename the message text is in            */
+  tBYTE echotag[21]; /* Area tag name (*.BRD name for Telegard)    */
+  tBYTE flags;       /* Bit-mapped flags                           */
+  tBYTE reedit;      /* INTERNAL USE ONLY!                         */
+                     /*   This flag is used internally by the Blue */
+                     /*   Wave reader.  Doors should ignore this   */
+                     /*   field during reply packet processing.    */
 } UPI_REC;
 #pragma pack(pop)
 /*---------------------------------------------------------------------------*/
@@ -811,69 +810,68 @@ typedef struct /*  UPI_REC  */
 **                  ...
 */
 
-
 #pragma pack(push, 1)
 typedef struct /*  UPL_HEADER  */
 {
-	tBYTE regnum[10];      /* Reader registration number (if desired)      */
-	tBYTE vernum[20];      /* Reader version number as a string.           */
-	                       /*   All bytes should be the actually ASCII     */
-	                       /*   value plus 10.  Lame security, yes, but it */
-	                       /*   does prevent "TYPE *.UPL" from showing the */
-	                       /*   version number.                            */
-	                       /*   Examples:  "2.10a Beta"                    */
-	                       /*              "2.11"                          */
-	tBYTE reader_major;    /* Major version of the reader (number to the   */
-	                       /*   left of the decimal point)                 */
-	tBYTE reader_minor;    /* Minor version of the reader (number to the   */
-	                       /*   right of the decimal point)                */
-	tBYTE reader_name[80]; /* String containing name of the reader, such   */
-	                       /*   as "The Blue Wave Offline Mail Reader".    */
-	                       /*   This is provided for door programmers that */
-	                       /*   wish to display the name of the reader     */
-	                       /*   that created the reply packet.  (Filling   */
-	                       /*   it is mandatory but using it is optional.) */
-	tWORD upl_header_len;  /* Size of UPL_HEADER structure                 */
-	tWORD upl_rec_len;     /* Size of UPL_REC structure                    */
-	                       /*   NOTE:  Refer to the INF_HEADER section for */
-	                       /*          more information on using the size  */
-	                       /*          fields.                             */
-	tBYTE loginname[44];   /* Name found in INF_HEADER.LOGINNAME.  This is */
-	                       /*   provided for door authors as a security    */
-	                       /*   measure to implement as they wish.         */
-	tBYTE aliasname[44];   /* Name found in INF_HEADER.ALIASNAME           */
-	tBYTE reader_tear[16]; /* String containing abbreviated name of the    */
-	                       /*   reader, such as "Blue Wave", "Q-Blue",     */
-	                       /*   "Wave Rider", etc.  This is provided for   */
-	                       /*   doors programmers that wish to add to the  */
-	                       /*   tear line the name of the reader that      */
-	                       /*   created the reply packet.  (Filling it is  */
-	                       /*   mandatory but using it is optional.)  If   */
-	                       /*   this field is blank, the tear line to be   */
-	                       /*   generated is left to the discretion of the */
-	                       /*   door author.                               */
-	tBYTE compress_type;   /* Compression type required for mail packet    */
-	                       /*   The Blue Wave reader uses this internally  */
-	                       /*   to store the compression type required for */
-	                       /*   this particular mail packet.               */
-	tBYTE flags;           /* Reader processing flags                      */
-	                       /*   The Blue Wave reader uses this internally  */
-	                       /*   to store flags required for later          */
-	                       /*   processing.                                */
-	                       /*     0x01 = Was a .QWK packet.                */
-	                       /*     0x02 = Host requires a *.UPI file        */
-	tBYTE not_registered;  /* Reader is not registered to user             */
-	                       /*   If this byte is set to a non-zero value,   */
-	                       /*   the Blue Wave doors will assume that the   */
-	                       /*   user's reader was not registered, and will */
-	                       /*   place "[NR]" at the end of the tear line.  */
-	                       /*   Third-party doors may use this flag for    */
-	                       /*   the same purpose; its use is optional by   */
-	                       /*   mail readers (especially if you don't care */
-	                       /*   whether or not "[NR]" shows up on the tear */
-	                       /*   line <grin>).                              */
-	tBYTE pad[33];         /* RESERVED FOR FUTURE USE, and to pad struct   */
-	                       /*   out to a 'nice' 256 bytes                  */
+  tBYTE regnum[10];      /* Reader registration number (if desired)      */
+  tBYTE vernum[20];      /* Reader version number as a string.           */
+                         /*   All bytes should be the actually ASCII     */
+                         /*   value plus 10.  Lame security, yes, but it */
+                         /*   does prevent "TYPE *.UPL" from showing the */
+                         /*   version number.                            */
+                         /*   Examples:  "2.10a Beta"                    */
+                         /*              "2.11"                          */
+  tBYTE reader_major;    /* Major version of the reader (number to the   */
+                         /*   left of the decimal point)                 */
+  tBYTE reader_minor;    /* Minor version of the reader (number to the   */
+                         /*   right of the decimal point)                */
+  tBYTE reader_name[80]; /* String containing name of the reader, such   */
+                         /*   as "The Blue Wave Offline Mail Reader".    */
+                         /*   This is provided for door programmers that */
+                         /*   wish to display the name of the reader     */
+                         /*   that created the reply packet.  (Filling   */
+                         /*   it is mandatory but using it is optional.) */
+  tWORD upl_header_len;  /* Size of UPL_HEADER structure                 */
+  tWORD upl_rec_len;     /* Size of UPL_REC structure                    */
+                         /*   NOTE:  Refer to the INF_HEADER section for */
+                         /*          more information on using the size  */
+                         /*          fields.                             */
+  tBYTE loginname[44];   /* Name found in INF_HEADER.LOGINNAME.  This is */
+                         /*   provided for door authors as a security    */
+                         /*   measure to implement as they wish.         */
+  tBYTE aliasname[44];   /* Name found in INF_HEADER.ALIASNAME           */
+  tBYTE reader_tear[16]; /* String containing abbreviated name of the    */
+                         /*   reader, such as "Blue Wave", "Q-Blue",     */
+                         /*   "Wave Rider", etc.  This is provided for   */
+                         /*   doors programmers that wish to add to the  */
+                         /*   tear line the name of the reader that      */
+                         /*   created the reply packet.  (Filling it is  */
+                         /*   mandatory but using it is optional.)  If   */
+                         /*   this field is blank, the tear line to be   */
+                         /*   generated is left to the discretion of the */
+                         /*   door author.                               */
+  tBYTE compress_type;   /* Compression type required for mail packet    */
+                         /*   The Blue Wave reader uses this internally  */
+                         /*   to store the compression type required for */
+                         /*   this particular mail packet.               */
+  tBYTE flags;           /* Reader processing flags                      */
+                         /*   The Blue Wave reader uses this internally  */
+                         /*   to store flags required for later          */
+                         /*   processing.                                */
+                         /*     0x01 = Was a .QWK packet.                */
+                         /*     0x02 = Host requires a *.UPI file        */
+  tBYTE not_registered;  /* Reader is not registered to user             */
+                         /*   If this byte is set to a non-zero value,   */
+                         /*   the Blue Wave doors will assume that the   */
+                         /*   user's reader was not registered, and will */
+                         /*   place "[NR]" at the end of the tear line.  */
+                         /*   Third-party doors may use this flag for    */
+                         /*   the same purpose; its use is optional by   */
+                         /*   mail readers (especially if you don't care */
+                         /*   whether or not "[NR]" shows up on the tear */
+                         /*   line <grin>).                              */
+  tBYTE pad[33];         /* RESERVED FOR FUTURE USE, and to pad struct   */
+                         /*   out to a 'nice' 256 bytes                  */
 } UPL_HEADER;
 #pragma pack(pop)
 
@@ -945,97 +943,97 @@ typedef struct /*  UPL_HEADER  */
 #pragma pack(push, 1)
 typedef struct /*  UPL_REC  */
 {
-	tBYTE from[36]; /* Person message is from                        */
-	                /*   NOTE: Doors should validate this field!     */
-	tBYTE to[36];   /* Person message is to (non-Internet)           */
-	                /*   For Internet E-mail, the NET_DEST field     */
-	                /*   should be used to store the destination     */
-	                /*   name/address, leaving this field blank.     */
-	                /*   For Usenet newsgroups, this field should be */
-	                /*   left blank, as newsgroups don't use a "To:" */
-	                /*   field.                                      */
-	tBYTE subj[72]; /* Subject/Title of message                      */
-	tWORD destzone; /* Destination address (FidoNet only)            */
-	                /*   If the message is not a FidoNet NetMail     */
-	                /*   message, this field (and the subsequent     */
-	                /*   three fields as well) should be set to      */
-	                /*   zero.                                       */
-	tWORD destnet;
-	tWORD destnode;
-	tWORD destpoint;
-	tWORD msg_attr;      /* Bit-mapped message attributes                 */
-	tWORD netmail_attr;  /* Bit-mapped NetMail attributes (FidoNet only)  */
-	                     /*   If the message is not a FidoNet NetMail     */
-	                     /*   message, this field should not be used.     */
-	tLONG unix_date;     /* Date/time of message                          */
-	                     /*   This Unix-style date/time value (number     */
-	                     /*   of seconds since 01/01/70) is converted to  */
-	                     /*   the date/time storage method used by the    */
-	                     /*   host BBS.                                   */
-	tDWORD replyto;      /* This unsigned long word stores the message #  */
-	                     /*   that this message is a reply to.  This      */
-	                     /*   should be the same as FTI.MSGNUM.  Note,    */
-	                     /*   however, that FTI.MSGNUM is a word.  C      */
-	                     /*   programmers especially will need to         */
-	                     /*   properly typecast the value (i.e.           */
-	                     /*   upl.replyto=(tDWORD)fti.msgnum).  As        */
-	                     /*   messaging/BBS systems become more complex,  */
-	                     /*   FTI.MSGNUM may become obsolete, and a       */
-	                     /*   tDWORD variable may be used in its place.   */
-	tBYTE filename[13];  /* Filename the message text is in               */
-	                     /*   If this file does not exist in the upload   */
-	                     /*   packet then doors should consider this an   */
-	                     /*   invalid record.                             */
-	tBYTE echotag[21];   /* Area tag the message goes in                  */
-	                     /*   This must correspond exactly to the         */
-	                     /*   INF_AREA_INFO.ECHOTAG field for the message */
-	                     /*   area this message belongs to.  Simple area  */
-	                     /*   number matching has proven not to work      */
-	                     /*   simply because sysops are finicky people,   */
-	                     /*   and seem to constantly renumber/change the  */
-	                     /*   message area numbers on the host BBS.       */
-	                     /*   Using an echotag helps to alleviate this    */
-	                     /*   problem.  C_ECHO will be C_ECHO on the BBS, */
-	                     /*   whether it is msg area 17 on the host BBS   */
-	                     /*   or whether it is area 207. Doors should do  */
-	                     /*   a case-INSENSITIVE compare on this field to */
-	                     /*   find where the message belongs.             */
-	tWORD area_flags;    /* The Blue Wave Offline Mail Reader uses this   */
-	                     /*   word internally to store the same value as  */
-	                     /*   in INF_AREA_INFO.AREA_FLAGS.  The purpose   */
-	                     /*   of this word is to hold the original        */
-	                     /*   information about the message area so that  */
-	                     /*   later message editing processes can be      */
-	                     /*   controlled properly.  For example, if a     */
-	                     /*   user later wanted to edit this message, the */
-	                     /*   reader would know instantly whether this is */
-	                     /*   a NETMAIL area, whether PVT messages are    */
-	                     /*   allowed, etc.  This allows re-editing of    */
-	                     /*   the message, even when there is not a       */
-	                     /*   corresponding *.INF file laying around, or  */
-	                     /*   the area is not listed in the *.INF file    */
-	                     /*   you currently have to work with.  DOOR      */
-	                     /*   AUTHORS SHOULD IGNORE THIS FIELD WHEN       */
-	                     /*   IMPORTING MESSAGES!                         */
-	tBYTE f_attach[13];  /* If the UPL_HAS_FILE flag is set, this field   */
-	                     /*   will contain the file name that is attached */
-	                     /*   to the message.                             */
-	tBYTE user_area[6];  /* User-defined storage.  Doors should ignore    */
-	                     /*   this field, and reader authors should feel  */
-	                     /*   free to utilize this field for their own    */
-	                     /*   internal use, if necessary.                 */
-	tBYTE network_type;  /* Indicates the network type.  This field must  */
-	                     /*   hold the same value as the NETWORK_TYPE     */
-	                     /*   field in INF_AREA_INFO, allowing doors and  */
-	                     /*   readers to properly handle the message.     */
-	                     /*   (Values duplicated as UPL_NET_xxx, above.)  */
-	                     /*   For FidoNet NetMail and Internet E-mail, it */
-	                     /*   also indicates which fields should be used  */
-	                     /*   for addressing and status information (as   */
-	                     /*   indicated in comments above and below).     */
-	tBYTE net_dest[100]; /* Network destination address (non-FidoNet)     */
-	                     /*   Internet E-mail messages should use this    */
-	                     /*   field to store the destination address.     */
+  tBYTE from[36]; /* Person message is from                        */
+                  /*   NOTE: Doors should validate this field!     */
+  tBYTE to[36];   /* Person message is to (non-Internet)           */
+                  /*   For Internet E-mail, the NET_DEST field     */
+                  /*   should be used to store the destination     */
+                  /*   name/address, leaving this field blank.     */
+                  /*   For Usenet newsgroups, this field should be */
+                  /*   left blank, as newsgroups don't use a "To:" */
+                  /*   field.                                      */
+  tBYTE subj[72]; /* Subject/Title of message                      */
+  tWORD destzone; /* Destination address (FidoNet only)            */
+                  /*   If the message is not a FidoNet NetMail     */
+                  /*   message, this field (and the subsequent     */
+                  /*   three fields as well) should be set to      */
+                  /*   zero.                                       */
+  tWORD destnet;
+  tWORD destnode;
+  tWORD destpoint;
+  tWORD msg_attr;      /* Bit-mapped message attributes                 */
+  tWORD netmail_attr;  /* Bit-mapped NetMail attributes (FidoNet only)  */
+                       /*   If the message is not a FidoNet NetMail     */
+                       /*   message, this field should not be used.     */
+  tLONG unix_date;     /* Date/time of message                          */
+                       /*   This Unix-style date/time value (number     */
+                       /*   of seconds since 01/01/70) is converted to  */
+                       /*   the date/time storage method used by the    */
+                       /*   host BBS.                                   */
+  tDWORD replyto;      /* This unsigned long word stores the message #  */
+                       /*   that this message is a reply to.  This      */
+                       /*   should be the same as FTI.MSGNUM.  Note,    */
+                       /*   however, that FTI.MSGNUM is a word.  C      */
+                       /*   programmers especially will need to         */
+                       /*   properly typecast the value (i.e.           */
+                       /*   upl.replyto=(tDWORD)fti.msgnum).  As        */
+                       /*   messaging/BBS systems become more complex,  */
+                       /*   FTI.MSGNUM may become obsolete, and a       */
+                       /*   tDWORD variable may be used in its place.   */
+  tBYTE filename[13];  /* Filename the message text is in               */
+                       /*   If this file does not exist in the upload   */
+                       /*   packet then doors should consider this an   */
+                       /*   invalid record.                             */
+  tBYTE echotag[21];   /* Area tag the message goes in                  */
+                       /*   This must correspond exactly to the         */
+                       /*   INF_AREA_INFO.ECHOTAG field for the message */
+                       /*   area this message belongs to.  Simple area  */
+                       /*   number matching has proven not to work      */
+                       /*   simply because sysops are finicky people,   */
+                       /*   and seem to constantly renumber/change the  */
+                       /*   message area numbers on the host BBS.       */
+                       /*   Using an echotag helps to alleviate this    */
+                       /*   problem.  C_ECHO will be C_ECHO on the BBS, */
+                       /*   whether it is msg area 17 on the host BBS   */
+                       /*   or whether it is area 207. Doors should do  */
+                       /*   a case-INSENSITIVE compare on this field to */
+                       /*   find where the message belongs.             */
+  tWORD area_flags;    /* The Blue Wave Offline Mail Reader uses this   */
+                       /*   word internally to store the same value as  */
+                       /*   in INF_AREA_INFO.AREA_FLAGS.  The purpose   */
+                       /*   of this word is to hold the original        */
+                       /*   information about the message area so that  */
+                       /*   later message editing processes can be      */
+                       /*   controlled properly.  For example, if a     */
+                       /*   user later wanted to edit this message, the */
+                       /*   reader would know instantly whether this is */
+                       /*   a NETMAIL area, whether PVT messages are    */
+                       /*   allowed, etc.  This allows re-editing of    */
+                       /*   the message, even when there is not a       */
+                       /*   corresponding *.INF file laying around, or  */
+                       /*   the area is not listed in the *.INF file    */
+                       /*   you currently have to work with.  DOOR      */
+                       /*   AUTHORS SHOULD IGNORE THIS FIELD WHEN       */
+                       /*   IMPORTING MESSAGES!                         */
+  tBYTE f_attach[13];  /* If the UPL_HAS_FILE flag is set, this field   */
+                       /*   will contain the file name that is attached */
+                       /*   to the message.                             */
+  tBYTE user_area[6];  /* User-defined storage.  Doors should ignore    */
+                       /*   this field, and reader authors should feel  */
+                       /*   free to utilize this field for their own    */
+                       /*   internal use, if necessary.                 */
+  tBYTE network_type;  /* Indicates the network type.  This field must  */
+                       /*   hold the same value as the NETWORK_TYPE     */
+                       /*   field in INF_AREA_INFO, allowing doors and  */
+                       /*   readers to properly handle the message.     */
+                       /*   (Values duplicated as UPL_NET_xxx, above.)  */
+                       /*   For FidoNet NetMail and Internet E-mail, it */
+                       /*   also indicates which fields should be used  */
+                       /*   for addressing and status information (as   */
+                       /*   indicated in comments above and below).     */
+  tBYTE net_dest[100]; /* Network destination address (non-FidoNet)     */
+                       /*   Internet E-mail messages should use this    */
+                       /*   field to store the destination address.     */
 } UPL_REC;
 #pragma pack(pop)
 /*---------------------------------------------------------------------------*/
@@ -1063,11 +1061,10 @@ typedef struct /*  UPL_REC  */
 **                  ...
 */
 
-
 #pragma pack(push, 1)
 typedef struct /*  REQ_REC  */
 {
-	tBYTE filename[13]; /* Name of file to request */
+  tBYTE filename[13]; /* Name of file to request */
 } REQ_REC;
 
 #pragma pack(pop)
@@ -1118,24 +1115,23 @@ typedef struct /*  REQ_REC  */
 
 typedef struct /*  PDQ_HEADER  */
 {
-	tBYTE keywords[10][21]; /* User's entire set of door keywords  */
-	tBYTE filters[10][21];  /* User's entire set of door filters   */
-	tBYTE macros[3][78];    /* User's door bundling command macros */
-	tBYTE password[21];     /* Password                            */
-	tBYTE passtype;         /* Password type                       */
-	                        /*   0=none 1=door 2=reader 3=both     */
-	tWORD flags;            /* Bit-mapped flags                    */
+  tBYTE keywords[10][21]; /* User's entire set of door keywords  */
+  tBYTE filters[10][21];  /* User's entire set of door filters   */
+  tBYTE macros[3][78];    /* User's door bundling command macros */
+  tBYTE password[21];     /* Password                            */
+  tBYTE passtype;         /* Password type                       */
+                          /*   0=none 1=door 2=reader 3=both     */
+  tWORD flags;            /* Bit-mapped flags                    */
 } PDQ_HEADER;
 #pragma pack(pop)
-
 
 #pragma pack(push, 1)
 typedef struct /*  PDQ_REC  */
 {
-	tBYTE echotag[21]; /* Echo tag of message area to activate    */
-	                   /*   With Telegard systems, this should    */
-	                   /*   be the name of the *.BRD file, rather */
-	                   /*   than the actual echo tag.             */
+  tBYTE echotag[21]; /* Echo tag of message area to activate    */
+                     /*   With Telegard systems, this should    */
+                     /*   be the name of the *.BRD file, rather */
+                     /*   than the actual echo tag.             */
 } PDQ_REC;
 #pragma pack(pop)
 

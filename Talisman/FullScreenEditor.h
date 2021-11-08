@@ -7,19 +7,19 @@ class Node;
 
 class FullScreenEditor {
 public:
-	FullScreenEditor(Node* n, std::string to, std::string subject, std::vector<std::string>* quotelines, std::vector<std::string> *body);
-	~FullScreenEditor();
+  FullScreenEditor(Node *n, std::string to, std::string subject, std::vector<std::string> *quotelines, std::vector<std::string> *body);
+  ~FullScreenEditor();
 
-	std::vector<std::string> edit();
+  std::vector<std::string> edit();
+
 private:
-	std::vector<std::string>* initialbuffer;
-	std::string to;
-	std::string subject;
-	std::vector<std::string> quotelines;
-	Node* n;
+  std::vector<std::string> *initialbuffer;
+  std::string to;
+  std::string subject;
+  std::vector<std::string> quotelines;
+  Node *n;
 
-	bool reply;
-	void gotoyx(int y, int x);
-	std::vector<std::string> do_quote();
-
+  bool reply;
+  void gotoyx(int y, int x);
+  std::vector<std::string> do_quote();
 };

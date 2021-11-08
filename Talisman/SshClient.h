@@ -1,30 +1,29 @@
 #pragma once
 
+#include <libssh/callbacks.h>
 #include <libssh/libssh.h>
 #include <libssh/server.h>
-#include <libssh/callbacks.h>
 #include <string>
-class SshClient
-{
+class SshClient {
 public:
-	struct ssh_channel_callbacks_struct ssh_cb;
+  struct ssh_channel_callbacks_struct ssh_cb;
 
-	ssh_session p_ssh_session;
-	int csock;
-	int rsock;
+  ssh_session p_ssh_session;
+  int csock;
+  int rsock;
 
-	std::string username;
-	std::string password;
+  std::string username;
+  std::string password;
 
-	int term_width;
-	int term_height;
+  int term_width;
+  int term_height;
 
-	void run();
-	SshClient();
-	~SshClient();
-	bool do_auth();
+  void run();
+  SshClient();
+  ~SshClient();
+  bool do_auth();
+
 private:
-	void do_run();
-	ssh_channel chan;
+  void do_run();
+  ssh_channel chan;
 };
-
