@@ -176,6 +176,8 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     return false;
   }
 
+  memset(msg, 0, ss.str().size() + 1);
+
   strncpy(msg, ss.str().c_str(), ss.str().size());
 
   std::stringstream originline;
