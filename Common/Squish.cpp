@@ -384,6 +384,102 @@ int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg) {
 	return 1;
 }
 
+int SquishPruneMsgBase(sq_msg_base_t* mb, int leave) {
+	if (mb->basehdr.num_msg <= leave) {
+		return 1;
+	}
+
+	int prune = mb->basehdr.num_msg - leave;
+
+	if (!mb->ihavelock) {
+		return 0;
+	}
+	fseek(mb->indexfile, 0, SEEK_END);
+	size_t fsize = ftell(mb->indexfile);
+	char* indexdata = (char*)malloc(fsize);
+	if (!indexdata) {
+		return 0;
+	}
+	fseek(mb->indexfile, 0, SEEK_SET);
+	fread(indexdata, 1, fsize, mb->indexfile);
+
+	for (int i = 0; i < prune; i++) {
+		SQIDX* idx = (SQIDX*)(indexdata + sizeof(SQIDX) * i);
+		SQHDR hdr;
+		SQHDR prev;
+		SQHDR nextf;
+
+		fseek(mb->datafile, idx->ofs, SEEK_SET);
+		fread(&hdr, sizeof(SQHDR), 1, mb->datafile);
+
+		// set previous frame to next frame
+		fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
+		fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+
+		prev.next_frame = hdr.next_frame;
+		fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
+		fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+
+		// set next frame to prev frame
+		fseek(mb->datafile, hdr.next_frame, SEEK_SET);
+		fread(&nextf, sizeof(SQHDR), 1, mb->datafile);
+
+		nextf.next_frame = hdr.prev_frame;
+		fseek(mb->datafile, hdr.next_frame, SEEK_SET);
+		fwrite(&nextf, sizeof(SQHDR), 1, mb->datafile);
+
+
+		if (mb->basehdr.begin_frame == idx->ofs) {
+			mb->basehdr.begin_frame = hdr.next_frame;
+		}
+
+		if (mb->basehdr.last_frame == idx->ofs) {
+			mb->basehdr.last_frame = hdr.prev_frame;
+		}
+
+		// add message to free chain
+		if (mb->basehdr.free_frame != 0) {
+			fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
+			fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+			fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
+			hdr.prev_frame = mb->basehdr.last_free_frame;
+			hdr.next_frame = 0;
+			prev.next_frame = idx->ofs;
+			mb->basehdr.last_free_frame = idx->ofs;
+			fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+		}
+		else {
+			mb->basehdr.free_frame = idx->ofs;
+			mb->basehdr.last_free_frame = idx->ofs;
+			hdr.next_frame = 0;
+			hdr.prev_frame = 0;
+		}
+		hdr.frame_type = 1;
+
+		fseek(mb->datafile, idx->ofs, SEEK_SET);
+		fwrite(&hdr, sizeof(SQHDR), 1, mb->datafile);
+	}
+
+	// update base hdr
+	mb->basehdr.num_msg -= prune;
+	mb->basehdr.high_msg = mb->basehdr.num_msg;
+
+	fseek(mb->datafile, 0, SEEK_SET);
+	fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+
+	memmove(indexdata, &indexdata[sizeof(SQIDX) * prune], fsize - (sizeof(SQIDX) * prune));
+
+	fseek(mb->indexfile, 0, SEEK_SET);
+	fwrite(indexdata, 1, fsize - sizeof(SQIDX) * prune, mb->indexfile);
+#ifdef _MSC_VER
+	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(mb->indexfile));
+	SetEndOfFile(hFile);
+#else
+	ftruncate(fileno(mb->indexfile), fsize - sizeof(SQIDX) * prune);
+#endif
+	return 0;
+}
+
 int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     SQHDR hdr;
     SQHDR prev;

@@ -680,6 +680,21 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
+		else if (strcasecmp(argv[1], "prune") == 0) {
+			if (argc > 3) {
+				sq_msg_base_t* mb;
+
+				int toleave = strtol(argv[3], NULL, 10);
+
+				mb = SquishOpenMsgBase(std::string(inir.Get("paths", "message path", "msgs") + "/" + argv[2]).c_str());
+				if (mb) {
+					SquishLockMsgBase(mb);
+					SquishPruneMsgBase(mb, toleave);
+					SquishUnlockMsgBase(mb);
+					SquishCloseMsgBase(mb);
+				}
+			}
+		}
 	}
 	else {
 		std::cerr << "Usage: " << argv[0] << " command [args]" << std::endl;

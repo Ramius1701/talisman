@@ -126,3 +126,4 @@ extern int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg);
 extern int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg);
 extern sq_dword SquishUMSGID2Offset(sq_msg_base_t* mb, UMSGID mid, int next_m_if_not_found);
 extern int SquishPackMsgBase(const char* str);
+extern int SquishPruneMsgBase(sq_msg_base_t* mb, int leave);
