@@ -14,7 +14,7 @@ public:
 private:
   unsigned long pid;
   Logger log;
-
+  void bad_packet(Config *c, std::string filename);
   void filefix(Config *c, sq_msg_t *msg);
   void areafix(Config *c, sq_msg_t *msg);
   bool update(std::string tag, std::string links, bool filearea);

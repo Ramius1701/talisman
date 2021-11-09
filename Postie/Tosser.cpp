@@ -590,6 +590,21 @@ std::string Tosser::get_msgid(std::string ctrlbody) {
   return "";
 }
 
+void Tosser::bad_packet(Config *c, std::string filename) {
+
+  std::filesystem::path badpkt(c->packetdir());
+  size_t ext = 0;
+  badpkt.append(std::filesystem::path(filename).filename().u8string() + ".bad");
+  while (std::filesystem::exists(badpkt)) {
+    badpkt = c->packetdir();
+    badpkt.append(std::filesystem::path(filename).filename().u8string() + ".bad." + std::to_string(ext));
+    ext++;
+  }
+
+  std::filesystem::rename(filename, badpkt);
+  log.log(LOG_ERROR, "Encountered Bad Packet: %s", badpkt.u8string().c_str());
+}
+
 NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
   // first try getting address from origin line
   std::stringstream ss(msgbody);
@@ -666,6 +681,7 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
 
 bool Tosser::run(bool protinbound) {
   INIReader inir("talisman.ini");
+
   Config c;
 
   if (inir.ParseError()) {
@@ -801,32 +817,72 @@ bool Tosser::run(bool protinbound) {
     }
 
     for (auto &pkt : std::filesystem::directory_iterator(tempdir)) {
+      if (std::filesystem::file_size(pkt.path()) < 58) {
+        // move bad packet to .bad
+        continue;
+      }
       FILE *fptr = fopen(pkt.path().u8string().c_str(), "rb");
 
       if (!fptr) {
         log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
         continue;
       }
+
       // read packet header
       struct packet_t phdr;
       struct packed_message_t pmsg;
 
       fread(&phdr, sizeof(struct packet_t), 1, fptr);
       /*
-                              NETADDR pktorig;
-                              pktorig.zone = phdr.origZone;
-                              pktorig.node = phdr.orignode;
-                              if (phdr.origNet == 0xffff) {
-                                      pktorig.net = phdr.auxNet;
-                                      pktorig.point = phdr.origPoint;
-                              }
-                              else {
-                                      pktorig.net = phdr.origNet;
-                                      pktorig.point = 0;
-                              }
+
       */
+
+      if (phdr.version != 2) {
+        fclose(fptr);
+        // move bad packet to .bad
+        bad_packet(&c, pkt.path().u8string());
+        continue;
+      }
+
+      NETADDR pktorig;
+      pktorig.zone = phdr.origZone;
+      pktorig.node = phdr.orignode;
+      if (phdr.origNet == 0xffff) {
+        pktorig.net = phdr.auxNet;
+        pktorig.point = phdr.origPoint;
+      } else {
+        pktorig.net = phdr.origNet;
+        pktorig.point = 0;
+      }
+
+      bool is_bad_packet = false;
+
+      for (size_t i = 0; i < c.links.size(); i++) {
+        if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node &&
+            c.links.at(i).aka->point == pktorig.point) {
+
+          if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
+            log.log(LOG_ERROR, "Incorrect Packet Password!");
+            is_bad_packet = true;
+            break;
+          }
+        }
+      }
+
+      if (is_bad_packet) {
+        fclose(fptr);
+        // move bad packet to .bad
+        bad_packet(&c, pkt.path().u8string());
+        continue;
+      }
+
       while (fread(&pmsg, sizeof(struct packed_message_t), 1, fptr) == 1) {
+        if (pmsg.message_type != 2) {
+          is_bad_packet = true;
+          break;
+        }
         char ch;
+
         std::stringstream datestr;
 
         datestr.str("");
@@ -1121,16 +1177,16 @@ bool Tosser::run(bool protinbound) {
                 } else if (kludge.str().find("TOPT ") == 0) {
                   try {
                     intlpoint = stoi(kludge.str().substr(5));
-                  } catch (std::invalid_argument const&) {
+                  } catch (std::invalid_argument const &) {
 
-                  } catch (std::out_of_range const&) {
+                  } catch (std::out_of_range const &) {
                   }
                 } else if (kludge.str().find("FMPT ") == 0) {
                   try {
                     intlfpoint = stoi(kludge.str().substr(5));
-                  } catch (std::invalid_argument const&) {
+                  } catch (std::invalid_argument const &) {
 
-                  } catch (std::out_of_range const&) {
+                  } catch (std::out_of_range const &) {
                   }
                 }
               }
@@ -1157,16 +1213,16 @@ bool Tosser::run(bool protinbound) {
             } else if (kludge.str().find("TOPT ") == 0) {
               try {
                 intlpoint = stoi(kludge.str().substr(5));
-              } catch (std::invalid_argument const&) {
+              } catch (std::invalid_argument const &) {
 
-              } catch (std::out_of_range const&) {
+              } catch (std::out_of_range const &) {
               }
             } else if (kludge.str().find("FMPT ") == 0) {
               try {
                 intlfpoint = stoi(kludge.str().substr(5));
-              } catch (std::invalid_argument const&) {
+              } catch (std::invalid_argument const &) {
 
-              } catch (std::out_of_range const&) {
+              } catch (std::out_of_range const &) {
               }
             }
           }
@@ -1362,6 +1418,12 @@ bool Tosser::run(bool protinbound) {
         } else if (areatag != "" && !protinbound) {
           log.log(LOG_ERROR, "Got echomail in unprotected inbound! Discarding...");
         }
+      }
+      if (is_bad_packet) {
+        // move bad packet to .bad
+        fclose(fptr);
+        bad_packet(&c, pkt.path().u8string());
+        continue;
       }
       fclose(fptr);
     }
