@@ -819,6 +819,8 @@ bool Tosser::run(bool protinbound) {
     for (auto &pkt : std::filesystem::directory_iterator(tempdir)) {
       if (std::filesystem::file_size(pkt.path()) < 58) {
         // move bad packet to .bad
+          log.log(LOG_ERROR, "Packet size < 58 bytes");
+        bad_packet(&c, pkt.path().u8string());
         continue;
       }
       FILE *fptr = fopen(pkt.path().u8string().c_str(), "rb");
@@ -833,12 +835,10 @@ bool Tosser::run(bool protinbound) {
       struct packed_message_t pmsg;
 
       fread(&phdr, sizeof(struct packet_t), 1, fptr);
-      /*
-
-      */
 
       if (phdr.version != 2) {
         fclose(fptr);
+        log.log(LOG_ERROR, "Packet version != 2");
         // move bad packet to .bad
         bad_packet(&c, pkt.path().u8string());
         continue;
@@ -856,7 +856,7 @@ bool Tosser::run(bool protinbound) {
       }
 
       bool is_bad_packet = false;
-
+      bool link_found = false;
       for (size_t i = 0; i < c.links.size(); i++) {
         if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node &&
             c.links.at(i).aka->point == pktorig.point) {
@@ -865,11 +865,20 @@ bool Tosser::run(bool protinbound) {
             log.log(LOG_ERROR, "Incorrect Packet Password!");
             is_bad_packet = true;
             break;
+          } else {
+            link_found = true;
+            break;
           }
         }
       }
 
+      if (protinbound && !link_found) {
+          log.log(LOG_ERROR, "Packet from unknown link in secure inbound..");
+          is_bad_packet = true;
+      }
+
       if (is_bad_packet) {
+
         fclose(fptr);
         // move bad packet to .bad
         bad_packet(&c, pkt.path().u8string());
@@ -1421,6 +1430,7 @@ bool Tosser::run(bool protinbound) {
       }
       if (is_bad_packet) {
         // move bad packet to .bad
+        log.log(LOG_ERROR, "Packet message version != 2");
         fclose(fptr);
         bad_packet(&c, pkt.path().u8string());
         continue;
