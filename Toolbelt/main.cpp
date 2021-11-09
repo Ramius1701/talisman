@@ -423,13 +423,15 @@ int main(int argc, char **argv) {
 
         struct tm dtm;
 
+        memset(&dtm, 0, sizeof(struct tm));
+
         dtm.tm_year = ((argv[3][0] - '0') * 1000 + (argv[3][1] - '0') * 100 + (argv[3][2] - '0') * 10 + (argv[3][3] - '0') - 1900);
         dtm.tm_mon = (argv[3][5] - '0') * 10 + (argv[3][6] - '0') - 1;
         dtm.tm_mday = (argv[3][8] - '0') * 10 + (argv[3][9] - '0');
         dtm.tm_hour = 0;
         dtm.tm_min = 0;
         dtm.tm_sec = 0;
-
+        dtm.tm_isdst = -1;
         time_t then = mktime(&dtm);
 
         int tot = files.all_files(inir.Get("paths", "data path", "data"), seclevel, then, std::string(argv[4]));

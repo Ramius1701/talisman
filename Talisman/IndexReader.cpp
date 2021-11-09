@@ -69,6 +69,7 @@ void IndexReader::run(Node *n) {
             msg = SquishReadMsg(mb, mb->basehdr.num_msg);
             if (msg) {
                 struct tm localtm;
+                memset(&localtm, 0, sizeof(struct tm));
                 localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
                 localtm.tm_mday = msg->xmsg.date_written.date & 31;
                 localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;

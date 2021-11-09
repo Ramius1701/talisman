@@ -146,12 +146,15 @@ void Scanner::run() {
 
         struct tm localtm;
 
+        memset(&localtm, 0, sizeof(struct tm));
+
         localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
         localtm.tm_mday = msg->xmsg.date_written.date & 31;
         localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
         localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
         localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
         localtm.tm_sec = msg->xmsg.date_written.time & 31;
+        localtm.tm_isdst = -1;
 
         mktime(&localtm);
         snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour,
@@ -243,6 +246,7 @@ void Scanner::run() {
             memset(buffer, 0, sizeof buffer);
 
             struct tm localtm;
+            memset(&localtm, 0, sizeof(struct tm));
 
             localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
             localtm.tm_mday = msg->xmsg.date_written.date & 31;
@@ -250,7 +254,7 @@ void Scanner::run() {
             localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
             localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
             localtm.tm_sec = msg->xmsg.date_written.time & 31;
-
+            localtm.tm_isdst = -1;
             mktime(&localtm);
             snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour,
                      localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);

@@ -2071,6 +2071,7 @@ void MsgArea::update_lr(time_t date) {
     msg_tm.tm_mday = msg->xmsg.date_written.date & 31;
     msg_tm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
     msg_tm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
+    msg_tm.tm_isdst = -1;
     SquishFreeMsg(msg);
     time_t msgtime = mktime(&msg_tm);
 

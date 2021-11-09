@@ -776,6 +776,7 @@ bool Menu::run() {
               n->print_f("\r\nMinute: ");
               lr_tm.tm_min = std::stoi(n->get_string(2, false, false, std::to_string(now_tm.tm_min)));
               lr_tm.tm_sec = 0;
+              lr_tm.tm_isdst = -1;
 
               time_t lrtime = mktime(&lr_tm);
 
@@ -2362,6 +2363,8 @@ void Menu::qwk_up(Node *n) {
 
       thedate.tm_hour = (qhdr.Msgtime[0] - '0') * 10 + (qhdr.Msgtime[1] - '0');
       thedate.tm_min = (qhdr.Msgtime[3] - '0') * 10 + (qhdr.Msgtime[4] - '0');
+      thedate.tm_isdst = -1;
+
 
       date = mktime(&thedate);
       inreplyto = safe_atoi((const char *)qhdr.Msgrply, 8);
