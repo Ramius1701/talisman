@@ -754,7 +754,7 @@ int main() {
 
 #ifdef _MSC_VER
 
-      for (i = 0; i < max_nodes; i++) {
+      for (size_t i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid != 0) {
           HANDLE Handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, nodes.at(i).pid);
 
@@ -790,7 +790,7 @@ int main() {
 
       bool foundnode = false;
 
-      for (i = 0; i < max_nodes; i++) {
+      for (size_t i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid == 0) {
           foundnode = true;
           std::stringstream ss;
