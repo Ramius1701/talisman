@@ -6,9 +6,11 @@
 #include "Script.h"
 #include "User.h"
 #include "AnsiEditor.h"
+#include "Protocol.h"
 #include <cstring>
 #include <sqlite3.h>
 #include <sstream>
+#include <filesystem>
 
 extern "C" Node *lua_getNode(lua_State *L) {
   lua_pushstring(L, "bbs_node");
@@ -391,6 +393,64 @@ extern "C" int lua_editAnsi(lua_State *L) {
   return 0;
 }
 
+extern "C" int lua_download(lua_State *L) {
+  const char *filename = lua_tostring(L, 1);
+  Node *n = lua_getNode(L);
+
+  if (!std::filesystem::exists(filename)) {
+    return 0;
+  }
+
+  Protocol *p = n->get_config()->select_protocol(n);
+
+  if (p == nullptr) {
+    return 0;
+  }
+
+  std::vector<std::filesystem::path> sendlist;
+  sendlist.push_back(std::filesystem::path(filename));
+
+  p->download(n, n->get_socket(), &sendlist);
+
+  return 0;
+}
+
+extern "C" int lua_upload(lua_State *L) {
+  Node *n = lua_getNode(L);
+
+  Protocol *p = n->get_config()->select_protocol(n);
+
+  if (p == nullptr) {
+    return 0;
+  }
+
+  std::filesystem::path updir(std::filesystem::absolute(n->get_config()->tmp_path()));
+  updir.append(std::to_string(n->getnodenum()));
+  updir.append("script_upload");
+
+  if (std::filesystem::exists(updir)) {
+    std::filesystem::remove_all(updir);
+  }
+
+  std::filesystem::create_directories(updir);
+
+  p->upload(n, n->get_socket(), updir.u8string());
+
+  std::vector<std::filesystem::path> uploadedfiles;
+  for (auto &d : std::filesystem::directory_iterator(updir)) {
+    uploadedfiles.push_back(d.path());
+  }
+
+  lua_newtable(L);
+
+  for (size_t i = 0; i < uploadedfiles.size(); i++) {
+    lua_pushinteger(L, i + 1);
+    lua_pushstring(L, uploadedfiles.at(i).u8string().c_str());
+    lua_settable(L, -3);
+  }
+  return 1;
+}
+
 void Script::init_state(Node *n, lua_State *l) {
 
   luaL_openlibs(l);
@@ -494,6 +554,12 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_editAnsi);
   lua_setglobal(l, "bbs_edit_ansi");
+
+  lua_pushcfunction(l, lua_upload);
+  lua_setglobal(l, "bbs_upload");
+
+  lua_pushcfunction(l, lua_download);
+  lua_setglobal(l, "bbs_download");
 }
 
 bool Script::login(Node *n, std::string script, std::string *uname, std::string *password) {
