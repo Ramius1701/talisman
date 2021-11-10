@@ -360,7 +360,7 @@ bool AnsiEditor::save(std::string filename) {
 
   int fg = 7;
   int bg = 0;
-  int bold = 0;
+  bool bold = false;
 
   std::vector<std::string> lines;
 

@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="..\Common\Logger.cpp" />
     <ClCompile Include="..\Common\Squish.cpp" />
+    <ClCompile Include="AnsiEditor.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="Bulletins.cpp" />
     <ClCompile Include="CallLog.cpp" />
@@ -178,6 +179,7 @@
     <ClInclude Include="..\Common\INIReader.h" />
     <ClInclude Include="..\Common\Logger.h" />
     <ClInclude Include="..\Common\Squish.h" />
+    <ClInclude Include="AnsiEditor.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="bluewave.h" />
     <ClInclude Include="Bulletins.h" />
