@@ -75,6 +75,19 @@ bool AnsiEditor::load(std::string filename) {
 
   fclose(fptr);
 
+  char * sauce = strrchr(contents, 0x1a);
+
+  if (sauce != NULL) {
+      size_t new_len = sauce - contents;
+      char *tmp = (char *)realloc(contents, new_len);
+      if (!tmp) {
+          free(contents);
+          return false;
+      }
+      contents = tmp;
+      len = new_len;
+  }
+
   int line_at = 0;
   int lines = 0;
   int col_at = 0;
@@ -87,8 +100,6 @@ bool AnsiEditor::load(std::string filename) {
   int bg_colour = 0;
 
   for (size_t i = 0; i < len; i++) {
-    if (contents[i] == 0x1a)
-      break;
     if (contents[i] == '\r' || (i >= 1 && contents[i] == '\n' && contents[i - 1] != '\r')) {
       line_at++;
       if (line_at > lines) {
@@ -193,7 +204,7 @@ bool AnsiEditor::load(std::string filename) {
     } else if (contents[i] != '\n') {
       col_at++;
 
-      if (col_at == width) {
+      if (col_at == width && i + 1 < len) {
         col_at = 0;
         line_at++;
         if (line_at > lines) {
@@ -224,6 +235,7 @@ bool AnsiEditor::load(std::string filename) {
       screen[i][x].c = ' ';
       screen[i][x].fg_colour = 7;
       screen[i][x].bg_colour = 0;
+      screen[i][x].bold = false;
     }
   }
   line_at = 0;
@@ -231,8 +243,6 @@ bool AnsiEditor::load(std::string filename) {
   save_row = 0;
   save_col = 0;
   for (size_t i = 0; i < len; i++) {
-    if (contents[i] == 0x1a)
-      break;
     if (contents[i] == '\r' || (i >= 1 && contents[i] == '\n' && contents[i - 1] != '\r')) {
       line_at++;
       col_at = 0;
@@ -343,7 +353,7 @@ bool AnsiEditor::load(std::string filename) {
       screen[line_at][col_at].fg_colour = fg_colour;
       screen[line_at][col_at].bg_colour = bg_colour;
       col_at++;
-      if (col_at == width) {
+      if (col_at == width && i + 1 < len) {
         line_at++;
         col_at = 0;
       }
