@@ -75,17 +75,17 @@ bool AnsiEditor::load(std::string filename) {
 
   fclose(fptr);
 
-  char * sauce = strrchr(contents, 0x1a);
+  char *sauce = strrchr(contents, 0x1a);
 
   if (sauce != NULL) {
-      size_t new_len = sauce - contents;
-      char *tmp = (char *)realloc(contents, new_len);
-      if (!tmp) {
-          free(contents);
-          return false;
-      }
-      contents = tmp;
-      len = new_len;
+    size_t new_len = sauce - contents;
+    char *tmp = (char *)realloc(contents, new_len);
+    if (!tmp) {
+      free(contents);
+      return false;
+    }
+    contents = tmp;
+    len = new_len;
   }
 
   int line_at = 0;
