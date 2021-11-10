@@ -5,6 +5,7 @@
 #include "Node.h"
 #include "Script.h"
 #include "User.h"
+#include "AnsiEditor.h"
 #include <cstring>
 #include <sqlite3.h>
 #include <sstream>
@@ -378,6 +379,18 @@ extern "C" int lua_hasAnsi(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_editAnsi(lua_State *L) {
+  int width = lua_tonumber(L, 1);
+  int height = lua_tonumber(L, 2);
+  const char *filename = lua_tostring(L, 3);
+  Node *n = lua_getNode(L);
+
+  AnsiEditor a(n, width, height);
+  a.edit(std::string(filename));
+
+  return 0;
+}
+
 void Script::init_state(Node *n, lua_State *l) {
 
   luaL_openlibs(l);
@@ -478,6 +491,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_hasAnsi);
   lua_setglobal(l, "bbs_user_has_ansi");
+
+  lua_pushcfunction(l, lua_editAnsi);
+  lua_setglobal(l, "bbs_edit_ansi");
 }
 
 bool Script::login(Node *n, std::string script, std::string *uname, std::string *password) {
