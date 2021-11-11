@@ -239,6 +239,24 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
                 stage = 2;
               }
             } else if (stage == 2) {
+              if (buffer[i - 1] == IAC_DO || buffer[i - 1] == IAC_DONT) {
+                if (buffer[i] == IAC_ECHO) {
+                  buffer[i - 1] = IAC_WONT;
+                } else if (buffer[i] == IAC_SUPPRESS_GO_AHEAD) {
+                  buffer[i - 1] = IAC_WONT;
+                } else {
+                  buffer[i - 1] = IAC_WONT;
+                }
+              } else {
+                if (buffer[i] == IAC_ECHO) {
+                  buffer[i - 1] = IAC_DO;
+                } else if (buffer[i] == IAC_SUPPRESS_GO_AHEAD) {
+                  buffer[i - 1] = IAC_DO;
+                } else {
+                  buffer[i - 1] = IAC_DONT;
+                }
+              }
+              send(telnet_socket, &buffer[i - 2], 3, 0);
               stage = 0;
             } else if (stage == 3) {
               if (buffer[i] == 240) {
