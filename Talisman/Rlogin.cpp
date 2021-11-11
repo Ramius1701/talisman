@@ -189,6 +189,8 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
 
   struct timeval tv;
 
+  int timeout = 0;
+
   while (true) {
     fd_set rfd;
     FD_ZERO(&rfd);
@@ -248,10 +250,34 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
 #endif
         n->disconnected();
       } else {
+        timeout = 0;
         send(rlogin_socket, buffer, len, 0);
       }
     } else {
       // timeout check
+      if (!n->stop_timeout) {
+        timeout++;
+        if (timeout == n->timeoutmax - 1) {
+          n->print_f("|14You are about to time out!\r\n");
+        } else if (timeout == n->timeoutmax) {
+          n->print_f("|12You have timed out, call back when you're there!\r\n");
+#ifdef _MSC_VER
+          closesocket(rlogin_socket);
+#else
+          close(rlogin_socket);
+#endif
+          n->disconnected();
+        }
+      }
+      if (!n->time_check()) {
+        n->print_f("|14You are out of time for today!\r\n");
+#ifdef _MSC_VER
+        closesocket(rlogin_socket);
+#else
+        close(rlogin_socket);
+#endif
+        n->disconnected();
+      }
     }
   }
 }

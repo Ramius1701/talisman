@@ -84,6 +84,8 @@ public:
 
   std::vector<struct tagged_file_t> tagged_files;
   void chat(int othernode);
+  int timeoutmax;
+  bool time_check();
 
 private:
   int node;
@@ -96,12 +98,12 @@ private:
   void send_file(std::filesystem::path p, bool pause, bool script);
   time_t last_on;
   time_t last_time_check;
-  bool time_check();
+
 
   time_t timeleft;
   int timeout;
 
-  int timeoutmax;
+
   size_t term_width;
   size_t term_height;
   std::vector<struct gfile_t> get_gfiles(std::string filename, bool ansi);
