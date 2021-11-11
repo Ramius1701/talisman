@@ -195,7 +195,7 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
     FD_SET(rlogin_socket, &rfd);
 
     tv.tv_sec = 0;
-    tv.tv_usec = 10;
+    tv.tv_usec = 1;
 
     int rs = select(rlogin_socket + 1, &rfd, NULL, NULL, &tv);
 
@@ -232,7 +232,7 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
         send(n->get_socket(), buffer, len, 0);
       }
     }
-    char ch = n->getch(10);
+    char ch = n->getch(1);
     send(rlogin_socket, &ch, 1, 0);
 
   }
