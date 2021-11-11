@@ -169,6 +169,7 @@
     <ClCompile Include="Nodelist.cpp" />
     <ClCompile Include="Phlog.cpp" />
     <ClCompile Include="Protocol.cpp" />
+    <ClCompile Include="Rlogin.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="SshClient.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Qwk.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Rlogin.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="Settings.h" />
     <ClInclude Include="SshClient.h" />
