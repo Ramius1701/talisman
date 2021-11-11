@@ -20,6 +20,7 @@
 
 #include <cstring>
 
+#include "GenDefs.h"
 #include "Rlogin.h"
 #include "Node.h"
 
@@ -161,9 +162,9 @@ int rlogin_connect_ipv6(const char *server, uint16_t port, int *socketp) {
 bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std::string ruser, std::string termtype, bool ipv6) {
   int rlogin_socket;
   int ret;
-  char buffer[512];
+  unsigned char buffer[512];
   int len;
-
+  int stage = 0;
   if (ipv6) {
     ret = rlogin_connect_ipv6(host.c_str(), (uint16_t)port, &rlogin_socket);
   } else {
@@ -251,7 +252,30 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
         n->disconnected();
       } else {
         timeout = 0;
-        send(rlogin_socket, buffer, len, 0);
+        for (int i = 0; i < len; i++) {
+          if (stage == 0) {
+            if (buffer[i] == IAC && n->is_telnet()) {
+              stage = 1;
+            } else {
+              send(rlogin_socket, &buffer[i], 1, 0);
+            }
+          } else if (stage == 1) {
+            if (buffer[i] == IAC) {
+              send(rlogin_socket, &buffer[i], 1, 0);
+              stage = 0;
+            } else if (buffer[i] == 250) {
+              stage = 3;
+            } else {
+              stage = 2;
+            }
+          } else if (stage == 2) {
+            stage = 0;
+          } else if (stage == 3) {
+            if (buffer[i] == 240) {
+              stage = 0;
+            }
+          }
+        }
       }
     } else {
       // timeout check
