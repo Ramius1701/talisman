@@ -231,10 +231,10 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
       } else {
         send(n->get_socket(), buffer, len, 0);
       }
-    } else {
-      char ch = n->getch(1);
-      send(rlogin_socket, &ch, 1, 0);
     }
+    char ch = n->getch(10);
+    send(rlogin_socket, &ch, 1, 0);
+
   }
 
   return true;
