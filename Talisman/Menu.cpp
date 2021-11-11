@@ -27,6 +27,7 @@
 #include "Settings.h"
 #include "bluewave.h"
 #include "Rlogin.h"
+#include "Telnet.h"
 #include <cstring>
 #include <fstream>
 #include <iterator>
@@ -1126,6 +1127,56 @@ bool Menu::run() {
           } else {
             IndexReader i;
             i.run(n);
+          }
+        } else if (strcasecmp(items[i].command.c_str(), "telnet_ip4") == 0) {
+          std::stringstream ss(items[i].data);
+          std::vector<std::string> fragments;
+          std::string part;
+          while (std::getline(ss, part, ',')) {
+            fragments.push_back(part);
+          }
+
+          std::string host = "";
+          int port = 23;
+
+          for (size_t j = 0; j < fragments.size(); j++) {
+            if (fragments.at(j).find("HOST=") == 0) {
+              host = fragments.at(j).substr(5);
+            }
+            if (fragments.at(j).find("PORT=") == 0) {
+              try {
+                port = stoi(fragments.at(j).substr(5));
+              } catch (std::exception const &) {
+              }
+            }
+          }
+          if (host != "") {
+            Telnet::session(n, host, port, false);
+          }
+        } else if (strcasecmp(items[i].command.c_str(), "telnet_ip6") == 0) {
+          std::stringstream ss(items[i].data);
+          std::vector<std::string> fragments;
+          std::string part;
+          while (std::getline(ss, part, ',')) {
+            fragments.push_back(part);
+          }
+
+          std::string host = "";
+          int port = 23;
+
+          for (size_t j = 0; j < fragments.size(); j++) {
+            if (fragments.at(j).find("HOST=") == 0) {
+              host = fragments.at(j).substr(5);
+            }
+            if (fragments.at(j).find("PORT=") == 0) {
+              try {
+                port = stoi(fragments.at(j).substr(5));
+              } catch (std::exception const &) {
+              }
+            }
+          }
+          if (host != "") {
+            Telnet::session(n, host, port, true);
           }
         } else if (strcasecmp(items[i].command.c_str(), "rlogin_ip4") == 0) {
           std::stringstream ss(items[i].data);

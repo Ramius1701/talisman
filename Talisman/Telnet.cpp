@@ -21,7 +21,7 @@
 #include <cstring>
 
 #include "GenDefs.h"
-#include "Rlogin.h"
+#include "Telnet.h"
 #include "Node.h"
 
 #if defined(_MSC_VER) || defined(WIN32)
@@ -107,9 +107,9 @@ static int hostname_to_ip(const char *hostname, char *ip, bool v4) {
   return 1;
 }
 
-int rlogin_connect_ipv4(const char *server, uint16_t port, int *socketp) {
+int telnet_connect_ipv4(const char *server, uint16_t port, int *socketp) {
   struct sockaddr_in servaddr;
-  int rlogin_socket;
+  int telnet_socket;
   char buffer[513];
   memset(&servaddr, 0, sizeof(struct sockaddr_in));
   if (_w_inet_pton(AF_INET, server, &servaddr.sin_addr) != 1) {
@@ -122,20 +122,20 @@ int rlogin_connect_ipv4(const char *server, uint16_t port, int *socketp) {
   }
   servaddr.sin_family = AF_INET;
   servaddr.sin_port = htons(port);
-  if ((rlogin_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+  if ((telnet_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     return 0;
   }
 
-  if (connect(rlogin_socket, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+  if (connect(telnet_socket, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
     return 0;
   }
-  *socketp = rlogin_socket;
+  *socketp = telnet_socket;
   return 1;
 }
 
-int rlogin_connect_ipv6(const char *server, uint16_t port, int *socketp) {
+int telnet_connect_ipv6(const char *server, uint16_t port, int *socketp) {
   struct sockaddr_in6 servaddr;
-  int rlogin_socket;
+  int telnet_socket;
   char buffer[513];
   memset(&servaddr, 0, sizeof(struct sockaddr_in));
   if (_w_inet_pton(AF_INET6, server, &servaddr.sin6_addr) != 1) {
@@ -148,27 +148,27 @@ int rlogin_connect_ipv6(const char *server, uint16_t port, int *socketp) {
   }
   servaddr.sin6_family = AF_INET6;
   servaddr.sin6_port = htons(port);
-  if ((rlogin_socket = socket(AF_INET6, SOCK_STREAM, 0)) < 0) {
+  if ((telnet_socket = socket(AF_INET6, SOCK_STREAM, 0)) < 0) {
     return 0;
   }
 
-  if (connect(rlogin_socket, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+  if (connect(telnet_socket, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
     return 0;
   }
-  *socketp = rlogin_socket;
+  *socketp = telnet_socket;
   return 1;
 }
 
-bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std::string ruser, std::string termtype, bool ipv6) {
-  int rlogin_socket;
+bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
+  int telnet_socket;
   int ret;
   unsigned char buffer[512];
   int len;
   int stage = 0;
   if (ipv6) {
-    ret = rlogin_connect_ipv6(host.c_str(), (uint16_t)port, &rlogin_socket);
+    ret = telnet_connect_ipv6(host.c_str(), (uint16_t)port, &telnet_socket);
   } else {
-    ret = rlogin_connect_ipv4(host.c_str(), (uint16_t)port, &rlogin_socket);
+    ret = telnet_connect_ipv4(host.c_str(), (uint16_t)port, &telnet_socket);
   }
 
   if (ret == 0) {
@@ -177,17 +177,6 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
     return false;
   }
 
-  len = luser.size() + ruser.size() + termtype.size() + 4;
-  buffer[0] = '\0';
-  memcpy(&buffer[1], luser.c_str(), luser.size());
-  buffer[1 + luser.size()] = '\0';
-  memcpy(&buffer[2 + luser.size()], ruser.c_str(), ruser.size());
-  buffer[2 + luser.size() + ruser.size()] = '\0';
-  memcpy(&buffer[3 + luser.size() + ruser.size()], termtype.c_str(), termtype.size());
-  buffer[3 + luser.size() + ruser.size() + termtype.size()] = '\0';
-
-  send(rlogin_socket, buffer, len, 0);
-
   struct timeval tv;
 
   int timeout = 0;
@@ -195,87 +184,91 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
   while (true) {
     fd_set rfd;
     FD_ZERO(&rfd);
-    FD_SET(rlogin_socket, &rfd);
+    FD_SET(telnet_socket, &rfd);
     FD_SET(n->get_socket(), &rfd);
     tv.tv_sec = 60;
     tv.tv_usec = 0;
 
-    int rs = select((rlogin_socket > n->get_socket() ? rlogin_socket : n->get_socket()) + 1, &rfd, NULL, NULL, &tv);
+    int rs = select((telnet_socket > n->get_socket() ? telnet_socket : n->get_socket()) + 1, &rfd, NULL, NULL, &tv);
 
     if (rs == -1 && errno != EINTR) {
       n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
       n->pause();
 #ifdef _MSC_VER
-      closesocket(rlogin_socket);
+      closesocket(telnet_socket);
 #else
-      close(rlogin_socket);
+      close(telnet_socket);
 #endif
       return false;
-    } else if (FD_ISSET(rlogin_socket, &rfd)) {
-      len = recv(rlogin_socket, buffer, 512, 0);
+    } else if (FD_ISSET(telnet_socket, &rfd)) {
+      len = recv(telnet_socket, buffer, 512, 0);
       if (len < 0) {
         n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
         n->pause();
 #ifdef _MSC_VER
-        closesocket(rlogin_socket);
+        closesocket(telnet_socket);
 #else
-        close(rlogin_socket);
+        close(telnet_socket);
 #endif
         return false;
       } else if (len == 0) {
         n->print_f("\r\n|12Remote Closed Connection.\r\n");
         n->pause();
 #ifdef _MSC_VER
-        closesocket(rlogin_socket);
+        closesocket(telnet_socket);
 #else
-        close(rlogin_socket);
+        close(telnet_socket);
 #endif
         return true;
       } else {
-        send(n->get_socket(), buffer, len, 0);
+        if (!n->is_telnet()) {
+          for (int i = 0; i < len; i++) {
+            if (stage == 0) {
+              if (buffer[i] == IAC && n->is_telnet()) {
+                stage = 1;
+              } else {
+                send(n->get_socket(), &buffer[i], 1, 0);
+              }
+            } else if (stage == 1) {
+              if (buffer[i] == IAC) {
+                send(n->get_socket(), &buffer[i], 1, 0);
+                stage = 0;
+              } else if (buffer[i] == 250) {
+                stage = 3;
+              } else {
+                stage = 2;
+              }
+            } else if (stage == 2) {
+              stage = 0;
+            } else if (stage == 3) {
+              if (buffer[i] == 240) {
+                stage = 0;
+              }
+            }
+          }
+        } else {
+          send(n->get_socket(), buffer, len, 0);
+        }
       }
     } else if (FD_ISSET(n->get_socket(), &rfd)) {
       len = recv(n->get_socket(), buffer, 512, 0);
       if (len < 0) {
 #ifdef _MSC_VER
-        closesocket(rlogin_socket);
+        closesocket(telnet_socket);
 #else
-        close(rlogin_socket);
+        close(telnet_socket);
 #endif
         n->disconnected();
       } else if (len == 0) {
 #ifdef _MSC_VER
-        closesocket(rlogin_socket);
+        closesocket(telnet_socket);
 #else
-        close(rlogin_socket);
+        close(telnet_socket);
 #endif
         n->disconnected();
       } else {
         timeout = 0;
-        for (int i = 0; i < len; i++) {
-          if (stage == 0) {
-            if (buffer[i] == IAC && n->is_telnet()) {
-              stage = 1;
-            } else {
-              send(rlogin_socket, &buffer[i], 1, 0);
-            }
-          } else if (stage == 1) {
-            if (buffer[i] == IAC) {
-              send(rlogin_socket, &buffer[i], 1, 0);
-              stage = 0;
-            } else if (buffer[i] == 250) {
-              stage = 3;
-            } else {
-              stage = 2;
-            }
-          } else if (stage == 2) {
-            stage = 0;
-          } else if (stage == 3) {
-            if (buffer[i] == 240) {
-              stage = 0;
-            }
-          }
-        }
+        send(telnet_socket, buffer, len, 0);
       }
     } else {
       // timeout check
@@ -286,9 +279,9 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
         } else if (timeout == n->timeoutmax) {
           n->print_f("|12You have timed out, call back when you're there!\r\n");
 #ifdef _MSC_VER
-          closesocket(rlogin_socket);
+          closesocket(telnet_socket);
 #else
-          close(rlogin_socket);
+          close(telnet_socket);
 #endif
           n->disconnected();
         }
@@ -296,9 +289,9 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
       if (!n->time_check()) {
         n->print_f("|14You are out of time for today!\r\n");
 #ifdef _MSC_VER
-        closesocket(rlogin_socket);
+        closesocket(telnet_socket);
 #else
-        close(rlogin_socket);
+        close(telnet_socket);
 #endif
         n->disconnected();
       }

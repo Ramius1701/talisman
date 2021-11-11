@@ -8,6 +8,7 @@
 #include "AnsiEditor.h"
 #include "Protocol.h"
 #include "Rlogin.h"
+#include "Telnet.h"
 #include <cstring>
 #include <sqlite3.h>
 #include <sstream>
@@ -452,6 +453,31 @@ extern "C" int lua_upload(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_telnet_ip4(lua_State *L) {
+  const char *host = lua_tostring(L, 1);
+  int port = lua_tonumber(L, 2);
+  Node *n = lua_getNode(L);
+
+  bool result = Telnet::session(n, std::string(host), port, false);
+
+  lua_pushboolean(L, result);
+
+  return 1;
+}
+
+extern "C" int lua_telnet_ip6(lua_State *L) {
+  const char *host = lua_tostring(L, 1);
+  int port = lua_tonumber(L, 2);
+  Node *n = lua_getNode(L);
+
+  bool result = Telnet::session(n, std::string(host), port, true);
+
+  lua_pushboolean(L, result);
+
+  return 1;
+}
+
+
 extern "C" int lua_rlogin_ip4(lua_State *L) {
   const char *host = lua_tostring(L, 1);
   int port = lua_tonumber(L, 2);
@@ -597,6 +623,12 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_rlogin_ip6);
   lua_setglobal(l, "bbs_rlogin_ip6");
+
+  lua_pushcfunction(l, lua_telnet_ip4);
+  lua_setglobal(l, "bbs_telnet_ip4");
+
+  lua_pushcfunction(l, lua_telnet_ip6);
+  lua_setglobal(l, "bbs_telnet_ip6");
 }
 
 bool Script::login(Node *n, std::string script, std::string *uname, std::string *password) {
