@@ -232,7 +232,16 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
 #endif
         return true;
       } else {
-        send(n->get_socket(), (const char *)buffer, len, 0);
+        if (n->is_telnet()) {
+          for (int i = 0; i < len; i++) {
+            if (buffer[i] == IAC) {
+              send(n->get_socket(), (const char *)&buffer[i], 1, 0);
+            }
+            send(n->get_socket(), (const char *)&buffer[i], 1, 0);
+          }
+        } else {
+          send(n->get_socket(), (const char *)buffer, len, 0);
+        }
       }
     } else if (FD_ISSET(n->get_socket(), &rfd)) {
       len = recv(n->get_socket(), (char *)buffer, 512, 0);
