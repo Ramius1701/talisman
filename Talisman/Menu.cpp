@@ -26,6 +26,7 @@
 #include "Script.h"
 #include "Settings.h"
 #include "bluewave.h"
+#include "Rlogin.h"
 #include <cstring>
 #include <fstream>
 #include <iterator>
@@ -1126,6 +1127,81 @@ bool Menu::run() {
             IndexReader i;
             i.run(n);
           }
+        } else if (strcasecmp(items[i].command.c_str(), "rlogin_ip4") == 0) {
+          std::stringstream ss(items[i].data);
+          std::vector<std::string> fragments;
+          std::string part;
+          while (std::getline(ss, part, ',')) {
+            fragments.push_back(part);
+          }
+
+          std::string host = "";
+          int port = 513;
+          std::string luser = n->get_user().get_username();
+          std::string ruser = n->get_user().get_username();
+          std::string termtype = "";
+
+          for (size_t j = 0; j < fragments.size(); j++) {
+            if (fragments.at(j).find("LUSER=") == 0) {
+              luser = fragments.at(j).substr(7);
+            }
+            if (fragments.at(j).find("RUSER=") == 0) {
+              ruser = fragments.at(j).substr(7);
+            }
+            if (fragments.at(j).find("HOST=") == 0) {
+              host = fragments.at(j).substr(6);
+            }
+            if (fragments.at(j).find("TERM=") == 0) {
+              termtype = fragments.at(j).substr(6);
+            }
+            if (fragments.at(j).find("PORT=") == 0) {
+              try {
+                port = stoi(fragments.at(j).substr(6));
+              } catch (std::exception const &) {
+              }
+            }
+          }
+          if (host != "") {
+            Rlogin::session(n, host, port, luser, ruser, termtype, false);
+          }
+        } else if (strcasecmp(items[i].command.c_str(), "rlogin_ip6") == 0) {
+          std::stringstream ss(items[i].data);
+          std::vector<std::string> fragments;
+          std::string part;
+          while (std::getline(ss, part, ',')) {
+            fragments.push_back(part);
+          }
+
+          std::string host = "";
+          int port = 513;
+          std::string luser = n->get_user().get_username();
+          std::string ruser = n->get_user().get_username();
+          std::string termtype = "";
+
+          for (size_t j = 0; j < fragments.size(); j++) {
+            if (fragments.at(j).find("LUSER=") == 0) {
+              luser = fragments.at(j).substr(7);
+            }
+            if (fragments.at(j).find("RUSER=") == 0) {
+              ruser = fragments.at(j).substr(7);
+            }
+            if (fragments.at(j).find("HOST=") == 0) {
+              host = fragments.at(j).substr(6);
+            }
+            if (fragments.at(j).find("TERM=") == 0) {
+              termtype = fragments.at(j).substr(6);
+            }
+            if (fragments.at(j).find("PORT=") == 0) {
+              try {
+                port = stoi(fragments.at(j).substr(6));
+              } catch (std::exception const &) {
+              }
+            }
+          }
+          if (host != "") {
+            Rlogin::session(n, host, port, luser, ruser, termtype, true);
+          }
+
         } else if (strcasecmp(items[i].command.c_str(), "nodemsg") == 0) {
           n->update_node_use("Node Messaging");
           n->cls();
