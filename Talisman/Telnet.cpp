@@ -224,7 +224,7 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
         if (!n->is_telnet()) {
           for (int i = 0; i < len; i++) {
             if (stage == 0) {
-              if (buffer[i] == IAC && n->is_telnet()) {
+              if (buffer[i] == IAC) {
                 stage = 1;
               } else {
                 send(n->get_socket(), &buffer[i], 1, 0);
