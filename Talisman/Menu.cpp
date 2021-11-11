@@ -1143,20 +1143,20 @@ bool Menu::run() {
 
           for (size_t j = 0; j < fragments.size(); j++) {
             if (fragments.at(j).find("LUSER=") == 0) {
-              luser = fragments.at(j).substr(7);
+              luser = fragments.at(j).substr(6);
             }
             if (fragments.at(j).find("RUSER=") == 0) {
-              ruser = fragments.at(j).substr(7);
+              ruser = fragments.at(j).substr(6);
             }
             if (fragments.at(j).find("HOST=") == 0) {
-              host = fragments.at(j).substr(6);
+              host = fragments.at(j).substr(5);
             }
             if (fragments.at(j).find("TERM=") == 0) {
-              termtype = fragments.at(j).substr(6);
+              termtype = fragments.at(j).substr(5);
             }
             if (fragments.at(j).find("PORT=") == 0) {
               try {
-                port = stoi(fragments.at(j).substr(6));
+                port = stoi(fragments.at(j).substr(5));
               } catch (std::exception const &) {
               }
             }
