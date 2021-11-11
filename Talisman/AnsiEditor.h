@@ -12,6 +12,11 @@ struct character {
   bool bold;
 };
 
+struct ansi_line {
+  std::string line;
+  bool trimmed;
+};
+
 class AnsiEditor {
 public:
   AnsiEditor(Node *n, int width, int height);

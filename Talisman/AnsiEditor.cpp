@@ -372,7 +372,7 @@ bool AnsiEditor::save(std::string filename) {
   int bg = 0;
   bool bold = false;
 
-  std::vector<std::string> lines;
+  std::vector<struct ansi_line> lines;
 
   for (int y = 0; y < height; y++) {
     std::stringstream ss;
@@ -385,7 +385,24 @@ bool AnsiEditor::save(std::string filename) {
       }
       ss << screen[y][x].c;
     }
-    lines.push_back(ss.str());
+
+    if (bg == 0) {
+      struct ansi_line line;
+      line.line = ss.str();
+      rtrim(line.line);
+
+      if (line.line.size() < ss.str().size()) {
+        line.trimmed = true;
+      } else {
+        line.trimmed = false;
+      }
+      lines.push_back(line);
+    } else {
+      struct ansi_line line;
+      line.line = ss.str();
+      line.trimmed = false;
+      lines.push_back(line);
+    }
   }
 
   fptr = fopen(filename.c_str(), "wb");
@@ -393,10 +410,10 @@ bool AnsiEditor::save(std::string filename) {
     return false;
 
   for (size_t l = 0; l < lines.size(); l++) {
-    if (width == 80) {
-      fprintf(fptr, "%s", lines.at(l).c_str());
+    if (!lines.at(l).trimmed || (lines.at(l).trimmed && l == lines.size() - 1)) {
+      fprintf(fptr, "%s", lines.at(l).line.c_str());
     } else {
-      fprintf(fptr, "%s\r\n", lines.at(l).c_str());
+      fprintf(fptr, "%s\r\n", lines.at(l).line.c_str());
     }
   }
 
