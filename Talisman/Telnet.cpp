@@ -201,7 +201,7 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
 #endif
       return false;
     } else if (FD_ISSET(telnet_socket, &rfd)) {
-      len = recv(telnet_socket, buffer, 512, 0);
+      len = recv(telnet_socket, (char *)buffer, 512, 0);
       if (len < 0) {
         n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
         n->pause();
@@ -227,11 +227,11 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
               if (buffer[i] == IAC) {
                 stage = 1;
               } else {
-                send(n->get_socket(), &buffer[i], 1, 0);
+                send(n->get_socket(), (const char *)&buffer[i], 1, 0);
               }
             } else if (stage == 1) {
               if (buffer[i] == IAC) {
-                send(n->get_socket(), &buffer[i], 1, 0);
+                send(n->get_socket(), (const char *)&buffer[i], 1, 0);
                 stage = 0;
               } else if (buffer[i] == 250) {
                 stage = 3;
@@ -256,7 +256,7 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
                   buffer[i - 1] = IAC_DONT;
                 }
               }
-              send(telnet_socket, &buffer[i - 2], 3, 0);
+              send(telnet_socket, (const char *)&buffer[i - 2], 3, 0);
               stage = 0;
             } else if (stage == 3) {
               if (buffer[i] == 240) {
@@ -265,11 +265,11 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
             }
           }
         } else {
-          send(n->get_socket(), buffer, len, 0);
+          send(n->get_socket(), (const char *)buffer, len, 0);
         }
       }
     } else if (FD_ISSET(n->get_socket(), &rfd)) {
-      len = recv(n->get_socket(), buffer, 512, 0);
+      len = recv(n->get_socket(), (char *)buffer, 512, 0);
       if (len < 0) {
 #ifdef _MSC_VER
         closesocket(telnet_socket);
@@ -286,7 +286,7 @@ bool Telnet::session(Node *n, std::string host, int port, bool ipv6) {
         n->disconnected();
       } else {
         timeout = 0;
-        send(telnet_socket, buffer, len, 0);
+        send(telnet_socket, (const char *)buffer, len, 0);
       }
     } else {
       // timeout check

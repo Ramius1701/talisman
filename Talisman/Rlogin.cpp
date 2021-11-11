@@ -186,7 +186,7 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
   memcpy(&buffer[3 + luser.size() + ruser.size()], termtype.c_str(), termtype.size());
   buffer[3 + luser.size() + ruser.size() + termtype.size()] = '\0';
 
-  send(rlogin_socket, buffer, len, 0);
+  send(rlogin_socket, (const char *)buffer, len, 0);
 
   struct timeval tv;
 
@@ -212,7 +212,7 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
 #endif
       return false;
     } else if (FD_ISSET(rlogin_socket, &rfd)) {
-      len = recv(rlogin_socket, buffer, 512, 0);
+      len = recv(rlogin_socket, (char *)buffer, 512, 0);
       if (len < 0) {
         n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
         n->pause();
@@ -232,10 +232,10 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
 #endif
         return true;
       } else {
-        send(n->get_socket(), buffer, len, 0);
+        send(n->get_socket(), (const char *)buffer, len, 0);
       }
     } else if (FD_ISSET(n->get_socket(), &rfd)) {
-      len = recv(n->get_socket(), buffer, 512, 0);
+      len = recv(n->get_socket(), (char *)buffer, 512, 0);
       if (len < 0) {
 #ifdef _MSC_VER
         closesocket(rlogin_socket);
@@ -257,11 +257,11 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
             if (buffer[i] == IAC && n->is_telnet()) {
               stage = 1;
             } else {
-              send(rlogin_socket, &buffer[i], 1, 0);
+              send(rlogin_socket, (const char *)&buffer[i], 1, 0);
             }
           } else if (stage == 1) {
             if (buffer[i] == IAC) {
-              send(rlogin_socket, &buffer[i], 1, 0);
+              send(rlogin_socket, (const char *)&buffer[i], 1, 0);
               stage = 0;
             } else if (buffer[i] == 250) {
               stage = 3;
