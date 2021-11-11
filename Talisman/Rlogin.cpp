@@ -193,11 +193,11 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
     fd_set rfd;
     FD_ZERO(&rfd);
     FD_SET(rlogin_socket, &rfd);
+    FD_SET(n->get_socket(), &rfd);
+    tv.tv_sec = 60;
+    tv.tv_usec = 0;
 
-    tv.tv_sec = 0;
-    tv.tv_usec = 1;
-
-    int rs = select(rlogin_socket + 1, &rfd, NULL, NULL, &tv);
+    int rs = select((rlogin_socket > n->get_socket() ? rlogin_socket : n->get_socket()) + 1, &rfd, NULL, NULL, &tv);
 
     if (rs == -1 && errno != EINTR) {
       n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
@@ -231,11 +231,27 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
       } else {
         send(n->get_socket(), buffer, len, 0);
       }
+    } else if (FD_ISSET(n->get_socket(), &rfd)) {
+      len = recv(n->get_socket(), buffer, 512, 0);
+      if (len < 0) {
+#ifdef _MSC_VER
+        closesocket(rlogin_socket);
+#else
+        close(rlogin_socket);
+#endif
+        n->disconnected();
+      } else if (len == 0) {
+#ifdef _MSC_VER
+        closesocket(rlogin_socket);
+#else
+        close(rlogin_socket);
+#endif
+        n->disconnected();
+      } else {
+        send(rlogin_socket, buffer, len, 0);
+      }
+    } else {
+      // timeout check
     }
-    char ch = n->getch(1);
-    send(rlogin_socket, &ch, 1, 0);
-
   }
-
-  return true;
 }
