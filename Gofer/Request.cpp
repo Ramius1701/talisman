@@ -478,7 +478,7 @@ void Request::dorequest(int socket, std::string request) {
         return;
       }
     }
-  } catch (const std::bad_optional_access &e) {
+  } catch (const std::bad_optional_access &) {
     log.log(LOG_ERROR, "Bad Request!");
   }
 
