@@ -239,15 +239,15 @@ bool Qwkie::scan(int net) {
         uint32_t offset = ftell(fptr);
         FILE *hdrdat = fopen(std::string(packpath.u8string() + "/HEADERS.DAT").c_str(), "a");
         fprintf(hdrdat, "[%lx]\n", offset);
-        fprintf(hdrdat, "To = %s\n", recipient.c_str());
-        fprintf(hdrdat, "Sender = %s\n", sender.c_str());
-        fprintf(hdrdat, "Subject = %s\n", subject.c_str());
+        fprintf(hdrdat, "To=%s\n", recipient.c_str());
+        fprintf(hdrdat, "Sender=%s\n", sender.c_str());
+        fprintf(hdrdat, "Subject=%s\n", subject.c_str());
 
         if (msgid.str().size() > 0) {
-          fprintf(hdrdat, "Message-ID = %s\n", msgid.str().c_str());
+          fprintf(hdrdat, "Message-ID=%s\n", msgid.str().c_str());
         }
         if (replyid.str().size() > 0) {
-          fprintf(hdrdat, "In-Reply-To = %s\n", replyid.str().c_str());
+          fprintf(hdrdat, "In-Reply-To=%s\n", replyid.str().c_str());
         }
         fprintf(hdrdat, "\n");
 
