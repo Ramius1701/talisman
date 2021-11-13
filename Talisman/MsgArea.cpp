@@ -271,7 +271,17 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     if (orig_addr != "") {
       snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
     } else {
-      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %x.%s@%s", msgid, file.c_str(), n->get_config()->qwk_id().c_str());
+      std::stringstream sanitizefile;
+
+      for (size_t s = 0; s < file.size(); s++) {
+        if (file[s] == '/' || file[s] == '\\') {
+          ss << '_';
+        } else {
+          ss << file[s];
+        }
+      }
+
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: <%x.%u.%s@%s>", msgid, mb->basehdr.uid, sanitizefile.str().c_str(), n->get_config()->get_hostname().c_str());
     }
 
     // are we a netmail
