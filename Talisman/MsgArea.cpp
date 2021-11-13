@@ -275,9 +275,9 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
 
       for (size_t s = 0; s < file.size(); s++) {
         if (file[s] == '/' || file[s] == '\\') {
-          ss << '_';
+          sanitizefile << '_';
         } else {
-          ss << file[s];
+          sanitizefile << file[s];
         }
       }
 
