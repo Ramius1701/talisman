@@ -241,6 +241,17 @@ extern "C" int lua_GetAttrib(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_GetAttribByName(lua_State *L) {
+  const char *name = lua_tostring(L, 1);
+  const char *attrib = lua_tostring(L, 2);
+  const char *def = lua_tostring(L, 3);
+  Node *n = lua_getNode(L);
+
+  lua_pushstring(L, User::get_attribute_s(n->get_config(), std::string(name), std::string(attrib), std::string(def)).c_str());
+
+  return 1;
+}
+
 extern "C" int lua_SetAttrib(lua_State *L) {
   const char *attrib = lua_tostring(L, 1);
   const char *value = lua_tostring(L, 2);
@@ -570,6 +581,9 @@ void Script::init_state(Node *n, lua_State *l) {
   lua_pushcfunction(l, lua_GetAttrib);
   lua_setglobal(l, "bbs_get_user_attribute");
 
+  lua_pushcfunction(l, lua_GetAttribByName);
+  lua_setglobal(l, "bbs_get_user_attribute_by_name");
+
   lua_pushcfunction(l, lua_SetAttrib);
   lua_setglobal(l, "bbs_set_user_attribute");
 
@@ -629,6 +643,33 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_telnet_ip6);
   lua_setglobal(l, "bbs_telnet_ip6");
+}
+
+bool Script::msgheader(Node *n, std::string script, std::string from, std::string to, std::string subject) {
+  lua_State *l = luaL_newstate();
+
+  init_state(n, l);
+  luaL_loadfile(l, script.c_str());
+
+  int ret = lua_pcall(l, 0, 1, 0);
+  if (ret) {
+    n->log->log(LOG_ERROR, "Error executing msgheader script.1 \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    lua_close(l);
+    return false;
+  }
+
+  lua_getglobal(l, "msgheader");
+  lua_pushstring(l, from.c_str());
+  lua_pushstring(l, to.c_str());
+  lua_pushstring(l, subject.c_str());
+  ret = lua_pcall(l, 3, 0, 0);
+  if (ret) {
+    n->log->log(LOG_ERROR, "Error executing msgheader script.2 \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    lua_close(l);
+    return false;
+  }
+  lua_close(l);
+  return true;
 }
 
 bool Script::login(Node *n, std::string script, std::string *uname, std::string *password) {

@@ -95,6 +95,32 @@ int User::get_sec_level() {
 
 std::string User::get_attribute(std::string attrib, std::string def) { return User::get_attribute_s(&c, uid, attrib, def); }
 
+std::string User::get_attribute_s(Config *c, std::string name, std::string attrib, std::string def) {
+  sqlite3 *db;
+  static const char *sql = "SELECT id FROM users WHERE username = ?";
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
+    return def;
+  }
+  sqlite3_stmt *stmt;
+
+  if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return def;
+  }
+  sqlite3_bind_text(stmt, 1, name.c_str(), -1, 0);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    int id = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return get_attribute_s(c, id, attrib, def);
+  } else {
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return def;
+  }
+}
+
 std::string User::get_attribute_s(Config *c, int id, std::string attrib, std::string def) {
   sqlite3 *db;
   sqlite3_stmt *res;

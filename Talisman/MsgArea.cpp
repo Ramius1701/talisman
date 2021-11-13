@@ -1193,7 +1193,6 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
   bool gottag = false;
   std::stringstream ss;
   std::ifstream in;
-  int lines = 1;
   char c;
 
   if (orig_addr == "" && wwivnode == 0) {
@@ -1280,9 +1279,8 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
           n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
         } else if (ss.str().substr(0, 10) == "RUNSCRIPT:") {
           std::stringstream ss2;
-
           ss2 << n->get_config()->script_path() << "/" << ss.str().substr(10) << ".lua";
-          Script::exec(n, ss2.str());
+          Script::msgheader(n, ss2.str(), std::string(msg->xmsg.from), std::string(msg->xmsg.to), std::string(msg->xmsg.subject));
         }
         ss.str("");
         gottag = false;
@@ -1302,10 +1300,6 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
       if (c == '\n') {
         if (lastc != '\r') {
           n->putch('\r');
-        }
-        lines++;
-        if (lines == 6) {
-          break;
         }
       }
       lastc = c;
