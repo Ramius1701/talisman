@@ -247,28 +247,31 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     }
 
     memset(msgidbuffer, 0, 256);
-    if (orig_addr != "") {
-      fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "rb");
 
-      if (!fptr) {
+    fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "rb");
+
+    if (!fptr) {
+      msgid = (uint32_t)thetime;
+    } else {
+      fread(&msgid, sizeof(uint32_t), 1, fptr);
+      fclose(fptr);
+
+      if (thetime > msgid) {
         msgid = (uint32_t)thetime;
       } else {
-        fread(&msgid, sizeof(uint32_t), 1, fptr);
-        fclose(fptr);
-
-        if (thetime > msgid) {
-          msgid = (uint32_t)thetime;
-        } else {
-          msgid++;
-        }
+        msgid++;
       }
+    }
 
-      fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "wb");
-      if (fptr) {
-        fwrite(&msgid, sizeof(uint32_t), 1, fptr);
-        fclose(fptr);
-      }
+    fptr = fopen(std::string(n->get_config()->data_path() + "/msgserial.dat").c_str(), "wb");
+    if (fptr) {
+      fwrite(&msgid, sizeof(uint32_t), 1, fptr);
+      fclose(fptr);
+    }
+    if (orig_addr != "") {
       snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
+    } else {
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %x.%s@%s", msgid, file.c_str(), n->get_config()->qwk_id().c_str());
     }
 
     // are we a netmail
@@ -331,7 +334,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     at += strlen(tzutcbuffer);
     memcpy(&newmsg.ctrl[at], charsbuffer, strlen(charsbuffer));
     at += strlen(charsbuffer);
-    if (orig_addr != "") {
+    if (orig_addr != "" || wwivnode == 0) {
       memcpy(&newmsg.ctrl[at], msgidbuffer, strlen(msgidbuffer));
       at += strlen(msgidbuffer);
     }

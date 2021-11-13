@@ -88,6 +88,27 @@ bool Qwkie::scan(int net) {
 
         char buffer[256];
         std::stringstream msgss;
+        std::stringstream replyid;
+        std::stringstream msgid;
+
+        for (int i = 0; i < msg->ctrl_len - 8; i++) {
+          if (strncmp(&msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
+            int h = 8;
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+              msgid << msg->ctrl[j];
+            }
+            break;
+          }
+          if (strncmp(&msg->ctrl[i], "\x01REPLY: ", 8) == 0) {
+            int h = 8;
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+              replyid << msg->ctrl[j];
+            }
+            break;
+          }
+        }
+
+
         for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
           if (msg->msg[i] == '\r') {
             if (i < (size_t)msg->msg_len - 1) {
@@ -214,6 +235,24 @@ bool Qwkie::scan(int net) {
 
         qhdr.Msgtagp = ' ';
 
+
+        uint32_t offset = ftell(fptr);
+        FILE *hdrdat = fopen(std::string(packpath.u8string() + "/HEADERS.DAT").c_str(), "a");
+        fprintf(hdrdat, "[%lx]\n", offset);
+        fprintf(hdrdat, "To: %s\n", recipient.c_str());
+        fprintf(hdrdat, "Sender: %s\n", sender.c_str());
+        fprintf(hdrdat, "Subject: %s\n", subject.c_str());
+
+        if (msgid.str().size() > 0) {
+          fprintf(hdrdat, "Message-ID: %s\n", msgid.str().c_str());
+        }
+        if (replyid.str().size() > 0) {
+          fprintf(hdrdat, "In-Reply-To: %s\n", replyid.str().c_str());
+        }
+        fprintf(hdrdat, "\n");
+
+        fclose(hdrdat);
+
         fwrite(&qhdr, sizeof(struct QwkHeader), 1, fptr);
         fwrite(msgbuf, lenbytes, 1, fptr);
 
@@ -236,6 +275,7 @@ bool Qwkie::scan(int net) {
     std::vector<std::string> filelist;
 
     filelist.push_back(std::string(packpath.u8string() + "/" + networks.at(net).qwkid + ".MSG"));
+    filelist.push_back(std::string(packpath.u8string() + "/HEADERS.DAT"));
 
     for (size_t arc = 0; arc < archivers.size(); arc++) {
       if (strcasecmp(archivers.at(arc)->name.c_str(), networks.at(net).archiver.c_str()) == 0) {
@@ -482,6 +522,14 @@ bool Qwkie::toss(int net) {
   std::filesystem::path msgsdat(extractpath);
   msgsdat.append("MESSAGES.DAT");
 
+  std::filesystem::path hdrdat(extractpath);
+  hdrdat.append("HEADERS.DAT");
+  INIReader inir(hdrdat.u8string());
+  bool doheaders = true;
+  if (inir.ParseError()) {
+    doheaders = false;
+  }
+
   FILE *fptr = fopen(msgsdat.u8string().c_str(), "rb");
 
   if (fptr != NULL) {
@@ -490,6 +538,8 @@ bool Qwkie::toss(int net) {
 
     fread(&qwkrec, sizeof(struct QwkHeader), 1, fptr);
     while (!feof(fptr)) {
+      uint32_t offset = ftell(fptr);
+      
       if (fread(&qwkrec, sizeof(struct QwkHeader), 1, fptr) != 1) {
         break;
       }
@@ -647,6 +697,41 @@ bool Qwkie::toss(int net) {
           sq_msg_t sqmsg;
 
           memset(&sqmsg, 0, sizeof(sq_msg_t));
+
+          if (doheaders) {
+
+            char obuf[67];
+
+            snprintf(obuf, 67, "%x", offset);
+
+            std::string msgid = inir.Get(obuf, "Message-ID", "");
+            std::string replyid = inir.Get(obuf, "In-Reply-To", "");
+
+            int size = 0;
+
+            if (msgid != "") {
+              size = msgid.size() + 8;
+            }
+            if (replyid != "") {
+              size += replyid.size() + 8;
+            }
+
+            sqmsg.ctrl_len = size;
+            sqmsg.ctrl = (char *)malloc(size);
+            char *ptr = sqmsg.ctrl;
+            if (msgid != "") {
+              memcpy(ptr, "\001MSGID: ", 8);
+              ptr += 8;
+              memcpy(ptr, msgid.c_str(), msgid.size());
+              ptr += msgid.size();
+            }
+            if (replyid != "") {
+              memcpy(ptr, "\001REPLY: ", 8);
+              ptr += 8;
+              memcpy(ptr, replyid.c_str(), replyid.size());
+              ptr += replyid.size();
+            }
+          }
 
           sqmsg.msg_len = msgbody.str().size();
 
