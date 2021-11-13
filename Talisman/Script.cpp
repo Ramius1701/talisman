@@ -661,7 +661,7 @@ bool Script::msgheader(Node *n, std::string script, std::string from, std::strin
 
   int ret = lua_pcall(l, 0, 1, 0);
   if (ret) {
-    n->log->log(LOG_ERROR, "Error executing msgheader script.1 \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    n->log->log(LOG_ERROR, "Error executing msgheader script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
     lua_close(l);
     return false;
   }
@@ -672,7 +672,7 @@ bool Script::msgheader(Node *n, std::string script, std::string from, std::strin
   lua_pushstring(l, subject.c_str());
   ret = lua_pcall(l, 3, 0, 0);
   if (ret) {
-    n->log->log(LOG_ERROR, "Error executing msgheader script.2 \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    n->log->log(LOG_ERROR, "Error executing msgheader script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
     lua_close(l);
     return false;
   }
