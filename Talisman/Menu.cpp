@@ -148,7 +148,7 @@ bool Menu::run() {
           FILE *fptr;
           fptr = fopen(std::string(n->get_config()->tmp_path() + "/" + std::to_string(n->getnodenum()) + "/NODECHAT.TXT").c_str(), "w+b");
           if (fptr) {
-            fprintf(fptr, "%s declines your chat invitation.\r\n", n->get_user().get_username().c_str());
+            fprintf(fptr, "%s declines your chat invitation.\r\x1b", n->get_user().get_username().c_str());
             fclose(fptr);
           }
         }
@@ -1265,7 +1265,7 @@ bool Menu::run() {
               n->print_f("\r\n");
               int nn = stoi(res);
               if (nn < 1 || nn > n->get_config()->max_nodes() || nn == n->getnodenum()) {
-                n->print_f("|12Invalid Node!|07");
+                n->print_f("\r\n|12Invalid Node!|07\r\n");
               } else {
                 n->print_f("\r\nRequest Chat? (Y/N): ");
                 char chat = tolower(n->getch());
