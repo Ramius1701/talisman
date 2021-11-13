@@ -174,6 +174,11 @@ extern "C" int lua_BBSUsername(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_BBSNode(lua_State *L) {
+  lua_pushnumber(L, lua_getNode(L)->getnodenum());
+  return 1;
+}
+
 extern "C" int lua_BBSSysName(lua_State *L) {
   lua_pushstring(L, lua_getNode(L)->operating_system().c_str());
   return 1;
@@ -643,6 +648,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_telnet_ip6);
   lua_setglobal(l, "bbs_telnet_ip6");
+
+  lua_pushcfunction(l, lua_BBSNode);
+  lua_setglobal(l, "bbs_get_node");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string from, std::string to, std::string subject) {
