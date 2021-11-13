@@ -18,6 +18,7 @@
 #include "Node.h"
 #include "Nodelist.h"
 #include "Qwk.h"
+#include "Script.h"
 
 MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
                  bool rn, int wwivnode) {
@@ -1277,6 +1278,11 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
           std::stringstream ss2;
           ss2 << totmsg;
           n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
+        } else if (ss.str().substr(0, 10) == "RUNSCRIPT:") {
+          std::stringstream ss2;
+
+          ss2 << n->get_config()->script_path() << "/" << ss.str().substr(10) << ".lua";
+          Script::exec(n, ss2.str());
         }
         ss.str("");
         gottag = false;
