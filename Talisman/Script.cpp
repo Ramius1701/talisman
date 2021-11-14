@@ -184,6 +184,16 @@ extern "C" int lua_BBSSysName(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_BBSName(lua_State *L) {
+  lua_pushstring(L, lua_getNode(L)->get_config()->sys_name().c_str());
+  return 1;
+}
+
+extern "C" int lua_BBSSysopName(lua_State *L) {
+  lua_pushstring(L, lua_getNode(L)->get_config()->op_name().c_str());
+  return 1;
+}
+
 extern "C" int lua_BBSUserLocation(lua_State *L) {
   lua_pushstring(L, lua_getNode(L)->get_user().get_attribute("location", "Somewhere, The World").c_str());
   return 1;
@@ -562,6 +572,12 @@ void Script::init_state(Node *n, lua_State *l) {
   lua_pushcfunction(l, lua_BBSSysName);
   lua_setglobal(l, "bbs_get_os");
 
+  lua_pushcfunction(l, lua_BBSName);
+  lua_setglobal(l, "bbs_get_bbs_name");
+
+  lua_pushcfunction(l, lua_BBSSysopName);
+  lua_setglobal(l, "bbs_get_sysop_name");
+
   lua_pushcfunction(l, lua_BBSClrScr);
   lua_setglobal(l, "bbs_clear_screen");
 
@@ -576,9 +592,6 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_BBSTermHeight);
   lua_setglobal(l, "bbs_get_term_height");
-
-  lua_pushcfunction(l, lua_bbsPostMsg);
-  lua_setglobal(l, "bbs_post_message");
 
   lua_pushcfunction(l, lua_Pause);
   lua_setglobal(l, "bbs_pause");
