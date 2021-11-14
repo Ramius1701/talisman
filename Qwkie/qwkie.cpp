@@ -93,14 +93,14 @@ bool Qwkie::scan(int net) {
 
         for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
-            int h = 8;
             for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
               msgid << msg->ctrl[j];
             }
             break;
           }
+        }
+        for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01REPLY: ", 8) == 0) {
-            int h = 8;
             for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
               replyid << msg->ctrl[j];
             }
@@ -239,15 +239,15 @@ bool Qwkie::scan(int net) {
         uint32_t offset = ftell(fptr);
         FILE *hdrdat = fopen(std::string(packpath.u8string() + "/HEADERS.DAT").c_str(), "a");
         fprintf(hdrdat, "[%lx]\n", offset);
-        fprintf(hdrdat, "To=%s\n", recipient.c_str());
-        fprintf(hdrdat, "Sender=%s\n", sender.c_str());
-        fprintf(hdrdat, "Subject=%s\n", subject.c_str());
+        fprintf(hdrdat, "To: %s\n", recipient.c_str());
+        fprintf(hdrdat, "Sender: %s\n", sender.c_str());
+        fprintf(hdrdat, "Subject: %s\n", subject.c_str());
 
         if (msgid.str().size() > 0) {
-          fprintf(hdrdat, "Message-ID=%s\n", msgid.str().c_str());
+          fprintf(hdrdat, "Message-ID: %s\n", msgid.str().c_str());
         }
         if (replyid.str().size() > 0) {
-          fprintf(hdrdat, "In-Reply-To=%s\n", replyid.str().c_str());
+          fprintf(hdrdat, "In-Reply-To: %s\n", replyid.str().c_str());
         }
         fprintf(hdrdat, "\n");
 
