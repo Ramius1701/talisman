@@ -1791,7 +1791,9 @@ void Node::chat(int othernode) {
       if (c != -1) {
         if (c == 0x1b) {
           fprintf(outfile, "\r%s has left the chat...\r\x1b", u.get_username().c_str());
-          fclose(infile);
+          if (infile) {
+            fclose(infile);
+          }
           fclose(outfile);
 
           return;
