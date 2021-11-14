@@ -1526,7 +1526,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           }
         }
       }
-      n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
+      //n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
       n->print_f("\x1b[%d;1H%s ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
       bool done = false;
