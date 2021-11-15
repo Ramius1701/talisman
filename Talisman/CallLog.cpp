@@ -5,6 +5,7 @@
 #include <ctime>
 #include <iostream>
 #include <climits>
+#include <cerrno>
 #ifdef _MSC_VER
 #define PATH_MAX MAX_PATH
 #include <direct.h>
@@ -33,7 +34,7 @@ bool CallLog::open_database(std::string filename, sqlite3 **db) {
 
   if (err != SQLITE_OK) {
     char buffer[PATH_MAX];
-    std::cerr << "Unable to open database: " << filename << " CWD: " << getcwd(buffer, PATH_MAX) << " error " << err << std::endl;
+    std::cerr << "Unable to open database: " << filename << " CWD: " << getcwd(buffer, PATH_MAX) << " error " << errno <<  std::endl;
     return false;
   }
   sqlite3_busy_timeout(*db, 5000);
