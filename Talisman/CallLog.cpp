@@ -4,6 +4,7 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <climits>
 #ifdef _MSC_VER
 #define PATH_MAX MAX_PATH
 #include <direct.h>
