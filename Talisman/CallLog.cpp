@@ -29,10 +29,11 @@ bool CallLog::open_database(std::string filename, sqlite3 **db) {
 
   int rc;
   char *err_msg = NULL;
+  int err = sqlite3_open(filename.c_str(), db);
 
-  if (sqlite3_open(filename.c_str(), db) != SQLITE_OK) {
+  if (err != SQLITE_OK) {
     char buffer[PATH_MAX];
-    std::cerr << "Unable to open database: " << filename << " CWD: " << getcwd(buffer, PATH_MAX) << std::endl;
+    std::cerr << "Unable to open database: " << filename << " CWD: " << getcwd(buffer, PATH_MAX) << " error " << err << std::endl;
     return false;
   }
   sqlite3_busy_timeout(*db, 5000);
