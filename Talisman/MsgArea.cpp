@@ -1280,7 +1280,9 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
         } else if (ss.str().substr(0, 10) == "RUNSCRIPT:") {
           std::stringstream ss2;
           ss2 << n->get_config()->script_path() << "/" << ss.str().substr(10) << ".lua";
-          Script::msgheader(n, ss2.str(), std::string(msg->xmsg.from), std::string(msg->xmsg.to), std::string(msg->xmsg.subject));
+
+          Script::msgheader(n, ss2.str(), file.substr(n->get_config()->msg_path().size() + 1), msg->xmsg.umsgid, std::string(msg->xmsg.from), std::string(msg->xmsg.to),
+                            std::string(msg->xmsg.subject));
         }
         ss.str("");
         gottag = false;

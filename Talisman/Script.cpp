@@ -719,7 +719,7 @@ void Script::init_state(Node *n, lua_State *l) {
   lua_setglobal(l, "bbs_get_message_detail");
 }
 
-bool Script::msgheader(Node *n, std::string script, std::string from, std::string to, std::string subject) {
+bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {
   lua_State *l = luaL_newstate();
 
   init_state(n, l);
@@ -733,10 +733,12 @@ bool Script::msgheader(Node *n, std::string script, std::string from, std::strin
   }
 
   lua_getglobal(l, "msgheader");
+  lua_pushstring(l, file.c_str());
+  lua_pushnumber(l, mid);
   lua_pushstring(l, from.c_str());
   lua_pushstring(l, to.c_str());
   lua_pushstring(l, subject.c_str());
-  ret = lua_pcall(l, 3, 0, 0);
+  ret = lua_pcall(l, 5, 0, 0);
   if (ret) {
     n->log->log(LOG_ERROR, "Error executing msgheader script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
     lua_close(l);
