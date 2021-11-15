@@ -51,7 +51,7 @@ extern "C" int lua_getBBSMsgDetail(lua_State *L) {
     if (msg->xmsg.orig.zone == 0 && msg->xmsg.orig.net == 0 && msg->xmsg.orig.node == 0 && msg->xmsg.orig.point == 0) {
       for (int i = 0; i < msg->ctrl_len - 10; i++) {
         if (strncmp(&msg->ctrl[i], "\x01QWKORIG: ", 10) == 0) {
-          for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+          for (int j = i + 10; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
             detail_ss << msg->ctrl[j];
           }
           break;
