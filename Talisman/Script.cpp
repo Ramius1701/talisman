@@ -60,6 +60,12 @@ extern "C" int lua_getBBSMsgDetail(lua_State *L) {
     } else {
       detail_ss << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
     }
+  } else if (strcasecmp(detail, "LOCAL") == 0) {
+    if (msg->xmsg.attr & MSGLOCAL) {
+      detail_ss << "TRUE";
+    } else {
+      detail_ss << "FALSE";
+    }
   } else {
     detail_ss << "!ERROR";
   }
