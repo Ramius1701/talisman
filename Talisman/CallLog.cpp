@@ -4,6 +4,14 @@
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#ifdef _MSC_VER
+#define PATH_MAX MAX_PATH
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
+
 
 CallLog::CallLog(Config *c) {
   id = -1;
@@ -22,7 +30,8 @@ bool CallLog::open_database(std::string filename, sqlite3 **db) {
   char *err_msg = NULL;
 
   if (sqlite3_open(filename.c_str(), db) != SQLITE_OK) {
-    std::cerr << "Unable to open database: " << filename << std::endl;
+    char buffer[PATH_MAX];
+    std::cerr << "Unable to open database: " << filename << " CWD: " << getcwd(buffer, PATH_MAX) << std::endl;
     return false;
   }
   sqlite3_busy_timeout(*db, 5000);
