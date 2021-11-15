@@ -715,6 +715,10 @@ bool Qwkie::toss(int net) {
             std::string msgid = inir.Get(obuf, "Message-ID", "");
             std::string replyid = inir.Get(obuf, "In-Reply-To", "");
             std::string qwkorig = inir.Get(obuf, "SenderNetAddr", "");
+
+            if (qwkorig == "") {
+              qwkorig = networks.at(net).qwkid;
+            }
             int size = 0;
 
             if (msgid != "") {
