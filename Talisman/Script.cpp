@@ -13,11 +13,61 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <filesystem>
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
 
 extern "C" Node *lua_getNode(lua_State *L) {
   lua_pushstring(L, "bbs_node");
   lua_gettable(L, LUA_REGISTRYINDEX);
   return (Node *)lua_touserdata(L, -1);
+}
+
+extern "C" int lua_getBBSMsgDetail(lua_State *L) {
+  const char *mbfile = lua_tostring(L, 1);
+  uint32_t mid = (uint32_t)lua_tonumber(L, 2);
+  const char *detail = lua_tostring(L, 3);
+  Node *n = lua_getNode(L);
+
+  sq_msg_base_t *mb;
+  sq_msg_t *msg;
+
+  mb = SquishOpenMsgBase(std::string(n->get_config()->msg_path() + "/" + mbfile).c_str());
+
+  if (!mb) {
+    lua_pushstring(L, "!ERROR");
+    return 1;
+  }
+  msg = SquishReadMsg(mb, SquishUMSGID2Offset(mb, mid, 1));
+  if (!msg) {
+    lua_pushstring(L, "!ERROR");
+    return 1;
+  }
+
+  std::stringstream detail_ss;
+
+  if (strcasecmp(detail, "ORIGINADDR") == 0) {
+    if (msg->xmsg.orig.zone == 0 && msg->xmsg.orig.net == 0 && msg->xmsg.orig.node == 0 && msg->xmsg.orig.point == 0) {
+      for (int i = 0; i < msg->ctrl_len - 10; i++) {
+        if (strncmp(&msg->ctrl[i], "\x01QWKORIG: ", 10) == 0) {
+          for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+            detail_ss << msg->ctrl[j];
+          }
+          break;
+        }
+      }
+    } else {
+      detail_ss << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+    }
+  } else {
+    detail_ss << "!ERROR";
+  }
+
+  lua_pushstring(L, detail_ss.str().c_str());
+
+  SquishFreeMsg(msg);
+  return 1;
 }
 
 extern "C" int lua_getBBSMsg(lua_State *L) {
@@ -664,6 +714,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_BBSNode);
   lua_setglobal(l, "bbs_get_node");
+
+  lua_pushcfunction(l, lua_getBBSMsgDetail);
+  lua_setglobal(l, "bbs_get_message_detail");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string from, std::string to, std::string subject) {

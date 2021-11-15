@@ -90,6 +90,7 @@ bool Qwkie::scan(int net) {
         std::stringstream msgss;
         std::stringstream replyid;
         std::stringstream msgid;
+        std::stringstream tzutc;
 
         for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
@@ -107,7 +108,14 @@ bool Qwkie::scan(int net) {
             break;
           }
         }
-
+        for (int i = 0; i < msg->ctrl_len - 8; i++) {
+          if (strncmp(&msg->ctrl[i], "\x01TZUTC: ", 8) == 0) {
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+              tzutc << msg->ctrl[j];
+            }
+            break;
+          }
+        }
 
         for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
           if (msg->msg[i] == '\r') {
@@ -706,7 +714,7 @@ bool Qwkie::toss(int net) {
 
             std::string msgid = inir.Get(obuf, "Message-ID", "");
             std::string replyid = inir.Get(obuf, "In-Reply-To", "");
-
+            std::string qwkorig = inir.Get(obuf, "SenderNetAddr", "");
             int size = 0;
 
             if (msgid != "") {
@@ -714,6 +722,9 @@ bool Qwkie::toss(int net) {
             }
             if (replyid != "") {
               size += replyid.size() + 8;
+            }
+            if (qwkorig != "") {
+              size += qwkorig.size() + 10;
             }
 
             sqmsg.ctrl_len = size;
@@ -730,6 +741,12 @@ bool Qwkie::toss(int net) {
               ptr += 8;
               memcpy(ptr, replyid.c_str(), replyid.size());
               ptr += replyid.size();
+            }
+            if (qwkorig != "") {
+              memcpy(ptr, "\001QWKORIG: ", 10);
+              ptr += 10;
+              memcpy(ptr, qwkorig.c_str(), qwkorig.size());
+              ptr += qwkorig.size();
             }
           }
 
