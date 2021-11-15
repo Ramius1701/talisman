@@ -42,6 +42,7 @@ extern "C" int lua_getBBSMsgDetail(lua_State *L) {
   msg = SquishReadMsg(mb, SquishUMSGID2Offset(mb, mid, 1));
   if (!msg) {
     lua_pushstring(L, "!ERROR");
+    SquishCloseMsgBase(mb);
     return 1;
   }
 
@@ -73,6 +74,7 @@ extern "C" int lua_getBBSMsgDetail(lua_State *L) {
   lua_pushstring(L, detail_ss.str().c_str());
 
   SquishFreeMsg(msg);
+  SquishCloseMsgBase(mb);
   return 1;
 }
 
