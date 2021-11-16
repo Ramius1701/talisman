@@ -888,10 +888,8 @@ bool Tosser::run(bool protinbound) {
       bool is_bad_packet = false;
       bool link_found = false;
       for (size_t i = 0; i < c.links.size(); i++) {
-        if (pktdest.point == 0) {
-          if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node &&
-              c.links.at(i).aka->point == pktorig.point) {
-
+        if (c.links.at(i).ouraka->point != 0) {
+          if (c.links.at(i).aka->zone == pktdest.zone && c.links.at(i).aka->net == pktdest.net && c.links.at(i).aka->node == pktdest.node) {
             if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
               log.log(LOG_ERROR, "Incorrect Packet Password!");
               is_bad_packet = true;
@@ -901,11 +899,8 @@ bool Tosser::run(bool protinbound) {
               break;
             }
           }
-
         } else {
-          if (c.links.at(i).aka->zone == pktdest.zone && c.links.at(i).aka->net == pktdest.net && c.links.at(i).aka->node == pktdest.node &&
-              c.links.at(i).aka->point == 0) {
-
+          if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node) {
             if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
               log.log(LOG_ERROR, "Incorrect Packet Password!");
               is_bad_packet = true;
@@ -914,7 +909,7 @@ bool Tosser::run(bool protinbound) {
               link_found = true;
               break;
             }
-          } 
+          }
         }
       }
       if (protinbound && !link_found) {
