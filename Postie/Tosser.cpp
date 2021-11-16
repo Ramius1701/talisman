@@ -679,6 +679,12 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
   return NULL;
 }
 
+static uint16_t bswap16(uint16_t arg) {
+  uint16_t hibyte = (arg & 0xff00) >> 8;
+  uint16_t lobyte = (arg & 0xff);
+  return lobyte << 8 | hibyte;
+}
+
 bool Tosser::run(bool protinbound) {
   INIReader inir("talisman.ini");
 
@@ -836,6 +842,8 @@ bool Tosser::run(bool protinbound) {
 
       fread(&phdr, sizeof(struct packet_t), 1, fptr);
 
+      bool type2plus = false;
+
       if (phdr.version != 2) {
         fclose(fptr);
         log.log(LOG_ERROR, "Packet version != 2");
@@ -844,38 +852,76 @@ bool Tosser::run(bool protinbound) {
         continue;
       }
 
-      NETADDR pktorig;
-      pktorig.zone = phdr.origZone;
-      pktorig.node = phdr.orignode;
-      if (phdr.origNet == 0xffff) {
-        pktorig.net = phdr.auxNet;
-        pktorig.point = phdr.origPoint;
-      } else {
-        pktorig.net = phdr.origNet;
-        pktorig.point = 0;
+      if (phdr.capWord == bswap16(phdr.capValid) && phdr.capWord & 1) {
+        type2plus = true;
       }
 
+      NETADDR pktorig;
+      NETADDR pktdest;
+
+      if (type2plus) {
+        pktorig.zone = phdr.origZone2;
+        pktorig.node = phdr.orignode;
+        pktdest.zone = phdr.destZone2;
+        pktdest.node = phdr.destnode;
+
+        if (phdr.origNet == 0xffff) {
+          pktorig.net = phdr.auxNet;
+          pktorig.point = phdr.origPoint;
+        } else {
+          pktorig.net = phdr.origNet;
+          pktorig.point = 0;
+        }
+        pktdest.net = phdr.origNet;
+        pktdest.point = phdr.destPoint;
+      } else {
+        pktorig.zone = phdr.origZone;
+        pktorig.net = phdr.origNet;
+        pktorig.node = phdr.orignode;
+        pktorig.point = 0;
+
+        pktdest.zone = phdr.destZone;
+        pktdest.net = phdr.destNet;
+        pktdest.node = phdr.destnode;
+        pktdest.point = 0;
+      }
       bool is_bad_packet = false;
       bool link_found = false;
       for (size_t i = 0; i < c.links.size(); i++) {
-        if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node &&
-            c.links.at(i).aka->point == pktorig.point) {
+        if (pktdest.point == 0) {
+          if (c.links.at(i).aka->zone == pktorig.zone && c.links.at(i).aka->net == pktorig.net && c.links.at(i).aka->node == pktorig.node &&
+              c.links.at(i).aka->point == pktorig.point) {
 
-          if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
-            log.log(LOG_ERROR, "Incorrect Packet Password!");
-            is_bad_packet = true;
-            break;
-          } else {
-            link_found = true;
-            break;
+            if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
+              log.log(LOG_ERROR, "Incorrect Packet Password!");
+              is_bad_packet = true;
+              break;
+            } else {
+              link_found = true;
+              break;
+            }
           }
+
+        } else {
+          if (c.links.at(i).aka->zone == pktdest.zone && c.links.at(i).aka->net == pktdest.net && c.links.at(i).aka->node == pktdest.node &&
+              c.links.at(i).aka->point == 0) {
+
+            if (strncasecmp(c.links.at(i).packetpwd.c_str(), phdr.password, 8) != 0) {
+              log.log(LOG_ERROR, "Incorrect Packet Password!");
+              is_bad_packet = true;
+              break;
+            } else {
+              link_found = true;
+              break;
+            }
+          } 
         }
       }
-
       if (protinbound && !link_found) {
-          log.log(LOG_ERROR, "Packet from unknown link in secure inbound..");
-          is_bad_packet = true;
+        log.log(LOG_ERROR, "Packet from unknown link in secure inbound..");
+        is_bad_packet = true;
       }
+
 
       if (is_bad_packet) {
 
@@ -1073,14 +1119,14 @@ bool Tosser::run(bool protinbound) {
               for (size_t l = 0; l < c.areas.at(a).links.size(); l++) {
                 // if it's to a point
                 if (c.areas.at(a).links.at(l)->aka->point != 0) {
-                  if (phdr.origNet == 0xffff) {
+                  if (type2plus && phdr.origNet == 0xffff) {
                     if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.auxNet &&
                         c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
                       continue;
                     }
                   } else {
                     if (c.areas.at(a).links.at(l)->aka->zone == phdr.origZone && c.areas.at(a).links.at(l)->aka->net == phdr.origNet &&
-                        c.areas.at(a).links.at(l)->aka->node == phdr.orignode && c.areas.at(a).links.at(l)->aka->point == phdr.origPoint) {
+                        c.areas.at(a).links.at(l)->aka->node == phdr.orignode) {
                       continue;
                     }
                   }
