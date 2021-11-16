@@ -81,7 +81,7 @@ bool Qwkie::scan(int net) {
         std::string recipient(msg->xmsg.to);
         int hour = (msg->xmsg.date_written.time >> 11) & 31;
         int minute = (msg->xmsg.date_written.time >> 5) & 63;
-
+        int second = (msg->xmsg.date_written.time) & 5 * 2;
         int day = msg->xmsg.date_written.date & 31;
         int month = (msg->xmsg.date_written.date >> 5) & 15;
         int year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980;
@@ -257,6 +257,15 @@ bool Qwkie::scan(int net) {
         if (replyid.str().size() > 0) {
           fprintf(hdrdat, "In-Reply-To: %s\n", replyid.str().c_str());
         }
+
+        if (tzutc.str().size() > 0) {
+          if (tzutc.str()[0] == '-') {
+            fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d%s\n", year, month, day, hour, minute, second, tzutc.str().c_str());
+          } else {
+            fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d+%s\n", year, month, day, hour, minute, second, tzutc.str().c_str());
+          }
+        }
+
         fprintf(hdrdat, "\n");
 
         fclose(hdrdat);
