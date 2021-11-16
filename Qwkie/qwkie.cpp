@@ -275,10 +275,10 @@ bool Qwkie::scan(int net) {
 
           if (tzsh <= 720 && tzsh >= -720) {
             if (tzutc.str()[0] == '-') {
-              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d%s %u\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
+              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d%s %x\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
                       (unsigned short)tzsh);
             } else {
-              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d+%s %u\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
+              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d+%s %x\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
                       (unsigned short)tzsh);
             }
           }
