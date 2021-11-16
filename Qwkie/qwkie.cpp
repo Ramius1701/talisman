@@ -259,10 +259,28 @@ bool Qwkie::scan(int net) {
         }
 
         if (tzutc.str().size() > 0) {
+          short tzsh;
+
           if (tzutc.str()[0] == '-') {
-            fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d%s\n", year, month, day, hour, minute, second, tzutc.str().c_str());
+            int houroff = (tzutc.str()[1] - '0') * 10 + (tzutc.str()[2] - '0');
+            int minoff = (tzutc.str()[3] - '0') * 10 + (tzutc.str()[4] - '0');
+
+            tzsh = -(houroff * 60 + minoff);
           } else {
-            fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d+%s\n", year, month, day, hour, minute, second, tzutc.str().c_str());
+            int houroff = (tzutc.str()[0] - '0') * 10 + (tzutc.str()[1] - '0');
+            int minoff = (tzutc.str()[2] - '0') * 10 + (tzutc.str()[3] - '0');
+
+            tzsh = houroff * 60 + minoff;
+          }
+
+          if (tzsh <= 720 && tzsh >= -720) {
+            if (tzutc.str()[0] == '-') {
+              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d%s %u\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
+                      (unsigned short)tzsh);
+            } else {
+              fprintf(hdrdat, "WhenWritten: %04d%02d%02d%02d%02d%02d+%s %u\n", year, month, day, hour, minute, second, tzutc.str().c_str(),
+                      (unsigned short)tzsh);
+            }
           }
         }
 
