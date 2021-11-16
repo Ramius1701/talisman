@@ -872,7 +872,7 @@ bool Tosser::run(bool protinbound) {
           pktorig.net = phdr.origNet;
           pktorig.point = 0;
         }
-        pktdest.net = phdr.origNet;
+        pktdest.net = phdr.destNet;
         pktdest.point = phdr.destPoint;
       } else {
         pktorig.zone = phdr.origZone;
@@ -1135,7 +1135,11 @@ bool Tosser::run(bool protinbound) {
                 }
 
                 if (c.areas.at(a).links.at(l)->fptr == NULL) {
-                  Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
+                  if (c.areas.at(a).links.at(l)->aka->point != 0) {
+                    Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), &pktorig);
+                  } else {
+                    Scanner::initialize_packet(c.areas.at(a).links.at(l), tempdir.u8string(), c.areas.at(a).links.at(l)->ouraka);
+                  }
                 }
                 Scanner::write_msg_to_pkt(&c.areas.at(a), c.areas.at(a).links.at(l), &sqmsg, false);
               }
