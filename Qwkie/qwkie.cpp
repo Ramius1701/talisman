@@ -625,7 +625,6 @@ bool Qwkie::toss(int net) {
 
           msgbody.str("");
 
-          bool gotkludge = false;
           size_t x = 0;
           std::vector<std::string> text;
 
