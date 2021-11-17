@@ -628,48 +628,8 @@ bool Qwkie::toss(int net) {
           bool gotkludge = false;
           size_t x = 0;
           std::vector<std::string> text;
-          while (true) {
-            ss.str("");
-            for (; x < strlen(msgcontent); x++) {
-              if (msgcontent[x] == '\r') {
-                x++;
-                break;
-              }
-              ss << msgcontent[x];
-            }
-            if (strcasecmp(ss.str().substr(0, 8).c_str(), "subject:") == 0) {
-              gotkludge = true;
-              size_t y;
-              for (y = 8; y < ss.str().length(); y++) {
-                if (ss.str().at(y) != ' ')
-                  break;
-              }
-              subject = ss.str().substr(y);
-            } else if (strcasecmp(ss.str().substr(0, 3).c_str(), "to:") == 0) {
-              gotkludge = true;
-              size_t y;
-              for (y = 3; y < ss.str().length(); y++) {
-                if (ss.str().at(y) != ' ')
-                  break;
-              }
-              to = ss.str().substr(y);
-            } else if (strcasecmp(ss.str().substr(0, 5).c_str(), "from:") == 0) {
-              gotkludge = true;
-              size_t y;
-              for (y = 5; y < ss.str().length(); y++) {
-                if (ss.str().at(y) != ' ')
-                  break;
-              }
-              from = ss.str().substr(y);
-            } else {
-              if (gotkludge) {
-                msgbody << &msgcontent[x];
-              } else {
-                msgbody << msgcontent;
-              }
-              break;
-            }
-          }
+
+          msgbody << msgcontent;
 
           free(msgcontent);
 
@@ -739,6 +699,10 @@ bool Qwkie::toss(int net) {
 
             snprintf(obuf, 67, "%x", offset);
 
+
+            to = inir.Get(obuf, "To", to);
+            from = inir.Get(obuf, "Sender", from);
+            subject = inir.Get(obuf, "Subject", subject);
             std::string msgid = inir.Get(obuf, "Message-ID", "");
             std::string replyid = inir.Get(obuf, "In-Reply-To", "");
             std::string qwkorig = inir.Get(obuf, "SenderNetAddr", "");
