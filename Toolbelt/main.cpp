@@ -564,7 +564,7 @@ int main(int argc, char **argv) {
                 std::cout << "[[filearea]]" << std::endl;
                 std::cout << "name = \"" << prefix << desc << "\"" << std::endl;
                 std::cout << "database = \"fb_" << lower(tag) << "\"" << std::endl;
-                std::cout << "filepath = \"" << root << "/" << lower(tag) << "\"" << std::endl;
+                std::cout << "file_path = \"" << root << "/" << lower(tag) << "\"" << std::endl;
                 std::cout << "upload_sec_level = " << up_sl << std::endl;
                 std::cout << "download_sec_level = " << dl_sl << std::endl;
                 std::cout << "visible_sec_level = " << vis_sl << std::endl;
