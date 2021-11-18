@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Logger.cpp" />
     <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Falcon.cpp" />

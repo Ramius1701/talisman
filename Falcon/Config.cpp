@@ -1,5 +1,6 @@
 #include "../Common/toml.hpp"
 #include "Config.h"
+#include "../Common/Logger.h"
 #include <algorithm>
 #include <fstream>
 #ifdef _MSC_VER
@@ -15,7 +16,7 @@ static inline void rtrim(std::string &s) {
   s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
 }
 
-bool Config::load(std::string datapath) {
+bool Config::load(std::string datapath, Logger *log) {
   try {
     auto data = toml::parse_file(datapath + "/falcon.toml");
 
@@ -164,7 +165,9 @@ bool Config::load(std::string datapath) {
         areas.push_back(newarea);
       }
     }
-  } catch (toml::parse_error const&) {
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/falcon.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
 

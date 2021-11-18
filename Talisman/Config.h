@@ -9,6 +9,7 @@
 class Node;
 class Protocol;
 class Archiver;
+class Logger;
 
 struct sec_level_t {
   std::string name;
@@ -38,7 +39,7 @@ struct theme_t {
 class Config {
 public:
   Config();
-  bool load(Node *n, std::string filename);
+  bool load(Node *n, std::string filename, Logger **log);
 
   struct sec_level_t *get_sec_level_info(int seclvl);
 

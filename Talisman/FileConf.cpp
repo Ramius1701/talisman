@@ -7,6 +7,7 @@
 #include "FileArea.h"
 #include "FileConf.h"
 #include "Node.h"
+#include "../Common/Logger.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -77,7 +78,10 @@ bool FileConf::load(Node *n) {
       areas.push_back(f);
     }
     return true;
-  } catch (toml::parse_error const&) {
+  } catch (toml::parse_error const &p) {
+    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", std::string(c->data_path() + "/" + config_file + ".toml").c_str(), p.source().begin.line,
+                p.source().begin.column);
+    n->log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
 }

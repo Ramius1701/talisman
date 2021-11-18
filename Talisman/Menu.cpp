@@ -99,11 +99,14 @@ bool Menu::load(std::string filename) {
         items.push_back(item);
       }
     }
-  } catch (std::exception const &) {
-    return false;
-  }
-  isloaded = true;
-  return true;
+    isloaded = true;
+  } catch (toml::parse_error const &p) {
+    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d",  filename.c_str(), p.source().begin.line,
+                p.source().begin.column);
+    n->log->log(LOG_ERROR, " -> %s", p.description());
+    isloaded = false;
+  } 
+  return isloaded;
 }
 
 bool Menu::run() {

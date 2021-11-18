@@ -152,6 +152,7 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Logger.cpp" />
     <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Archiver.cpp" />
     <ClCompile Include="main.cpp" />

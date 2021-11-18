@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+class Logger;
+
 struct link_t {
   std::string network;
   NETADDR *addr;
@@ -20,7 +22,7 @@ struct address_t {
 
 class Config {
 public:
-  bool load(std::string datapath);
+  bool load(std::string datapath, Logger *log);
 
   int defaultzone;
 

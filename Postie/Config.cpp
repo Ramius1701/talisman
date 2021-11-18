@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include "../Common/Logger.h"
 
 static inline void ltrim(std::string &s) {
   s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
@@ -53,7 +54,7 @@ Config::~Config() {
   }
 }
 
-bool Config::load_archivers(std::string datapath) {
+bool Config::load_archivers(std::string datapath, Logger *log) {
   try {
     auto data3 = toml::parse_file(datapath + "/archivers.toml");
 
@@ -139,10 +140,9 @@ bool Config::load_archivers(std::string datapath) {
       Archiver *a = new Archiver(myname, myext, myunarc, myarc, myoffset, signature, mysig.size() / 2);
       archivers.push_back(a);
     }
-  }
-
-  catch (toml::parse_error const&) {
-    std::cerr << "Error parsing " << datapath << "/archivers.toml" << std::endl;
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
   return true;
@@ -187,7 +187,7 @@ void Config::sort_addr(std::vector<NETADDR *> *links) {
   }
 }
 
-bool Config::load(std::string datapath) {
+bool Config::load(std::string datapath, Logger *log) {
   try {
     auto data = toml::parse_file(datapath + "/postie.toml");
 
@@ -708,8 +708,9 @@ bool Config::load(std::string datapath) {
         fileareas.push_back(faconf);
       }
     }
-  } catch (toml::parse_error const&) {
-    std::cerr << "Error parsing config file!!!" << std::endl;
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/postie.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
   return true;

@@ -1,6 +1,7 @@
 #include "../Common/INIReader.h"
 #include "../Common/Squish.h"
 #include "../Common/wwivnet.h"
+#include "../Common/Logger.h"
 #include "Config.h"
 #include "Scanner.h"
 #include <filesystem>
@@ -74,8 +75,11 @@ void Scanner::run() {
   _msgpath = inir.Get("Paths", "Message Path", "msgs");
   _logpath = inir.Get("Paths", "Log Path", "logs");
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
+  Logger log;
 
-  if (!config.load(_datapath)) {
+  log.load(_logpath + "/falcon.log");
+
+  if (!config.load(_datapath, &log)) {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
@@ -88,8 +92,7 @@ void Scanner::run() {
     mb = SquishOpenMsgBase(std::string(_msgpath + "/" + config.networks.at(i).emailbase).c_str());
 
     if (!mb) {
-      std::cerr << "Unable to open message base! " << config.networks.at(i).emailbase << std::endl;
-
+      log.log(LOG_ERROR, "Unable to open message base %s", config.networks.at(i).emailbase.c_str());
       continue;
     }
 
@@ -114,7 +117,7 @@ void Scanner::run() {
             fptr = fopen(fspath.u8string().c_str(), "wb");
           }
           if (!fptr) {
-            std::cerr << "Error opening " << fspath << std::endl;
+            log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
             break;
           }
         }
@@ -195,7 +198,7 @@ void Scanner::run() {
         mb = SquishOpenMsgBase(std::string(_msgpath + "/" + config.areas.at(a).basefile).c_str());
 
         if (!mb) {
-          std::cerr << "Unable to open message base! " << config.areas.at(a).basefile << std::endl;
+          log.log(LOG_ERROR, "Unable to open message base! %s", config.areas.at(a).basefile.c_str());
           continue;
         }
         for (size_t mid = 1; mid <= mb->basehdr.num_msg; mid++) {
@@ -215,7 +218,7 @@ void Scanner::run() {
                 fptr = fopen(fspath.u8string().c_str(), "wb");
               }
               if (!fptr) {
-                std::cerr << "Error opening " << fspath << std::endl;
+                log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
                 break;
               }
             }

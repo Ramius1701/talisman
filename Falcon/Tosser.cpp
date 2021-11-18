@@ -1,6 +1,7 @@
 #include "../Common/INIReader.h"
 #include "../Common/Squish.h"
 #include "../Common/wwivnet.h"
+#include "../Common/Logger.h"
 #include "Config.h"
 #include "Tosser.h"
 #include <filesystem>
@@ -10,7 +11,7 @@
 #define strcasecmp stricmp
 #endif
 
-bool Tosser::open_user_database(sqlite3 **db) {
+bool Tosser::open_user_database(Logger *log, sqlite3 **db) {
   static const char *create_users_sql =
       "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT COLLATE NOCASE UNIQUE, password TEXT, salt TEXT);";
 
@@ -18,14 +19,14 @@ bool Tosser::open_user_database(sqlite3 **db) {
   char *err_msg = NULL;
   std::string filepath = _datapath + "/users.sqlite3";
   if (sqlite3_open(filepath.c_str(), db) != SQLITE_OK) {
-    // std::cerr << "Unable to open database: users.db" << std::endl;
+    log->log(LOG_ERROR, "Unable to open database: users.db");
     return false;
   }
   sqlite3_busy_timeout(*db, 5000);
 
   rc = sqlite3_exec(*db, create_users_sql, 0, 0, &err_msg);
   if (rc != SQLITE_OK) {
-    // std::cerr << "Unable to create user table: " << err_msg << std::endl;
+    log->log(LOG_ERROR, "Unable to create user table %s", err_msg);
     sqlite3_free(err_msg);
     sqlite3_close(*db);
     return false;
@@ -34,18 +35,17 @@ bool Tosser::open_user_database(sqlite3 **db) {
   return true;
 }
 
-bool Tosser::import_email(int to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+bool Tosser::import_email(Logger *log, int to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
   // lookup user num -> username
   sqlite3 *db;
 
   sqlite3_stmt *stmt;
   static const char *sql = "SELECT username FROM users WHERE id = ?";
-  if (!open_user_database(&db)) {
-    std::cerr << "Failed to open user database" << std::endl;
+  if (!open_user_database(log, &db)) {
     return false;
   }
   if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
-    std::cerr << "Failed to prepare statement" << std::endl;
+    log->log(LOG_ERROR, "Failed to prepare statement");
     return false;
   }
 
@@ -58,7 +58,7 @@ bool Tosser::import_email(int to, std::string from, int fromsys, std::string sub
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
-    return import_email(username, from, fromsys, subject, msg, network, sent);
+    return import_email(log, username, from, fromsys, subject, msg, network, sent);
   }
 
   std::cerr << "Unknown user (user num " << to << ")" << std::endl;
@@ -69,7 +69,7 @@ bool Tosser::import_email(int to, std::string from, int fromsys, std::string sub
   return false;
 }
 
-bool Tosser::import_email(std::string to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+bool Tosser::import_email(Logger *log, std::string to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
   sq_msg_base_t *mb;
   sq_msg_t newmsg;
 
@@ -168,12 +168,13 @@ bool Tosser::import_email(std::string to, std::string from, int fromsys, std::st
   if (!mb) {
     free(newmsg.msg);
     free(newmsg.ctrl);
+    log->log(LOG_ERROR, "Failed to open message base %s", std::string(_msgpath + "/" + config.networks.at(network).emailbase).c_str());
     return false;
   }
   if (!SquishLockMsgBase(mb)) {
     free(newmsg.msg);
     free(newmsg.ctrl);
-
+    log->log(LOG_ERROR, "Failed to lock message base %s", std::string(_msgpath + "/" + config.networks.at(network).emailbase).c_str());
     return false;
   }
   SquishWriteMsg(mb, &newmsg);
@@ -186,7 +187,7 @@ bool Tosser::import_email(std::string to, std::string from, int fromsys, std::st
   return true;
 }
 
-bool Tosser::import_message(std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+bool Tosser::import_message(Logger *log, std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
   for (size_t i = 0; i < config.areas.size(); i++) {
     if (strcasecmp(config.areas.at(i).subtype.c_str(), subtype.c_str()) == 0 &&
         strcasecmp(config.areas.at(i).netname.c_str(), config.networks.at(network).name.c_str()) == 0) {
@@ -283,12 +284,13 @@ bool Tosser::import_message(std::string subtype, std::string from, int fromsys, 
       if (!mb) {
         free(newmsg.msg);
         free(newmsg.ctrl);
+        log->log(LOG_ERROR, "Failed to open message base %s", std::string(_msgpath + "/" + config.areas.at(i).basefile).c_str());
         return false;
       }
       if (!SquishLockMsgBase(mb)) {
         free(newmsg.msg);
         free(newmsg.ctrl);
-
+        log->log(LOG_ERROR, "Failed to lock message base %s", std::string(_msgpath + "/" + config.areas.at(i).basefile).c_str());
         return false;
       }
       SquishWriteMsg(mb, &newmsg);
@@ -318,7 +320,11 @@ void Tosser::run() {
   _logpath = inir.Get("Paths", "Log Path", "logs");
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-  if (!config.load(_datapath)) {
+  Logger log;
+
+  log.load(_logpath + "/falcon.log");
+
+  if (!config.load(_datapath, &log)) {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
@@ -334,7 +340,7 @@ void Tosser::run() {
         // toss file for network.
         FILE *fptr = fopen(fspath.u8string().c_str(), "rb");
         if (!fptr) {
-          std::cerr << "Unable to load " << fspath.u8string() << std::endl;
+          log.log(LOG_ERROR, "Unable to load %s", fspath.u8string().c_str());
           continue;
         }
 
@@ -348,7 +354,7 @@ void Tosser::run() {
           for (uint16_t j = 0; j < msgrec.list_len; j++) {
             uint16_t n;
             if (fread(&n, sizeof(uint16_t), 1, fptr) != 1) {
-              std::cerr << "Short read on 2 " << fspath.u8string() << std::endl;
+              log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
               sr = true;
               break;
             }
@@ -363,7 +369,7 @@ void Tosser::run() {
           for (size_t j = 0; j < msgrec.length; j++) {
             char c;
             if (fread(&c, sizeof(char), 1, fptr) != 1) {
-              std::cerr << "Short read on 3 " << fspath.u8string() << std::endl;
+              log.log(LOG_ERROR, "Short read (3) %s", fspath.u8string().c_str());
               sr = true;
               break;
             }
@@ -471,7 +477,7 @@ void Tosser::run() {
 
               msg.erase(msg.begin(), msg.begin() + 1);
 
-              import_email(msgrec.touser, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
+              import_email(&log, msgrec.touser, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
             }
             break;
           case 7: // email to name type
@@ -520,7 +526,7 @@ void Tosser::run() {
 
               msg.erase(msg.begin(), msg.begin() + 1);
 
-              import_email(toname, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
+              import_email(&log, toname, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
             }
             break;
           case 18: {
@@ -580,7 +586,7 @@ void Tosser::run() {
 
             msg.insert(msg.begin(), stat_msg);
 
-            import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+            import_email(&log, 1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
 
           } break;
           case 19: {
@@ -640,7 +646,7 @@ void Tosser::run() {
 
             msg.insert(msg.begin(), stat_msg);
 
-            import_email(1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+            import_email(&log, 1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
           } break;
           case 26: // main type post
           {
@@ -674,7 +680,7 @@ void Tosser::run() {
 
             msg.erase(msg.begin(), msg.begin() + 1);
 
-            import_message(subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
+            import_message(&log, subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
           }
 
           break;
@@ -686,7 +692,7 @@ void Tosser::run() {
           std::cerr << fspath << std::endl;
           std::filesystem::remove(fspath);
         } catch (std::exception const&) {
-          std::cerr << "failed to remove file" << std::endl;
+          log.log(LOG_ERROR, "Failed to remove file %s", fspath.u8string().c_str());
         }
       }
     }

@@ -5,6 +5,7 @@
 #include <vector>
 
 class Archiver;
+class Logger;
 
 struct address_conf_t {
   NETADDR *aka;
@@ -64,8 +65,8 @@ struct farea_conf_t {
 class Config {
 public:
   ~Config();
-  bool load(std::string filename);
-  bool load_archivers(std::string datapath);
+  bool load(std::string filename, Logger *log);
+  bool load_archivers(std::string datapath, Logger *log);
   std::vector<Archiver *> archivers;
   std::vector<struct address_conf_t> addresses;
   std::vector<struct link_conf_t> links;

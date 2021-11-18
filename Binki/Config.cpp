@@ -1,9 +1,10 @@
 #include "../Common/Squish.h"
 #include "../Common/toml.hpp"
+#include "../Common/Logger.h"
 #include "Config.h"
 #include <fstream>
 
-bool Config::load(std::string datapath) {
+bool Config::load(std::string datapath, Logger *log) {
   try {
     auto data = toml::parse_file(datapath + "/binki.toml");
 
@@ -142,7 +143,9 @@ bool Config::load(std::string datapath) {
         links.push_back(newlink);
       }
     }
-  } catch (toml::parse_error const&) {
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/binki.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
 

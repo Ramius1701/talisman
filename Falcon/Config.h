@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+class Logger;
+
 struct network_t {
   std::string name;
   std::string outbox;
@@ -20,7 +22,7 @@ struct area_t {
 
 class Config {
 public:
-  bool load(std::string datapath);
+  bool load(std::string datapath, Logger *log);
   std::vector<struct network_t> networks;
   std::vector<struct area_t> areas;
 

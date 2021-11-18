@@ -737,12 +737,12 @@ bool Tosser::run(bool protinbound) {
 
   log.log(LOG_DEBUG, "Starting Tosser");
 
-  if (!c.load(_datapath)) {
+  if (!c.load(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }
 
-  if (!c.load_archivers(_datapath)) {
+  if (!c.load_archivers(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }

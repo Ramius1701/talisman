@@ -1,5 +1,6 @@
 #include "../Common/INIReader.h"
 #include "../Common/wwivnet.h"
+#include "../Common/Logger.h"
 #include "Config.h"
 #include "Scanner.h"
 #include "SubReq.h"
@@ -24,7 +25,11 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
   _logpath = inir.Get("Paths", "Log Path", "logs");
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-  if (!config.load(_datapath)) {
+  Logger log;
+
+  log.load(_logpath + "/falcon.log");
+
+  if (!config.load(_datapath, &log)) {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
@@ -42,7 +47,7 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
         fptr = fopen(fspath.u8string().c_str(), "wb");
       }
       if (!fptr) {
-        std::cerr << "Error opening " << fspath << std::endl;
+        log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
         break;
       }
 
@@ -77,7 +82,11 @@ void SubReq::drop(const char *netname, int hostid, const char *subtype) {
   _logpath = inir.Get("Paths", "Log Path", "logs");
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
 
-  if (!config.load(_datapath)) {
+  Logger log;
+
+  log.load(_logpath + "/falcon.log");
+
+  if (!config.load(_datapath, &log)) {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
@@ -95,7 +104,7 @@ void SubReq::drop(const char *netname, int hostid, const char *subtype) {
         fptr = fopen(fspath.u8string().c_str(), "wb");
       }
       if (!fptr) {
-        std::cerr << "Error opening " << fspath << std::endl;
+        log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
         break;
       }
 

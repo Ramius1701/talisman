@@ -1161,12 +1161,13 @@ int Server::load_config() {
   _system_name = inir.Get("Main", "System Name", "A Talisman BBS");
   _location = inir.Get("Main", "Location", "Somewhere, The World");
 
-  if (!c.load(_datapath)) {
+  log.load(_logpath + "/binki.log");
+
+  if (!c.load(_datapath, &log)) {
     std::cerr << "Error loading config!" << std::endl;
     return -1;
   }
 
-  log.load(_logpath + "/binki.log");
 
   return 0;
 }

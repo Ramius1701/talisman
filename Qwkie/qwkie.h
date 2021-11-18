@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+class Logger;
+
 struct area_t {
   std::string msgarea;
   int qwkbaseno;
@@ -33,15 +35,15 @@ public:
   bool poll(int net);
   bool poll(std::string network);
   bool pollall();
-  bool loadConfig();
+  bool loadConfig(std::string datapath, std::string msgpath, std::string temppath, Logger *log);
   ~Qwkie();
 
 private:
-  bool load_archivers();
+  bool load_archivers(Logger *log);
   std::string msgpath;
   std::string datapath;
   std::string temppath;
-
+  Logger *log;
   std::vector<struct network_t> networks;
   std::vector<Archiver *> archivers;
 };

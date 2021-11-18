@@ -4,6 +4,8 @@
 #define strcasecmp _stricmp
 #endif
 #include "qwkie.h"
+#include "../Common/Logger.h"
+#include "../Common/INIReader.h"
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -12,8 +14,20 @@ int main(int argc, char **argv) {
   }
 
   Qwkie q;
+  Logger log;
+  INIReader inir("talisman.ini");
+  if (inir.ParseError()) {
+    std::cerr << "Failed to parse talisman.ini" << std::endl;
+    return false;
+  }
 
-  if (!q.loadConfig()) {
+  std::string datapath = inir.Get("Paths", "Data Path", "data");
+  std::string temppath = inir.Get("Paths", "Temp Path", "temp");
+  std::string msgpath = inir.Get("Paths", "Message Path", "msgs");
+  std::string logpath = inir.Get("Paths", "Log Path", "logs");
+  log.load(logpath + "/qwkie.log");
+
+  if (!q.loadConfig(datapath, msgpath, temppath, &log)) {
     std::cerr << "Failed to load config!" << std::endl;
     return -1;
   }

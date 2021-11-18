@@ -197,12 +197,12 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
 
   log.log(LOG_DEBUG, "Starting TicHatch");
 
-  if (!c.load(_datapath)) {
+  if (!c.load(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }
 
-  if (!c.load_archivers(_datapath)) {
+  if (!c.load_archivers(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }
@@ -442,12 +442,12 @@ bool TicProc::run() {
 
   log.log(LOG_DEBUG, "Starting TicProc");
 
-  if (!c.load(_datapath)) {
+  if (!c.load(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }
 
-  if (!c.load_archivers(_datapath)) {
+  if (!c.load_archivers(_datapath, &log)) {
     std::filesystem::remove(pidfile);
     return false;
   }

@@ -6,6 +6,7 @@
 #include "../Common/toml.hpp"
 #include "Archiver.h"
 #include "Qwk.h"
+#include "../Common/Logger.h"
 #include "qwkie.h"
 #include <curl/curl.h>
 #include <filesystem>
@@ -43,7 +44,7 @@ bool Qwkie::scan(int net) {
   std::filesystem::create_directories(packpath);
 
   if (std::filesystem::exists(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP")) {
-    std::cerr << "Outbound REP packet exists... bailing." << std::endl;
+    log->log(LOG_INFO, "Outbound REP packet exists... bailing.");
     std::filesystem::remove_all(packpath);
     return false;
   }
@@ -328,7 +329,7 @@ bool Qwkie::scan(int net) {
 bool Qwkie::scan(std::string network) {
   for (size_t net = 0; net < networks.size(); net++) {
     if (strcasecmp(networks.at(net).name.c_str(), network.c_str()) == 0) {
-      std::cout << "Scanning " << network << "..." << std::endl;
+      log->log(LOG_INFO, "Scanning %s...", network.c_str());
       return scan(net);
     }
   }
@@ -336,8 +337,7 @@ bool Qwkie::scan(std::string network) {
 }
 
 bool Qwkie::scanall() {
-  std::cout << "Scanning all nets...." << std::endl;
-
+  log->log(LOG_INFO, "Scanning all nets...");
   for (size_t net = 0; net < networks.size(); net++) {
     scan(net);
   }
@@ -362,13 +362,12 @@ bool Qwkie::poll(int net) {
   CURLcode res;
 
   if (std::filesystem::exists(temppath + "/qwknet/" + networks.at(net).qwkid + ".QWK")) {
-    std::cerr << "QWK file for " << networks.at(net).qwkid << " exists, skipping fetch." << std::endl;
+    log->log(LOG_INFO, "QWK file for %s exists, skipping fetch.", networks.at(net).qwkid.c_str());
   } else {
     FILE *fptr = fopen(std::string(temppath + "/qwknet/" + networks.at(net).qwkid + ".QWK").c_str(), "wb");
 
     if (!fptr) {
-
-      std::cerr << "Failed to open " << temppath << "/qwknet/" << networks.at(net).qwkid << ".QWK" << std::endl;
+      log->log(LOG_INFO, "Failed to open %s/qwknet/%s.QWK", temppath.c_str(), networks.at(net).qwkid.c_str());
       return false;
     }
 
@@ -392,7 +391,7 @@ bool Qwkie::poll(int net) {
 
     if (res != CURLE_OK) {
       fclose(fptr);
-      fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+      log->log(LOG_ERROR, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
       std::filesystem::remove(temppath + "/qwknet/" + networks.at(net).qwkid + ".QWK");
     } else {
       fclose(fptr);
@@ -401,20 +400,19 @@ bool Qwkie::poll(int net) {
   }
 
   if (!std::filesystem::exists(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP")) {
-    std::cerr << "REP file for " << networks.at(net).qwkid << " does not exist, skipping send." << std::endl;
+    log->log(LOG_INFO, "REP file for: %s does not exist, skipping send.", networks.at(net).qwkid.c_str());
   } else {
     struct stat s;
 
     if (stat(std::string(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP").c_str(), &s) != 0) {
-      std::cerr << "Failed to stat " << temppath << "/qwknet/" << networks.at(net).qwkid << ".REP" << std::endl;
+      log->log(LOG_ERROR, "Failed to stat %s/qwknet/%s.REP", temppath.c_str(), networks.at(net).qwkid.c_str());
       return false;
     }
     curl_off_t fsize = (curl_off_t)s.st_size;
     FILE *fptr = fopen(std::string(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP").c_str(), "rb");
 
     if (!fptr) {
-
-      std::cerr << "Failed to read " << temppath << "/qwknet/" << networks.at(net).qwkid << ".REP" << std::endl;
+      log->log(LOG_ERROR, "Failed to read %s/qwknet/%s.REP", temppath.c_str(), networks.at(net).qwkid.c_str());
       return false;
     }
 
@@ -440,7 +438,7 @@ bool Qwkie::poll(int net) {
 
     if (res != CURLE_OK) {
       fclose(fptr);
-      fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+      log->log(LOG_ERROR, "curl_easy_perform() failed: %s", curl_easy_strerror(res));
     } else {
       fclose(fptr);
       std::filesystem::remove(temppath + "/qwknet/" + networks.at(net).qwkid + ".REP");
@@ -455,7 +453,7 @@ bool Qwkie::poll(std::string network) {
   curl_global_init(CURL_GLOBAL_ALL);
   for (size_t net = 0; net < networks.size(); net++) {
     if (strcasecmp(networks.at(net).name.c_str(), network.c_str()) == 0) {
-      std::cout << "Polling " << network << "..." << std::endl;
+      log->log(LOG_INFO, "Polling %s...", network.c_str());
       return poll(net);
     }
   }
@@ -464,7 +462,7 @@ bool Qwkie::poll(std::string network) {
 }
 
 bool Qwkie::pollall() {
-  std::cout << "Polling all nets...." << std::endl;
+  log->log(LOG_INFO, "Polling all nets...");
   curl_global_init(CURL_GLOBAL_ALL);
   for (size_t net = 0; net < networks.size(); net++) {
     poll(net);
@@ -476,7 +474,7 @@ bool Qwkie::pollall() {
 bool Qwkie::toss(std::string network) {
   for (size_t net = 0; net < networks.size(); net++) {
     if (strcasecmp(networks.at(net).name.c_str(), network.c_str()) == 0) {
-      std::cout << "Tossing " << network << "...." << std::endl;
+      log->log(LOG_INFO, "Tossing %s ...", network.c_str());
       return toss(net);
     }
   }
@@ -484,7 +482,8 @@ bool Qwkie::toss(std::string network) {
 }
 
 bool Qwkie::tossall() {
-  std::cout << "Tossing all nets...." << std::endl;
+  log->log(LOG_INFO, "Tossing all nets ...");
+
   for (size_t net = 0; net < networks.size(); net++) {
     toss(net);
   }
@@ -497,8 +496,6 @@ bool Qwkie::toss(int net) {
   std::filesystem::path path(tmppath);
 
   path.append(networks.at(net).qwkid + ".qwk");
-
-  std::cout << "Searching for " << path.u8string() << std::endl;
 
   if (!std::filesystem::exists(path)) {
     path = tmppath;
@@ -518,7 +515,7 @@ bool Qwkie::toss(int net) {
     std::filesystem::remove_all(extractpath);
   }
   if (!std::filesystem::create_directories(extractpath)) {
-    std::cerr << "Error creating temporary directory." << std::endl;
+    log->log(LOG_ERROR, "Error creating temporary directory, %s", extractpath.u8string().c_str());
     return false;
   }
 
@@ -548,7 +545,7 @@ bool Qwkie::toss(int net) {
     break;
   }
   if (unarced == false) {
-    std::cerr << "Can't find archiver for packet." << std::endl;
+    log->log(LOG_ERROR, "Cant find archiver for packet");
     return false;
   }
 
@@ -583,7 +580,7 @@ bool Qwkie::toss(int net) {
       char *msgcontent = (char *)malloc(((msgrecs - 1) * 128) + 1);
 
       if (!msgcontent) {
-        std::cerr << "Out of memory!" << std::endl;
+        log->log(LOG_ERROR, "Out of memory!");
         std::filesystem::remove_all(extractpath);
         return false;
       }
@@ -592,7 +589,7 @@ bool Qwkie::toss(int net) {
 
       if (fread(msgcontent, sizeof(struct QwkHeader), msgrecs - 1, fptr) != msgrecs - 1) {
         free(msgcontent);
-        std::cerr << "Short read on message." << std::endl;
+        log->log(LOG_ERROR, "Short read on message.");
         std::filesystem::remove_all(extractpath);
         return false;
       }
@@ -749,7 +746,7 @@ bool Qwkie::toss(int net) {
           sqmsg.msg = (char *)malloc(sqmsg.msg_len);
 
           if (!sqmsg.msg) {
-            std::cerr << "Out of memory!" << std::endl;
+            log->log(LOG_ERROR, "Out of memory!");
             return false;
           }
           memcpy(sqmsg.msg, msgbody.str().c_str(), msgbody.str().size());
@@ -791,7 +788,7 @@ bool Qwkie::toss(int net) {
           sq_msg_base_t *mb = SquishOpenMsgBase(std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea).c_str());
 
           if (!mb) {
-            std::cerr << "Unable to open message base: " << std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea) << std::endl;
+            log->log(LOG_ERROR, "Unable to open message base: %s", std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea).c_str());
           } else {
             SquishLockMsgBase(mb);
             SquishWriteMsg(mb, &sqmsg);
@@ -811,18 +808,12 @@ bool Qwkie::toss(int net) {
   return true;
 }
 
-bool Qwkie::loadConfig() {
-  INIReader inir("talisman.ini");
-  if (inir.ParseError()) {
-    std::cerr << "Failed to parse talisman.ini" << std::endl;
-    return false;
-  }
-
-  datapath = inir.Get("Paths", "Data Path", "data");
-  temppath = inir.Get("Paths", "Temp Path", "temp");
-  msgpath = inir.Get("Paths", "Message Path", "msgs");
-  if (!load_archivers()) {
-    std::cerr << "Failed to load archivers!" << std::endl;
+bool Qwkie::loadConfig(std::string datapath, std::string msgpath, std::string temppath, Logger *log) {
+  this->datapath = datapath;
+  this->msgpath = msgpath;
+  this->temppath = temppath;
+  this->log = log;
+  if (!load_archivers(log)) {
     return false;
   }
 
@@ -895,7 +886,7 @@ bool Qwkie::loadConfig() {
         }
 
         if (newnet.name == "" || newnet.qwkid == "") {
-          std::cerr << "Network name and Host QWK id required" << std::endl;
+          log->log(LOG_ERROR, "Config Error: Network name and Host QWK id required");
           continue;
         }
         networks.push_back(newnet);
@@ -931,7 +922,7 @@ bool Qwkie::loadConfig() {
         }
 
         if (netname == "" || newarea.qwkbaseno == -1 || newarea.msgarea == "") {
-          std::cerr << "Invalid area configuration" << std::endl;
+          log->log(LOG_ERROR, "Config Error: Invalid area configuration");
           continue;
         }
         bool found = false;
@@ -944,19 +935,20 @@ bool Qwkie::loadConfig() {
         }
 
         if (!found) {
-          std::cerr << "Area for unknown network" << std::endl;
+          log->log(LOG_ERROR, "Config Error: Area for unknown network");
         }
       }
     }
 
-  } catch (toml::parse_error const&) {
-    std::cerr << "Error parsing qwkie.toml" << std::endl;
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/qwkie.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
   return true;
 }
 
-bool Qwkie::load_archivers() {
+bool Qwkie::load_archivers(Logger *log) {
   try {
     auto data3 = toml::parse_file(datapath + "/archivers.toml");
 
@@ -1042,10 +1034,9 @@ bool Qwkie::load_archivers() {
       Archiver *a = new Archiver(myname, myext, myunarc, myarc, myoffset, signature, mysig.size() / 2);
       archivers.push_back(a);
     }
-  }
-
-  catch (toml::parse_error const&) {
-    std::cerr << "Error parsing " << datapath << "/archivers.toml" << std::endl;
+  } catch (toml::parse_error const &p) {
+    log->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    log->log(LOG_ERROR, " -> %s", p.description());
     return false;
   }
   return true;

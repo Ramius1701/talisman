@@ -1280,7 +1280,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2021; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
   /* Load configuration */
-  if (!config.load(this, "talisman.ini")) {
+  if (!config.load(this, "talisman.ini", &log)) {
     print_f("Unable to load config! (Exiting)\r\n");
     return -1;
   }
@@ -1293,8 +1293,6 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   nmsgp.append("node.msg");
 
   std::filesystem::remove(nmsgp);
-
-  log->load(config.get_logpath() + "/talisman.log");
 
   struct sockaddr sa;
   socklen_t slen = sizeof(struct sockaddr);

@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "MsgConf.h"
 #include "Node.h"
+#include "../Common/Logger.h"
 #include <fstream>
 
 MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline) {
@@ -17,108 +18,116 @@ MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline) {
 
 bool MsgConf::load(Node *n, std::string filename) {
   Config *c = n->get_config();
-  auto data = toml::parse_file(c->data_path() + "/" + filename + ".toml");
+  try {
 
-  auto areaitems = data.get_as<toml::array>("messagearea");
+    auto data = toml::parse_file(c->data_path() + "/" + filename + ".toml");
 
-  for (size_t i = 0; i < areaitems->size(); i++) {
-    auto itemtable = areaitems->get(i)->as_table();
+    auto areaitems = data.get_as<toml::array>("messagearea");
 
-    std::string myname;
-    std::string myfile;
-    int my_r_sec_level;
-    int my_w_sec_level;
-    int my_d_sec_level;
-    int my_do_sec_level;
-    std::string myoaddr;
-    bool mynetmail;
-    int my_qwk_base_no;
-    bool myrealnames;
+    for (size_t i = 0; i < areaitems->size(); i++) {
+      auto itemtable = areaitems->get(i)->as_table();
 
-    auto name = itemtable->get("name");
-    if (name != nullptr) {
-      myname = name->as_string()->value_or("Invalid Name");
-    } else {
-      myname = "Unknown Name";
+      std::string myname;
+      std::string myfile;
+      int my_r_sec_level;
+      int my_w_sec_level;
+      int my_d_sec_level;
+      int my_do_sec_level;
+      std::string myoaddr;
+      bool mynetmail;
+      int my_qwk_base_no;
+      bool myrealnames;
+
+      auto name = itemtable->get("name");
+      if (name != nullptr) {
+        myname = name->as_string()->value_or("Invalid Name");
+      } else {
+        myname = "Unknown Name";
+      }
+      auto file = itemtable->get("file");
+      if (file != nullptr) {
+        myfile = file->as_string()->value_or("");
+      } else {
+        myfile = "";
+      }
+
+      auto r_sec_level = itemtable->get("read_sec_level");
+      if (r_sec_level != nullptr) {
+        my_r_sec_level = r_sec_level->as_integer()->value_or(10);
+      } else {
+        my_r_sec_level = 10;
+      }
+
+      auto w_sec_level = itemtable->get("write_sec_level");
+      if (w_sec_level != nullptr) {
+        my_w_sec_level = w_sec_level->as_integer()->value_or(10);
+      } else {
+        my_w_sec_level = 10;
+      }
+
+      auto d_sec_level = itemtable->get("delete_sec_level");
+      if (d_sec_level != nullptr) {
+        my_d_sec_level = d_sec_level->as_integer()->value_or(-1);
+      } else {
+        my_d_sec_level = -1;
+      }
+
+      auto do_sec_level = itemtable->get("delete_own_sec_level");
+      if (do_sec_level != nullptr) {
+        my_do_sec_level = do_sec_level->as_integer()->value_or(-1);
+      } else {
+        my_do_sec_level = -1;
+      }
+
+      auto o_addr = itemtable->get("aka");
+      if (o_addr != nullptr) {
+        myoaddr = o_addr->as_string()->value_or("");
+      } else {
+        myoaddr = "";
+      }
+
+      auto wwiv_node = itemtable->get("wwivnode");
+      if (wwiv_node != nullptr) {
+        wwivnode = wwiv_node->as_integer()->value_or(0);
+      } else {
+        wwivnode = 0;
+      }
+
+      auto netmail = itemtable->get("netmail");
+      if (netmail != nullptr) {
+        mynetmail = netmail->as_boolean()->value_or(false);
+      } else {
+        mynetmail = false;
+      }
+
+      auto realnames = itemtable->get("real_names");
+      if (realnames != nullptr) {
+        myrealnames = realnames->as_boolean()->value_or(false);
+      } else {
+        myrealnames = false;
+      }
+
+      auto q_base_no = itemtable->get("qwk_base_no");
+      if (q_base_no != nullptr) {
+        my_qwk_base_no = q_base_no->as_integer()->value_or(-1);
+      } else {
+        my_qwk_base_no = -1;
+      }
+
+      if (myfile != "") {
+        MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline,
+                  my_qwk_base_no, myrealnames, wwivnode);
+        areas.push_back(a);
+      }
     }
-    auto file = itemtable->get("file");
-    if (file != nullptr) {
-      myfile = file->as_string()->value_or("");
-    } else {
-      myfile = "";
-    }
-
-    auto r_sec_level = itemtable->get("read_sec_level");
-    if (r_sec_level != nullptr) {
-      my_r_sec_level = r_sec_level->as_integer()->value_or(10);
-    } else {
-      my_r_sec_level = 10;
-    }
-
-    auto w_sec_level = itemtable->get("write_sec_level");
-    if (w_sec_level != nullptr) {
-      my_w_sec_level = w_sec_level->as_integer()->value_or(10);
-    } else {
-      my_w_sec_level = 10;
-    }
-
-    auto d_sec_level = itemtable->get("delete_sec_level");
-    if (d_sec_level != nullptr) {
-      my_d_sec_level = d_sec_level->as_integer()->value_or(-1);
-    } else {
-      my_d_sec_level = -1;
-    }
-
-    auto do_sec_level = itemtable->get("delete_own_sec_level");
-    if (do_sec_level != nullptr) {
-      my_do_sec_level = do_sec_level->as_integer()->value_or(-1);
-    } else {
-      my_do_sec_level = -1;
-    }
-
-    auto o_addr = itemtable->get("aka");
-    if (o_addr != nullptr) {
-      myoaddr = o_addr->as_string()->value_or("");
-    } else {
-      myoaddr = "";
-    }
-
-    auto wwiv_node = itemtable->get("wwivnode");
-    if (wwiv_node != nullptr) {
-      wwivnode = wwiv_node->as_integer()->value_or(0);
-    } else {
-      wwivnode = 0;
-    }
-
-    auto netmail = itemtable->get("netmail");
-    if (netmail != nullptr) {
-      mynetmail = netmail->as_boolean()->value_or(false);
-    } else {
-      mynetmail = false;
-    }
-
-    auto realnames = itemtable->get("real_names");
-    if (realnames != nullptr) {
-      myrealnames = realnames->as_boolean()->value_or(false);
-    } else {
-      myrealnames = false;
-    }
-
-    auto q_base_no = itemtable->get("qwk_base_no");
-    if (q_base_no != nullptr) {
-      my_qwk_base_no = q_base_no->as_integer()->value_or(-1);
-    } else {
-      my_qwk_base_no = -1;
-    }
-
-    if (myfile != "") {
-      MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline,
-                my_qwk_base_no, myrealnames, wwivnode);
-      areas.push_back(a);
-    }
+    isloaded = true;
+  } catch (toml::parse_error const &p) {
+    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", std::string(c->data_path() + "/" + filename + ".toml").c_str(), p.source().begin.line, p.source().begin.column);
+    n->log->log(LOG_ERROR, " -> %s", p.description());
+    isloaded = false;
   }
-  isloaded = true;
-  return true;
+  
+  return isloaded;
 }
 
 struct area_list_entry_t {
