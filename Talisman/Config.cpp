@@ -113,7 +113,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const& p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/msgconfs.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   try {
@@ -193,7 +193,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const& p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/seclevels.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
 
@@ -259,7 +259,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/loginitems.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   try {
@@ -326,7 +326,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const& p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/protocols.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   try {
@@ -373,7 +373,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const& p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   try {
@@ -416,7 +416,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
     }
   } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/fileconfs.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    (*log)->log(LOG_ERROR, " -> %s", p.description());
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
 
@@ -473,7 +473,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
       }
     } catch (toml::parse_error const& p) {
       (*log)->log(LOG_ERROR, "Error parsing %s/themes.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
-      (*log)->log(LOG_ERROR, " -> %s", p.description());
+      (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
       return false;
     }
   }

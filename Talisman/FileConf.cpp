@@ -81,7 +81,7 @@ bool FileConf::load(Node *n) {
   } catch (toml::parse_error const &p) {
     n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", std::string(c->data_path() + "/" + config_file + ".toml").c_str(), p.source().begin.line,
                 p.source().begin.column);
-    n->log->log(LOG_ERROR, " -> %s", p.description());
+    n->log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
 }

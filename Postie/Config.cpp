@@ -142,7 +142,7 @@ bool Config::load_archivers(std::string datapath, Logger *log) {
     }
   } catch (toml::parse_error const &p) {
     log->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    log->log(LOG_ERROR, " -> %s", p.description());
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   return true;
@@ -710,7 +710,7 @@ bool Config::load(std::string datapath, Logger *log) {
     }
   } catch (toml::parse_error const &p) {
     log->log(LOG_ERROR, "Error parsing %s/postie.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    log->log(LOG_ERROR, " -> %s", p.description());
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   return true;

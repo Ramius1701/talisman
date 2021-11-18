@@ -942,7 +942,7 @@ bool Qwkie::loadConfig(std::string datapath, std::string msgpath, std::string te
 
   } catch (toml::parse_error const &p) {
     log->log(LOG_ERROR, "Error parsing %s/qwkie.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    log->log(LOG_ERROR, " -> %s", p.description());
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   return true;
@@ -1036,7 +1036,7 @@ bool Qwkie::load_archivers(Logger *log) {
     }
   } catch (toml::parse_error const &p) {
     log->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", datapath.c_str(), p.source().begin.line, p.source().begin.column);
-    log->log(LOG_ERROR, " -> %s", p.description());
+    log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
   }
   return true;
