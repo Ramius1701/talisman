@@ -1215,6 +1215,15 @@ bool Menu::run() {
               }
             }
           }
+
+          if (ruser.find("@USERNAME@") != std::string::npos) {
+            ruser.replace(ruser.find("@USERNAME@"), 10, n->get_user().get_username());
+          }
+
+          if (luser.find("@USERNAME@") != std::string::npos) {
+            luser.replace(luser.find("@USERNAME@"), 10, n->get_user().get_username());
+          }
+
           if (host != "") {
             Rlogin::session(n, host, port, luser, ruser, termtype, false);
           }
@@ -1251,6 +1260,13 @@ bool Menu::run() {
               } catch (std::exception const &) {
               }
             }
+          }
+          if (ruser.find("@USERNAME@") != std::string::npos) {
+            ruser.replace(ruser.find("@USERNAME@"), 10, n->get_user().get_username());
+          }
+
+          if (luser.find("@USERNAME@") != std::string::npos) {
+            luser.replace(luser.find("@USERNAME@"), 10, n->get_user().get_username());
           }
           if (host != "") {
             Rlogin::session(n, host, port, luser, ruser, termtype, true);
