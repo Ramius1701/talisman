@@ -360,6 +360,7 @@ void IndexReader::run(Node *n) {
                 conf.at(selected_conf).area.at(selected_area).ma->save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
               }
               n->clog->post_msg();
+              n->get_user().inc_attrib("msgs_posted");
             }
           } else {
             std::vector<std::string> nmsg =
@@ -378,6 +379,7 @@ void IndexReader::run(Node *n) {
                       conf.at(i).area.at(j).ma->save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
                     }
                     n->clog->post_msg();
+                    n->get_user().inc_attrib("msgs_posted");
                   }
                 }
               }

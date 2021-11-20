@@ -513,6 +513,7 @@ bool Menu::run() {
                       n->get_config()->msgconfs.at(msgconf).areas.at(msgarea).save_message(to, n->get_user().get_username(), subject, nmsg, netaddr, 0);
                     }
                     n->clog->post_msg();
+                    n->get_user().inc_attrib("msgs_posted");
                   }
                 }
               }
@@ -541,6 +542,7 @@ bool Menu::run() {
           if (!Door::runExternal(n, items[i].data, arguments, false)) {
             n->disconnected();
           }
+          n->get_user().inc_attrib("doors_run");
           n->clog->ran_door();
         } else if (strcasecmp(items[i].command.c_str(), "sysinfo") == 0) {
           n->update_node_use("Looking at System Info");
@@ -2211,6 +2213,7 @@ void Menu::bwave_up(Node *n) {
             n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(),
                        n->get_config()->msgconfs.at(mc).areas.at(ma).get_name().c_str());
             n->clog->post_msg();
+            n->get_user().inc_attrib("msgs_posted");
           }
 
         } else {
@@ -2536,6 +2539,7 @@ void Menu::qwk_up(Node *n) {
             n->print_f("|10Posted message in |15%s |10-> |15%s|10!|07\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(),
                        n->get_config()->msgconfs.at(mc).areas.at(mb).get_name().c_str());
             n->clog->post_msg();
+            n->get_user().inc_attrib("msgs_posted");
           }
         } else {
           n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc).get_name().c_str(),

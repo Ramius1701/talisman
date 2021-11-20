@@ -31,6 +31,7 @@ public:
   static std::string get_attribute_s(Config *c, std::string name, std::string attrib, std::string def);
   size_t user_get_lastread(std::string msgbase);
   void user_set_lastread(std::string msgbase, size_t mid);
+  void inc_attrib(std::string attrib);
 
 private:
   int sec_level;

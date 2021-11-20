@@ -108,6 +108,7 @@ void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> 
         for (size_t i = 0; i < files->size(); i++) {
           args.push_back(files->at(i).u8string());
           n->clog->down_bytes((uint32_t)std::filesystem::file_size(files->at(i)));
+          n->get_user().inc_attrib("downloads");
         }
       } else {
         args.push_back(s);
@@ -132,6 +133,7 @@ void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> 
         } else if (s == "@FILENAME@") {
           args.push_back(files->at(i).u8string());
           n->clog->down_bytes((uint32_t)std::filesystem::file_size(files->at(i)));
+          n->get_user().inc_attrib("downloads");
         } else {
           args.push_back(s);
         }

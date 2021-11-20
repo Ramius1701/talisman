@@ -623,6 +623,7 @@ bool FileArea::upload_file(Node *n) {
         n->print_f("|12Failed to add to the database!|07\r\n");
       } else {
         n->clog->up_bytes((uint32_t)std::filesystem::file_size(newp));
+        n->get_user().inc_attrib("uploads");
         n->print_f("|10Thankyou for your upload!|07\r\n");
         ret = true;
       }

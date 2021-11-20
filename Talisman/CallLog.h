@@ -38,6 +38,7 @@ public:
   static uint64_t get_bbs_tot_uploads(Node *n);
   static uint64_t get_bbs_tot_downloads(Node *n);
   static int get_bbs_tot_doors(Node *n);
+  static int get_top_doors(Node *n, std::string *username);
 
 private:
   static bool open_database(std::string filename, sqlite3 **db);

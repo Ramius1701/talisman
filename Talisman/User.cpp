@@ -93,6 +93,13 @@ int User::get_sec_level() {
   return sec_level;
 }
 
+void User::inc_attrib(std::string attrib) { 
+  uint64_t val = stoull(get_attribute(attrib, "0"));
+
+  val++;
+  set_attribute(attrib, std::to_string(val));
+}
+
 std::string User::get_attribute(std::string attrib, std::string def) { return User::get_attribute_s(&c, uid, attrib, def); }
 
 std::string User::get_attribute_s(Config *c, std::string name, std::string attrib, std::string def) {

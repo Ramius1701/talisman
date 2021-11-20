@@ -1157,6 +1157,7 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
           save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
         }
         n->clog->post_msg();
+        n->get_user().inc_attrib("msgs_posted");
       }
     }
   } else {
@@ -1181,6 +1182,7 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
           save_message(to, n->get_user().get_username(), subject, nmsg, "", msg->xmsg.umsgid);
         }
         n->clog->post_msg();
+        n->get_user().inc_attrib("msgs_posted");
       }
     }
   }
