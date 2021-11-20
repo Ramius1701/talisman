@@ -1422,6 +1422,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   srand((uint32_t)time(NULL));
   clog = new CallLog(&config);
   clog->log_on(u.get_username(), node);
+  u.inc_attrib("calls");
   update_node_use("Logging in.");
 
   struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());

@@ -32,6 +32,7 @@ public:
   size_t user_get_lastread(std::string msgbase);
   void user_set_lastread(std::string msgbase, size_t mid);
   void inc_attrib(std::string attrib);
+  uint64_t get_top(std::string attrib, int place, std::string *username);
 
 private:
   int sec_level;

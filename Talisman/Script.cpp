@@ -592,6 +592,22 @@ extern "C" int lua_rlogin_ip6(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_get_top(lua_State *L) { 
+  const char *attrib = lua_tostring(L, 1);
+  int place = lua_tonumber(L, 2);
+
+  Node *n = lua_getNode(L);
+  std::string uname = "";
+
+  uint64_t val = n->get_user().get_top(std::string(attrib), place, &uname);
+
+  lua_pushstring(L, uname.c_str());
+  lua_pushnumber(L, val);
+
+  return 2;
+}
+
+
 void Script::init_state(Node *n, lua_State *l) {
 
   luaL_openlibs(l);
@@ -725,6 +741,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_getBBSMsgDetail);
   lua_setglobal(l, "bbs_get_message_detail");
+
+  lua_pushcfunction(l, lua_get_top);
+  lua_setglobal(l, "bbs_get_top_user");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {

@@ -100,6 +100,56 @@ void User::inc_attrib(std::string attrib) {
   set_attribute(attrib, std::to_string(val));
 }
 
+uint64_t User::get_top(std::string attrib, int place, std::string *username) {
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  uint64_t val = 0;
+  int uid = -1;
+  static const char *sql = "SELECT value, uid FROM details WHERE attrib = ? AND uid <> 1 ORDER BY value DESC LIMIT ?, 1";
+  static const char *sql2 = "SELECT username FROM users WHERE id = ?";
+  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+    *username = "ERROR";
+    return 0;
+  }
+  if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    *username = "ERROR";
+    return 0;
+  }
+
+  sqlite3_bind_text(stmt, 1, attrib.c_str(), -1, NULL);
+  sqlite3_bind_int(stmt, 2, place);
+
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    uid = sqlite3_column_int(stmt, 1);
+    val = sqlite3_column_int64(stmt, 0);
+  } else {
+    *username = "NONE";
+  }
+  sqlite3_finalize(stmt);
+  
+  if (uid != -1) {
+    if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
+      sqlite3_close(db);
+      *username = "ERROR";
+      return 0;
+    }
+
+    sqlite3_bind_int(stmt, 1, uid);
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+      *username = std::string((const char *)sqlite3_column_text(stmt, 0));
+    } else {
+      *username = "UNKNOWN";
+    }
+    sqlite3_finalize(stmt);
+  }
+  
+  sqlite3_close(db);
+
+  return val;
+}
+
 std::string User::get_attribute(std::string attrib, std::string def) { return User::get_attribute_s(&c, uid, attrib, def); }
 
 std::string User::get_attribute_s(Config *c, std::string name, std::string attrib, std::string def) {
