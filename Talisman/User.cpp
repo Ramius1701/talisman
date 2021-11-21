@@ -105,7 +105,7 @@ uint64_t User::get_top(std::string attrib, int place, std::string *username) {
   sqlite3_stmt *stmt;
   uint64_t val = 0;
   int uid = -1;
-  static const char *sql = "SELECT value, uid FROM details WHERE attrib = ? AND uid <> 1 ORDER BY value DESC LIMIT ?, 1";
+  static const char *sql = "SELECT value, uid FROM details WHERE attrib = ? AND uid <> 1 ORDER BY CAST(value AS INTEGER) DESC LIMIT ?, 1";
   static const char *sql2 = "SELECT username FROM users WHERE id = ?";
   if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
     *username = "ERROR";
