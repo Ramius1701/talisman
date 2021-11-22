@@ -59,7 +59,7 @@ std::string Config::convert_cp437(std::string input) {
   while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
     if (errno == E2BIG) {
       ss << str;
-      memset(str, 0, osz + 1);
+      memset(str, 0, input.size() + 1);
       continue;
     } else {
       output = input;
