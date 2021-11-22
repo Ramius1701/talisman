@@ -1097,7 +1097,7 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
   if ((orig_addr != "" || wwivnode != 0) && !_is_netmail) {
     for (size_t i = 0; i < myconf->areas.size(); i++) {
       if (myconf->areas.at(i)->is_netmail() && myconf->areas.at(i)->get_w_sec_level() <= n->get_user().get_sec_level()) {
-        n->print_f("\r\n|15Reply via Netmail ? (Y/[N]) ");
+        n->print_f("\r\n|14Reply via Netmail ? (Y/[N]) ");
         char rep = tolower(n->getch());
         if (rep == 'y') {
           std::stringstream netaddr;
@@ -1298,6 +1298,8 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
         // parse tags
         if (n->compare_token(ss.str(), "MSGAREA")) {
           n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, name.c_str());
+        } else if (n->compare_token(ss.str(), "MSGCONF")) {
+          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, myconf->get_name().c_str());
         } else if (n->compare_token(ss.str(), "MSGSUBJ")) {
           n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.subject);
         } else if (n->compare_token(ss.str(), "MSGFROM")) {
