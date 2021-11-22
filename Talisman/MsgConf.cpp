@@ -17,13 +17,9 @@ MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline) {
 }
 
 MsgConf::~MsgConf() {
-  /*
-  if (isloaded) {
-    for (MsgArea *a : areas) {
-      delete a;
-    }
+  for (MsgArea *a : areas) {
+    delete a;
   }
-  */
 }
 
 bool MsgConf::load(Node *n, std::string filename) {

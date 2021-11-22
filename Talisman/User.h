@@ -7,7 +7,7 @@
 class User {
 public:
   User();
-  void set_config(Config c);
+  void set_config(Config *c);
   bool update_password(std::string password);
   bool check_password(std::string password);
   bool load_user(std::string username, std::string password);
@@ -37,7 +37,7 @@ public:
 private:
   int sec_level;
   int uid;
-  Config c;
+  Config *c;
   std::string hash_sha256(std::string pass, std::string salt);
   std::string username;
 };

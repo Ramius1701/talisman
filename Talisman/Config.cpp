@@ -19,14 +19,12 @@
 Config::Config() { prompt_background_ansi = ""; }
 
 Config::~Config() {
-  /*
   for (MsgConf *c : msgconfs) {
     delete c;
   }
   for (FileConf *c : fileconfs) {
     delete c;
   }
-  */
 }
 
 std::string Config::convert_cp437(std::string input) {

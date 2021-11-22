@@ -1316,7 +1316,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
       log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
     }
   }
-  u.set_config(config);
+  u.set_config(&config);
 
   if (socket) {
     print_f("Detecting ANSI Graphics... ");

@@ -13,11 +13,9 @@
 #include <vector>
 
 FileConf::~FileConf() {
-  /*
   for (FileArea *a : areas) {
     delete a;
   }
-  */
 }
 
 bool FileConf::load(Node *n) {

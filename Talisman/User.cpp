@@ -22,12 +22,12 @@ User::User() {
   uid = 0;
 }
 
-void User::set_config(Config c) { this->c = c; }
+void User::set_config(Config *c) { this->c = c; }
 
 bool User::check_password(std::string password) {
   sqlite3 *db;
   static const char *sql = "SELECT password, salt FROM users WHERE username = ?";
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return false;
   }
   sqlite3_stmt *stmt;
@@ -57,7 +57,7 @@ bool User::check_password(std::string password) {
 bool User::load_user(std::string username, std::string password) {
   sqlite3 *db;
   static const char *sql = "SELECT id, username, password, salt FROM users WHERE username = ?";
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return false;
   }
   sqlite3_stmt *stmt;
@@ -107,7 +107,7 @@ uint64_t User::get_top(std::string attrib, int place, std::string *username) {
   int uid = -1;
   static const char *sql = "SELECT value, uid FROM details WHERE attrib = ? AND uid <> 1 ORDER BY CAST(value AS INTEGER) DESC LIMIT ?, 1";
   static const char *sql2 = "SELECT username FROM users WHERE id = ?";
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     *username = "ERROR";
     return 0;
   }
@@ -150,7 +150,7 @@ uint64_t User::get_top(std::string attrib, int place, std::string *username) {
   return val;
 }
 
-std::string User::get_attribute(std::string attrib, std::string def) { return User::get_attribute_s(&c, uid, attrib, def); }
+std::string User::get_attribute(std::string attrib, std::string def) { return User::get_attribute_s(c, uid, attrib, def); }
 
 std::string User::get_attribute_s(Config *c, std::string name, std::string attrib, std::string def) {
   sqlite3 *db;
@@ -219,7 +219,7 @@ void User::set_attribute(std::string attrib, std::string value) {
   // assert(uid != -1);
 
   // check if row exists
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return;
   }
   rc = sqlite3_prepare_v2(db, chk_sql, strlen(chk_sql), &res, 0);
@@ -326,7 +326,7 @@ bool User::update_password(std::string password) {
   if (hash.size() == 0) {
     return false;
   }
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return false;
   }
   static const char *ins_sql = "UPDATE users SET password=?, salt=? WHERE id=?";
@@ -378,7 +378,7 @@ bool User::inst_user(std::string username, std::string password, std::string fir
     return false;
   }
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return false;
   }
   static const char *ins_sql = "INSERT INTO users (username, password, salt) VALUES(?, ?, ?)";
@@ -492,7 +492,7 @@ void User::user_set_lastread(std::string msgbase, size_t mid) {
   static const char *sql2 = "INSERT INTO lastr (mid, uid, msgbase) VALUES(?, ?, ?)";
   static const char *sql3 = "SELECT mid FROM lastr WHERE uid = ? and msgbase = ?";
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return;
   }
   if (sqlite3_prepare_v2(db, sql3, strlen(sql3), &stmt, NULL) != SQLITE_OK) {
@@ -530,7 +530,7 @@ size_t User::user_get_lastread(std::string msgbase) {
 
   static const char *sql = "SELECT mid FROM lastr WHERE uid = ? and msgbase = ?";
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return 0;
   }
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
@@ -713,7 +713,7 @@ bool User::is_subscribed(std::string msgbase) {
   sqlite3_stmt *stmt;
   static const char sql[] = "SELECT uid FROM subs WHERE uid = ? and msgbase = ?";
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return true;
   }
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
@@ -740,7 +740,7 @@ void User::set_subscribed(std::string msgbase, bool value) {
   static const char insert_sql[] = "INSERT INTO subs (uid, msgbase) VALUES(?,?)";
   static const char delete_sql[] = "DELETE FROM subs WHERE uid=? AND msgbase=?";
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return;
   }
 
