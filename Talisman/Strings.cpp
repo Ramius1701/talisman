@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "Config.h"
 
 Strings::Strings() { loaded = false; }
 
@@ -153,7 +154,7 @@ void Strings::load(std::string stringfile) {
             msgstr = escapechars(line.substr(8, line.size() - 9));
             lastid = false;
             if (validate(msgid, msgstr)) {
-              string_map[msgid] = msgstr;
+              string_map[msgid] = Config::convert_cp437(msgstr);
             }
           }
         }

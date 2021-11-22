@@ -54,13 +54,23 @@ std::string Config::convert_cp437(std::string input) {
 
   memset(str, 0, osz + 1);
   
-  
-  if (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
-    output = input;
-  } else {
-    output = std::string(str);
+  std::stringstream ss;
+
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+    if (errno == E2BIG) {
+      ss << str;
+      memset(str, 0, osz + 1);
+      continue;
+    } else {
+      output = input;
+      iconv_close(ic);
+      delete[] str;
+      return output;
+    }
   }
 
+  ss << str;
+  output = ss.str();
   iconv_close(ic);
 
   delete[] str;

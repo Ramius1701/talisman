@@ -1370,6 +1370,24 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
     quotebuffer.clear();
 
     bool ansimsg = prepare_msg(msg, &linesv, &quotebuffer);
+    bool isutf8 = false;
+
+    for (size_t i = 0; i < linesv.size(); i++) {
+      if (linesv.at(i).type == 2) {
+        if (linesv.at(i).line.find("CHRS: UTF-8 4") != std::string::npos) {
+          isutf8 = true;
+          break;
+        }
+      }
+    }
+
+    if (isutf8) {
+      for (size_t i = 0; i < linesv.size(); i++) {
+        if (linesv.at(i).type != 2) {
+          linesv.at(i).line = Config::convert_cp437(linesv.at(i).line);        
+        }
+      }
+    }
 
     n->cls();
 
