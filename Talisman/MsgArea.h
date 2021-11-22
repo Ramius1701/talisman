@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 class Node;
+class MsgConf;
 
 class MsgArea {
 public:
-  MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
+  MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
           bool rn, int wwivnode);
   int get_r_sec_level() { return read_sec_level; }
   int get_w_sec_level() { return write_sec_level; }
@@ -70,4 +71,5 @@ private:
   int qwk_base_no;
   bool real_names;
   int wwivnode;
+  MsgConf *myconf;
 };

@@ -39,6 +39,7 @@ struct theme_t {
 class Config {
 public:
   Config();
+  ~Config();
   bool load(Node *n, std::string filename, Logger **log);
 
   struct sec_level_t *get_sec_level_info(int seclvl);
@@ -80,8 +81,8 @@ public:
 
   const char *get_prompt_colour();
 
-  std::vector<MsgConf> msgconfs;
-  std::vector<FileConf> fileconfs;
+  std::vector<MsgConf *> msgconfs;
+  std::vector<FileConf *> fileconfs;
   std::vector<Archiver *> archivers;
   Protocol *select_protocol(Node *n);
   int select_archiver(Node *n);

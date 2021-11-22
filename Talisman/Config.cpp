@@ -18,6 +18,15 @@
 
 Config::Config() { prompt_background_ansi = ""; }
 
+Config::~Config() {
+  for (MsgConf *c : msgconfs) {
+    delete c;
+  }
+  for (FileConf *c : fileconfs) {
+    delete c;
+  }
+}
+
 std::string Config::convert_cp437(std::string input) {
   std::string output;
 
@@ -170,9 +179,9 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         mysec_level = 10;
       }
 
-      MsgConf c(myname, mysec_level, mytagline);
+      MsgConf *c = new MsgConf(myname, mysec_level, mytagline);
 
-      if (c.load(n, myconfig)) {
+      if (c->load(n, myconfig)) {
         msgconfs.push_back(c);
       }
     }
@@ -473,9 +482,9 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         mysec_level = 10;
       }
 
-      FileConf f(myname, myconfig, mysec_level);
+      FileConf *f = new FileConf(myname, myconfig, mysec_level);
 
-      if (f.load(n)) {
+      if (f->load(n)) {
         fileconfs.push_back(f);
       }
     }

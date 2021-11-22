@@ -11,6 +11,9 @@ public:
     this->config_file = config_file;
     this->sec_level = sec_level;
   }
+
+  ~FileConf();
+
   bool load(Node *n);
   int get_sec_level() { return sec_level; }
   std::string get_name() { return name; }
@@ -20,7 +23,7 @@ public:
   static int list(Node *n, int sec);
   static int list_old(Node *n, int sec);
   static int list_fsr(Node *n, int sec);
-  std::vector<FileArea> areas;
+  std::vector<FileArea *> areas;
 
 private:
   std::string name;

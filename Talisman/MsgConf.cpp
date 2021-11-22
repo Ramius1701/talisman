@@ -16,6 +16,14 @@ MsgConf::MsgConf(std::string name, int sec_level, std::string mytagline) {
   tagline = mytagline;
 }
 
+MsgConf::~MsgConf() {
+  if (isloaded) {
+    for (MsgArea *a : areas) {
+      delete a;
+    }
+  }
+}
+
 bool MsgConf::load(Node *n, std::string filename) {
   Config *c = n->get_config();
   try {
@@ -115,7 +123,7 @@ bool MsgConf::load(Node *n, std::string filename) {
       }
 
       if (myfile != "") {
-        MsgArea a(n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline,
+        MsgArea *a = new MsgArea(this, n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline,
                   my_qwk_base_no, myrealnames, wwivnode);
         areas.push_back(a);
       }
@@ -158,15 +166,15 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
   std::vector<struct area_list_entry_t> area_entries;
   int selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
   for (size_t i = 0; i < areas.size(); i++) {
-    if (areas.at(i).get_r_sec_level() > sec)
+    if (areas.at(i)->get_r_sec_level() > sec)
       continue;
     struct area_list_entry_t entry;
 
-    UMSGID lr = n->get_user().user_get_lastread(areas.at(i).get_file());
+    UMSGID lr = n->get_user().user_get_lastread(areas.at(i)->get_file());
 
-    entry.name = areas.at(i).get_name();
-    entry.total_msgs = areas.at(i).get_total_msgs();
-    entry.new_msgs = areas.at(i).get_new_msgs(lr);
+    entry.name = areas.at(i)->get_name();
+    entry.total_msgs = areas.at(i)->get_total_msgs();
+    entry.new_msgs = areas.at(i)->get_new_msgs(lr);
 
     area_entries.push_back(entry);
   }
@@ -296,22 +304,22 @@ int MsgConf::list_areas_old(Node *n, int sec) {
     n->cls();
 
     for (size_t i = 0; i < areas.size(); i++) {
-      if (areas.at(i).get_r_sec_level() > sec)
+      if (areas.at(i)->get_r_sec_level() > sec)
         continue;
-      UMSGID lr = n->get_user().user_get_lastread(areas.at(i).get_file());
+      UMSGID lr = n->get_user().user_get_lastread(areas.at(i)->get_file());
       if ((int)i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
-        if (areas.at(i).get_new_msgs(lr) > 0) {
-          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(),
-                     areas.at(i).get_total_msgs() - lr);
+        if (areas.at(i)->get_new_msgs(lr) > 0) {
+          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs(),
+                     areas.at(i)->get_total_msgs() - lr);
         } else {
-          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs());
         }
       } else {
-        if (areas.at(i).get_new_msgs(lr) > 0) {
-          n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs(),
-                     areas.at(i).get_total_msgs() - lr);
+        if (areas.at(i)->get_new_msgs(lr) > 0) {
+          n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs(),
+                     areas.at(i)->get_total_msgs() - lr);
         } else {
-          n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_msgs());
+          n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs());
         }
       }
       lines++;
@@ -377,9 +385,9 @@ int MsgConf::list_fsr(Node *n, int sec) {
 
       for (size_t i = start; i - start < n->get_term_height() - 3 && i < n->get_config()->msgconfs.size(); i++) {
         if ((int)i == selected) {
-          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
+          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i)->name.c_str());
         } else {
-          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i).name.c_str());
+          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i)->name.c_str());
         }
       }
       redraw = false;
@@ -400,9 +408,9 @@ int MsgConf::list_fsr(Node *n, int sec) {
               }
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
               selected--;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
             }
           }
         } else if (c == 'B') {
@@ -412,9 +420,9 @@ int MsgConf::list_fsr(Node *n, int sec) {
               start = selected;
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
               selected++;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected).name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
             }
           }
         }
@@ -438,12 +446,12 @@ int MsgConf::list_old(Node *n, int sec) {
     n->cls();
 
     for (size_t i = 0; i < c->msgconfs.size(); i++) {
-      if (c->msgconfs.at(i).get_sec_level() > sec)
+      if (c->msgconfs.at(i)->get_sec_level() > sec)
         continue;
       if ((int)i == stoi(n->get_user().get_attribute("cur_msg_conf", "-1"))) {
-        n->print_f("|08[|14%3d|08]|11->|07%s\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
+        n->print_f("|08[|14%3d|08]|11->|07%s\r\n", cur_conf++, c->msgconfs.at(i)->get_name().c_str());
       } else {
-        n->print_f("|08[|14%3d|08]  |07%s\r\n", cur_conf++, c->msgconfs.at(i).get_name().c_str());
+        n->print_f("|08[|14%3d|08]  |07%s\r\n", cur_conf++, c->msgconfs.at(i)->get_name().c_str());
       }
       lines++;
       if (lines == 24 && i != c->msgconfs.size() - 1) {
@@ -486,7 +494,7 @@ void MsgConf::scan(Node *n) {
   size_t lines = 0;
   n->print_f("\r\n");
   for (size_t conf = 0; conf < n->get_config()->msgconfs.size(); conf++) {
-    if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).get_sec_level()) {
+    if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf)->get_sec_level()) {
       continue;
     }
     if (lines >= n->get_term_height() - 5) {
@@ -498,7 +506,7 @@ void MsgConf::scan(Node *n) {
       lines = 0;
     }
     n->print_f("|08------------------------------------------------------------------------------|07\r\n");
-    n->print_f("|14CONFERENCE: |15%s\r\n", n->get_config()->msgconfs.at(conf).get_name().c_str());
+    n->print_f("|14CONFERENCE: |15%s\r\n", n->get_config()->msgconfs.at(conf)->get_name().c_str());
     n->print_f("|08------------------------------------------------------------------------------|07\r\n");
     lines += 3;
     if (lines >= n->get_term_height() - 2) {
@@ -509,17 +517,17 @@ void MsgConf::scan(Node *n) {
       n->print_f("\r\n");
       lines = 0;
     }
-    for (size_t area = 0; area < n->get_config()->msgconfs.at(conf).areas.size(); area++) {
-      if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf).areas.at(area).get_r_sec_level()) {
+    for (size_t area = 0; area < n->get_config()->msgconfs.at(conf)->areas.size(); area++) {
+      if (n->get_user().get_sec_level() < n->get_config()->msgconfs.at(conf)->areas.at(area)->get_r_sec_level()) {
         continue;
       }
-      UMSGID lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf).areas.at(area).get_file());
-      if (n->get_config()->msgconfs.at(conf).areas.at(area).get_new_msgs(lr) == 0) {
-        n->print_f("   |15%-32.32s |08%6d TOTAL |07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(),
-                   n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs());
+      UMSGID lr = n->get_user().user_get_lastread(n->get_config()->msgconfs.at(conf)->areas.at(area)->get_file());
+      if (n->get_config()->msgconfs.at(conf)->areas.at(area)->get_new_msgs(lr) == 0) {
+        n->print_f("   |15%-32.32s |08%6d TOTAL |07\r\n", n->get_config()->msgconfs.at(conf)->areas.at(area)->get_name().c_str(),
+                   n->get_config()->msgconfs.at(conf)->areas.at(area)->get_total_msgs());
       } else {
-        n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf).areas.at(area).get_name().c_str(),
-                   n->get_config()->msgconfs.at(conf).areas.at(area).get_total_msgs(), n->get_config()->msgconfs.at(conf).areas.at(area).get_new_msgs(lr));
+        n->print_f(" |11* |15%-32.32s |08%6d TOTAL |11%6d NEW!|07\r\n", n->get_config()->msgconfs.at(conf)->areas.at(area)->get_name().c_str(),
+                   n->get_config()->msgconfs.at(conf)->areas.at(area)->get_total_msgs(), n->get_config()->msgconfs.at(conf)->areas.at(area)->get_new_msgs(lr));
       }
       lines++;
       if (lines >= n->get_term_height() - 2) {

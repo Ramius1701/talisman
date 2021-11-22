@@ -172,9 +172,9 @@ extern "C" int lua_bbsPostMsg(lua_State *L) {
   Node *n = lua_getNode(L);
 
   for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
-    for (size_t msgbase = 0; msgbase < n->get_config()->msgconfs.at(msgconf).areas.size(); msgbase++) {
-      if (n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).get_file() == std::string(n->get_config()->msg_path() + "/" + mbfile) &&
-          !n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).is_netmail()) {
+    for (size_t msgbase = 0; msgbase < n->get_config()->msgconfs.at(msgconf)->areas.size(); msgbase++) {
+      if (n->get_config()->msgconfs.at(msgconf)->areas.at(msgbase)->get_file() == std::string(n->get_config()->msg_path() + "/" + mbfile) &&
+          !n->get_config()->msgconfs.at(msgconf)->areas.at(msgbase)->is_netmail()) {
         std::stringstream ss;
         std::vector<std::string> msg;
 
@@ -191,7 +191,7 @@ extern "C" int lua_bbsPostMsg(lua_State *L) {
           msg.push_back(ss.str());
         }
 
-        n->get_config()->msgconfs.at(msgconf).areas.at(msgbase).save_message(std::string(to), std::string(from), std::string(subj), msg, "", -1);
+        n->get_config()->msgconfs.at(msgconf)->areas.at(msgbase)->save_message(std::string(to), std::string(from), std::string(subj), msg, "", -1);
       }
     }
   }

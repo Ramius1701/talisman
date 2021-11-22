@@ -41,22 +41,22 @@ void IndexReader::run(Node *n) {
     std::vector<struct conf_details_t> conf;
 
     for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
-      if (n->get_config()->msgconfs.at(i).get_sec_level() > n->get_user().get_sec_level())
+      if (n->get_config()->msgconfs.at(i)->get_sec_level() > n->get_user().get_sec_level())
         continue;
 
       struct conf_details_t newconf;
 
-      newconf.mc = &n->get_config()->msgconfs.at(i);
+      newconf.mc = n->get_config()->msgconfs.at(i);
       for (size_t j = 0; j < newconf.mc->areas.size(); j++) {
-        if (newconf.mc->areas.at(j).get_r_sec_level() > n->get_user().get_sec_level())
+        if (newconf.mc->areas.at(j)->get_r_sec_level() > n->get_user().get_sec_level())
           continue;
 
         struct area_details_t newarea;
 
-        newarea.ma = &newconf.mc->areas.at(j);
+        newarea.ma = newconf.mc->areas.at(j);
         newarea.lr = n->get_user().user_get_lastread(newarea.ma->get_file());
         newarea.total = newarea.ma->get_total_msgs();
-        newarea.unread = newconf.mc->areas.at(j).get_new_msgs(newarea.lr);
+        newarea.unread = newconf.mc->areas.at(j)->get_new_msgs(newarea.lr);
         newarea.unread_personal = 0;
         newarea.tagged = false;
         newarea.last_post = 0;

@@ -15,6 +15,7 @@
 #include "Editor.h"
 #include "GenDefs.h"
 #include "MsgArea.h"
+#include "MsgConf.h"
 #include "Node.h"
 #include "Nodelist.h"
 #include "Qwk.h"
@@ -22,8 +23,9 @@
 #include "Config.h"
 
 
-MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
+MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
                  bool rn, int wwivnode) {
+  this->myconf = mc;
   this->name = Config::convert_cp437(name);
   this->file = filename;
   this->read_sec_level = r;
@@ -1092,6 +1094,80 @@ void MsgArea::attach_sig(std::vector<std::string> *msg, std::string sig) {
 }
 
 void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer) {
+  if ((orig_addr != "" || wwivnode != 0) && !_is_netmail) {
+    for (size_t i = 0; i < myconf->areas.size(); i++) {
+      if (myconf->areas.at(i)->is_netmail() && myconf->areas.at(i)->get_w_sec_level() <= n->get_user().get_sec_level()) {
+        n->print_f("\r\n|15Reply via Netmail ? (Y/[N]) ");
+        char rep = tolower(n->getch());
+        if (rep == 'y') {
+          std::stringstream netaddr;
+          if (wwivnode == 0) {
+            netaddr << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
+          } else {
+            netaddr << msg->xmsg.orig.node;
+          }
+          bool doabort = false;
+          n->print_f("\r\n     To: ");
+          std::string to = n->get_string(35, false, false, std::string(msg->xmsg.from));
+          n->print_f("\r\nSubject: ");
+          std::string subject = n->get_string(60, false, false, std::string(msg->xmsg.subject));
+          n->print_f("\r\nAddress: ");
+          std::string nnetaddr = n->get_string(16, false, false, netaddr.str());
+          if (to.size() == 0 || strcasecmp(to.c_str(), "ALL") == 0) {
+            doabort = true; // don't send netmail to "ALL"
+          }
+          if (wwivnode == 0) {
+            NETADDR *na = parse_fido_addr(nnetaddr.c_str());
+            if (!na) {
+              doabort = true;
+            } else {
+              if (na->point == 0) {
+                n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (%s)", na->zone, na->net, na->node, na->point,
+                           Nodelist::lookup_bbsname(n, std::to_string(na->zone) + ":" + std::to_string(na->net) + "/" + std::to_string(na->node)).c_str());
+              } else {
+                n->print_f("\r\n\r\n|14 Sending to.. |15%d:%d/%d.%d (A Point System)", na->zone, na->net, na->node, na->point);
+              }
+              free(na);
+            }
+          } else {
+            try {
+              int nn = stoi(nnetaddr);
+              if (nn <= 0 || nn > 0xffff) {
+                doabort = true;
+              } else {
+                n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
+              }
+            } catch (std::out_of_range const &) {
+              doabort = true;
+            } catch (std::invalid_argument const &) {
+              doabort = true;
+            }
+          }
+          if (subject.size() > 0 && !doabort) {
+            std::vector<std::string> nmsg = Editor::enter_message(n, to, subject, name, true, quotebuffer);
+            if (nmsg.size() > 0) {
+              // attach signature
+              if (n->get_user().get_attribute("signature_enabled", "false") == "true") {
+                attach_sig(&nmsg, n->get_user().get_attribute("signature", ""));
+              }
+
+              if (myconf->areas.at(i)->get_real_names()) {
+                myconf->areas.at(i)->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+              } else {
+                myconf->areas.at(i)->save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+              }
+              n->clog->post_msg();
+              n->get_user().inc_attrib("msgs_posted");
+            }
+          }
+          return;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
   if (write_sec_level > n->get_user().get_sec_level()) {
     n->print_f("\r\n|12Sorry, you don't have access to post in this area!|07\r\n");
     n->pause();

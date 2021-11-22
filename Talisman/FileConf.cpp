@@ -12,6 +12,12 @@
 #include <string>
 #include <vector>
 
+FileConf::~FileConf() {
+  for (FileArea *a : areas) {
+    delete a;
+  }
+}
+
 bool FileConf::load(Node *n) {
   Config *c = n->get_config();
 
@@ -73,7 +79,7 @@ bool FileConf::load(Node *n) {
         continue;
       }
 
-      FileArea f(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level, my_v_sec_level);
+      FileArea *f = new FileArea(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level, my_v_sec_level);
 
       areas.push_back(f);
     }
@@ -101,8 +107,8 @@ int FileConf::list_fsr(Node *n, int sec) {
   std::vector<std::string> filecs;
 
   for (size_t i = 0; i < n->get_config()->fileconfs.size(); i++) {
-    if (n->get_config()->fileconfs.at(i).get_sec_level() <= sec) {
-      filecs.push_back(n->get_config()->fileconfs.at(i).get_name());
+    if (n->get_config()->fileconfs.at(i)->get_sec_level() <= sec) {
+      filecs.push_back(n->get_config()->fileconfs.at(i)->get_name());
     }
   }
 
@@ -188,12 +194,12 @@ int FileConf::list_old(Node *n, int sec) {
     n->cls();
 
     for (size_t i = 0; i < c->fileconfs.size(); i++) {
-      if (c->fileconfs.at(i).get_sec_level() > sec)
+      if (c->fileconfs.at(i)->get_sec_level() > sec)
         continue;
       if ((int)i == stoi(n->get_user().get_attribute("cur_file_conf", "-1"))) {
-        n->print_f("|08[|14%3d|08]|11->|07%s\r\n", cur_conf++, c->fileconfs.at(i).get_name().c_str());
+        n->print_f("|08[|14%3d|08]|11->|07%s\r\n", cur_conf++, c->fileconfs.at(i)->get_name().c_str());
       } else {
-        n->print_f("|08[|14%3d|08]  |07%s\r\n", cur_conf++, c->fileconfs.at(i).get_name().c_str());
+        n->print_f("|08[|14%3d|08]  |07%s\r\n", cur_conf++, c->fileconfs.at(i)->get_name().c_str());
       }
       lines++;
       if (lines == 24 && i != c->fileconfs.size() - 1) {
@@ -250,12 +256,12 @@ int FileConf::list_areas_fsr(Node *n, int sec) {
   std::vector<struct filearea_list_entry_t> area_entries;
   int selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
   for (size_t i = 0; i < areas.size(); i++) {
-    if (areas.at(i).get_v_sec_level() > sec)
+    if (areas.at(i)->get_v_sec_level() > sec)
       continue;
     struct filearea_list_entry_t entry;
 
-    entry.name = areas.at(i).get_name();
-    entry.total_files = areas.at(i).get_total_files(n);
+    entry.name = areas.at(i)->get_name();
+    entry.total_files = areas.at(i)->get_total_files(n);
 
     area_entries.push_back(entry);
   }
@@ -350,13 +356,13 @@ int FileConf::list_areas_old(Node *n, int sec) {
     n->cls();
 
     for (size_t i = 0; i < areas.size(); i++) {
-      if (areas.at(i).get_v_sec_level() > sec)
+      if (areas.at(i)->get_v_sec_level() > sec)
         continue;
 
       if ((int)i == stoi(n->get_user().get_attribute("cur_file_area", "-1"))) {
-        n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_files(n));
+        n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_files(n));
       } else {
-        n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i).get_name().c_str(), areas.at(i).get_total_files(n));
+        n->print_f("|08[|14%3d|08]  |15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_files(n));
       }
       lines++;
       if (lines == 24 && i != areas.size() - 1) {
