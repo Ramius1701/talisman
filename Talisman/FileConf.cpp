@@ -31,7 +31,7 @@ bool FileConf::load(Node *n) {
       int my_v_sec_level;
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = Config::convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown Name";
       }

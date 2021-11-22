@@ -19,10 +19,12 @@
 #include "Nodelist.h"
 #include "Qwk.h"
 #include "Script.h"
+#include "Config.h"
+
 
 MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
                  bool rn, int wwivnode) {
-  this->name = name;
+  this->name = Config::convert_cp437(name);
   this->file = filename;
   this->read_sec_level = r;
   this->write_sec_level = w;
@@ -31,7 +33,7 @@ MsgArea::MsgArea(Node *n, std::string name, std::string filename, int r, int w, 
   this->n = n;
   this->orig_addr = oaddr;
   this->_is_netmail = netmail;
-  this->tagline = tagline;
+  this->tagline = Config::convert_cp437(tagline);
   this->qwk_base_no = qwk;
   this->real_names = rn;
   this->wwivnode = wwivnode;

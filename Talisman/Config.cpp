@@ -5,6 +5,8 @@
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
 #include <Windows.h>
+#else
+#include <iconv.h>
 #endif
 #include "../Common/INIReader.h"
 #include "../Common/toml.hpp"
@@ -15,6 +17,58 @@
 #include "../Common/Logger.h"
 
 Config::Config() { prompt_background_ansi = ""; }
+
+std::string Config::convert_cp437(std::string input) {
+  std::string output;
+
+#ifdef _MSC_VER
+  int wchars_num = MultiByteToWideChar( CP_UTF8 , 0 , input.c_str() , -1, NULL , 0 );
+  wchar_t* wstr = new wchar_t[wchars_num];
+  MultiByteToWideChar( CP_UTF8 , 0 , input.c_str() , -1, wstr , wchars_num );
+
+  int chars_num = WideCharToMultiByte(437, 0, wstr, wchars_num, NULL, 0, NULL, NULL);
+
+  char *str = new char[chars_num + 1];
+  memset(str, 0, chars_num + 1);
+
+  WideCharToMultiByte(437, 0, wstr, wchars_num, str, chars_num, NULL, NULL);
+
+  output = std::string(str);
+
+  delete[] str;
+  delete[] wstr;
+#else
+  iconv_t ic;
+  ic = iconv_open("CP437//TRANSLIT", "UTF-8");
+  if (ic == (iconv_t)-1) {
+    return input;
+  }
+
+  char *str = new char[input.size() + 1];
+  
+  char *inp = (char *)input.c_str();
+  size_t isz = input.size();
+
+  char *oup = str;
+  size_t osz = input.size();
+
+  memset(str, 0, osz + 1);
+  
+  
+  if (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+    output = input;
+  } else {
+    output = std::string(str);
+  }
+
+  iconv_close(ic);
+
+  delete[] str;
+
+#endif
+  return output;
+}
+
 
 bool Config::load(Node *n, std::string filename, Logger **log) {
   INIReader inir(filename);
@@ -28,12 +82,12 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   _menupath = inir.Get("Paths", "Menu Path", "menus");
   _mainmenu = inir.Get("Main", "Root Menu", "main");
   _qwk_id = inir.Get("Main", "Qwk ID", "TALISMAN");
-  _location = inir.Get("Main", "Location", "Somewhere, The World");
+  _location = convert_cp437(inir.Get("Main", "Location", "Somewhere, The World"));
   _msgpath = inir.Get("Paths", "Message Path", "msgs");
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
   _scriptpath = inir.Get("Paths", "Script Path", "scripts");
-  _opname = inir.Get("Main", "Sysop Name", "Sysop");
-  _sysname = inir.Get("Main", "System Name", "Talisman");
+  _opname = convert_cp437(inir.Get("Main", "Sysop Name", "Sysop"));
+  _sysname = convert_cp437(inir.Get("Main", "System Name", "Talisman"));
   _netmailsem = inir.Get("Paths", "Netmail Semaphore", "netmail.sem");
   _echomailsem = inir.Get("Paths", "Echomail Semaphore", "echomail.sem");
   _externaleditor = inir.Get("Paths", "External Editor", "");
@@ -80,7 +134,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown Name";
       }
@@ -134,7 +188,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown Name";
       }
@@ -280,7 +334,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown";
       }
@@ -344,7 +398,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown";
       }
@@ -390,7 +444,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
-        myname = name->as_string()->value_or("Invalid Name");
+        myname = convert_cp437(name->as_string()->value_or("Invalid Name"));
       } else {
         myname = "Unknown Name";
       }
@@ -437,7 +491,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
         auto name = itemtable->get("name");
         if (name != nullptr) {
-          myname = name->as_string()->value_or("Theme " + std::to_string(i + 1));
+          myname = convert_cp437(name->as_string()->value_or("Theme " + std::to_string(i + 1)));
         } else {
           myname = "Theme " + std::to_string(i + 1);
         }
