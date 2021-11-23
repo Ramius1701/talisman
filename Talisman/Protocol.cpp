@@ -89,13 +89,14 @@ void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> 
   bool gotcmd = false;
   std::string cmd;
 
-  if (n->is_telnet()) {
-    iss.str(download_cmd);
-  } else {
-    iss.str(ssh_download_cmd);
-  }
+
 
   if (batch) {
+    if (n->is_telnet()) {
+      iss.str(download_cmd);
+    } else {
+      iss.str(ssh_download_cmd);
+    }
     for (std::string s; iss >> s;) {
       if (!gotcmd) {
         cmd = s;
@@ -122,6 +123,11 @@ void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> 
       args.clear();
       n->print_f("Sending %s with %s\r\n", files->at(i).filename().u8string().c_str(), name.c_str());
       gotcmd = false;
+      if (n->is_telnet()) {
+        iss.str(download_cmd);
+      } else {
+        iss.str(ssh_download_cmd);
+      }
       for (std::string s; iss >> s;) {
         if (!gotcmd) {
           cmd = s;
