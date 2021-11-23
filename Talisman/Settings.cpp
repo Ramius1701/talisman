@@ -27,11 +27,11 @@ void Settings::do_settings(Node *n) {
     n->print_f(" |15O |14Override Screen Dimensions |08(|15%s|08)\r\n", (n->get_user().get_attribute("screen_override", "false") == "false" ? "NO" : "YES"));
     n->print_f(" |15W |14Override Screen Width |08(|15%s|08)\r\n", n->get_user().get_attribute("screen_override_width", "80").c_str());
     n->print_f(" |15H |14Override Screen Height |08(|15%s|08)\r\n", n->get_user().get_attribute("screen_override_height", "24").c_str());
-    n->print_f(" |15C |14Use Codepage |08Applied on next login (|15%s|08)\r\n", n->get_user().get_attribute("codepage", "auto").c_str());
-    n->print_f(" |15T |14Set Default Theme |08(|15%s|08)\r\n", n->get_config()->selected_theme_name().c_str());
+    n->print_f(" |15C |14Use Codepage |08(|15%s|08) |12*\r\n", n->get_user().get_attribute("codepage", "auto").c_str());
+    n->print_f(" |15T |14Set Default Theme |08(|15%s|08) |12*\r\n", n->get_config()->selected_theme_name().c_str());
     n->print_f("\r\n");
     n->print_f(" |15Q |14Quit\r\n");
-    n->print_f("|08------------------------------------------------------------------------------|07\r\n");
+    n->print_f("|08------------------------------------------- |12* |08Applied next login -------------|07\r\n");
     n->print_f("|14Command |08[|15L|08,|15E|08,|15P|08,|15F|08,|15R|08,|15K|08,|15N|08,|15A|08,|15S|08,|15O|08,|15W|08,|15H|08,|15Q|08]: |07");
     std::string cmd = n->get_string(1, false);
     n->print_f("\r\n\r\n");
