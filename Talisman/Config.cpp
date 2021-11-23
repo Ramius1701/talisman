@@ -53,8 +53,10 @@ std::string Config::convert_cp437(std::string input) {
     return input;
   }
 
+  int i = 1;
+
   char *str = new char[input.size() + 1];
-  
+
   char *inp = (char *)input.c_str();
   size_t isz = input.size();
 
@@ -62,15 +64,15 @@ std::string Config::convert_cp437(std::string input) {
   size_t osz = input.size();
 
   memset(str, 0, osz + 1);
-  
-  std::stringstream ss;
 
   while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
     if (errno == E2BIG) {
-      ss << str;
-      memset(str, 0, input.size() + 1);
+      delete str;
+      i++;
+      str = new char[input.size() * i + 1];
+      memset(str, 0, input.size() * i + 1);
+      osz = input.size() * i;
       oup = str;
-      osz = input.size();
       continue;
     } else {
       output = input;
@@ -80,8 +82,7 @@ std::string Config::convert_cp437(std::string input) {
     }
   }
 
-  ss << str;
-  output = ss.str();
+  output = str;
   iconv_close(ic);
 
   delete[] str;
@@ -116,6 +117,8 @@ std::string Config::convert_utf8(std::string input) {
     return input;
   }
 
+  int i = 1;
+
   char *str = new char[input.size() + 1];
 
   char *inp = (char *)input.c_str();
@@ -126,13 +129,13 @@ std::string Config::convert_utf8(std::string input) {
 
   memset(str, 0, osz + 1);
 
-  std::stringstream ss;
-
   while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
     if (errno == E2BIG) {
-      ss << str;
-      memset(str, 0, input.size() + 1);
-      osz = input.size();
+      delete str;
+      i++;
+      str = new char[input.size() * i + 1];
+      memset(str, 0, input.size() * i + 1);
+      osz = input.size() * i;
       oup = str;
       continue;
     } else {
@@ -143,8 +146,7 @@ std::string Config::convert_utf8(std::string input) {
     }
   }
 
-  ss << str;
-  output = ss.str();
+  output = str;
   iconv_close(ic);
 
   delete[] str;
