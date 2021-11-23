@@ -69,6 +69,7 @@ std::string Config::convert_cp437(std::string input) {
     if (errno == E2BIG) {
       ss << str;
       memset(str, 0, input.size() + 1);
+      oup = str;
       osz = input.size();
       continue;
     } else {
@@ -132,6 +133,7 @@ std::string Config::convert_utf8(std::string input) {
       ss << str;
       memset(str, 0, input.size() + 1);
       osz = input.size();
+      oup = str;
       continue;
     } else {
       output = input;
