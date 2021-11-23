@@ -4,7 +4,7 @@
 #define MyAppName "Talisman BBS"
 #define MyAppVersion "0.33"
 #define MyAppPublisher "Andrew Pamment"
-#define MyAppURL "https://talismandocs.com/"
+#define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
 
 [Setup]
@@ -111,9 +111,9 @@ Name: "{app}\dist\gopher"
 
 [Icons]
 Name: "{group}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{#MyAppName} (Documentation)"; Filename: "https://talismandocs.com/docs/"
+Name: "{group}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"
 Name: "{commondesktop}\{#MyAppName} (Servo)"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{commondesktop}\{#MyAppName} (Documentation)"; Filename: "https://talismandocs.com/docs/"; Tasks: desktopicon
+Name: "{commondesktop}\{#MyAppName} (Documentation)"; Filename: "https://talismanbbs.com/docs/"; Tasks: desktopicon
 
 [Code]
 var
