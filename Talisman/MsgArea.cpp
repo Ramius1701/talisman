@@ -1097,7 +1097,7 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
   if ((orig_addr != "" || wwivnode != 0) && !_is_netmail) {
     for (size_t i = 0; i < myconf->areas.size(); i++) {
       if (myconf->areas.at(i)->is_netmail() && myconf->areas.at(i)->get_w_sec_level() <= n->get_user().get_sec_level()) {
-        n->print_f("\r\n|14Reply via Netmail ? (Y/[N]) ");
+        n->print_f("\r\n|14Reply via Netmail ? (Y/[N]) |07");
         char rep = tolower(n->getch());
         if (rep == 'y') {
           std::stringstream netaddr;
