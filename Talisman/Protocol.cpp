@@ -85,13 +85,14 @@ void Protocol::upload(Node *n, int socket, std::string uploadpath) {
 
 void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> *files) {
   std::vector<std::string> args;
-  std::istringstream iss;
+ 
   bool gotcmd = false;
   std::string cmd;
 
 
 
   if (batch) {
+    std::istringstream iss;
     if (n->is_telnet()) {
       iss.str(download_cmd);
     } else {
@@ -123,6 +124,7 @@ void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> 
       args.clear();
       n->print_f("Sending %s with %s\r\n", files->at(i).filename().u8string().c_str(), name.c_str());
       gotcmd = false;
+      std::istringstream iss;
       if (n->is_telnet()) {
         iss.str(download_cmd);
       } else {
