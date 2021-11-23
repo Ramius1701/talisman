@@ -31,7 +31,7 @@ static int safe_atoi(const char *str, int len) {
 }
 
 bool Qwkie::scan(int net) {
-  std::cout << "Scanning network: " << networks.at(net).name << " ..." << std::endl;
+  log->log(LOG_INFO, "Scanning network: %s", networks.at(net).name.c_str());
   std::filesystem::path packpath(temppath + "/qwknet");
   struct QwkHeader qhdr;
 
