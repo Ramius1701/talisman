@@ -73,6 +73,8 @@ std::string Config::convert_cp437(std::string input) {
       memset(str, 0, input.size() * i + 1);
       osz = input.size() * i;
       oup = str;
+      inp = (char *)input.c_str();
+      isz = input.size();
       continue;
     } else {
       output = input;
@@ -137,6 +139,8 @@ std::string Config::convert_utf8(std::string input) {
       memset(str, 0, input.size() * i + 1);
       osz = input.size() * i;
       oup = str;
+      inp = (char *)input.c_str();
+      isz = input.size();
       continue;
     } else {
       output = input;
@@ -147,6 +151,7 @@ std::string Config::convert_utf8(std::string input) {
   }
 
   output = str;
+  
   iconv_close(ic);
 
   delete[] str;
