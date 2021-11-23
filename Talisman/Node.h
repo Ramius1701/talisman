@@ -41,6 +41,7 @@ public:
   int run(std::string *username, std::string *password);
   bool newuser();
   bool detectANSI();
+  bool detectUTF8();
   void disconnected();
   void send_gfile(std::string filename, bool pause, bool script);
   void send_gfile(std::string filename, bool pause);
@@ -86,15 +87,19 @@ public:
   void chat(int othernode);
   int timeoutmax;
   bool time_check();
+  void send_str(const char *str);
+  void send_str(const char *str, int len);
+  bool utf8() { return isutf8; }
 
 private:
   int node;
   int socket;
   bool telnet;
+  bool isutf8;
 
   Config config;
   User u;
-  void send_str(const char *str);
+  
   void send_file(std::filesystem::path p, bool pause, bool script);
   time_t last_on;
   time_t last_time_check;

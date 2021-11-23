@@ -442,7 +442,11 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
               }
               outbuf[g++] = c;
             }
-            write(door_out, outbuf, g);
+            if (raw) {
+              write(door_out, outbuf, g);
+            } else {
+              n->send_str(outbuf, g);
+            }
           }
         } else {
           if (ret == -1) {

@@ -89,6 +89,67 @@ std::string Config::convert_cp437(std::string input) {
   return output;
 }
 
+std::string Config::convert_utf8(std::string input) {
+  std::string output;
+
+#ifdef _MSC_VER
+  int wchars_num = MultiByteToWideChar(437, 0, input.c_str(), -1, NULL, 0);
+  wchar_t *wstr = new wchar_t[wchars_num];
+  MultiByteToWideChar(437, 0, input.c_str(), -1, wstr, wchars_num);
+
+  int chars_num = WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, NULL, 0, NULL, NULL);
+
+  char *str = new char[chars_num + 1];
+  memset(str, 0, chars_num + 1);
+
+  WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, str, chars_num, NULL, NULL);
+
+  output = std::string(str);
+
+  delete[] str;
+  delete[] wstr;
+#else
+  iconv_t ic;
+  ic = iconv_open("UTF-8", "CP437");
+  if (ic == (iconv_t)-1) {
+    return input;
+  }
+
+  char *str = new char[input.size() + 1];
+
+  char *inp = (char *)input.c_str();
+  size_t isz = input.size();
+
+  char *oup = str;
+  size_t osz = input.size();
+
+  memset(str, 0, osz + 1);
+
+  std::stringstream ss;
+
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+    if (errno == E2BIG) {
+      ss << str;
+      memset(str, 0, input.size() + 1);
+      osz = input.size();
+      continue;
+    } else {
+      output = input;
+      iconv_close(ic);
+      delete[] str;
+      return output;
+    }
+  }
+
+  ss << str;
+  output = ss.str();
+  iconv_close(ic);
+
+  delete[] str;
+
+#endif
+  return output;
+}
 
 bool Config::load(Node *n, std::string filename, Logger **log) {
   INIReader inir(filename);

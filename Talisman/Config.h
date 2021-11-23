@@ -104,6 +104,7 @@ public:
   bool theme_needs_ansi(int t) { return themes.at(t).req_ansi; }
   NETADDR *main_aka;
   static std::string convert_cp437(std::string in);
+  static std::string convert_utf8(std::string in);
 
 private:
   int selected_theme;

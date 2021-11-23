@@ -80,6 +80,7 @@ Node::Node(int node, int socket, bool telnet) {
   term_width = 80;
   term_height = 25;
   pause_loaded = false;
+  isutf8 = false;
 }
 
 Node::~Node() {
@@ -236,6 +237,79 @@ void Node::pause() {
     getch();
     print_f("\r\n");
   }
+}
+
+bool Node::detectUTF8() { 
+  print_f("\x1b[1;1H\xc2\xa0\x1b[6n\x1b[1;1H\x1b[2J");
+  char buffer[1024];
+  timeval t;
+  time_t then = time(NULL);
+  t.tv_sec = 1;
+  t.tv_usec = 0;
+  time_t now;
+  int len;
+  int gotnum = 0;
+  int gotnum1 = 0;
+  size_t x = 0;
+  size_t y = 0;
+  do {
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(socket, &fds);
+
+    if (select(socket + 1, &fds, NULL, NULL, &t) < 0) {
+      return false;
+    }
+
+    if (FD_ISSET(socket, &fds)) {
+      len = recv(socket, buffer, 1024, 0);
+      if (len == 0) {
+        disconnected();
+      }
+      for (int i = 0; i < len; i++) {
+        if (buffer[i] == '\x1b' && buffer[i + 1] == '[') {
+          for (int j = i + 2; j < len; j++) {
+            switch (buffer[j]) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+              if (gotnum1) {
+                x = x * 10 + (buffer[j] - '0');
+              } else {
+                y = y * 10 + (buffer[j] - '0');
+              }
+              gotnum = 1;
+              break;
+            case ';':
+              gotnum1 = 1;
+              gotnum = 0;
+              break;
+            case 'R':
+              if (gotnum && gotnum1) {
+                if (x == 2) {
+                  return true;
+                } else {
+                  return false;
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    now = time(NULL);
+  } while (now - then < 5);
+
+  return false;
 }
 
 bool Node::detectANSI() {
@@ -435,9 +509,9 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
           lines = 0;
         } else {
           if (socket) {
-            send(socket, "@", 1, 0);
-            send(socket, ss.str().c_str(), ss.str().size(), 0);
-            send(socket, "@", 1, 0);
+            send_str("@");
+            send_str(ss.str().c_str());
+            send_str("@");
           } else {
             print_f("@%s@", ss.str().c_str());
           }
@@ -449,8 +523,8 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
       if (gottag == true) {
         if (c == '\r' || c == '\n') {
           if (socket) {
-            send(socket, "@", 1, 0);
-            send(socket, ss.str().c_str(), ss.str().size(), 0);
+            send_str("@");
+            send_str(ss.str().c_str());
           } else {
             print_f("@%s", ss.str().c_str());
           }
@@ -467,15 +541,12 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
 
         if (c == '\n') {
           if (lastc != '\r') {
-            send(socket, "\r", 1, 0);
+            send_str("\r");
           }
           lines++;
         }
         lastc = c;
-        send(socket, &c, 1, 0);
-#ifdef _MSC_VER
-        WriteConsoleA(hOutput, &c, 1, NULL, NULL);
-#endif
+        send_str(&c, 1);
         if (lines == get_term_height() - 2 && pause) {
           if (hasANSI) {
             print_f("\x1b[s|14More (Y/N/C) ? |07");
@@ -601,7 +672,7 @@ void Node::send_gfile(std::string filename, bool pause, bool script) {
 
 void Node::putch(const char c) {
   if (socket) {
-    send(socket, &c, 1, 0);
+    send_str(&c, 1);
   }
 #ifdef _MSC_VER
   std::cout << c;
@@ -843,12 +914,20 @@ void Node::cls() {
   }
 }
 
-void Node::send_str(const char *str) {
+void Node::send_str(const char *str) { send_str(str, strlen(str)); }
+
+void Node::send_str(const char *str, int len) {
+  std::string stdstr(str, str + len);
+
+  if (isutf8) {
+    stdstr = Config::convert_utf8(stdstr);
+  }
+  
   if (socket != 0) {
-    send(socket, str, strlen(str), 0);
+    send(socket, stdstr.c_str(), stdstr.size(), 0);
   }
 #ifdef _MSC_VER
-  WriteConsoleA(hOutput, str, strlen(str), NULL, NULL);
+  WriteConsoleA(hOutput, str, len, NULL, NULL);
 #endif
 }
 
@@ -997,12 +1076,7 @@ void Node::print_f(const char *fmt, ...) {
       i += 2;
       continue;
     } else {
-      if (socket != 0) {
-        send(socket, &buffer[i], 1, 0);
-      }
-#ifdef _MSC_VER
-      WriteConsoleA(hOutput, &buffer[i], 1, NULL, NULL);
-#endif
+      send_str(&buffer[i], 1);
     }
   }
 
@@ -1277,6 +1351,12 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     }
   }
 
+  if (socket) {
+    isutf8 = detectUTF8();
+  } else {
+    isutf8 = true;
+  }
+
   print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2021; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
   /* Load configuration */
@@ -1460,6 +1540,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     timeoutmax = sl->timeout;
   } else {
     timeoutmax = 10;
+  }
+
+  std::string codepage = u.get_attribute("codepage", "auto");
+  if (codepage == "utf-8") {
+    isutf8 = true;
+  } else if (codepage == "cp437") {
+    isutf8 = false;
   }
 
   // check if user still has access to their current file / mail areas...
