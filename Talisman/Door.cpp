@@ -445,7 +445,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
             if (raw) {
               write(door_out, outbuf, g);
             } else {
-              n->send_str(outbuf, g);
+              n->send_str((const char *)outbuf, g);
             }
           }
         } else {
