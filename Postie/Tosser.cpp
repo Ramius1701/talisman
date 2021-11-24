@@ -823,6 +823,8 @@ bool Tosser::run(bool protinbound) {
     }
 
     for (auto &pkt : std::filesystem::directory_iterator(tempdir)) {
+      if (std::filesystem::is_directory(pkt.path()))
+        continue;
       if (std::filesystem::file_size(pkt.path()) < 58) {
         // move bad packet to .bad
           log.log(LOG_ERROR, "Packet size < 58 bytes");
