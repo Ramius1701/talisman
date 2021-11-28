@@ -239,9 +239,17 @@ bool TicProc::hatch(const char *file, const char *area, const char *replace, con
   gmtime_r(&ttime, &ttime_tm);
 #endif
 
-  snprintf(buffer, sizeof buffer, "%08" PRIx64, ttime & 0xffffffff);
+  do {
+#ifdef _MSC_VER
+    Sleep(1000);
+#else
+    sleep(1);
+#endif
+    tic = temppth;
+    snprintf(buffer, sizeof buffer, "%08" PRIx64, ttime & 0xffffffff);
 
-  tic.append(std::string(buffer) + ".tic");
+    tic.append(std::string(buffer) + ".tic");
+  } while (std::filesystem::exists(tic));
 
   uint32_t crc;
 

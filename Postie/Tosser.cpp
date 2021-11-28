@@ -827,7 +827,7 @@ bool Tosser::run(bool protinbound) {
         continue;
       if (std::filesystem::file_size(pkt.path()) < 58) {
         // move bad packet to .bad
-          log.log(LOG_ERROR, "Packet size < 58 bytes");
+        log.log(LOG_ERROR, "Packet size < 58 bytes");
         bad_packet(&c, pkt.path().u8string());
         continue;
       }
