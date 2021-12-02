@@ -1,6 +1,7 @@
 #include <cstring>
 #ifdef _MSC_VER
 #include <Windows.h>
+#include <shlwapi.h>
 #define strcasecmp _stricmp
 #define strncasecmp _strnicmp
 #endif
@@ -2256,7 +2257,11 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
     } break;
     case MSGSEARCH_SUBJ: {
       for (size_t k = 0; k < keywords.size(); k++) {
-        if (strncasecmp(msg->xmsg.subject, keywords.at(k).c_str(), 72) == 0) {
+#ifdef _MSC_VER
+        if (StrStrlA(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
+#else          
+        if (strcasestr(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
+#endif
           foundmsg = true;
           break;
         }
