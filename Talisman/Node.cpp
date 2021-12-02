@@ -1233,7 +1233,7 @@ bool Node::newuser() {
         continue;
       }
 
-      if (!User::check_fullname(config, firstname + " " + lastname) || !User::username_allowed(config, firstname + " " + lastname)) {
+      if (!User::check_fullname(&config, firstname + " " + lastname) || !User::username_allowed(&config, firstname + " " + lastname)) {
         print_f("\r\n|12Someone with that name is already registered, sorry.\r\n|07");
         continue;
       }
