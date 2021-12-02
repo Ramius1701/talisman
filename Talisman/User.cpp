@@ -456,13 +456,13 @@ bool User::open_database(std::string filename, sqlite3 **db) {
   return true;
 }
 
-bool User::check_fullname(Config c, std::string fullname) {
+bool User::check_fullname(Config *c, std::string fullname) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
 
   const char *check_sql = "SELECT value FROM details WHERE attrib = \"fullname\" AND value=?";
 
-  if (!open_database(c.data_path() + "/users.sqlite3", &db)) {
+  if (!open_database(c->data_path() + "/users.sqlite3", &db)) {
     return false;
   }
 
@@ -551,7 +551,7 @@ size_t User::user_get_lastread(std::string msgbase) {
   return 0;
 }
 
-bool User::username_allowed(Config config, std::string username) {
+bool User::username_allowed(Config *config, std::string username) {
   if (username.size() < 2) {
     return false;
   }

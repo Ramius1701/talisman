@@ -24,8 +24,8 @@ public:
 
   static std::string user_exists(Config *c, std::string usern);
   static bool open_database(std::string filename, sqlite3 **db);
-  static bool username_allowed(Config config, std::string username);
-  static bool check_fullname(Config c, std::string fullname);
+  static bool username_allowed(Config *config, std::string username);
+  static bool check_fullname(Config *c, std::string fullname);
   static void user_list(Node *n);
   static std::string get_attribute_s(Config *c, int id, std::string attrib, std::string def);
   static std::string get_attribute_s(Config *c, std::string name, std::string attrib, std::string def);
