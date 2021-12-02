@@ -2258,7 +2258,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
     case MSGSEARCH_SUBJ: {
       for (size_t k = 0; k < keywords.size(); k++) {
 #ifdef _MSC_VER
-        if (StrStrlA(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
+        if (StrStrIA(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
 #else          
         if (strcasestr(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
 #endif
