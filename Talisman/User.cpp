@@ -562,7 +562,7 @@ bool User::username_allowed(Config *config, std::string username) {
     }
   }
 
-  std::filesystem::path p(config.data_path());
+  std::filesystem::path p(config->data_path());
   p.append("trashcan.txt");
 
   if (std::filesystem::exists(p)) {
