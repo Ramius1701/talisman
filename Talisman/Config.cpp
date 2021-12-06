@@ -67,7 +67,7 @@ std::string Config::convert_cp437(std::string input) {
 
   while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
     if (errno == E2BIG) {
-      delete str;
+      delete[] str;
       i++;
       str = new char[input.size() * i + 1];
       memset(str, 0, input.size() * i + 1);
@@ -91,6 +91,67 @@ std::string Config::convert_cp437(std::string input) {
 
 #endif
   return output;
+}
+
+int Config::convert_utf8(const char *input, int len, char **output) {
+#ifdef _MSC_VER
+  int wchars_num = MultiByteToWideChar(437, 0, input, len, NULL, 0);
+  wchar_t *wstr = new wchar_t[wchars_num];
+  MultiByteToWideChar(437, 0, input, -1, wstr, wchars_num);
+
+  int chars_num = WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, NULL, 0, NULL, NULL);
+
+  char *str = new char[chars_num + 1];
+  memset(str, 0, chars_num + 1);
+
+  WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, str, chars_num, NULL, NULL);
+
+  *output = str;
+
+  delete[] wstr;
+#else
+  iconv_t ic;
+  ic = iconv_open("UTF-8", "CP437");
+  if (ic == (iconv_t)-1) {
+    return -1;
+  }
+
+  int i = 1;
+
+  char *str = new char[len + 1];
+
+  char *inp = (char *)input;
+  size_t isz = len;
+
+  char *oup = str;
+  size_t osz = len;
+
+  memset(str, 0, osz + 1);
+
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+    if (errno == E2BIG) {
+      delete[] str;
+      i++;
+      str = new char[len * i + 1];
+      memset(str, 0, len * i + 1);
+      osz = len * i;
+      oup = str;
+      inp = (char *)input;
+      isz = len;
+      continue;
+    } else {
+      iconv_close(ic);
+      delete[] str;
+      return -1;
+    }
+  }
+
+  *output = str;
+  
+  iconv_close(ic);
+
+#endif
+  return strlen(*output);
 }
 
 std::string Config::convert_utf8(std::string input) {
@@ -133,7 +194,7 @@ std::string Config::convert_utf8(std::string input) {
 
   while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
     if (errno == E2BIG) {
-      delete str;
+      delete[] str;
       i++;
       str = new char[input.size() * i + 1];
       memset(str, 0, input.size() * i + 1);

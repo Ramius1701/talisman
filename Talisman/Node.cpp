@@ -917,14 +917,22 @@ void Node::cls() {
 void Node::send_str(const char *str) { send_str(str, strlen(str)); }
 
 void Node::send_str(const char *str, int len) {
-  std::string stdstr(str, str + len);
-
   if (isutf8) {
-    stdstr = Config::convert_utf8(stdstr);
-  }
-  
-  if (socket != 0) {
-    send(socket, stdstr.c_str(), stdstr.size(), 0);
+    char *out;
+    if (Config::convert_utf8(str, len, &out) == -1) {
+        if (socket != 0) {
+            send(socket, str, len, 0);
+        }
+    } else {
+        if (socket != 0) {
+            send(socket, out, strlen(out), 0);
+        }
+        delete[] out;
+    }
+  } else {
+    if (socket != 0) {
+        send(socket, str, len, 0);
+    }
   }
 #ifdef _MSC_VER
   WriteConsoleA(hOutput, str, len, NULL, NULL);
