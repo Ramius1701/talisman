@@ -143,11 +143,19 @@ bool FileArea::file_exists(Node *n, std::string filename) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
   bool ret;
+#ifdef _MSC_VER
+  static const char sql[] = "SELECT filename FROM files WHERE filename = ? COLLATE NOCASE";
+#else
   static const char sql[] = "SELECT filename FROM files WHERE filename = ?";
+#endif
   std::filesystem::path p(file_path);
   p.append(filename);
   std::string fullpath = p.u8string();
 
+  if (std::filesystem::exists(fullpath)) {
+      return true;
+  }
+  
   if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
     std::cerr << "Error opening file database" << std::endl;
 
@@ -170,7 +178,7 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 
   sqlite3_finalize(stmt);
   sqlite3_close(db);
-
+  
   return ret;
 }
 
