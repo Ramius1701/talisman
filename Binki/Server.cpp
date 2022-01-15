@@ -177,6 +177,61 @@ struct outfile_t {
   bool sent = false;
 };
 
+std::string translate_name(std::string name) {
+  std::stringstream new_name;
+
+  for (size_t i = 0; i < name.size(); i++) {
+    if (isalnum(name.at(i)) || name.at(i) == '@' || name.at(i) == '&' || name.at(i) == '=' || name.at(i) == '+' || name.at(i) == '%' || name.at(i) == '-' ||
+        name.at(i) == '_' || name.at(i) == '.' || name.at(i) == '(' || name.at(i) == ')' || name.at(i) == '#' || name.at(i) == '|') {
+
+      new_name << name.at(i);
+    } else if (name.at(i) != '\\' && name.at(i) != '/') {
+      std::stringstream hex;
+      hex << '\\';
+      hex << std::setfill('0') << std::setw(2) << std::hex << (int)name.at(i);
+      new_name << hex.str();
+    }
+  }
+  return new_name.str();
+}
+
+std::string untranslate_name(std::string name) {
+  std::stringstream new_name;
+  for (size_t i = 0; i < name.size(); i++) {
+    if (name.at(i) == '\\') {
+      int digit1;
+      int digit2;
+
+      if (name.at(i + 1) >= '0' && name.at(i + 1) <= '9') {
+        digit1 = name.at(i + 1) - '0';
+      } else if (name.at(i + 1) >= 'a' && name.at(i + 1) <= 'f') {
+        digit1 = name.at(i + 1) - 'a' + 10;
+      } else if (name.at(i + 1) >= 'A' && name.at(i + 1) <= 'F') {
+        digit1 = name.at(i + 1) - 'A' + 10;
+      }
+
+      if (name.at(i + 2) >= '0' && name.at(i + 2) <= '9') {
+        digit2 = name.at(i + 2) - '0';
+      } else if (name.at(i + 2) >= 'a' && name.at(i + 2) <= 'f') {
+        digit2 = name.at(i + 2) - 'a' + 10;
+      } else if (name.at(i + 2) >= 'A' && name.at(i + 2) <= 'F') {
+        digit2 = name.at(i + 2) - 'A' + 10;
+      }
+
+      char c = digit1 * 16 + digit2;
+
+      if (c != '/' && c != '\\') {
+        new_name << c;
+      }
+      i += 2;
+    } else {
+      new_name << name.at(i);
+    }
+  }
+
+  return new_name.str();
+}
+
 void remove_from_flo(struct outfile_t o) {
   FILE *fptr1;
   FILE *fptr2;
@@ -253,7 +308,7 @@ bool Server::send_file_packet(std::filesystem::path file, std::string name) {
   sending_len = std::filesystem::file_size(file);
   sending_timestamp = ts;
 
-  filecmd << name << " " << std::filesystem::file_size(file) << " " << ts << " 0";
+  filecmd << translate_name(name) << " " << std::filesystem::file_size(file) << " " << ts << " 0";
   send_command_packet(M_FILE, filecmd.str());
   process_frames(1, 0xFF);
   char *buffer;
@@ -828,9 +883,9 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
           std::string fname;
 
           if (secure) {
-            fname = c.inbound_secure + "/" + current_filename;
+            fname = c.inbound_secure + "/" + untranslate_name(current_filename);
           } else {
-            fname = c.inbound + "/" + current_filename;
+            fname = c.inbound + "/" + untranslate_name(current_filename);
           }
           current_file = fopen(fname.c_str(), "wb");
         }
@@ -1168,7 +1223,6 @@ int Server::load_config() {
     return -1;
   }
 
-
   return 0;
 }
 
@@ -1224,7 +1278,7 @@ int Server::run(int socket) {
   senteob = false;
   std::vector<struct link_t> common_links;
 
-  for (const struct address_t & a : remote_addresses) {
+  for (const struct address_t &a : remote_addresses) {
     for (const struct link_t &l : c.links) {
       if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
         bool found = false;
@@ -1243,8 +1297,8 @@ int Server::run(int socket) {
   }
 
   if (remote_password != "-") {
-    for (const struct address_t& a : remote_addresses) {
-      for (const struct link_t& l : common_links) {
+    for (const struct address_t &a : remote_addresses) {
+      for (const struct link_t &l : common_links) {
         if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
           gotmatch = true;
           secure = true;
