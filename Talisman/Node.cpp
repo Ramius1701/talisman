@@ -10,6 +10,7 @@
 #define socklen_t int
 #else
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <cstring>
 #include <sys/socket.h>
 #include <sys/utsname.h>

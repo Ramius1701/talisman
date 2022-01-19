@@ -679,12 +679,13 @@ NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
   return NULL;
 }
 
+#ifndef bswap16
 static uint16_t bswap16(uint16_t arg) {
   uint16_t hibyte = (arg & 0xff00) >> 8;
   uint16_t lobyte = (arg & 0xff);
   return lobyte << 8 | hibyte;
 }
-
+#endif
 bool Tosser::run(bool protinbound) {
   INIReader inir("talisman.ini");
 

@@ -16,6 +16,7 @@
 #include <iostream>
 #include <optional>
 #include <sstream>
+#include <vector>
 
 std::optional<std::filesystem::path> MakeAbsolute(const std::filesystem::path &root, const std::filesystem::path &userPath) {
   auto finalPath = (root / userPath).lexically_normal();
