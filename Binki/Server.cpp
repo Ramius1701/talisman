@@ -187,7 +187,7 @@ std::string translate_name(std::string name) {
       new_name << name.at(i);
     } else if (name.at(i) != '\\' && name.at(i) != '/') {
       std::stringstream hex;
-      hex << '\\';
+      hex << "\\x";
       hex << std::setfill('0') << std::setw(2) << std::hex << (int)name.at(i);
       new_name << hex.str();
     }
@@ -199,6 +199,7 @@ std::string untranslate_name(std::string name) {
   std::stringstream new_name;
   for (size_t i = 0; i < name.size(); i++) {
     if (name.at(i) == '\\') {
+	  if (name.at(i+1) == 'x') i++;
       int digit1;
       int digit2;
 
