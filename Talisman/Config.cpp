@@ -250,6 +250,8 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   _new_user_feedback = inir.GetBoolean("Main", "New User Feedback", false);
   _hostname = inir.Get("Main", "Hostname", "localhost");
   _gopherport = inir.GetInteger("Main", "Gopher Port", -1);
+  windows_echo = inir.GetBoolean("Main", "Windows Local Echo", true);
+
 
   main_aka = parse_fido_addr(inir.Get("Main", "Main AKA", "0:0/0").c_str());
 

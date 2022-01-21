@@ -106,6 +106,7 @@ public:
   static std::string convert_cp437(std::string in);
   static std::string convert_utf8(std::string in);
   static int convert_utf8(const char *input, int len, char **output);
+  bool windows_echo;
 private:
   int selected_theme;
   int _max_nodes;
