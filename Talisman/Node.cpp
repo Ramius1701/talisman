@@ -936,7 +936,7 @@ void Node::send_str(const char *str, int len) {
     }
   }
 #ifdef _MSC_VER
-  if (windows_echo) {
+  if (config.windows_echo) {
 	WriteConsoleA(hOutput, str, len, NULL, NULL);
   }
 #endif

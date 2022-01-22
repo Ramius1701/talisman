@@ -4,7 +4,7 @@
 #include "Config.h"
 #include <filesystem>
 
-#define BINKI_VERSION "0.2"
+#define BINKI_VERSION "0.3"
 
 #define M_NUL 0
 #define M_ADR 1
