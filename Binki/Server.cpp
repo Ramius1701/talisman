@@ -720,7 +720,7 @@ bool Server::process_data(uint16_t header, int timeout) {
       fclose(current_file);
       current_file = NULL;
 
-      send_command_packet(M_GOT, current_filename + " " + std::to_string(current_received) + " " + std::to_string(current_timestamp));
+      send_command_packet(M_GOT, translate_name(current_filename) + " " + std::to_string(current_received) + " " + std::to_string(current_timestamp));
       if (c.semaphore != "") {
         FILE *sem = fopen(c.semaphore.c_str(), "w");
         if (sem) {
@@ -873,7 +873,7 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
         }
 
         if (frags.size() >= 3) {
-          current_filename = std::filesystem::path(frags.at(0)).filename().u8string();
+          current_filename = std::filesystem::path(untranslate_name(frags.at(0))).filename().u8string();
           current_len = stoul(frags.at(1));
           current_timestamp = stoul(frags.at(2));
           current_received = 0;
@@ -884,9 +884,9 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
           std::string fname;
 
           if (secure) {
-            fname = c.inbound_secure + "/" + untranslate_name(current_filename);
+            fname = c.inbound_secure + "/" + current_filename;
           } else {
-            fname = c.inbound + "/" + untranslate_name(current_filename);
+            fname = c.inbound + "/" + current_filename;
           }
           current_file = fopen(fname.c_str(), "wb");
         }
