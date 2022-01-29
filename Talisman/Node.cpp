@@ -1565,6 +1565,19 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   int cur_msg_conf = stoi(u.get_attribute("cur_msg_conf", "-1"));
   int cur_msg_area = stoi(u.get_attribute("cur_msg_area", "-1"));
 
+  if (cur_msg_conf >= config.msgconfs.size()) {
+	  cur_msg_conf = -1;
+	  cur_msg_area = -1;
+	  u.set_attribute("cur_msg_conf", "-1");
+      u.set_attribute("cur_msg_area", "-1");
+  } else {
+	if (cur_msg_area >= config.msgconfs.at(cur_msg_conf)->areas.size()) {
+      cur_msg_conf = -1;
+	  cur_msg_area = -1;
+	  u.set_attribute("cur_msg_conf", "-1");
+	  u.set_attribute("cur_msg_area", "-1");		  
+	}
+  }
   if (cur_msg_conf != -1 && cur_msg_area != -1) {
     if (config.msgconfs.at(cur_msg_conf)->get_sec_level() > u.get_sec_level() ||
         config.msgconfs.at(cur_msg_conf)->areas.at(cur_msg_area)->get_r_sec_level() > u.get_sec_level()) {
@@ -1594,6 +1607,20 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   int cur_file_conf = stoi(u.get_attribute("cur_file_conf", "-1"));
   int cur_file_area = stoi(u.get_attribute("cur_file_area", "-1"));
+
+  if (cur_file_conf >= config.fileconfs.size()) {
+	  cur_file_conf = -1;
+	  cur_file_area = -1;
+	  u.set_attribute("cur_file_conf", "-1");
+      u.set_attribute("cur_file_area", "-1");
+  } else {
+	if (cur_file_area >= config.fileconfs.at(cur_file_conf)->areas.size()) {
+      cur_file_conf = -1;
+	  cur_file_area = -1;
+	  u.set_attribute("cur_file_conf", "-1");
+	  u.set_attribute("cur_file_area", "-1");		  
+	}
+  }
 
   if (cur_file_conf != -1 && cur_file_area != -1) {
     if (config.fileconfs.at(cur_file_conf)->get_sec_level() > u.get_sec_level() ||
