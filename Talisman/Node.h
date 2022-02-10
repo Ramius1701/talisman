@@ -96,7 +96,7 @@ private:
   int socket;
   bool telnet;
   bool isutf8;
-
+  std::string ipaddr;
   Config config;
   User u;
   

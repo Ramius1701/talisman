@@ -1368,7 +1368,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     isutf8 = true;
   }
 
-  print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2021; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+  print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2022; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
   /* Load configuration */
   if (!config.load(this, "talisman.ini", &log)) {
@@ -1399,11 +1399,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     if (getpeername(csock, &sa, &slen) == 0) {
       char dst[46];
       if (sa.sa_family == AF_INET) {
-        log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in *)&sa)->sin_addr, dst, 46), node);
+		ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in *)&sa)->sin_addr, dst, 46));
       } else {
-        log->log(LOG_INFO, "Connection From: %s on Node %d", inet_ntop(sa.sa_family, &((struct sockaddr_in6 *)&sa)->sin6_addr, dst, 46), node);
+		ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in6 *)&sa)->sin6_addr, dst, 46));
       }
+      log->log(LOG_INFO, "Connection From: %s on Node %d", ipaddr.c_str(), node);
     } else {
+	  ipaddr = "UNKNOWN";
       log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
     }
   }
@@ -1429,6 +1431,12 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   if (telnet) {
     send(socket, (char *)iac_naws, 3, 0);
+  }
+
+  if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {
+    if (!Script::prelogin(this, std::string(config.script_path() + "/prelogin.lua"))) {
+		return 0;
+	}
   }
 
   send_gfile("welcome");

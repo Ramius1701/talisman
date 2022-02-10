@@ -819,3 +819,35 @@ void Script::exec(Node *n, std::string script) {
 
   lua_close(l);
 }
+
+bool Script::prelogin(Node *n, std::string script) {
+  lua_State *l = luaL_newstate();
+
+  init_state(n, l);
+  luaL_loadfile(l, script.c_str());
+
+  int ret = lua_pcall(l, 0, 1, 0);
+  if (ret) {
+    n->log->log(LOG_ERROR, "Error executing prelogin script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    lua_close(l);
+    n->disconnected();
+    return false;
+  }
+
+  lua_getglobal(l, "prelogin");
+  ret = lua_pcall(l, 0, 1, 0);
+  if (ret) {
+    n->log->log(LOG_ERROR, "Error executing prelogin script. \"%s\" -> %s", script.c_str(), lua_tostring(l, -1));
+    lua_close(l);
+    n->disconnected();
+    return false;
+  }
+  if (lua_tonumber(l, -1) == 1) {
+    lua_close(l);
+    return true;
+  } else {
+    lua_close(l);
+    n->disconnected();
+    return false;
+  }
+}

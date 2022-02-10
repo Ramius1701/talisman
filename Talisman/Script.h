@@ -14,6 +14,7 @@ class Script {
 public:
   static void exec(Node *n, std::string script);
   static bool login(Node *n, std::string script, std::string *uname, std::string *password);
+  static bool prelogin(Node *n, std::string script);
   static bool msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject);
 
 private:
