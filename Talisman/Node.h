@@ -90,13 +90,14 @@ public:
   void send_str(const char *str);
   void send_str(const char *str, int len);
   bool utf8() { return isutf8; }
-
+  std::string ipaddr;
+  
 private:
   int node;
   int socket;
   bool telnet;
   bool isutf8;
-  std::string ipaddr;
+
   Config config;
   User u;
   

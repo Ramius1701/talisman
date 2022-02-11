@@ -71,6 +71,7 @@ Node::Node(int node, int socket, bool telnet) {
   ssht = nullptr;
   last_on = 0;
   timeoutmax = 0;
+  ipaddr = "UNKNOWN";
 #ifdef _MSC_VER
   hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   DWORD dwMode = 0;
