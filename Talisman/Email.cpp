@@ -256,6 +256,10 @@ void Email::list_email(Node *n) {
       }
     }
 
+    if (reload) {
+      continue;
+    }
+
     n->print_f("|14Select |08[|15%d|08-|15%d|08], |15ENTER|08=|14Quit |07", 1, emails.size());
     std::string res = n->get_string(6, false);
 
