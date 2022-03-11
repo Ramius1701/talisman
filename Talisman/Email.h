@@ -24,5 +24,6 @@ public:
   static void set_all_seen(Node *n);
 
 private:
+  static bool load_emails(Node *n, std::vector<Email> *emails);
   static bool open_database(std::string filename, sqlite3 **db);
 };

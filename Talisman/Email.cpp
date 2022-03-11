@@ -131,23 +131,20 @@ bool Email::save_message(Node *n, std::string to, std::string from, std::string 
   return true;
 }
 
-void Email::list_email(Node *n) {
+bool Email::load_emails(Node *n, std::vector<Email> *emails) {
   sqlite3 *db;
   sqlite3_stmt *stmt;
-  std::vector<Email> emails;
-  static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
   static const char sql[] = "SELECT id, sender, subject, body, date, seen FROM email WHERE recipient = ?";
 
   if (!open_database(n->get_config()->data_path() + "/email.sqlite3", &db)) {
     n->log->log(LOG_ERROR, "Unable to open email sqlite database");
-    return;
+    return false;
   }
 
   if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
     n->log->log(LOG_ERROR, "Unable to open prepare email sqlite query");
     sqlite3_close(db);
-    return;
+    return false;
   }
   std::string uname = n->get_user().get_username();
   sqlite3_bind_text(stmt, 1, uname.c_str(), -1, NULL);
@@ -173,14 +170,32 @@ void Email::list_email(Node *n) {
       }
     }
 
-    emails.push_back(e);
+    emails->push_back(e);
   }
 
   sqlite3_finalize(stmt);
   sqlite3_close(db);
 
+  return true;
+}
+
+void Email::list_email(Node *n) {
+
+  std::vector<Email> emails;
+  static const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+  bool reload;
+
   size_t lines = 1;
   while (true) {
+
+    emails.clear();
+    if (!load_emails(n, &emails)) {
+      return;
+    }
+
+    reload = false;
+
     n->cls();
     n->print_f("|09 Msg#    Subject                          From             Date            |07\r\n");
     for (size_t i = 0; i < emails.size(); i++) {
@@ -223,6 +238,7 @@ void Email::list_email(Node *n) {
 
               if (ret == 0) {
                 lines = 0;
+                reload = true;
                 break;
               } else {
                 emailno += ret;
@@ -232,6 +248,9 @@ void Email::list_email(Node *n) {
             return;
           } catch (std::out_of_range const&) {
             return;
+          }
+          if (reload) {
+            break;
           }
         }
       }
@@ -252,6 +271,7 @@ void Email::list_email(Node *n) {
           emails.at(emailno).seen = true;
           if (ret == 0) {
             lines = 0;
+            reload = true;
             break;
           } else {
             emailno += ret;
