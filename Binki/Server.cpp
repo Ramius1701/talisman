@@ -1106,8 +1106,12 @@ int Server::run(NETADDR *addr, std::string domain) {
   std::stringstream ss;
 
   for (size_t i = 0; i < c.addresses.size(); i++) {
-    ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "." << c.addresses.at(i).addr->point
-       << "@" << c.addresses.at(i).domain;
+    if (c.addresses.at(i).addr->point != 0) {
+      ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "." << c.addresses.at(i).addr->point
+        << "@" << c.addresses.at(i).domain;
+    } else {
+      ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "@" << c.addresses.at(i).domain;
+    }
     if (i < c.addresses.size() - 1) {
       ss << " ";
     }
