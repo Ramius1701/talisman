@@ -203,33 +203,33 @@ bool Rlogin::session(Node *n, std::string host, int port, std::string luser, std
     int rs = select((rlogin_socket > n->get_socket() ? rlogin_socket : n->get_socket()) + 1, &rfd, NULL, NULL, &tv);
 
     if (rs == -1 && errno != EINTR) {
-      n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
-      n->pause();
 #ifdef _MSC_VER
       closesocket(rlogin_socket);
 #else
       close(rlogin_socket);
 #endif
+      n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
+      n->pause();
       return false;
     } else if (FD_ISSET(rlogin_socket, &rfd)) {
       len = recv(rlogin_socket, (char *)buffer, 512, 0);
       if (len < 0) {
+#ifdef _MSC_VER
+        closesocket(rlogin_socket);
+#else
+        close(rlogin_socket);
+#endif
         n->print_f("\r\n|12An Error Occured, Disconnected!\r\n");
         n->pause();
-#ifdef _MSC_VER
-        closesocket(rlogin_socket);
-#else
-        close(rlogin_socket);
-#endif
         return false;
       } else if (len == 0) {
-        n->print_f("\r\n|12Remote Closed Connection.\r\n");
-        n->pause();
 #ifdef _MSC_VER
         closesocket(rlogin_socket);
 #else
         close(rlogin_socket);
 #endif
+        n->print_f("\r\n|12Remote Closed Connection.\r\n");
+        n->pause();
         return true;
       } else {
         if (n->is_telnet()) {

@@ -76,7 +76,8 @@ public:
   size_t get_term_height();
   void set_term_height(size_t h);
   void set_term_width(size_t w);
-
+  void set_term_type(const char *tt);
+  const char *get_term_type();
   size_t override_width;
   size_t override_height;
   int override_on;
@@ -109,7 +110,7 @@ private:
   time_t timeleft;
   int timeout;
 
-
+  char term_type[256];
   size_t term_width;
   size_t term_height;
   std::vector<struct gfile_t> get_gfiles(std::string filename, bool ansi);

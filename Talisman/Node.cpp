@@ -81,6 +81,7 @@ Node::Node(int node, int socket, bool telnet) {
 #endif
   term_width = 80;
   term_height = 25;
+  strcpy(term_type, "UNKNOWN");
   pause_loaded = false;
   isutf8 = false;
 }
@@ -129,6 +130,14 @@ size_t Node::get_term_height() {
 void Node::set_term_width(size_t w) { term_width = w; }
 
 void Node::set_term_height(size_t h) { term_height = h; }
+
+void Node::set_term_type(const char *tt) {
+  strncpy(term_type, tt, 256);
+}
+
+const char *Node::get_term_type() {
+  return term_type;
+}
 
 void Node::update_node_use(std::string usage) {
   std::filesystem::path nusep(config.tmp_path());
@@ -829,6 +838,13 @@ char Node::getch(int delay) {
                 if (buffer[4] != term_height && buffer[4] != 0) {
                   term_height = buffer[4];
                 }
+              } else if (buffer[0] == TERMINAL_TYPE) {
+                if (buffer[1] == 1) {
+                  int len = 0;
+                  for (;buffer[len + 2] != IAC;len++) {
+                    term_type[len] = buffer[len+2];
+                  }
+                }
               }
               stage = 0;
             } else {
@@ -1346,6 +1362,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
   unsigned char iac_sga[] = {IAC, IAC_WILL, IAC_SUPPRESS_GO_AHEAD, '\0'};
   unsigned char iac_naws[] = {IAC, IAC_DO, NAWS, '\0'};
+  unsigned char iac_term[] = {IAC, IAC_DO, TERMINAL_TYPE, '\0'};
   bool logged_in = false;
 
   if (socket != 0) {
@@ -1432,6 +1449,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   if (telnet) {
     send(socket, (char *)iac_naws, 3, 0);
+    send(socket, (char *)iac_term, 3, 0);
   }
 
   if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {

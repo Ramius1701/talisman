@@ -224,6 +224,7 @@ int main(int argc, char **argv) {
             Node n(node, new_sock, false);
             n.set_term_width(sshc->term_width);
             n.set_term_height(sshc->term_height);
+            n.set_term_type(sshc->term_type);
             n.sshc = sshc;
             n.ssht = &t;
             ret = n.run(&sshc->username, &sshc->password);

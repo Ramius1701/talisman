@@ -78,6 +78,13 @@ extern "C" int lua_getBBSMsgDetail(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_getTermType(lua_State *L) {
+  Node *n = lua_getNode(L);
+  lua_pushstring(L, n->get_term_type());
+
+  return 1;
+}
+
 extern "C" int lua_getBBSMsg(lua_State *L) {
   const char *mbfile = lua_tostring(L, 1);
   uint32_t mid = (uint32_t)lua_tonumber(L, 2);

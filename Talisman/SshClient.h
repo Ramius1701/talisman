@@ -17,6 +17,7 @@ public:
 
   int term_width;
   int term_height;
+  char *term_type;
 
   void run();
   SshClient();
