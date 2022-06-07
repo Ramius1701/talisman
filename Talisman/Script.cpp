@@ -761,6 +761,10 @@ void Script::init_state(Node *n, lua_State *l) {
   
   lua_pushcfunction(l, lua_get_ipaddress);
   lua_setglobal(l, "bbs_get_user_ip");
+
+  lua_pushcfunction(l, lua_getTermType);
+  lua_setglobal(l, "bbs_get_term_type");
+
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {
