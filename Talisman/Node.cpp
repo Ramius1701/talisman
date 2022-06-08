@@ -846,7 +846,7 @@ char Node::getch(int delay) {
                   term_height = buffer[4];
                 }
               } else if (buffer[0] == TERMINAL_TYPE) {
-                if (buffer[1] == 1) {
+                if (buffer[1] == 0) {
                   int len = 0;
                   for (;buffer[len + 2] != IAC;len++) {
                     term_type[len] = buffer[len+2];
