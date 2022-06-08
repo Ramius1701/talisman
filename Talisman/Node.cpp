@@ -860,6 +860,8 @@ char Node::getch(int delay) {
                     term_type[len+1] = '\0';
                   }
                 }
+              } else {
+                printf("Got SB %d\n", buffer[0]);
               }
               stage = 0;
             } else {
@@ -1464,9 +1466,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   if (telnet) {
     send(socket, (char *)iac_term, 3, 0);
-    getch(1);
     send(socket, (char *)iac_naws, 3, 0);
-    getch(1);
   }
 
   if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {
