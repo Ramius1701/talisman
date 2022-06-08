@@ -1463,8 +1463,10 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   }
 
   if (telnet) {
-    send(socket, (char *)iac_naws, 3, 0);
     send(socket, (char *)iac_term, 3, 0);
+    getch(1);
+    send(socket, (char *)iac_naws, 3, 0);
+    getch(1);
   }
 
   if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {
