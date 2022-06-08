@@ -725,6 +725,7 @@ char Node::getch(int delay) {
   int stage = 0;
   unsigned char buffer[2048];
   int i = 0;
+  unsigned char willwont;
   struct timeval tv;
 
   bool do_delay = false;
@@ -823,10 +824,16 @@ char Node::getch(int delay) {
             } else if ((unsigned char)ch == 250) {
               stage = 3;
             } else {
+              ch = willwont;
               stage = 2;
             }
           } else if (stage == 2) {
             // handle iac
+            if (ch == TERMINAL_TYPE && willwont == IAC_WILL) {
+              const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
+              send(socket, sendtt, 6, 0);
+            }
+
             stage = 0;
           } else if (stage == 3) {
             if ((unsigned char)ch == 240) {
