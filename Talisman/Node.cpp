@@ -824,7 +824,7 @@ char Node::getch(int delay) {
             } else if ((unsigned char)ch == 250) {
               stage = 3;
             } else {
-              ch = willwont;
+              willwont = ch;
               stage = 2;
             }
           } else if (stage == 2) {
