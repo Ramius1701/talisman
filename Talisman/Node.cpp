@@ -833,7 +833,7 @@ char Node::getch(int delay) {
               if (willwont == IAC_WILL) {
                 const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
 
-                send(socket, sendtt, 6, 0);
+                send(socket, (const char *)sendtt, 6, 0);
               }
             }
 
