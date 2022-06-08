@@ -829,9 +829,13 @@ char Node::getch(int delay) {
             }
           } else if (stage == 2) {
             // handle iac
-            if (ch == TERMINAL_TYPE && willwont == IAC_WILL) {
-              const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
-              send(socket, sendtt, 6, 0);
+            if (ch == TERMINAL_TYPE) {
+              if (willwont == IAC_WILL) {
+                const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
+                send(socket, sendtt, 6, 0);
+              } else {
+                printf("TT: WILL/WONT %d\n", willwont);
+              }
             }
 
             stage = 0;
@@ -850,6 +854,7 @@ char Node::getch(int delay) {
                   int len = 0;
                   for (;buffer[len + 2] != IAC;len++) {
                     term_type[len] = buffer[len+2];
+                    term_type[len+1] = '\0';
                   }
                 }
               }
