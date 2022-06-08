@@ -863,6 +863,7 @@ char Node::getch(int delay) {
               } else {
                 printf("Got SB %d\n", buffer[0]);
               }
+              i = 0;
               stage = 0;
             } else {
               if (i < 2047) {
