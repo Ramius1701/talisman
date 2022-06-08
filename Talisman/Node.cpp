@@ -835,6 +835,7 @@ char Node::getch(int delay) {
                 const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
 
                 send(socket, sendtt, 6, 0);
+                printf("TT: SENT REQUEST\n");
               }
             }
 
