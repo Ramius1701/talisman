@@ -481,9 +481,36 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
           print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
         } else if (ss.str().substr(0, 10) == "RUNSCRIPT:" && !script) {
           std::stringstream ss2;
-
           ss2 << config.script_path() << "/" << ss.str().substr(10) << ".lua";
           Script::exec(this, ss2.str());
+        } else if (ss.str().substr(0, 5) == "FONT:" && !script) {
+          try {
+            int fnslot = std::stoi(ss.str().substr(5));
+            switch_font(fnslot, 0);
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
+          }
+        } else if (ss.str().substr(0, 9) == "FONTBOLD:" && !script) {
+          try {
+            int fnslot = std::stoi(ss.str().substr(9));
+            switch_font(fnslot, 1);
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
+          }
+        } else if (ss.str().substr(0, 10) == "FONTBLINK:" && !script) {
+          try {
+            int fnslot = std::stoi(ss.str().substr(10));
+            switch_font(fnslot, 2);
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
+          }
+        } else if (ss.str().substr(0, 15) == "FONTBOLDBLINK:" && !script) {
+          try {
+            int fnslot = std::stoi(ss.str().substr(15));
+            switch_font(fnslot, 3);
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
+          }
         } else if (ss.str() == "NOPAUSE") {
           pause = false;
         } else if (compare_token(ss.str(), "SECLEVEL")) {
@@ -1369,6 +1396,45 @@ bool Node::newuser() {
   return false;
 }
 
+static std::string base64_encode(const std::string &in) {
+
+  std::string out;
+
+  int val = 0, valb = -6;
+  for (unsigned char c : in) {
+    val = (val << 8) + c;
+    valb += 8;
+    while (valb >= 0) {
+      out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[(val >> valb) & 0x3F]);
+      valb -= 6;
+    }
+  }
+  if (valb > -6)
+    out.push_back("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"[((val << 8) >> (valb + 8)) & 0x3F]);
+  while (out.size() % 4)
+    out.push_back('=');
+  return out;
+}
+
+void Node::switch_font(int fontslot, int place) { print_f("\x1b[%d;%d D", place, fontslot); }
+void Node::switch_font() { switch_font(0, 0); }
+
+
+void Node::send_font(int slot, std::string filename) {
+  std::ifstream t(filename);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+
+  std::string data = base64_encode(buffer.str());
+
+  print_f("\x1bPCTerm:Font:%d:", slot);
+  for (size_t i = 0; i < data.size(); i++) {
+    print_f("%c", data.at(i));
+  }
+  printf("\x1b\\");
+
+}
+
 int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   unsigned char iac_echo[] = {IAC, IAC_WILL, IAC_ECHO, '\0'};
@@ -1702,6 +1768,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   if (login_pause) {
     pause();
+  }
+
+  // send fonts
+  if (term_type == "magiterm" || term_type == "syncterm") {
+    for (size_t i = 0; i < config.fonts.size(); i++) {
+      send_font(config.fonts.at(i).slot, config.fonts.at(i).filename);
+    }
   }
 
   bulletins = new Bulletins();

@@ -92,12 +92,16 @@ public:
   void send_str(const char *str, int len);
   bool utf8() { return isutf8; }
   std::string ipaddr;
-  
+  void switch_font();
+  void switch_font(int fontslot, int place);
+
 private:
   int node;
   int socket;
   bool telnet;
   bool isutf8;
+
+  void send_font(int slot, std::string filename);
 
   Config config;
   User u;

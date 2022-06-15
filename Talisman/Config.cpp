@@ -405,6 +405,44 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   }
 
   try {
+    auto data2 = toml::parse_file(_datapath + "/fonts.toml");
+    auto fontitemst = data2.get_as<toml::array>("font");
+    for (size_t i = 0; i < fontitemst->size(); i++) {
+      auto fonttable = fontitemst->get(i)->as_table();
+
+      std::string myfilename;
+      int myslot;
+
+      auto slot = fonttable->get("slot");
+      if (slot != nullptr) {
+        myslot = slot->as_integer()->value_or(-1);
+      } else {
+        myslot = -1;
+      }
+
+      auto fname = fonttable->get("filename");
+      if (slot != nullptr) {
+        myfilename = fname->as_string()->value_or("");
+      } else {
+        myfilename = "";
+      }
+
+      if (myfilename != "" && myslot != -1) {
+        struct font_t f;
+
+        f.slot = myslot;
+        f.filename = myfilename;
+
+        fonts.push_back(f);
+      }
+
+    }
+  } catch (toml::parse_error const &p) {
+    (*log)->log(LOG_ERROR, "Error parsing %s/fonts.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
+    (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
+  }
+
+  try {
     auto data2 = toml::parse_file(_datapath + "/loginitems.toml");
 
     auto loginitemst = data2.get_as<toml::array>("loginitem");

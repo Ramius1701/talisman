@@ -11,6 +11,11 @@ class Protocol;
 class Archiver;
 class Logger;
 
+struct font_t {
+  int slot;
+  std::string filename;
+};
+
 struct sec_level_t {
   std::string name;
   int level;
@@ -107,6 +112,8 @@ public:
   static std::string convert_utf8(std::string in);
   static int convert_utf8(const char *input, int len, char **output);
   bool windows_echo;
+  std::vector<struct font_t> fonts;
+
 private:
   int selected_theme;
   int _max_nodes;
@@ -134,6 +141,7 @@ private:
   std::vector<struct login_item_t> loginitems;
   std::string prompt_background_ansi;
   std::vector<struct theme_t> themes;
+
   int _new_user_sec_level;
   int _gopherport;
 };
