@@ -1429,9 +1429,9 @@ void Node::send_font(int slot, std::string filename) {
 
   print_f("\x1bPCTerm:Font:%d:", slot);
   for (size_t i = 0; i < data.size(); i++) {
-    print_f("%c", data.at(i));
+    print_f_nc("%c", data.at(i));
   }
-  printf("\x1b\\");
+  print_f("\x1b\\");
 
 }
 
