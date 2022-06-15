@@ -1771,7 +1771,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   }
 
   // send fonts
-  if (term_type == "magiterm" || term_type == "syncterm") {
+  if (strcasecmp(term_type, "magiterm") == 0  || strcasecmp(term_type, "syncterm") == 0) {
     for (size_t i = 0; i < config.fonts.size(); i++) {
       send_font(config.fonts.at(i).slot, config.fonts.at(i).filename);
     }
