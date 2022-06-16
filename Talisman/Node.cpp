@@ -250,6 +250,82 @@ void Node::pause() {
   }
 }
 
+void Node::detectCterm() {
+  if (strcasecmp(term_type, "magiterm") == 0) {
+    sixel_allowed = true;
+    fonts_allowed = true;
+    return;
+  }
+
+  print_f("\x1b[<0c");
+  char buffer[1024];
+  timeval t;
+  time_t then = time(NULL);
+  t.tv_sec = 1;
+  t.tv_usec = 0;
+  time_t now;
+  int len;
+  int params[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int param_count = 0;
+  do {
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(socket, &fds);
+
+    if (select(socket + 1, &fds, NULL, NULL, &t) < 0) {
+      return;
+    }
+
+    if (FD_ISSET(socket, &fds)) {
+      len = recv(socket, buffer, 1024, 0);
+      if (len == 0) {
+        disconnected();
+      }
+      for (int i = 0; i < len; i++) {
+        if (buffer[i] == '\x1b' && buffer[i + 1] == '[' && buffer[i + 2] == '<') {
+          for (int j = i + 2; j < len; j++) {
+            switch (buffer[j]) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+              params[param_count] = params[param_count] * 10 + (buffer[j] - '0');
+              break;
+            case ';':
+              if (param_count < 7) {
+                param_count++;
+              }
+              break;
+            case 'c':
+              for (int i = 0; i < param_count; i++) {
+                switch(params[i]) {
+                  case 1:
+                    fonts_allowed = true;
+                    break;
+                  case 3:
+                    sixel_allowed = true;
+                    break;
+                  default:
+                    break;
+                }
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    now = time(NULL);
+  } while (now - then < 5);
+}
+
 bool Node::detectUTF8() { 
   print_f("\x1b[1;1H\xc2\xa0\x1b[6n\x1b[1;1H\x1b[2J");
   char buffer[1024];
@@ -523,7 +599,9 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
           } catch (std::out_of_range const &) {
           }
         } else if (ss.str().substr(0, 6) == "SIXEL:") {
-          send_raw(ss.str().substr(6));
+          if (sixel_allowed) {
+            send_raw(ss.str().substr(6));
+          }
         } else if (ss.str() == "NOPAUSE") {
           pause = false;
         } else if (compare_token(ss.str(), "SECLEVEL")) {
@@ -1477,6 +1555,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     isutf8 = true;
   }
 
+  detectCterm();
+
   print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2022; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
   /* Load configuration */
@@ -1784,7 +1864,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   }
 
   // send fonts
-  if (strcasecmp(term_type, "magiterm") == 0  || strcasecmp(term_type, "syncterm") == 0) {
+  if (fonts_allowed) {
     for (size_t i = 0; i < config.fonts.size(); i++) {
       send_font(config.fonts.at(i).slot, config.fonts.at(i).filename);
     }

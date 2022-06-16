@@ -101,7 +101,9 @@ private:
   int socket;
   bool telnet;
   bool isutf8;
-
+  bool fonts_allowed;
+  bool sixel_allowed;
+  void detectCterm();
   void send_font(int slot, std::string filename);
 
   Config config;
