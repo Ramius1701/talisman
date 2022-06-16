@@ -72,6 +72,8 @@ Node::Node(int node, int socket, bool telnet) {
   last_on = 0;
   timeoutmax = 0;
   ipaddr = "UNKNOWN";
+  sixel_allowed = false;
+  fonts_allowed = false;
 #ifdef _MSC_VER
   hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   DWORD dwMode = 0;
@@ -948,6 +950,7 @@ char Node::getch(int delay) {
           } else if (stage == 2) {
             // handle iac
             if (ch == TERMINAL_TYPE) {
+
               if (willwont == IAC_WILL) {
                 const unsigned char sendtt[] = {IAC, 250, TERMINAL_TYPE, 1, IAC, 240};
 
