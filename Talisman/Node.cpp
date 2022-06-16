@@ -1549,13 +1549,21 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     }
   }
 
+  if (telnet) {
+    send(socket, (char *)iac_term, 3, 0);
+    send(socket, (char *)iac_naws, 3, 0);
+    int i = 5;
+    while (strcasecmp(term_type, "unknown") == 0 && i > 0) {
+      getch(1000);
+      i--;
+    }
+  }
+
   if (socket) {
     isutf8 = detectUTF8();
   } else {
     isutf8 = true;
   }
-
-  detectCterm();
 
   print_f("Talisman v%d.%d-%s; Copyright (c) 2020-2022; Andrew Pamment\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 
@@ -1618,9 +1626,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     hasANSI = true;
   }
 
-  if (telnet) {
-    send(socket, (char *)iac_term, 3, 0);
-    send(socket, (char *)iac_naws, 3, 0);
+  if (hasANSI) {
+    detectCterm();
   }
 
   if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {
