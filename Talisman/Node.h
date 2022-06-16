@@ -43,6 +43,7 @@ public:
   bool detectANSI();
   bool detectUTF8();
   void disconnected();
+  void send_raw(std::string filename);
   void send_gfile(std::string filename, bool pause, bool script);
   void send_gfile(std::string filename, bool pause);
   void send_gfile(std::string filename);

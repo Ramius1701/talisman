@@ -409,6 +409,17 @@ bool Node::compare_token(std::string field, std::string token) {
   return false;
 }
 
+void Node::send_raw(std::string filename) {
+  std::ifstream in(filename);
+  char c;
+
+  if (in.is_open()) {
+    while (in.get(c)) {
+      putch(c);
+    }
+  }
+}
+
 void Node::send_file(std::filesystem::path p, bool pause, bool script) {
   char lastc = 'x';
   bool gottag = false;
@@ -483,34 +494,36 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
           std::stringstream ss2;
           ss2 << config.script_path() << "/" << ss.str().substr(10) << ".lua";
           Script::exec(this, ss2.str());
-        } else if (ss.str().substr(0, 5) == "FONT:" && !script) {
+        } else if (ss.str().substr(0, 5) == "FONT:") {
           try {
             int fnslot = std::stoi(ss.str().substr(5));
             switch_font(fnslot, 0);
           } catch (std::invalid_argument const &) {
           } catch (std::out_of_range const &) {
           }
-        } else if (ss.str().substr(0, 9) == "FONTBOLD:" && !script) {
+        } else if (ss.str().substr(0, 9) == "FONTBOLD:") {
           try {
             int fnslot = std::stoi(ss.str().substr(9));
             switch_font(fnslot, 1);
           } catch (std::invalid_argument const &) {
           } catch (std::out_of_range const &) {
           }
-        } else if (ss.str().substr(0, 10) == "FONTBLINK:" && !script) {
+        } else if (ss.str().substr(0, 10) == "FONTBLINK:") {
           try {
             int fnslot = std::stoi(ss.str().substr(10));
             switch_font(fnslot, 2);
           } catch (std::invalid_argument const &) {
           } catch (std::out_of_range const &) {
           }
-        } else if (ss.str().substr(0, 15) == "FONTBOLDBLINK:" && !script) {
+        } else if (ss.str().substr(0, 15) == "FONTBOLDBLINK:") {
           try {
             int fnslot = std::stoi(ss.str().substr(15));
             switch_font(fnslot, 3);
           } catch (std::invalid_argument const &) {
           } catch (std::out_of_range const &) {
           }
+        } else if (ss.str().substr(0, 6) == "SIXEL:") {
+          send_raw(ss.str().substr(6));
         } else if (ss.str() == "NOPAUSE") {
           pause = false;
         } else if (compare_token(ss.str(), "SECLEVEL")) {
