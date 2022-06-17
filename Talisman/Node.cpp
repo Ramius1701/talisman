@@ -1667,6 +1667,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
         } else {
           if (strcasecmp(script_username.c_str(), "NEW") == 0) {
             if (config.newuser_password() != "") {
+              send_gfile("privatebbs", true);
               print_f("\r\n\r\nNEW USER PASSWORD: ");
               std::string nupass = get_string(32, true);
               if (nupass == config.newuser_password()) {
@@ -1690,7 +1691,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
         std::string login = get_string(16, false);
         if (strcasecmp(login.c_str(), "NEW") == 0) {
           if (config.newuser_password() != "") {
-            print_f("\r\nNEW USER PASSWORD: ");
+            send_gfile("privatebbs", true);
+            print_f("\r\n\r\nNEW USER PASSWORD: ");
             std::string nupass = get_string(32, true);
             if (nupass == config.newuser_password()) {
               logged_in = newuser();
@@ -1719,6 +1721,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     std::string password = *sshpassword;
     if (strcasecmp(login.c_str(), "NEW") == 0) {
       if (config.newuser_password() != "") {
+        send_gfile("privatebbs", true);
         print_f("\r\n\r\nNEW USER PASSWORD: ");
         std::string nupass = get_string(32, true);
         if (nupass == config.newuser_password()) {
