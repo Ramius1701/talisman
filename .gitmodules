@@ -1,0 +1,3 @@
+[submodule "Trinket/librethinkdbxx"]
+	path = Trinket/librethinkdbxx
+	url = https://github.com/AtnNn/librethinkdbxx

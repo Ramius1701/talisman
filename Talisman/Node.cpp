@@ -1666,7 +1666,15 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
           continue;
         } else {
           if (strcasecmp(script_username.c_str(), "NEW") == 0) {
-            logged_in = newuser();
+            if (config.newuser_password() != "") {
+              print_f("\r\nNEW USER PASSWORD: ");
+              std::string nupass = get_string(32, true);
+              if (nupass == config.newuser_password()) {
+                logged_in = newuser();
+              }
+            } else {
+              logged_in = newuser();
+            }
           } else {
             if (u.load_user(script_username, script_password)) {
               logged_in = true;
@@ -1681,7 +1689,15 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
         print_f("LOGIN: ");
         std::string login = get_string(16, false);
         if (strcasecmp(login.c_str(), "NEW") == 0) {
-          logged_in = newuser();
+          if (config.newuser_password() != "") {
+            print_f("\r\nNEW USER PASSWORD: ");
+            std::string nupass = get_string(32, true);
+            if (nupass == config.newuser_password()) {
+              logged_in = newuser();
+            }
+          } else {
+            logged_in = newuser();
+          }
         } else {
           print_f("\r\nPASSW: ");
           std::string password = get_string(16, true);
@@ -1702,10 +1718,21 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     std::string login = *sshusername;
     std::string password = *sshpassword;
     if (strcasecmp(login.c_str(), "NEW") == 0) {
-      print_f("\r\n|14Signing up as a new user...\r\n");
-      pause();
-      if (!newuser()) {
-        return 0;
+      if (config.newuser_password() != "") {
+        print_f("\r\nNEW USER PASSWORD: ");
+        std::string nupass = get_string(32, true);
+        if (nupass == config.newuser_password()) {
+          print_f("\r\n|14Signing up as a new user...\r\n");
+          if (!newuser()) return 0;
+        } else {
+          return 0;
+        }
+      } else {
+        print_f("\r\n|14Signing up as a new user...\r\n");
+        pause();
+        if (!newuser()) {
+          return 0;
+        }
       }
     } else if (!u.load_user(login, password)) {
       return 0;

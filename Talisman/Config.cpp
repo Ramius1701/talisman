@@ -250,6 +250,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   _new_user_feedback = inir.GetBoolean("Main", "New User Feedback", false);
   _hostname = inir.Get("Main", "Hostname", "localhost");
   _gopherport = inir.GetInteger("Main", "Gopher Port", -1);
+  _newuser_password = inir.Get("Main", "New User Password", "");
   windows_echo = inir.GetBoolean("Main", "Windows Local Echo", true);
 
 

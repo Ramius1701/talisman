@@ -85,7 +85,7 @@ public:
   bool new_user_feedback() { return _new_user_feedback; }
 
   const char *get_prompt_colour();
-
+  std::string newuser_password() { return _newuser_password; }
   std::vector<MsgConf *> msgconfs;
   std::vector<FileConf *> fileconfs;
   std::vector<Archiver *> archivers;
@@ -135,6 +135,7 @@ private:
   std::string _location;
   std::string _qwk_id;
   std::string _hostname;
+  std::string _newuser_password;
   bool _new_user_feedback;
   std::vector<struct sec_level_t> seclevels;
   std::vector<Protocol *> protocols;
