@@ -3,6 +3,7 @@
 #define strncasecmp _strnicmp
 #include <Windows.h>
 #else
+#include <endian.h>
 #include <unistd.h>
 #endif
 #include "../Common/Logger.h"
@@ -1370,39 +1371,25 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
   return true;
 }
 
-#ifdef _MSC_VER
-#define __ORDER_LITTLE_ENDIAN__ 1
-#define __ORDER_BIG_ENDIAN__ 2
-#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
-#endif
-
-tLONG convertl(tLONG l) {
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  unsigned char result_bytes[4];
-  unsigned int result;
-  result_bytes[0] = (unsigned char)((l >> 24) & 0xFF);
-  result_bytes[1] = (unsigned char)((l >> 16) & 0xFF);
-  result_bytes[2] = (unsigned char)((l >> 8) & 0xFF);
-  result_bytes[3] = (unsigned char)(l & 0xFF);
-  memcpy(&result, result_bytes, 4);
-  return result;
-#else
-  return l;
-#endif
-}
-
 tWORD converts(tWORD s) {
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  unsigned char result_bytes[2];
-  unsigned short result;
-  result_bytes[0] = (unsigned char)((s >> 8) & 0xFF);
-  result_bytes[1] = (unsigned char)(s & 0xFF);
-  memcpy(&result, result_bytes, 4);
-  return result;
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
 #else
-  return s;
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
 #endif
 }
+
+tLONG convertl(tLONG s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
+
 
 void Menu::bwave_down(Node *n) {
   FILE *mix_file;
