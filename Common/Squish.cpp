@@ -22,7 +22,7 @@ off_t tell(int fd)
 #endif
 
 static inline uint16_t host2le_s(uint16_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
 	return s;
 #else
 	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
@@ -30,7 +30,7 @@ static inline uint16_t host2le_s(uint16_t s) {
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
 	return s;
 #else
 	return ((( s & 0xff000000u ) >> 24 ) |
@@ -41,8 +41,8 @@ static inline uint32_t host2le_l(uint32_t s) {
 }
 
 static inline void convert_sq_hdr(SQHDR *h) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
-	return
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return;
 #else
 	h->id = host2le_l(h->id);
 	h->next_frame = host2le_l(h->next_frame);
@@ -55,8 +55,8 @@ static inline void convert_sq_hdr(SQHDR *h) {
 }
 
 static inline void convert_sq_base(SQBASE *b) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
-	return
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return;
 #else
 	b->begin_frame = host2le_l(b->begin_frame);
 	b->end_frame = host2le_l(b->end_frame);
@@ -76,8 +76,8 @@ static inline void convert_sq_base(SQBASE *b) {
 }
 
 static inline void convert_xmsg(XMSG *x) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
-	return
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return;
 #else
 
 	x->attr = host2le_l(x->attr);
@@ -115,8 +115,8 @@ static inline void convert_xmsg(XMSG *x) {
 }
 
 static inline void convert_sqidx(SQIDX *s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
-	return
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return;
 #else
 	s->hash = host2le_l(s->hash);
 	s->ofs = host2le_l(s->ofs);
