@@ -509,6 +509,7 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 	idx.umsgid = msg->xmsg.umsgid;
 
 	fseek(mb->indexfile, 0, SEEK_END);
+	convert_sqidx(&idx);
 	fwrite(&idx, sizeof(SQIDX), 1, mb->indexfile);
 
 	return 1;
