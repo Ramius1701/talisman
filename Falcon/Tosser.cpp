@@ -9,7 +9,28 @@
 #include <sstream>
 #ifdef _MSC_VER
 #define strcasecmp stricmp
+#else
+#include <endian.h>
 #endif
+
+static inline uint16_t host2le_s(uint16_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+#endif
+}
+
+static inline uint32_t host2le_l(uint32_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
 
 bool Tosser::open_user_database(Logger *log, sqlite3 **db) {
   static const char *create_users_sql =
@@ -350,6 +371,18 @@ void Tosser::run() {
           if (fread(&msgrec, sizeof(struct net_header_rec), 1, fptr) != 1) {
             break;
           }
+
+          msgrec.tosys = host2le_s(msgrec.tosys);
+          msgrec.touser = host2le_s(msgrec.touser);
+          msgrec.fromsys = host2le_s(msgrec.fromsys);
+          msgrec.fromuser = host2le_s(msgrec.fromuser);
+          msgrec.main_type = host2le_s(msgrec.main_type);
+          msgrec.minor_type = host2le_s(msgrec.minor_type);
+          msgrec.list_len = host2le_s(msgrec.list_len
+          msgrec.daten = host2le_l(msgrec.daten);
+          msgrec.length = host2le_l(msgrec.length);
+          msgrec.method = host2le_s(msgrec.method);
+
           bool sr = false;
           for (uint16_t j = 0; j < msgrec.list_len; j++) {
             uint16_t n;
@@ -358,7 +391,7 @@ void Tosser::run() {
               sr = true;
               break;
             }
-            nlist.push_back(n);
+            nlist.push_back(host2le_(n));
           }
 
           if (sr)

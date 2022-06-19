@@ -10,7 +10,28 @@
 #include <sstream>
 #ifdef _MSC_VER
 #define strcasecmp stricmp
+#else
+#include <endian.h>
 #endif
+
+static inline uint16_t host2le_s(uint16_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+#endif
+}
+
+static inline uint32_t host2le_l(uint32_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
 
 bool Scanner::open_user_database(sqlite3 **db) {
   static const char *create_users_sql =
@@ -126,12 +147,12 @@ void Scanner::run() {
 
         memset(&msgrec, 0, sizeof(struct net_header_rec));
 
-        msgrec.fromsys = (uint16_t)config.networks.at(i).mynode;
-        msgrec.tosys = msg->xmsg.dest.node;
-        msgrec.main_type = 7;
+        msgrec.fromsys = host2le_s((uint16_t)config.networks.at(i).mynode);
+        msgrec.tosys = host2le_s(msg->xmsg.dest.node);
+        msgrec.main_type = host2le_s(7);
         int id = username_to_id(msg->xmsg.from);
         if (id > 0) {
-          msgrec.fromuser = id;
+          msgrec.fromuser = host2le_s((uint16_t)id);
         }
         std::stringstream ss;
 
@@ -166,12 +187,14 @@ void Scanner::run() {
         char buffer2[256];
         snprintf(buffer2, sizeof buffer2, "%s #%d @%d", msg->xmsg.from, id, config.networks.at(i).mynode);
 
-        msgrec.daten = (uint32_t)time(NULL);
+        msgrec.daten = host2le_l((uint32_t)time(NULL));
         msgrec.length = strlen(msg->xmsg.to) + 1;
         msgrec.length += strlen(msg->xmsg.subject) + 1;
         msgrec.length += strlen(buffer2) + 2;
         msgrec.length += strlen(buffer) + 2;
         msgrec.length += ss.str().size() + 1;
+
+        msgrec.length = host2le_l(msgrec.length);
 
         fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
         fwrite(msg->xmsg.to, strlen(msg->xmsg.to) + 1, 1, fptr);
@@ -227,12 +250,12 @@ void Scanner::run() {
 
             memset(&msgrec, 0, sizeof(struct net_header_rec));
 
-            msgrec.fromsys = (uint16_t)config.networks.at(i).mynode;
-            msgrec.tosys = config.areas.at(a).hostnode;
-            msgrec.main_type = 26;
+            msgrec.fromsys = host2le_s((uint16_t)config.networks.at(i).mynode);
+            msgrec.tosys = host2le_s(config.areas.at(a).hostnode);
+            msgrec.main_type = host2le_s(26);
             int id = username_to_id(msg->xmsg.from);
             if (id > 0) {
-              msgrec.fromuser = id;
+              msgrec.fromuser = host2le_s((uint16_t)id);
             }
             std::stringstream ss;
 
@@ -262,7 +285,7 @@ void Scanner::run() {
             snprintf(buffer, sizeof buffer, "%s %s %2d %02d:%02d:%02d %4d", days[localtm.tm_wday], months[localtm.tm_mon], localtm.tm_mday, localtm.tm_hour,
                      localtm.tm_min, localtm.tm_sec, localtm.tm_year + 1900);
 
-            msgrec.daten = (uint32_t)time(NULL);
+            msgrec.daten = host2le_l((uint32_t)time(NULL));
             msgrec.length = strlen(config.areas.at(a).subtype.c_str()) + 1;
 
             char buffer2[256];
@@ -273,7 +296,7 @@ void Scanner::run() {
             msgrec.length += strlen(buffer2) + 2;
             msgrec.length += strlen(buffer) + 2;
             msgrec.length += ss.str().size() + 1;
-
+            msgrec.length = host2le_l(msgrec.length);
             fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
             fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
             fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
