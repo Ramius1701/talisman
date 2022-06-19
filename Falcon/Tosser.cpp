@@ -378,7 +378,7 @@ void Tosser::run() {
           msgrec.fromuser = host2le_s(msgrec.fromuser);
           msgrec.main_type = host2le_s(msgrec.main_type);
           msgrec.minor_type = host2le_s(msgrec.minor_type);
-          msgrec.list_len = host2le_s(msgrec.list_len
+          msgrec.list_len = host2le_s(msgrec.list_len);
           msgrec.daten = host2le_l(msgrec.daten);
           msgrec.length = host2le_l(msgrec.length);
           msgrec.method = host2le_s(msgrec.method);
@@ -391,7 +391,7 @@ void Tosser::run() {
               sr = true;
               break;
             }
-            nlist.push_back(host2le_(n));
+            nlist.push_back(host2le_s(n));
           }
 
           if (sr)
