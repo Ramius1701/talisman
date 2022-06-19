@@ -137,6 +137,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 }
 
 struct area_list_entry_t {
+  int actual_area;
   std::string name;
   int total_msgs = 0;
   int new_msgs = 0;
@@ -173,7 +174,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
     struct area_list_entry_t entry;
 
     UMSGID lr = n->get_user().user_get_lastread(areas.at(i)->get_file());
-
+    entry.actual_area = i;
     entry.name = areas.at(i)->get_name();
     entry.total_msgs = areas.at(i)->get_total_msgs();
     entry.new_msgs = areas.at(i)->get_new_msgs(lr);
@@ -290,7 +291,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return selected + 1;
+      return area_entries.at(selected).actual_area + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;
@@ -363,10 +364,30 @@ int MsgConf::list_areas_old(Node *n, int sec) {
   return 0;
 }
 
-int MsgConf::list_fsr(Node *n, int sec) {
-  int selected = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+struct msg_conf_entry_t {
+  int actual_area;
+  std::string name;
+};
 
-  if (selected == -1 || selected >= (int)n->get_config()->msgconfs.size()) {
+int MsgConf::list_fsr(Node *n, int sec) {
+  int actual_selected = stoi(n->get_user().get_attribute("cur_msg_conf", "-1"));
+  int selected = 0;
+  std::vector<struct msg_conf_entry_t> msgcs;
+
+  for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
+    if (n->get_config()->msgconfs.at(i)->get_sec_level() <= sec) {
+      if (i == actual_selected) selected = msgcs.size();
+
+      struct msg_conf_entry_t mc;
+
+      mc.actual_area = i;
+      mc.name = n->get_config()->msgconfs.at(i)->get_name();
+
+      msgcs.push_back(mc);
+    }
+  }
+
+  if (selected == -1 || selected >= (int)msgcs.size()) {
     selected = 0;
   }
 
@@ -385,11 +406,11 @@ int MsgConf::list_fsr(Node *n, int sec) {
       n->print_f("\x1b[1;1H%sConferences Available\x1b[K", n->get_config()->get_prompt_colour());
       n->print_f("\x1b[%d;1H%sUse Arrow Keys to Move, ENTER to Select\x1b[K", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
-      for (size_t i = start; i - start < n->get_term_height() - 3 && i < n->get_config()->msgconfs.size(); i++) {
+      for (size_t i = start; i - start < n->get_term_height() - 3 && i < msgcs.size(); i++) {
         if ((int)i == selected) {
-          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i)->name.c_str());
+          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, msgcs.at(i).name.c_str());
         } else {
-          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, n->get_config()->msgconfs.at(i)->name.c_str());
+          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, msgcs.at(i).name.c_str());
         }
       }
       redraw = false;
@@ -410,9 +431,9 @@ int MsgConf::list_fsr(Node *n, int sec) {
               }
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, msgcs.at(selected).name.c_str());
               selected--;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, msgcs.at(selected).name.c_str());
             }
           }
         } else if (c == 'B') {
@@ -422,9 +443,9 @@ int MsgConf::list_fsr(Node *n, int sec) {
               start = selected;
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, msgcs.at(selected).name.c_str());
               selected++;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, n->get_config()->msgconfs.at(selected)->name.c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, msgcs.at(selected).name.c_str());
             }
           }
         }
@@ -432,7 +453,7 @@ int MsgConf::list_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return selected + 1;
+      return msgcs.at(selected).actual_area + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;

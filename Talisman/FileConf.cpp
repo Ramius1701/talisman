@@ -101,15 +101,25 @@ int FileConf::list(Node *n, int sec) {
   }
 }
 
+struct fileconf_entry_t {
+  int actual_area;
+  std::string name;
+};
+
 int FileConf::list_fsr(Node *n, int sec) {
   int actual_selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
   int selected = 0;
-  std::vector<std::string> filecs;
+  std::vector<struct fileconf_entry_t> filecs;
 
   for (size_t i = 0; i < n->get_config()->fileconfs.size(); i++) {
     if (n->get_config()->fileconfs.at(i)->get_sec_level() <= sec) {
       if (i == actual_selected) selected = filecs.size();
-      filecs.push_back(n->get_config()->fileconfs.at(i)->get_name());
+      struct fileconf_entry_t fc;
+
+      fc.actual_area = i;
+      fc.name = n->get_config()->fileconfs.at(i)->get_name();
+
+      filecs.push_back(fc);
     }
   }
 
@@ -134,9 +144,9 @@ int FileConf::list_fsr(Node *n, int sec) {
 
       for (size_t i = start; i - start < n->get_term_height() - 3 && i < filecs.size(); i++) {
         if ((int)i == selected) {
-          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, filecs.at(i).c_str());
+          n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (i - start) + 2, filecs.at(i).name.c_str());
         } else {
-          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, filecs.at(i).c_str());
+          n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (i - start) + 2, filecs.at(i).name.c_str());
         }
       }
       redraw = false;
@@ -157,9 +167,9 @@ int FileConf::list_fsr(Node *n, int sec) {
               }
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).name.c_str());
               selected--;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).name.c_str());
             }
           }
         } else if (c == 'B') {
@@ -169,9 +179,9 @@ int FileConf::list_fsr(Node *n, int sec) {
               start = selected;
               redraw = true;
             } else {
-              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
+              n->print_f("\x1b[%d;1H\x1b[1;40;37m%s\x1b[K", (selected - start) + 2, filecs.at(selected).name.c_str());
               selected++;
-              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).c_str());
+              n->print_f("\x1b[%d;1H\x1b[0;47;30m%s\x1b[K", (selected - start) + 2, filecs.at(selected).name.c_str());
             }
           }
         }
@@ -179,7 +189,7 @@ int FileConf::list_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return selected + 1;
+      return filecs.at(selected).actual_area + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return 0;
@@ -240,6 +250,7 @@ int FileConf::list_old(Node *n, int sec) {
 }
 
 struct filearea_list_entry_t {
+  int actual_area;
   std::string name;
   int total_files;
 };
@@ -255,19 +266,22 @@ int FileConf::list_areas(Node *n, int sec) {
 
 int FileConf::list_areas_fsr(Node *n, int sec) {
   std::vector<struct filearea_list_entry_t> area_entries;
-  int selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+  int actual_selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
+  int selected = 0;
   for (size_t i = 0; i < areas.size(); i++) {
+    if (i == actual_selected) selected = area_entries.size();
     if (areas.at(i)->get_v_sec_level() > sec)
       continue;
     struct filearea_list_entry_t entry;
 
+    entry.actual_area = i;
     entry.name = areas.at(i)->get_name();
     entry.total_files = areas.at(i)->get_total_files(n);
 
     area_entries.push_back(entry);
   }
 
-  if (selected == -1 || selected >= (int)areas.size()) {
+  if (selected == -1 || selected >= (int)area_entries.size()) {
     selected = 0;
   }
 
@@ -340,7 +354,7 @@ int FileConf::list_areas_fsr(Node *n, int sec) {
 
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return selected + 1;
+      return area_entries.at(selected).actual_area + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;
