@@ -291,7 +291,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return area_entries.at(selected).actual_area + 1;
+      return selected + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;
@@ -453,7 +453,7 @@ int MsgConf::list_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return msgcs.at(selected).actual_area + 1;
+      return selected + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;

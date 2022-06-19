@@ -189,7 +189,7 @@ int FileConf::list_fsr(Node *n, int sec) {
       }
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return filecs.at(selected).actual_area + 1;
+      return selected + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return 0;
@@ -354,7 +354,7 @@ int FileConf::list_areas_fsr(Node *n, int sec) {
 
     } else if (c == '\r') {
       n->print_f("\x1b[0;40;37m");
-      return area_entries.at(selected).actual_area + 1;
+      return selected + 1;
     } else if (c == 'q' || c == 'Q') {
       n->print_f("\x1b[0;40;37m");
       return -1;
