@@ -73,7 +73,6 @@ static const char *_w_inet_ntop(int af, const void *src, char *dst, socklen_t si
 
 static int hostname_to_ip(const char *hostname, char *ip, bool v4) {
   struct addrinfo hints, *res, *p;
-  int status;
   struct sockaddr_in *ipv4;
   struct sockaddr_in6 *ipv6;
 
@@ -86,7 +85,7 @@ static int hostname_to_ip(const char *hostname, char *ip, bool v4) {
   }
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((status = getaddrinfo(hostname, NULL, &hints, &res)) != 0) {
+  if (getaddrinfo(hostname, NULL, &hints, &res) != 0) {
     return 1;
   }
 

@@ -124,11 +124,12 @@ static inline void convert_sqidx(SQIDX *s) {
 #endif
 }
 
+/*
 static inline void read_xmsg(FILE *fptr, XMSG *h) {
 	fread(h, sizeof(XMSG), 1, fptr);
 	convert_xmsg(h);
 }
-
+*/
 static inline void write_xmsg(FILE *fptr, XMSG *h) {
 	XMSG h2;
 	memcpy(&h2, h, sizeof(XMSG));

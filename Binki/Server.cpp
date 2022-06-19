@@ -26,6 +26,13 @@
 #include <iostream>
 #include <openssl/md5.h>
 #include <sstream>
+#include <openssl/types.h>
+#include <openssl/evp.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#  define EVP_MD_CTX_new   EVP_MD_CTX_create
+#  define EVP_MD_CTX_free  EVP_MD_CTX_destroy
+#endif
 
 static const char *commands[] = {"M_NUL", "M_ADR", "M_PWD", "M_FILE", "M_OK", "M_EOB", "M_GOT", "M_ERR", "M_GET", "M_BSY", "M_GET", "M_SKIP"};
 
@@ -82,12 +89,27 @@ void Server::cram5_init_challenge_data() {
   std::stringstream data;
 
   data << "BINKI " << BINKI_VERSION << " " << rand() << " " << time(NULL);
-  MD5_CTX ctx;
-  MD5_Init(&ctx);
+  EVP_MD_CTX *ctx;
+  if((ctx = EVP_MD_CTX_new()) == NULL) {
+    return;
+  }
+  if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
+    EVP_MD_CTX_free(ctx);
+    return;
+  }
+  if(1 != EVP_DigestUpdate(ctx, data.str().c_str(), data.str().size())) {
+    EVP_MD_CTX_free(ctx);
+    return;
+  }
 
   unsigned char hash[16];
-  MD5_Update(&ctx, data.str().c_str(), data.str().size());
-  MD5_Final(hash, &ctx);
+  unsigned int size = 16;
+  if(1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
+    EVP_MD_CTX_free(ctx);
+    return;
+  }
+
+  EVP_MD_CTX_free(ctx);
 
   std::stringstream ss;
   for (int i = 0; i < 16; i++) {
@@ -104,7 +126,7 @@ bool Server::cram5_validate_password(std::string challenge, std::string password
 }
 
 std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::string password) {
-  MD5_CTX ctx;
+  EVP_MD_CTX *ctx;
   std::stringstream ss;
 
   if (!cram5_init) {
@@ -126,11 +148,28 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
   std::string secret;
 
   if (password.size() > 64) {
-    MD5_Init(&ctx);
+    EVP_MD_CTX *ctx;
+    if((ctx = EVP_MD_CTX_new()) == NULL) {
+      return "";
+    }
+    if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
+      EVP_MD_CTX_free(ctx);
+      return "";
+    }
+    if(1 != EVP_DigestUpdate(ctx, password.c_str(), password.size())) {
+      EVP_MD_CTX_free(ctx);
+      return "";
+    }
 
     unsigned char hash[16];
-    MD5_Update(&ctx, password.c_str(), password.size());
-    MD5_Final(hash, &ctx);
+    unsigned int size = 16;
+    if(1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
+      EVP_MD_CTX_free(ctx);
+      return "";
+    }
+
+    EVP_MD_CTX_free(ctx);
+
     secret = std::string((char *)hash, 16);
   } else {
     secret = password;
@@ -152,15 +191,61 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
   }
 
   unsigned char digest[16];
-  MD5_Init(&ctx);
-  MD5_Update(&ctx, ip, 64);
-  MD5_Update(&ctx, challenge.c_str(), challenge.size());
-  MD5_Final(digest, &ctx);
+  unsigned int size = 16;
 
-  MD5_Init(&ctx);
-  MD5_Update(&ctx, op, 64);
-  MD5_Update(&ctx, digest, 16);
-  MD5_Final(digest, &ctx);
+  if((ctx = EVP_MD_CTX_new()) == NULL) {
+    return "";
+  }
+  if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+  if(1 != EVP_DigestUpdate(ctx, ip, 64)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+  if(1 != EVP_DigestUpdate(ctx, challenge.c_str(), challenge.size())) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+
+
+  if(1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+  EVP_MD_CTX_free(ctx);
+
+  if((ctx = EVP_MD_CTX_new()) == NULL) {
+    return "";
+  }
+  if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+  if(1 != EVP_DigestUpdate(ctx, op, 64)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+  if(1 != EVP_DigestUpdate(ctx, digest, 16)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+  size = 16;
+
+
+  if(1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
+    EVP_MD_CTX_free(ctx);
+    return "";
+  }
+
+  EVP_MD_CTX_free(ctx);
+
   for (int i = 0; i < 16; i++) {
     ss << std::setw(2) << std::setfill('0') << std::hex << (int)digest[i];
   }
@@ -200,8 +285,8 @@ std::string untranslate_name(std::string name) {
   for (size_t i = 0; i < name.size(); i++) {
     if (name.at(i) == '\\') {
 	  if (name.at(i+1) == 'x') i++;
-      int digit1;
-      int digit2;
+      int digit1 = 0;
+      int digit2 = 0;
 
       if (name.at(i + 1) >= '0' && name.at(i + 1) <= '9') {
         digit1 = name.at(i + 1) - '0';
@@ -1009,7 +1094,6 @@ const char *_w_inet_ntop(int af, const void *src, char *dst, socklen_t size) {
 
 int hostname_to_ip(const char *hostname, char *ip) {
   struct addrinfo hints, *res, *p;
-  int status;
   struct sockaddr_in *ipv4;
 
   memset(&hints, 0, sizeof(hints));
@@ -1017,7 +1101,7 @@ int hostname_to_ip(const char *hostname, char *ip) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((status = getaddrinfo(hostname, NULL, &hints, &res)) != 0) {
+  if (getaddrinfo(hostname, NULL, &hints, &res) != 0) {
     return 1;
   }
 
@@ -1163,19 +1247,19 @@ int Server::run(NETADDR *addr, std::string domain) {
 
   sending_filename = "";
 
-  char buffer[5];
+  char buffer[6];
 
   for (const struct link_t &l : common_links) {
-    memset(buffer, 0, 5);
+    memset(buffer, 0, 6);
 
     std::filesystem::path fspath;
 
     if (l.addr->zone != c.defaultzone) {
-      snprintf(buffer, 4, "%03x", l.addr->zone);
+      snprintf(buffer, 5, "%03x", l.addr->zone);
 
       fspath.assign(c.outbound + "." + buffer);
       if (!std::filesystem::exists(fspath)) {
-        snprintf(buffer, 4, "%03X", l.addr->zone);
+        snprintf(buffer, 5, "%03X", l.addr->zone);
         fspath.assign(c.outbound + "." + buffer);
         if (!std::filesystem::exists(fspath)) {
           continue;
@@ -1359,19 +1443,19 @@ int Server::run(int socket) {
 
   sending_filename = "";
 
-  char buffer[5];
+  char buffer[6];
 
   for (const struct link_t &l : common_links) {
-    memset(buffer, 0, 5);
+    memset(buffer, 0, 6);
 
     std::filesystem::path fspath;
 
     if (l.addr->zone != c.defaultzone) {
-      snprintf(buffer, 4, "%03x", l.addr->zone);
+      snprintf(buffer, 5, "%03x", l.addr->zone);
 
       fspath.assign(c.outbound + "." + buffer);
       if (!std::filesystem::exists(fspath)) {
-        snprintf(buffer, 4, "%03X", l.addr->zone);
+        snprintf(buffer, 5, "%03X", l.addr->zone);
         fspath.assign(c.outbound + "." + buffer);
         if (!std::filesystem::exists(fspath)) {
           continue;

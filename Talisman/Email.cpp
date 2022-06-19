@@ -275,7 +275,6 @@ void Email::list_email(Node *n) {
           emails.at(emailno).seen = true;
           if (ret == 0) {
             lines = 0;
-            reload = true;
             break;
           } else {
             emailno += ret;
@@ -665,7 +664,7 @@ int Email::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *con
 
     char *msgbuf = (char *)malloc(lenbytes);
 
-    if (!lenbytes) {
+    if (!msgbuf) {
       sqlite3_finalize(stmt);
       sqlite3_close(db);
       return tot;
@@ -702,7 +701,7 @@ int Email::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *con
 
     fwrite(&q, sizeof(struct QwkHeader), 1, msgs_dat_fptr);
     fwrite(msgbuf, lenbytes, 1, msgs_dat_fptr);
-
+    free(msgbuf);
     tot++;
   }
   sqlite3_finalize(stmt);
