@@ -229,9 +229,9 @@ bool Qwkie::scan(int net) {
           }
         }
 
-        snprintf(buffer, 7, "%lu", len + 1);
+        snprintf(buffer, 20, "%lu", len + 1);
         memset(qhdr.Msgrecs, ' ', 6);
-        memcpy(qhdr.Msgrecs, buffer, strlen(buffer));
+        memcpy(qhdr.Msgrecs, buffer, (strlen(buffer) > 6 ? 6 : strlen(buffer)));
 
         qhdr.Msglive = 0xE1;
         qhdr.Msgarealo = networks.at(net).areas.at(a).qwkbaseno & 0xff;
@@ -247,7 +247,7 @@ bool Qwkie::scan(int net) {
 
         uint32_t offset = ftell(fptr);
         FILE *hdrdat = fopen(std::string(packpath.u8string() + "/HEADERS.DAT").c_str(), "a");
-        fprintf(hdrdat, "[%lx]\n", offset);
+        fprintf(hdrdat, "[%x]\n", offset);
         fprintf(hdrdat, "To: %s\n", recipient.c_str());
         fprintf(hdrdat, "Sender: %s\n", sender.c_str());
         fprintf(hdrdat, "Subject: %s\n", subject.c_str());
@@ -622,7 +622,6 @@ bool Qwkie::toss(int net) {
 
           msgbody.str("");
 
-          size_t x = 0;
           std::vector<std::string> text;
 
           msgbody << msgcontent;
@@ -747,6 +746,9 @@ bool Qwkie::toss(int net) {
 
           if (!sqmsg.msg) {
             log->log(LOG_ERROR, "Out of memory!");
+            if (sqmsg.ctrl != NULL) {
+              free(sqmsg.ctrl);
+            }
             return false;
           }
           memcpy(sqmsg.msg, msgbody.str().c_str(), msgbody.str().size());
@@ -782,7 +784,7 @@ bool Qwkie::toss(int net) {
           strncpy(sqmsg.xmsg.from, from.c_str(), 35);
           strncpy(sqmsg.xmsg.to, to.c_str(), 35);
 
-          strcpy(sqmsg.xmsg.__ftsc_date, datestr);
+          strncpy(sqmsg.xmsg.__ftsc_date, datestr, 20);
 
           sqmsg.xmsg.attr = MSGUID;
           sq_msg_base_t *mb = SquishOpenMsgBase(std::string(msgpath + "/" + networks.at(net).areas.at(a).msgarea).c_str());
@@ -795,7 +797,9 @@ bool Qwkie::toss(int net) {
             SquishUnlockMsgBase(mb);
             SquishCloseMsgBase(mb);
           }
-
+          if (sqmsg.ctrl != NULL) {
+            free(sqmsg.ctrl);
+          }
           free(sqmsg.msg);
         }
       }

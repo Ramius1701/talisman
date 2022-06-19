@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   INIReader inir("talisman.ini");
   if (inir.ParseError()) {
     std::cerr << "Failed to parse talisman.ini" << std::endl;
-    return false;
+    return -1;
   }
 
   std::string datapath = inir.Get("Paths", "Data Path", "data");

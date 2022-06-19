@@ -194,6 +194,8 @@ bool User::clear_lastread(std::string datapath, std::string msgbase, std::string
     uid = get_uid(datapath, user);
     if (uid == -1)
       return false;
+  } else {
+    return false;
   }
 
   if (!open_database(datapath + "/users.sqlite3", &db)) {
