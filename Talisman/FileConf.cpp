@@ -102,12 +102,13 @@ int FileConf::list(Node *n, int sec) {
 }
 
 int FileConf::list_fsr(Node *n, int sec) {
-  int selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
-
+  int actual_selected = stoi(n->get_user().get_attribute("cur_file_conf", "-1"));
+  int selected = 0;
   std::vector<std::string> filecs;
 
   for (size_t i = 0; i < n->get_config()->fileconfs.size(); i++) {
     if (n->get_config()->fileconfs.at(i)->get_sec_level() <= sec) {
+      if (i == actual_selected) selected = filecs.size();
       filecs.push_back(n->get_config()->fileconfs.at(i)->get_name());
     }
   }

@@ -162,8 +162,12 @@ int MsgConf::list(Node *n, int sec) {
 
 int MsgConf::list_areas_fsr(Node *n, int sec) {
   std::vector<struct area_list_entry_t> area_entries;
-  int selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+  int actual_selected = stoi(n->get_user().get_attribute("cur_msg_area", "-1"));
+  int selected = 0;
   for (size_t i = 0; i < areas.size(); i++) {
+    if (i == actual_selected) {
+      selected = area_entries.size();
+    }
     if (areas.at(i)->get_r_sec_level() > sec)
       continue;
     struct area_list_entry_t entry;
@@ -177,7 +181,7 @@ int MsgConf::list_areas_fsr(Node *n, int sec) {
     area_entries.push_back(entry);
   }
 
-  if (selected == -1 || selected >= (int)areas.size()) {
+  if (selected == -1 || selected >= (int)area_entries.size()) {
     selected = 0;
   }
 
