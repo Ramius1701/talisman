@@ -5,6 +5,7 @@
 #else
 #include <unistd.h>
 #include <limits.h>
+#include <endian.h>
 #define MAX_PATH PATH_MAX
 #endif
 #include <cctype>
@@ -19,6 +20,146 @@ off_t tell(int fd)
 	return lseek(fd, 0, SEEK_CUR);
 }
 #endif
+
+static inline uint16_t host2le_s(uint16_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return s;
+#else
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+#endif
+}
+
+static inline uint32_t host2le_l(uint32_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
+
+static inline void convert_sq_hdr(SQHDR *h) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return
+#else
+	h->id = host2le_l(h->id);
+	h->next_frame = host2le_l(h->next_frame);
+	h->prev_frame = host2le_l(h->prev_frame);
+	h->frame_length = host2le_l(h->frame_length);
+	h->msg_length = host2le_l(h->msg_length);
+	h->clen = host2le_l(h->clen);
+	h->frame_type = host2le_s(h->frame_type);
+#endif
+}
+
+static inline void convert_sq_base(SQBASE *b) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return
+#else
+	b->begin_frame = host2le_l(b->begin_frame);
+	b->end_frame = host2le_l(b->end_frame);
+	b->free_frame = host2le_l(b->free_frame);
+	b->high_msg = host2le_l(b->high_msg);
+	b->high_water = host2le_l(b->high_water);
+	b->keep_days = host2le_s(b->keep_days);
+	b->last_frame = host2le_l(b->last_frame);
+	b->last_free_frame = host2le_l(b->last_free_frame);
+	b->len = host2le_s(b->len);
+	b->max_msg = host2le_l(b->max_msg);
+	b->num_msg = host2le_l(b->num_msg);
+	b->skip_msg = host2le_l(b->skip_msg);
+	b->sz_sqhdr = host2le_s(b->sz_sqhdr);
+ 	b->uid = host2le_l(b->uid);
+#endif
+}
+
+static inline void convert_xmsg(XMSG *x) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return
+#else
+
+	x->attr = host2le_l(x->attr);
+	x->orig.zone = host2le_s(x->orig.zone);
+	x->orig.net = host2le_s(x->orig.net);
+	x->orig.node = host2le_s(x->orig.node);
+	x->orig.point = host2le_s(x->orig.point);
+
+	x->dest.zone = host2le_s(x->dest.zone);
+	x->dest.net = host2le_s(x->dest.net);
+	x->dest.node = host2le_s(x->dest.node);
+	x->dest.point = host2le_s(x->dest.point);
+
+	x->date_written.date = host2le_s(x->date_written.date);
+	x->date_written.time = host2le_s(x->date_written.time);
+
+	x->date_arrived.date = host2le_s(x->date_arrived.date);
+	x->date_arrived.time = host2le_s(x->date_arrived.time);
+
+	x->utc_ofs = host2le_s(x->utc_ofs);
+
+	x->replyto = host2le_l(x->replyto);
+	x->replies[0] = host2le_l(x->replies[0]);
+	x->replies[1] = host2le_l(x->replies[1]);
+	x->replies[2] = host2le_l(x->replies[2]);
+	x->replies[3] = host2le_l(x->replies[3]);
+	x->replies[4] = host2le_l(x->replies[4]);
+	x->replies[5] = host2le_l(x->replies[5]);
+	x->replies[6] = host2le_l(x->replies[6]);
+	x->replies[7] = host2le_l(x->replies[7]);
+	x->replies[8] = host2le_l(x->replies[8]);
+
+	x->umsgid = host2le_l(x->umsgid);
+#endif
+}
+
+static inline void convert_sqidx(SQIDX *s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __LITTLE_ENDIAN__)
+	return
+#else
+	s->hash = host2le_l(s->hash);
+	s->ofs = host2le_l(s->ofs);
+	s->umsgid = host2le_l(s->umsgid);
+#endif
+}
+
+static inline void read_xmsg(FILE *fptr, XMSG *h) {
+	fread(h, sizeof(XMSG), 1, fptr);
+	convert_xmsg(h);
+}
+
+static inline void write_xmsg(FILE *fptr, XMSG *h) {
+	XMSG h2;
+	memcpy(&h2, h, sizeof(XMSG));
+	convert_xmsg(&h2);
+	fwrite(&h2, sizeof(XMSG), 1, fptr);
+}
+
+
+static inline void read_sq_hdr(FILE *fptr, SQHDR *h) {
+	fread(h, sizeof(SQHDR), 1, fptr);
+	convert_sq_hdr(h);
+}
+
+static inline void write_sq_hdr(FILE *fptr, SQHDR *h) {
+	SQHDR h2;
+	memcpy(&h2, h, sizeof(SQHDR));
+	convert_sq_hdr(&h2);
+	fwrite(&h2, sizeof(SQHDR), 1, fptr);
+}
+
+static inline void read_sq_base(FILE *fptr, SQBASE *b) {
+	fread(b, sizeof(SQBASE), 1, fptr);
+	convert_sq_base(b);
+}
+
+static inline void write_sq_base(FILE *fptr, SQBASE *b) {
+	SQBASE b2;
+	memcpy(&b2, b, sizeof(SQBASE));
+	convert_sq_base(&b2);
+	fwrite(&b2, sizeof(SQBASE), 1, fptr);
+}
 
 int lock(int handle, long ofs, long length)
 {
@@ -213,11 +354,10 @@ sq_msg_base_t* SquishOpenMsgBase(const char* filename) {
 			free(mb);
 			return NULL;
 		}
-
-		fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+		write_sq_base(mb->datafile, &mb->basehdr);
 	}
 	else {
-		fread(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+		read_sq_base(mb->datafile, &mb->basehdr);
 	}
 	if (!_SquishValidateBaseHeader(&mb->basehdr)) {
 		fclose(mb->datafile);
@@ -244,7 +384,7 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 
 	// reread the base header
 	fseek(mb->datafile, 0, SEEK_SET);
-	fread(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+	read_sq_base(mb->datafile, &mb->basehdr);
 
 	// search frames for a free frame big enough to store the message
 	memset(&sqhdr, 0, sizeof(SQHDR));
@@ -253,7 +393,8 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 
 	while (frame != 0) {
 		fseek(mb->datafile, frame, SEEK_SET);
-		fread(&sqhdr, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &sqhdr);
+
 		if (sqhdr.frame_type == 1 && sqhdr.frame_length >= sizeof(XMSG) + msg->ctrl_len + msg->msg_len) {
 			break;
 		}
@@ -271,16 +412,16 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		SQHDR temphdr;
 
 		fseek(mb->datafile, sqhdr.prev_frame, SEEK_SET);
-		fread(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &temphdr);
 		temphdr.next_frame = sqhdr.next_frame;
 		fseek(mb->datafile, sqhdr.prev_frame, SEEK_SET);
-		fwrite(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &temphdr);
 
 		fseek(mb->datafile, sqhdr.next_frame, SEEK_SET);
-		fread(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &temphdr);
 		temphdr.prev_frame = sqhdr.prev_frame;
 		fseek(mb->datafile, sqhdr.next_frame, SEEK_SET);
-		fwrite(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &temphdr);
 
 
 		if (mb->basehdr.free_frame == frame) {
@@ -302,8 +443,8 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		msg->xmsg.umsgid = mb->basehdr.uid;
 
 		fseek(mb->datafile, frame, SEEK_SET);
-		fwrite(&sqhdr, sizeof(SQHDR), 1, mb->datafile);
-		fwrite(&msg->xmsg, sizeof(XMSG), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &sqhdr);
+		write_xmsg(mb->datafile, &msg->xmsg);
 		fwrite(msg->ctrl, msg->ctrl_len, 1, mb->datafile);
 		fwrite(msg->msg, msg->msg_len, 1, mb->datafile);
 
@@ -312,7 +453,7 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		mb->basehdr.high_msg = mb->basehdr.num_msg;
 
 		fseek(mb->datafile, 0, SEEK_SET);
-		fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+		write_sq_base(mb->datafile, &mb->basehdr);
 
 
 	}
@@ -323,10 +464,10 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		SQHDR temphdr;
 		if (mb->basehdr.last_frame != 0) {
 			fseek(mb->datafile, mb->basehdr.last_frame, SEEK_SET);
-			fread(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+			read_sq_hdr(mb->datafile, &temphdr);
 			temphdr.next_frame = frame;
 			fseek(mb->datafile, mb->basehdr.last_frame, SEEK_SET);
-			fwrite(&temphdr, sizeof(SQHDR), 1, mb->datafile);
+			write_sq_hdr(mb->datafile, &temphdr);
 		}
 		sqhdr.clen = msg->ctrl_len;
 		sqhdr.msg_length = msg->msg_len + msg->ctrl_len + sizeof(XMSG);
@@ -338,8 +479,8 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		msg->xmsg.umsgid = mb->basehdr.uid;
 
 		fseek(mb->datafile, frame, SEEK_SET);
-		fwrite(&sqhdr, sizeof(SQHDR), 1, mb->datafile);
-		fwrite(&msg->xmsg, sizeof(XMSG), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &sqhdr);
+		write_xmsg(mb->datafile, &msg->xmsg);
 		fwrite(msg->ctrl, msg->ctrl_len, 1, mb->datafile);
 		fwrite(msg->msg, msg->msg_len, 1, mb->datafile);
 
@@ -353,7 +494,7 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t* msg) {
 		mb->basehdr.high_msg = mb->basehdr.num_msg;
 
 		fseek(mb->datafile, 0, SEEK_SET);
-		fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+		write_sq_base(mb->datafile, &mb->basehdr);
 		if (mb->basehdr.high_msg > mb->basehdr.max_msg) {
 			// delete messages
 		}
@@ -379,7 +520,7 @@ int SquishUpdateHdr(sq_msg_base_t* mb, sq_msg_t* msg) {
 	}
 
 	fseek(mb->datafile, msg->ofs + sizeof(SQHDR), SEEK_SET);
-	fwrite(&msg->xmsg, sizeof(XMSG), 1, mb->datafile);
+	write_xmsg(mb->datafile, &msg->xmsg);
 
 	return 1;
 }
@@ -405,29 +546,29 @@ int SquishPruneMsgBase(sq_msg_base_t* mb, sq_dword leave) {
 
 	for (int i = 0; i < prune; i++) {
 		SQIDX* idx = (SQIDX*)(indexdata + sizeof(SQIDX) * i);
+		convert_sqidx(idx);
 		SQHDR hdr;
 		SQHDR prev;
 		SQHDR nextf;
 
 		fseek(mb->datafile, idx->ofs, SEEK_SET);
-		fread(&hdr, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &hdr);
 
 		// set previous frame to next frame
 		fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
-		fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &prev);
 
 		prev.next_frame = hdr.next_frame;
 		fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
-		fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &prev);
 
 		// set next frame to prev frame
 		fseek(mb->datafile, hdr.next_frame, SEEK_SET);
-		fread(&nextf, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &nextf);
 
 		nextf.next_frame = hdr.prev_frame;
 		fseek(mb->datafile, hdr.next_frame, SEEK_SET);
-		fwrite(&nextf, sizeof(SQHDR), 1, mb->datafile);
-
+		write_sq_hdr(mb->datafile, &nextf);
 
 		if (mb->basehdr.begin_frame == idx->ofs) {
 			mb->basehdr.begin_frame = hdr.next_frame;
@@ -440,13 +581,13 @@ int SquishPruneMsgBase(sq_msg_base_t* mb, sq_dword leave) {
 		// add message to free chain
 		if (mb->basehdr.free_frame != 0) {
 			fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
-			fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+			read_sq_hdr(mb->datafile, &prev);
 			fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
 			hdr.prev_frame = mb->basehdr.last_free_frame;
 			hdr.next_frame = 0;
 			prev.next_frame = idx->ofs;
 			mb->basehdr.last_free_frame = idx->ofs;
-			fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+			write_sq_hdr(mb->datafile, &prev);
 		}
 		else {
 			mb->basehdr.free_frame = idx->ofs;
@@ -457,7 +598,8 @@ int SquishPruneMsgBase(sq_msg_base_t* mb, sq_dword leave) {
 		hdr.frame_type = 1;
 
 		fseek(mb->datafile, idx->ofs, SEEK_SET);
-		fwrite(&hdr, sizeof(SQHDR), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &hdr);
+		convert_sqidx(idx);
 	}
 
 	// update base hdr
@@ -465,8 +607,7 @@ int SquishPruneMsgBase(sq_msg_base_t* mb, sq_dword leave) {
 	mb->basehdr.high_msg = mb->basehdr.num_msg;
 
 	fseek(mb->datafile, 0, SEEK_SET);
-	fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
-
+	write_sq_base(mb->datafile, &mb->basehdr);
 	memmove(indexdata, &indexdata[sizeof(SQIDX) * prune], fsize - (sizeof(SQIDX) * prune));
 
 	fseek(mb->indexfile, 0, SEEK_SET);
@@ -496,23 +637,23 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
         return 0;
     }
     fseek(mb->datafile, msg->ofs, SEEK_SET);
-    fread(&hdr, sizeof(SQHDR), 1, mb->datafile);
+	read_sq_hdr(mb->datafile, &hdr);
 
     // set previous frame to next frame
     fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
-    fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+	read_sq_hdr(mb->datafile, &prev);
 
     prev.next_frame = hdr.next_frame;
     fseek(mb->datafile, hdr.prev_frame, SEEK_SET);
-    fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+	write_sq_hdr(mb->datafile, &prev);
 
     // set next frame to prev frame
     fseek(mb->datafile, hdr.next_frame, SEEK_SET);
-    fread(&nextf, sizeof(SQHDR), 1, mb->datafile);
+	read_sq_hdr(mb->datafile, &nextf);
 
     nextf.next_frame = hdr.prev_frame;
     fseek(mb->datafile, hdr.next_frame, SEEK_SET);
-    fwrite(&nextf, sizeof(SQHDR), 1, mb->datafile);
+	write_sq_hdr(mb->datafile, &nextf);
 
     // delete message from index
 
@@ -523,11 +664,13 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     int found = 0;
     for (size_t i = 0; i < fsize / sizeof(SQIDX) ;i++) {
         idx = (SQIDX *)(indexdata + (i * sizeof(SQIDX)));
+		convert_sqidx(idx);
         if (idx->umsgid == msg->xmsg.umsgid) {
             found = 1;
             memmove(idx, &idx[1], fsize - (sizeof(SQIDX) * (i + 1)));
             break;
         }
+        convert_sqidx(idx);
     }
     if (!found) {
         return 0;
@@ -553,13 +696,13 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     // add message to free chain
     if (mb->basehdr.free_frame != 0) {
         fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
-        fread(&prev, sizeof(SQHDR), 1, mb->datafile);
+		read_sq_hdr(mb->datafile, &prev);
         fseek(mb->datafile, mb->basehdr.last_free_frame, SEEK_SET);
         hdr.prev_frame = mb->basehdr.last_free_frame;
         hdr.next_frame = 0;
         prev.next_frame = msg->ofs;
         mb->basehdr.last_free_frame = msg->ofs;
-        fwrite(&prev, sizeof(SQHDR), 1, mb->datafile);
+		write_sq_hdr(mb->datafile, &prev);
     } else {
         mb->basehdr.free_frame = msg->ofs;
         mb->basehdr.last_free_frame = msg->ofs;
@@ -573,10 +716,10 @@ int SquishDeleteMsg(sq_msg_base_t* mb, sq_msg_t *msg) {
     mb->basehdr.high_msg = mb->basehdr.num_msg;
 
     fseek(mb->datafile, 0, SEEK_SET);
-    fwrite(&mb->basehdr, sizeof(SQBASE), 1, mb->datafile);
+	write_sq_base(mb->datafile, &mb->basehdr);
 
     fseek(mb->datafile, msg->ofs, SEEK_SET);
-    fwrite(&hdr, sizeof(SQHDR), 1, mb->datafile);
+	write_sq_hdr(mb->datafile, &hdr);
 
     SquishFreeMsg(msg);
 
@@ -593,7 +736,7 @@ sq_dword SquishUMSGID2Offset(sq_msg_base_t* mb, UMSGID mid, int nextm) {
     for (sq_dword msgno = 1; msgno <= mb->basehdr.num_msg; msgno++) {
         fseek(mb->indexfile, (msgno - 1) * sizeof(SQIDX), SEEK_SET);
         fread(&sqidx, sizeof(SQIDX), 1, mb->indexfile);
-
+		convert_sqidx(&sqidx);
         if (sqidx.umsgid == mid) {
             return msgno;
         }
@@ -617,13 +760,13 @@ sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {
 	fseek(mb->indexfile, (msgno - 1) * sizeof(SQIDX), SEEK_SET);
 
 	fread(&sqidx, sizeof(SQIDX), 1, mb->indexfile);
-
+	convert_sqidx(&sqidx);
 	if (sqidx.ofs == 0 || sqidx.umsgid == 0xffffffff) {
 		return NULL;
 	}
 
 	fseek(mb->datafile, sqidx.ofs, SEEK_SET);
-	fread(&sqhdr, sizeof(SQHDR), 1, mb->datafile);
+	read_sq_hdr(mb->datafile, &sqhdr);
 
 	if (sqhdr.id != 0xAFAE4453 || sqhdr.frame_type != 0) {
 		return NULL;
@@ -640,7 +783,10 @@ sq_msg_t *SquishReadMsg(sq_msg_base_t* mb, sq_dword msgno) {
 		return NULL;
 	}
 	msg->ofs = sqidx.ofs;
+
 	memcpy(&msg->xmsg, data, sizeof(XMSG));
+	convert_xmsg(&msg->xmsg);
+
 	msg->ctrl_len = sqhdr.clen;
 	msg->msg_len = sqhdr.msg_length - sizeof(XMSG) - msg->ctrl_len;
 	msg->ctrl = (char*)malloc(msg->ctrl_len);
@@ -772,7 +918,7 @@ int SquishPackMsgBase(const char* str) {
 	bhdr.end_frame = sizeof(SQBASE);
 	bhdr.sz_sqhdr = sizeof(SQHDR);
 
-	fwrite(&bhdr, sizeof(SQBASE), 1, psqd);
+	write_sq_base(psqd, &bhdr);
 
 	for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
 		msg = SquishReadMsg(mb, i);
@@ -783,10 +929,10 @@ int SquishPackMsgBase(const char* str) {
 			SQHDR temphdr;
 			if (bhdr.last_frame != 0) {
 				fseek(psqd, bhdr.last_frame, SEEK_SET);
-				fread(&temphdr, sizeof(SQHDR), 1, psqd);
+				read_sq_hdr(psqd, &temphdr);
 				temphdr.next_frame = frame;
 				fseek(psqd, bhdr.last_frame, SEEK_SET);
-				fwrite(&temphdr, sizeof(SQHDR), 1, psqd);
+				write_sq_hdr(psqd, &temphdr);
 			}
 			sqhdr.clen = msg->ctrl_len;
 			sqhdr.msg_length = msg->msg_len + msg->ctrl_len + sizeof(XMSG);
@@ -797,8 +943,8 @@ int SquishPackMsgBase(const char* str) {
 			sqhdr.id = 0xAFAE4453;
 
 			fseek(psqd, frame, SEEK_SET);
-			fwrite(&sqhdr, sizeof(SQHDR), 1, psqd);
-			fwrite(&msg->xmsg, sizeof(XMSG), 1, psqd);
+			write_sq_hdr(psqd, &sqhdr);
+			write_xmsg(psqd, &msg->xmsg);
 			fwrite(msg->ctrl, msg->ctrl_len, 1, psqd);
 			fwrite(msg->msg, msg->msg_len, 1, psqd);
 
@@ -819,6 +965,9 @@ int SquishPackMsgBase(const char* str) {
 			idx.umsgid = msg->xmsg.umsgid;
 
 			fseek(psqi, 0, SEEK_END);
+
+			convert_sqidx(&idx);
+
 			fwrite(&idx, sizeof(SQIDX), 1, psqi);
 
 			SquishFreeMsg(msg);
@@ -828,6 +977,7 @@ int SquishPackMsgBase(const char* str) {
 
 	fseek(psqd, 0, SEEK_SET);
 	fwrite(&bhdr, sizeof(SQBASE), 1, psqd);
+	write_sq_base(psqd, &bhdr);
 
 	SquishUnlockMsgBase(mb);
 	SquishCloseMsgBase(mb);
