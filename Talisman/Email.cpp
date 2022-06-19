@@ -460,6 +460,8 @@ static int ieee_to_msbin(float *src4, float *dest4) {
   msbin[2] |= ieee[2] & 0x7f;
   msbin[1] = ieee[1];
   msbin[0] = ieee[0];
+
+  *dest4 = (float)convertl((tLONG)*dest4);
   return 0;
 }
 

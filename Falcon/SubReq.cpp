@@ -9,7 +9,28 @@
 
 #ifdef _MSC_VER
 #define strcasecmp stricmp
+#else
+#include <endian.h>
 #endif
+
+static inline uint16_t host2le_s(uint16_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+#endif
+}
+
+static inline uint32_t host2le_l(uint32_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
 
 void SubReq::add(const char *netname, int hostid, const char *subtype) {
   INIReader inir("talisman.ini");
@@ -55,11 +76,11 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
 
       memset(&msgrec, 0, sizeof(struct net_header_rec));
 
-      msgrec.main_type = 16;
-      msgrec.fromsys = config.networks.at(i).mynode;
-      msgrec.tosys = hostid;
-      msgrec.daten = (uint32_t)time(NULL);
-      msgrec.length = strlen(subtype) + 1;
+      msgrec.main_type = host2le_s(16);
+      msgrec.fromsys = host2le_s(config.networks.at(i).mynode);
+      msgrec.tosys = host2le_s(hostid);
+      msgrec.daten = host2le_l((uint32_t)time(NULL));
+      msgrec.length = host2le_l(strlen(subtype) + 1);
       fwrite(&msgrec, sizeof(struct net_header_rec), 1, fptr);
       fwrite(subtype, msgrec.length, 1, fptr);
       fclose(fptr);
@@ -112,11 +133,11 @@ void SubReq::drop(const char *netname, int hostid, const char *subtype) {
 
       memset(&msgrec, 0, sizeof(struct net_header_rec));
 
-      msgrec.main_type = 17;
-      msgrec.fromsys = config.networks.at(i).mynode;
-      msgrec.tosys = hostid;
-      msgrec.daten = (uint32_t)time(NULL);
-      msgrec.length = strlen(subtype) + 1;
+      msgrec.main_type = host2le_s(17);
+      msgrec.fromsys = host2le_s(config.networks.at(i).mynode);
+      msgrec.tosys = host2le_s(hostid);
+      msgrec.daten = host2le_l((uint32_t)time(NULL));
+      msgrec.length = host2le_l(strlen(subtype) + 1);
       fwrite(&msgrec, sizeof(struct net_header_rec), 1, fptr);
       fwrite(subtype, msgrec.length, 1, fptr);
       fclose(fptr);

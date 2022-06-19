@@ -18,6 +18,68 @@
 
 extern void sig_handler(int signal);
 
+static inline uint16_t host2le_s(uint16_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+#endif
+}
+
+static inline uint32_t host2le_l(uint32_t s) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+	return s;
+#else
+	return ((( s & 0xff000000u ) >> 24 ) |
+			(( s & 0x00ff0000u ) >> 8  ) |
+            (( s & 0x0000ff00u ) << 8  ) |
+            (( s & 0x000000ffu ) << 24 ));
+#endif
+}
+
+static inline void convert_phdr(struct packet_t *pkt) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+  return;
+#else
+  pkt->orignode = host2le_s(pkt->orignode);
+  pkt->destnode = host2le_s(pkt->destnode);
+  pkt->year = host2le_s(pkt->year);
+  pkt->month = host2le_s(pkt->month);
+  pkt->day = host2le_s(pkt->day);
+  pkt->hour = host2le_s(pkt->hour);
+  pkt->minute = host2le_s(pkt->minute);
+  pkt->second = host2le_s(pkt->second);
+  pkt->baud = host2le_s(pkt->baud);
+  pkt->version = host2le_s(pkt->version);
+  pkt->origNet = host2le_s(pkt->origNet);
+  pkt->destNet = host2le_s(pkt->destNet);
+  pkt->origZone = host2le_s(pkt->origZone);
+  pkt->destZone = host2le_s(pkt->destZone);
+  pkt->auxNet = host2le_s(pkt->auxNet);
+  pkt->capValid = host2le_s(pkt->capValid);
+  pkt->capWord = host2le_s(pkt->capWord);
+  pkt->origZone2 = host2le_s(pkt->origZone2);
+  pkt->destZone2 = host2le_s(pkt->destZone2);
+  pkt->origPoint = host2le_s(pkt->origPoint);
+  pkt->destPoint = host2le_s(pkt->destPoint);
+  pkt->prodData = host2le_l(pkt->prodData);
+#endif
+}
+
+static inline void convert_pmsghdr(struct packed_message_t *msg) {
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+  return;
+#else
+  msg->message_type = host2le_s(msg->message_type);
+  msg->orig_node = host2le_s(msg->orig_node);
+  msg->dest_node = host2le_s(msg->dest_node);
+  msg->orig_net = host2le_s(msg->orig_net);
+  msg->dest_net = host2le_s(msg->dest_net);
+  msg->attribute = host2le_s(msg->attribute);
+  msg->cost = host2le_s(msg->cost);
+#endif
+}
+
 std::string add_cr_to_kludges(sq_msg_t *msg) {
   std::stringstream ss;
 
@@ -346,7 +408,7 @@ std::string Scanner::initialize_netmail_packet(NETADDR *dest, std::string workin
   phdr.origPoint = myaka->point;
   phdr.destPoint = dest->point;
   phdr.prodData = 0x45545350;
-
+  convert_phdr(&phdr);
   fwrite(&phdr, sizeof(struct packet_t), 1, *fptr);
 
   return packetpath.u8string();
@@ -416,7 +478,7 @@ void Scanner::initialize_packet(struct link_conf_t *link, std::string working_pa
   phdr.origPoint = pktorig->point;
   phdr.destPoint = link->aka->point;
   phdr.prodData = 0x45545350;
-
+  convert_phdr(&phdr);
   fwrite(&phdr, sizeof(struct packet_t), 1, link->fptr);
 }
 
@@ -449,7 +511,7 @@ void Scanner::write_netmail_to_pkt(NETADDR *orig, NETADDR *dest, sq_msg_t *msg, 
   }
 
   pmhdr.message_type = 2;
-
+  convert_pmsghdr(&pmhdr);
   fwrite(&pmhdr, sizeof(struct packed_message_t), 1, fptr);
 
   char buffer[256];
@@ -543,7 +605,7 @@ void Scanner::write_msg_to_pkt(struct area_conf_t *area, struct link_conf_t *lin
   }
 
   pmhdr.message_type = 2;
-
+  convert_pmsghdr(&pmhdr);
   fwrite(&pmhdr, sizeof(struct packed_message_t), 1, link->fptr);
 
   char buffer[73];
