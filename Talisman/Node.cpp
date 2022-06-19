@@ -1296,7 +1296,7 @@ void Node::system_info() {
   cls();
   send_gfile("sysinfo");
   print_f("|15Talisman BBS v%d.%d-%s\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
-  print_f("Copyright (C) 2020-2021, Andrew Pamment\r\n");
+  print_f("Copyright (C) 2020-2022, Andrew Pamment\r\n");
   print_f("All rights reserved.\r\n\r\n");
 
   print_f("|15System Name: |14%s\r\n", config.sys_name().c_str());
