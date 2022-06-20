@@ -121,18 +121,19 @@ bool MsgConf::load(Node *n, std::string filename) {
       }
 
       if (myfile != "") {
-        MsgArea *a = new MsgArea(this, n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr, mynetmail, tagline,
-                  my_qwk_base_no, myrealnames, wwivnode);
+        MsgArea *a = new MsgArea(this, n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr,
+                                 mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode);
         areas.push_back(a);
       }
     }
     isloaded = true;
   } catch (toml::parse_error const &p) {
-    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", std::string(c->data_path() + "/" + filename + ".toml").c_str(), p.source().begin.line, p.source().begin.column);
+    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", std::string(c->data_path() + "/" + filename + ".toml").c_str(), p.source().begin.line,
+                p.source().begin.column);
     n->log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     isloaded = false;
   }
-  
+
   return isloaded;
 }
 
@@ -312,8 +313,8 @@ int MsgConf::list_areas_old(Node *n, int sec) {
       UMSGID lr = n->get_user().user_get_lastread(areas.at(i)->get_file());
       if ((int)i == stoi(n->get_user().get_attribute("cur_msg_area", "-1"))) {
         if (areas.at(i)->get_new_msgs(lr) > 0) {
-          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs(),
-                     areas.at(i)->get_total_msgs() - lr);
+          n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL |11%6d NEW|07\r\n", cur_area++, areas.at(i)->get_name().c_str(),
+                     areas.at(i)->get_total_msgs(), areas.at(i)->get_total_msgs() - lr);
         } else {
           n->print_f("|08[|14%3d|08]|11->|15%-32.32s |08%6d TOTAL|07\r\n", cur_area++, areas.at(i)->get_name().c_str(), areas.at(i)->get_total_msgs());
         }
@@ -339,7 +340,7 @@ int MsgConf::list_areas_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             return 0;
           }
         }
@@ -355,7 +356,7 @@ int MsgConf::list_areas_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         return 0;
       }
     }
@@ -376,7 +377,8 @@ int MsgConf::list_fsr(Node *n, int sec) {
 
   for (size_t i = 0; i < n->get_config()->msgconfs.size(); i++) {
     if (n->get_config()->msgconfs.at(i)->get_sec_level() <= sec) {
-      if (i == actual_selected) selected = msgcs.size();
+      if (i == actual_selected)
+        selected = msgcs.size();
 
       struct msg_conf_entry_t mc;
 
@@ -490,7 +492,7 @@ int MsgConf::list_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             return 0;
           }
         }
@@ -506,7 +508,7 @@ int MsgConf::list_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         return 0;
       }
     }

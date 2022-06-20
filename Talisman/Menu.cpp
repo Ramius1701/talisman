@@ -102,11 +102,10 @@ bool Menu::load(std::string filename) {
     }
     isloaded = true;
   } catch (toml::parse_error const &p) {
-    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d",  filename.c_str(), p.source().begin.line,
-                p.source().begin.column);
+    n->log->log(LOG_ERROR, "Error parsing %s, Line %d, Column %d", filename.c_str(), p.source().begin.line, p.source().begin.column);
     n->log->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     isloaded = false;
-  } 
+  }
   return isloaded;
 }
 
@@ -1373,23 +1372,19 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 
 tWORD converts(tWORD s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+  return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
 #endif
 }
 
 tLONG convertl(tLONG s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s & 0xff000000u ) >> 24 ) |
-			(( s & 0x00ff0000u ) >> 8  ) |
-            (( s & 0x0000ff00u ) << 8  ) |
-            (( s & 0x000000ffu ) << 24 ));
+  return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
 #endif
 }
-
 
 void Menu::bwave_down(Node *n) {
   FILE *mix_file;
@@ -1521,7 +1516,8 @@ void Menu::bwave_down(Node *n) {
             n->get_user().is_subscribed(n->get_config()->msgconfs.at(i)->areas.at(j)->get_file())) {
           last_tot = tot_msgs;
           int last_read = 0;
-          tot_msgs = n->get_config()->msgconfs.at(i)->areas.at(j)->bwave_scan(n, tot_msgs, areas.size() + 1, fti_file, mix_file, dat_file, &last_ptr, &last_read);
+          tot_msgs =
+              n->get_config()->msgconfs.at(i)->areas.at(j)->bwave_scan(n, tot_msgs, areas.size() + 1, fti_file, mix_file, dat_file, &last_ptr, &last_read);
 
           if (last_tot == tot_msgs) {
             n->print_f("|14... |15%s |14... |12None\r\n", n->get_config()->msgconfs.at(i)->areas.at(j)->get_name().c_str());
@@ -1729,7 +1725,8 @@ void Menu::qwk_down(Node *n) {
       for (size_t j = 0; j < n->get_config()->msgconfs.at(i)->areas.size(); j++) {
         if (n->get_config()->msgconfs.at(i)->areas.at(j)->get_r_sec_level() <= n->get_user().get_sec_level() &&
             n->get_config()->msgconfs.at(i)->areas.at(j)->get_qwk_id() > 0 &&
-            n->get_user().is_subscribed(n->get_config()->msgconfs.at(i)->areas.at(j)->get_file()) && !n->get_config()->msgconfs.at(i)->areas.at(j)->is_netmail()) {
+            n->get_user().is_subscribed(n->get_config()->msgconfs.at(i)->areas.at(j)->get_file()) &&
+            !n->get_config()->msgconfs.at(i)->areas.at(j)->is_netmail()) {
           conf_ndx = fpath;
           snprintf(bufferfname, sizeof bufferfname, "%04d.NDX", n->get_config()->msgconfs.at(i)->areas.at(j)->get_qwk_id());
           conf_ndx.append(bufferfname);
@@ -1808,7 +1805,8 @@ void Menu::qwk_down(Node *n) {
       for (size_t j = 0; j < n->get_config()->msgconfs.at(i)->areas.size(); j++) {
         if (n->get_config()->msgconfs.at(i)->areas.at(j)->get_r_sec_level() <= n->get_user().get_sec_level() &&
             n->get_config()->msgconfs.at(i)->areas.at(j)->get_qwk_id() > 0 &&
-            n->get_user().is_subscribed(n->get_config()->msgconfs.at(i)->areas.at(j)->get_file()) && !n->get_config()->msgconfs.at(i)->areas.at(j)->is_netmail()) {
+            n->get_user().is_subscribed(n->get_config()->msgconfs.at(i)->areas.at(j)->get_file()) &&
+            !n->get_config()->msgconfs.at(i)->areas.at(j)->is_netmail()) {
           fprintf(fptr, "%d\r\n", n->get_config()->msgconfs.at(i)->areas.at(j)->get_qwk_id());
           fprintf(fptr, "%s\r\n", n->get_config()->msgconfs.at(i)->areas.at(j)->get_name().c_str());
         }
@@ -2192,8 +2190,9 @@ void Menu::bwave_up(Node *n) {
           } else {
             netaddr = "";
           }
-          if (!n->get_config()->msgconfs.at(mc)->areas.at(ma)->save_message(std::string((const char *)upl_rec.to), from, std::string((const char *)upl_rec.subj),
-                                                                          body, netaddr, convertl(upl_rec.replyto), convertl(upl_rec.unix_date))) {
+          if (!n->get_config()->msgconfs.at(mc)->areas.at(ma)->save_message(std::string((const char *)upl_rec.to), from,
+                                                                            std::string((const char *)upl_rec.subj), body, netaddr, convertl(upl_rec.replyto),
+                                                                            convertl(upl_rec.unix_date))) {
             n->print_f("|14Failed to post message in %s -> %s!\r\n\r\n", n->get_config()->msgconfs.at(mc)->get_name().c_str(),
                        n->get_config()->msgconfs.at(mc)->areas.at(ma)->get_name().c_str());
           } else {

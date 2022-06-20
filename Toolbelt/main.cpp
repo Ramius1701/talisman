@@ -254,10 +254,10 @@ int main(int argc, char **argv) {
         int seclevel;
         try {
           seclevel = stoi(std::string(argv[3]));
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
           std::cerr << "Invalid argument for sec level." << std::endl;
           return -1;
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
           std::cerr << "Out of range for sec level." << std::endl;
           return -1;
         }
@@ -372,10 +372,10 @@ int main(int argc, char **argv) {
         int seclevel;
         try {
           seclevel = stoi(std::string(argv[2]));
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
           std::cerr << "Invalid argument for sec level." << std::endl;
           return -1;
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
           std::cerr << "Out of range for sec level." << std::endl;
           return -1;
         }
@@ -406,10 +406,10 @@ int main(int argc, char **argv) {
         int seclevel;
         try {
           seclevel = stoi(std::string(argv[2]));
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
           std::cerr << "Invalid argument for sec level." << std::endl;
           return -1;
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
           std::cerr << "Out of range for sec level." << std::endl;
           return -1;
         }

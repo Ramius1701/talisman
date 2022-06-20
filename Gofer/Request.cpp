@@ -118,7 +118,7 @@ void Request::dodirlist(int socket, std::filesystem::path base, std::filesystem:
           ss << "9" << filenameStr << "\t" << respath << "/" << filenameStr << "\t" << hostname << "\t" << port << "\r\n";
         }
       }
-    } catch (std::exception const&) {
+    } catch (std::exception const &) {
     }
     send(socket, ss.str().c_str(), ss.str().size(), 0);
   }

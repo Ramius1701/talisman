@@ -244,9 +244,9 @@ void Email::list_email(Node *n) {
                 emailno += ret;
               }
             }
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             return;
-          } catch (std::out_of_range const&) {
+          } catch (std::out_of_range const &) {
             return;
           }
           if (reload) {
@@ -280,9 +280,9 @@ void Email::list_email(Node *n) {
             emailno += ret;
           }
         }
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         return;
-      } catch (std::out_of_range const&) {
+      } catch (std::out_of_range const &) {
         return;
       }
     }

@@ -133,13 +133,9 @@ void Node::set_term_width(size_t w) { term_width = w; }
 
 void Node::set_term_height(size_t h) { term_height = h; }
 
-void Node::set_term_type(const char *tt) {
-  strncpy(term_type, tt, 256);
-}
+void Node::set_term_type(const char *tt) { strncpy(term_type, tt, 256); }
 
-const char *Node::get_term_type() {
-  return term_type;
-}
+const char *Node::get_term_type() { return term_type; }
 
 void Node::update_node_use(std::string usage) {
   std::filesystem::path nusep(config.tmp_path());
@@ -180,9 +176,9 @@ void Node::pause() {
         if (gotspeed == false) {
           try {
             speed = stoi(str);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             speed = 1000;
-          } catch (std::out_of_range const&) {
+          } catch (std::out_of_range const &) {
             speed = 1000;
           }
           gotspeed = true;
@@ -306,15 +302,15 @@ void Node::detectCterm() {
               break;
             case 'c':
               for (int i = 0; i < param_count; i++) {
-                switch(params[i]) {
-                  case 1:
-                    fonts_allowed = true;
-                    break;
-                  case 3:
-                    sixel_allowed = true;
-                    break;
-                  default:
-                    break;
+                switch (params[i]) {
+                case 1:
+                  fonts_allowed = true;
+                  break;
+                case 3:
+                  sixel_allowed = true;
+                  break;
+                default:
+                  break;
                 }
               }
               break;
@@ -328,7 +324,7 @@ void Node::detectCterm() {
   } while (now - then < 5);
 }
 
-bool Node::detectUTF8() { 
+bool Node::detectUTF8() {
   print_f("\x1b[1;1H\xc2\xa0\x1b[6n\x1b[1;1H\x1b[2J");
   char buffer[1024];
   timeval t;
@@ -738,17 +734,17 @@ std::vector<struct gfile_t> Node::get_gfiles(std::string filename, bool ansi) {
           // size
           try {
             gfile.width = stoi(token.substr(0, token.find('x')));
-          } catch (std::out_of_range const&) {
+          } catch (std::out_of_range const &) {
             gfile.width = -1;
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             gfile.width = -1;
           }
 
           try {
             gfile.height = stoi(token.substr(token.find('x') + 1));
-          } catch (std::out_of_range const&) {
+          } catch (std::out_of_range const &) {
             gfile.height = -1;
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             gfile.height = -1;
           }
         }
@@ -972,9 +968,9 @@ char Node::getch(int delay) {
               } else if (buffer[0] == TERMINAL_TYPE) {
                 if (buffer[1] == 0) {
                   int len = 0;
-                  for (;buffer[len + 2] != IAC;len++) {
-                    term_type[len] = buffer[len+2];
-                    term_type[len+1] = '\0';
+                  for (; buffer[len + 2] != IAC; len++) {
+                    term_type[len] = buffer[len + 2];
+                    term_type[len + 1] = '\0';
                   }
                 }
               }
@@ -1071,23 +1067,23 @@ void Node::send_str(const char *str, int len) {
   if (isutf8) {
     char *out;
     if (Config::convert_utf8(str, len, &out) == -1) {
-        if (socket != 0) {
-            send(socket, str, len, 0);
-        }
+      if (socket != 0) {
+        send(socket, str, len, 0);
+      }
     } else {
-        if (socket != 0) {
-            send(socket, out, strlen(out), 0);
-        }
-        delete[] out;
+      if (socket != 0) {
+        send(socket, out, strlen(out), 0);
+      }
+      delete[] out;
     }
   } else {
     if (socket != 0) {
-        send(socket, str, len, 0);
+      send(socket, str, len, 0);
     }
   }
 #ifdef _MSC_VER
   if (config.windows_echo) {
-	WriteConsoleA(hOutput, str, len, NULL, NULL);
+    WriteConsoleA(hOutput, str, len, NULL, NULL);
   }
 #endif
 }
@@ -1513,7 +1509,6 @@ static std::string base64_encode(const std::string &in) {
 void Node::switch_font(int fontslot, int place) { print_f("\x1b[%d;%d D", place, fontslot); }
 void Node::switch_font() { switch_font(0, 0); }
 
-
 void Node::send_font(int slot, std::string filename) {
   std::ifstream t(filename);
   std::stringstream buffer;
@@ -1526,7 +1521,6 @@ void Node::send_font(int slot, std::string filename) {
     print_f_nc("%c", data.at(i));
   }
   print_f("\x1b\\");
-
 }
 
 int Node::run(std::string *sshusername, std::string *sshpassword) {
@@ -1599,13 +1593,13 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
     if (getpeername(csock, &sa, &slen) == 0) {
       char dst[46];
       if (sa.sa_family == AF_INET) {
-		ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in *)&sa)->sin_addr, dst, 46));
+        ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in *)&sa)->sin_addr, dst, 46));
       } else {
-		ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in6 *)&sa)->sin6_addr, dst, 46));
+        ipaddr = std::string(inet_ntop(sa.sa_family, &((struct sockaddr_in6 *)&sa)->sin6_addr, dst, 46));
       }
       log->log(LOG_INFO, "Connection From: %s on Node %d", ipaddr.c_str(), node);
     } else {
-	  ipaddr = "UNKNOWN";
+      ipaddr = "UNKNOWN";
       log->log(LOG_INFO, "Connection From: UNKNOWN on Node %d (Error getting peer name)", node);
     }
   }
@@ -1635,8 +1629,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
 
   if (std::filesystem::exists(config.script_path() + "/prelogin.lua")) {
     if (!Script::prelogin(this, std::string(config.script_path() + "/prelogin.lua"))) {
-		return 0;
-	}
+      return 0;
+    }
   }
 
   send_gfile("welcome");
@@ -1729,7 +1723,8 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
         std::string nupass = get_string(32, true);
         if (nupass == config.newuser_password()) {
           print_f("\r\n|14Signing up as a new user...\r\n");
-          if (!newuser()) return 0;
+          if (!newuser())
+            return 0;
         } else {
           return 0;
         }
@@ -1807,17 +1802,17 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   int cur_msg_area = stoi(u.get_attribute("cur_msg_area", "-1"));
 
   if (cur_msg_conf >= config.msgconfs.size()) {
-	  cur_msg_conf = -1;
-	  cur_msg_area = -1;
-	  u.set_attribute("cur_msg_conf", "-1");
-      u.set_attribute("cur_msg_area", "-1");
+    cur_msg_conf = -1;
+    cur_msg_area = -1;
+    u.set_attribute("cur_msg_conf", "-1");
+    u.set_attribute("cur_msg_area", "-1");
   } else {
-	if (cur_msg_area >= config.msgconfs.at(cur_msg_conf)->areas.size()) {
+    if (cur_msg_area >= config.msgconfs.at(cur_msg_conf)->areas.size()) {
       cur_msg_conf = -1;
-	  cur_msg_area = -1;
-	  u.set_attribute("cur_msg_conf", "-1");
-	  u.set_attribute("cur_msg_area", "-1");		  
-	}
+      cur_msg_area = -1;
+      u.set_attribute("cur_msg_conf", "-1");
+      u.set_attribute("cur_msg_area", "-1");
+    }
   }
   if (cur_msg_conf != -1 && cur_msg_area != -1) {
     if (config.msgconfs.at(cur_msg_conf)->get_sec_level() > u.get_sec_level() ||
@@ -1850,17 +1845,17 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   int cur_file_area = stoi(u.get_attribute("cur_file_area", "-1"));
 
   if (cur_file_conf >= config.fileconfs.size()) {
-	  cur_file_conf = -1;
-	  cur_file_area = -1;
-	  u.set_attribute("cur_file_conf", "-1");
-      u.set_attribute("cur_file_area", "-1");
+    cur_file_conf = -1;
+    cur_file_area = -1;
+    u.set_attribute("cur_file_conf", "-1");
+    u.set_attribute("cur_file_area", "-1");
   } else {
-	if (cur_file_area >= config.fileconfs.at(cur_file_conf)->areas.size()) {
+    if (cur_file_area >= config.fileconfs.at(cur_file_conf)->areas.size()) {
       cur_file_conf = -1;
-	  cur_file_area = -1;
-	  u.set_attribute("cur_file_conf", "-1");
-	  u.set_attribute("cur_file_area", "-1");		  
-	}
+      cur_file_area = -1;
+      u.set_attribute("cur_file_conf", "-1");
+      u.set_attribute("cur_file_area", "-1");
+    }
   }
 
   if (cur_file_conf != -1 && cur_file_area != -1) {

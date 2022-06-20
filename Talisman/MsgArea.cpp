@@ -23,9 +23,8 @@
 #include "Script.h"
 #include "Config.h"
 
-
-MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
-                 bool rn, int wwivnode) {
+MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail,
+                 std::string tagline, int qwk, bool rn, int wwivnode) {
   this->myconf = mc;
   this->name = Config::convert_cp437(name);
   this->file = filename;
@@ -287,7 +286,8 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
         }
       }
 
-      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: <%x.%u.%s@%s>", msgid, mb->basehdr.uid, sanitizefile.str().c_str(), n->get_config()->get_hostname().c_str());
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: <%x.%u.%s@%s>", msgid, mb->basehdr.uid, sanitizefile.str().c_str(),
+               n->get_config()->get_hostname().c_str());
     }
 
     // are we a netmail
@@ -1153,7 +1153,8 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
               }
 
               if (myconf->areas.at(i)->get_real_names()) {
-                myconf->areas.at(i)->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
+                myconf->areas.at(i)->save_message(to, n->get_user().get_attribute("fullname", n->get_user().get_username()), subject, nmsg, nnetaddr,
+                                                  msg->xmsg.umsgid);
               } else {
                 myconf->areas.at(i)->save_message(to, n->get_user().get_username(), subject, nmsg, nnetaddr, msg->xmsg.umsgid);
               }
@@ -1216,9 +1217,9 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
         } else {
           n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
         }
-      } catch (std::out_of_range const&) {
+      } catch (std::out_of_range const &) {
         doabort = true;
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         doabort = true;
       }
     }
@@ -1364,8 +1365,8 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
           std::stringstream ss2;
           ss2 << n->get_config()->script_path() << "/" << ss.str().substr(10) << ".lua";
 
-          Script::msgheader(n, ss2.str(), file.substr(n->get_config()->msg_path().size() + 1), msg->xmsg.umsgid, std::string(msg->xmsg.from), std::string(msg->xmsg.to),
-                            std::string(msg->xmsg.subject));
+          Script::msgheader(n, ss2.str(), file.substr(n->get_config()->msg_path().size() + 1), msg->xmsg.umsgid, std::string(msg->xmsg.from),
+                            std::string(msg->xmsg.to), std::string(msg->xmsg.subject));
         }
         ss.str("");
         gottag = false;
@@ -1463,7 +1464,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
     if (isutf8) {
       for (size_t i = 0; i < linesv.size(); i++) {
         if (linesv.at(i).type != 2) {
-          linesv.at(i).line = Config::convert_cp437(linesv.at(i).line);        
+          linesv.at(i).line = Config::convert_cp437(linesv.at(i).line);
         }
       }
     }
@@ -1629,7 +1630,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           }
         }
       }
-      //n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
+      // n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
       n->print_f("\x1b[%d;1H%s ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
 
       bool done = false;
@@ -2137,9 +2138,9 @@ int MsgArea::list_messages_old(int start) {
         SquishCloseMsgBase(mb);
         try {
           return std::stoi(res);
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
           return 0;
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
           return 0;
         }
       }
@@ -2156,9 +2157,9 @@ int MsgArea::list_messages_old(int start) {
   } else {
     try {
       return std::stoi(res);
-    } catch (std::invalid_argument const&) {
+    } catch (std::invalid_argument const &) {
       return 0;
-    } catch (std::out_of_range const&) {
+    } catch (std::out_of_range const &) {
       return 0;
     }
   }
@@ -2259,7 +2260,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
       for (size_t k = 0; k < keywords.size(); k++) {
 #ifdef _MSC_VER
         if (StrStrIA(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
-#else          
+#else
         if (strcasestr(msg->xmsg.subject, keywords.at(k).c_str()) != NULL) {
 #endif
           foundmsg = true;

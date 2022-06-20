@@ -113,7 +113,8 @@ int FileConf::list_fsr(Node *n, int sec) {
 
   for (size_t i = 0; i < n->get_config()->fileconfs.size(); i++) {
     if (n->get_config()->fileconfs.at(i)->get_sec_level() <= sec) {
-      if (i == actual_selected) selected = filecs.size();
+      if (i == actual_selected)
+        selected = filecs.size();
       struct fileconf_entry_t fc;
 
       fc.actual_area = i;
@@ -226,7 +227,7 @@ int FileConf::list_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             return 0;
           }
         }
@@ -242,7 +243,7 @@ int FileConf::list_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         return 0;
       }
     }
@@ -269,7 +270,8 @@ int FileConf::list_areas_fsr(Node *n, int sec) {
   int actual_selected = stoi(n->get_user().get_attribute("cur_file_area", "-1"));
   int selected = 0;
   for (size_t i = 0; i < areas.size(); i++) {
-    if (i == actual_selected) selected = area_entries.size();
+    if (i == actual_selected)
+      selected = area_entries.size();
     if (areas.at(i)->get_v_sec_level() > sec)
       continue;
     struct filearea_list_entry_t entry;
@@ -393,7 +395,7 @@ int FileConf::list_areas_old(Node *n, int sec) {
         } else {
           try {
             return std::stoi(res);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
             return 0;
           }
         }
@@ -409,7 +411,7 @@ int FileConf::list_areas_old(Node *n, int sec) {
     } else {
       try {
         return std::stoi(res);
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         return 0;
       }
     }

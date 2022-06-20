@@ -20,20 +20,17 @@ extern void sig_handler(int signal);
 
 static inline uint16_t host2le_s(uint16_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+  return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
 #endif
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s & 0xff000000u ) >> 24 ) |
-			(( s & 0x00ff0000u ) >> 8  ) |
-            (( s & 0x0000ff00u ) << 8  ) |
-            (( s & 0x000000ffu ) << 24 ));
+  return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
 #endif
 }
 
@@ -208,9 +205,9 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
             nsb.net = last_net;
             nsb.node = stoi(sb.substr(sb.find("/") + 1));
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument const&) {
+          } catch (std::invalid_argument const &) {
 
-          } catch (std::out_of_range const&) {
+          } catch (std::out_of_range const &) {
           }
         } else {
           struct seenby_t nsb;
@@ -218,8 +215,8 @@ std::vector<struct seenby_t> parse_path(std::string msgbuf) {
           try {
             nsb.node = stoi(sb);
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument const&) {
-          } catch (std::out_of_range const&) {
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
           }
         }
       }
@@ -268,8 +265,8 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
             nsb.net = last_net;
             nsb.node = stoi(sb.substr(sb.find("/") + 1));
             seenbys.push_back(nsb);
-          } catch (std::invalid_argument const&) {
-          } catch (std::out_of_range const&) {
+          } catch (std::invalid_argument const &) {
+          } catch (std::out_of_range const &) {
           }
         } else {
           if (sb.size() > 0) {
@@ -278,8 +275,8 @@ std::vector<struct seenby_t> Scanner::parse_seenbys(std::string msgbuf) {
             try {
               nsb.node = stoi(sb);
               seenbys.push_back(nsb);
-            } catch (std::invalid_argument const&) {
-            } catch (std::out_of_range const&) {
+            } catch (std::invalid_argument const &) {
+            } catch (std::out_of_range const &) {
             }
           }
         }

@@ -25,20 +25,17 @@ extern void sig_handler(int signal);
 
 static inline uint16_t host2le_s(uint16_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+  return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
 #endif
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s & 0xff000000u ) >> 24 ) |
-			(( s & 0x00ff0000u ) >> 8  ) |
-            (( s & 0x0000ff00u ) << 8  ) |
-            (( s & 0x000000ffu ) << 24 ));
+  return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
 #endif
 }
 
@@ -983,7 +980,6 @@ bool Tosser::run(bool protinbound) {
         log.log(LOG_ERROR, "Packet from unknown link in secure inbound..");
         is_bad_packet = true;
       }
-
 
       if (is_bad_packet) {
 

@@ -17,7 +17,6 @@
 #define strcasecmp _stricmp
 #endif
 
-
 extern "C" Node *lua_getNode(lua_State *L) {
   lua_pushstring(L, "bbs_node");
   lua_gettable(L, LUA_REGISTRYINDEX);
@@ -568,7 +567,6 @@ extern "C" int lua_telnet_ip6(lua_State *L) {
   return 1;
 }
 
-
 extern "C" int lua_rlogin_ip4(lua_State *L) {
   const char *host = lua_tostring(L, 1);
   int port = lua_tonumber(L, 2);
@@ -601,12 +599,12 @@ extern "C" int lua_rlogin_ip6(lua_State *L) {
 
 extern "C" int lua_get_ipaddress(lua_State *L) {
   Node *n = lua_getNode(L);
-	 
+
   lua_pushstring(L, n->ipaddr.c_str());
   return 1;
 }
 
-extern "C" int lua_get_top(lua_State *L) { 
+extern "C" int lua_get_top(lua_State *L) {
   const char *attrib = lua_tostring(L, 1);
   int place = lua_tonumber(L, 2);
 
@@ -620,7 +618,6 @@ extern "C" int lua_get_top(lua_State *L) {
 
   return 2;
 }
-
 
 void Script::init_state(Node *n, lua_State *l) {
 
@@ -758,13 +755,12 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_get_top);
   lua_setglobal(l, "bbs_get_top_user");
-  
+
   lua_pushcfunction(l, lua_get_ipaddress);
   lua_setglobal(l, "bbs_get_user_ip");
 
   lua_pushcfunction(l, lua_getTermType);
   lua_setglobal(l, "bbs_get_term_type");
-
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {

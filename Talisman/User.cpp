@@ -93,7 +93,7 @@ int User::get_sec_level() {
   return sec_level;
 }
 
-void User::inc_attrib(std::string attrib) { 
+void User::inc_attrib(std::string attrib) {
   uint64_t val = stoull(get_attribute(attrib, "0"));
 
   val++;
@@ -127,7 +127,7 @@ uint64_t User::get_top(std::string attrib, int place, std::string *username) {
     *username = "NONE";
   }
   sqlite3_finalize(stmt);
-  
+
   if (uid != -1) {
     if (sqlite3_prepare_v2(db, sql2, -1, &stmt, NULL) != SQLITE_OK) {
       sqlite3_close(db);
@@ -144,7 +144,7 @@ uint64_t User::get_top(std::string attrib, int place, std::string *username) {
     }
     sqlite3_finalize(stmt);
   }
-  
+
   sqlite3_close(db);
 
   return val;

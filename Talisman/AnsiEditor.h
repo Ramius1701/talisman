@@ -42,4 +42,3 @@ private:
   Node *n;
   std::vector<std::vector<int>> pallets;
 };
-

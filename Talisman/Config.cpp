@@ -31,9 +31,9 @@ std::string Config::convert_cp437(std::string input) {
   std::string output;
 
 #ifdef _MSC_VER
-  int wchars_num = MultiByteToWideChar( CP_UTF8 , 0 , input.c_str() , -1, NULL , 0 );
-  wchar_t* wstr = new wchar_t[wchars_num];
-  MultiByteToWideChar( CP_UTF8 , 0 , input.c_str() , -1, wstr , wchars_num );
+  int wchars_num = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, NULL, 0);
+  wchar_t *wstr = new wchar_t[wchars_num];
+  MultiByteToWideChar(CP_UTF8, 0, input.c_str(), -1, wstr, wchars_num);
 
   int chars_num = WideCharToMultiByte(437, 0, wstr, wchars_num, NULL, 0, NULL, NULL);
 
@@ -147,7 +147,7 @@ int Config::convert_utf8(const char *input, int len, char **output) {
   }
 
   *output = str;
-  
+
   iconv_close(ic);
 
 #endif
@@ -212,7 +212,7 @@ std::string Config::convert_utf8(std::string input) {
   }
 
   output = str;
-  
+
   iconv_close(ic);
 
   delete[] str;
@@ -252,7 +252,6 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   _gopherport = inir.GetInteger("Main", "Gopher Port", -1);
   _newuser_password = inir.Get("Main", "New User Password", "");
   windows_echo = inir.GetBoolean("Main", "Windows Local Echo", true);
-
 
   main_aka = parse_fido_addr(inir.Get("Main", "Main AKA", "0:0/0").c_str());
 
@@ -319,7 +318,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         msgconfs.push_back(c);
       }
     }
-  } catch (toml::parse_error const& p) {
+  } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/msgconfs.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
     (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
@@ -399,7 +398,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         seclevels.push_back(slvl);
       }
     }
-  } catch (toml::parse_error const& p) {
+  } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/seclevels.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
     (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
@@ -436,7 +435,6 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
 
         fonts.push_back(f);
       }
-
     }
   } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/fonts.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
@@ -570,7 +568,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
       Protocol *p = new Protocol(myname, mydl_cmd, myssh_dl_cmd, myul_cmd, myssh_ul_cmd, mybatch, myprompt);
       protocols.push_back(p);
     }
-  } catch (toml::parse_error const& p) {
+  } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/protocols.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
     (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
@@ -617,7 +615,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
       Archiver *a = new Archiver(myname, myext, myunarc, myarc);
       archivers.push_back(a);
     }
-  } catch (toml::parse_error const& p) {
+  } catch (toml::parse_error const &p) {
     (*log)->log(LOG_ERROR, "Error parsing %s/archivers.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
     (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
     return false;
@@ -717,7 +715,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         theme.req_ansi = myansi;
         themes.push_back(theme);
       }
-    } catch (toml::parse_error const& p) {
+    } catch (toml::parse_error const &p) {
       (*log)->log(LOG_ERROR, "Error parsing %s/themes.toml, Line %d, Column %d", _datapath.c_str(), p.source().begin.line, p.source().begin.column);
       (*log)->log(LOG_ERROR, " -> %s", std::string(p.description()).c_str());
       return false;
@@ -753,9 +751,9 @@ Protocol *Config::select_protocol(Node *n) {
       if (prot > 0 && prot <= protocols.size()) {
         return protocols.at(prot - 1);
       }
-    } catch (std::invalid_argument const&) {
+    } catch (std::invalid_argument const &) {
 
-    } catch (std::out_of_range const&) {
+    } catch (std::out_of_range const &) {
     }
   }
   return nullptr;
@@ -784,9 +782,9 @@ int Config::select_theme(Node *n, bool apply) {
         }
         return theme - 1;
       }
-    } catch (std::invalid_argument const&) {
+    } catch (std::invalid_argument const &) {
 
-    } catch (std::out_of_range const&) {
+    } catch (std::out_of_range const &) {
     }
   }
   return -1;
@@ -810,9 +808,9 @@ int Config::select_archiver(Node *n) {
       if (arc > 0 && arc <= archivers.size()) {
         return arc - 1;
       }
-    } catch (std::invalid_argument const&) {
+    } catch (std::invalid_argument const &) {
 
-    } catch (std::out_of_range const&) {
+    } catch (std::out_of_range const &) {
     }
   }
   return -1;

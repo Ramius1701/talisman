@@ -68,19 +68,19 @@ void IndexReader::run(Node *n) {
             sq_msg_t *msg;
             msg = SquishReadMsg(mb, mb->basehdr.num_msg);
             if (msg) {
-                struct tm localtm;
-                memset(&localtm, 0, sizeof(struct tm));
-                localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
-                localtm.tm_mday = msg->xmsg.date_written.date & 31;
-                localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
-                localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
-                localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
-                localtm.tm_sec = msg->xmsg.date_written.time & 31;
-                localtm.tm_isdst = -1;
-                newarea.top_msgid = msg->xmsg.umsgid;
-                newarea.last_post = mktime(&localtm);
+              struct tm localtm;
+              memset(&localtm, 0, sizeof(struct tm));
+              localtm.tm_year = ((msg->xmsg.date_written.date >> 9) & 127) + 1980 - 1900;
+              localtm.tm_mday = msg->xmsg.date_written.date & 31;
+              localtm.tm_mon = ((msg->xmsg.date_written.date >> 5) & 15) - 1;
+              localtm.tm_hour = (msg->xmsg.date_written.time >> 11) & 31;
+              localtm.tm_min = (msg->xmsg.date_written.time >> 5) & 63;
+              localtm.tm_sec = msg->xmsg.date_written.time & 31;
+              localtm.tm_isdst = -1;
+              newarea.top_msgid = msg->xmsg.umsgid;
+              newarea.last_post = mktime(&localtm);
 
-                SquishFreeMsg(msg);
+              SquishFreeMsg(msg);
             }
           }
           SquishCloseMsgBase(mb);
@@ -326,9 +326,9 @@ void IndexReader::run(Node *n) {
               } else {
                 n->print_f("\r\n\r\n|14 Sending to.. |15@%d", nn);
               }
-            } catch (std::out_of_range const&) {
+            } catch (std::out_of_range const &) {
               doabort = true;
-            } catch (std::invalid_argument const&) {
+            } catch (std::invalid_argument const &) {
               doabort = true;
             }
           }

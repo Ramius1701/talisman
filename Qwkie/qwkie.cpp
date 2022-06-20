@@ -244,7 +244,6 @@ bool Qwkie::scan(int net) {
 
         qhdr.Msgtagp = ' ';
 
-
         uint32_t offset = ftell(fptr);
         FILE *hdrdat = fopen(std::string(packpath.u8string() + "/HEADERS.DAT").c_str(), "a");
         fprintf(hdrdat, "[%x]\n", offset);
@@ -571,7 +570,7 @@ bool Qwkie::toss(int net) {
     fread(&qwkrec, sizeof(struct QwkHeader), 1, fptr);
     while (!feof(fptr)) {
       uint32_t offset = ftell(fptr);
-      
+
       if (fread(&qwkrec, sizeof(struct QwkHeader), 1, fptr) != 1) {
         break;
       }
@@ -693,7 +692,6 @@ bool Qwkie::toss(int net) {
             char obuf[67];
 
             snprintf(obuf, 67, "%x", offset);
-
 
             to = inir.Get(obuf, "To", to);
             from = inir.Get(obuf, "Sender", from);

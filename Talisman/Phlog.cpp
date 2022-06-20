@@ -218,9 +218,9 @@ void Phlog::list_articles(Node *n) {
         size_t choice = 0;
         try {
           choice = std::stoi(res);
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
 
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
         }
 
         if (choice <= 0 || choice > articles.size()) {
@@ -265,9 +265,9 @@ void Phlog::list_articles(Node *n) {
     size_t choice = 0;
     try {
       choice = std::stoi(res);
-    } catch (std::invalid_argument const&) {
+    } catch (std::invalid_argument const &) {
 
-    } catch (std::out_of_range const&) {
+    } catch (std::out_of_range const &) {
     }
 
     if (choice <= 0 || choice > articles.size()) {

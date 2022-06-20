@@ -30,8 +30,8 @@
 #include <openssl/evp.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-#  define EVP_MD_CTX_new   EVP_MD_CTX_create
-#  define EVP_MD_CTX_free  EVP_MD_CTX_destroy
+#define EVP_MD_CTX_new EVP_MD_CTX_create
+#define EVP_MD_CTX_free EVP_MD_CTX_destroy
 #endif
 
 static const char *commands[] = {"M_NUL", "M_ADR", "M_PWD", "M_FILE", "M_OK", "M_EOB", "M_GOT", "M_ERR", "M_GET", "M_BSY", "M_GET", "M_SKIP"};
@@ -90,21 +90,21 @@ void Server::cram5_init_challenge_data() {
 
   data << "BINKI " << BINKI_VERSION << " " << rand() << " " << time(NULL);
   EVP_MD_CTX *ctx;
-  if((ctx = EVP_MD_CTX_new()) == NULL) {
+  if ((ctx = EVP_MD_CTX_new()) == NULL) {
     return;
   }
   if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
     EVP_MD_CTX_free(ctx);
     return;
   }
-  if(1 != EVP_DigestUpdate(ctx, data.str().c_str(), data.str().size())) {
+  if (1 != EVP_DigestUpdate(ctx, data.str().c_str(), data.str().size())) {
     EVP_MD_CTX_free(ctx);
     return;
   }
 
   unsigned char hash[16];
   unsigned int size = 16;
-  if(1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
+  if (1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
     EVP_MD_CTX_free(ctx);
     return;
   }
@@ -149,21 +149,21 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
 
   if (password.size() > 64) {
     EVP_MD_CTX *ctx;
-    if((ctx = EVP_MD_CTX_new()) == NULL) {
+    if ((ctx = EVP_MD_CTX_new()) == NULL) {
       return "";
     }
     if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
       EVP_MD_CTX_free(ctx);
       return "";
     }
-    if(1 != EVP_DigestUpdate(ctx, password.c_str(), password.size())) {
+    if (1 != EVP_DigestUpdate(ctx, password.c_str(), password.size())) {
       EVP_MD_CTX_free(ctx);
       return "";
     }
 
     unsigned char hash[16];
     unsigned int size = 16;
-    if(1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
+    if (1 != EVP_DigestFinal_ex(ctx, hash, &size)) {
       EVP_MD_CTX_free(ctx);
       return "";
     }
@@ -193,53 +193,50 @@ std::string Server::cram5_create_hashed_pwd(std::string challenge_hex, std::stri
   unsigned char digest[16];
   unsigned int size = 16;
 
-  if((ctx = EVP_MD_CTX_new()) == NULL) {
+  if ((ctx = EVP_MD_CTX_new()) == NULL) {
     return "";
   }
   if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
-  if(1 != EVP_DigestUpdate(ctx, ip, 64)) {
+  if (1 != EVP_DigestUpdate(ctx, ip, 64)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
 
-  if(1 != EVP_DigestUpdate(ctx, challenge.c_str(), challenge.size())) {
+  if (1 != EVP_DigestUpdate(ctx, challenge.c_str(), challenge.size())) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
 
-
-
-  if(1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
+  if (1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
 
   EVP_MD_CTX_free(ctx);
 
-  if((ctx = EVP_MD_CTX_new()) == NULL) {
+  if ((ctx = EVP_MD_CTX_new()) == NULL) {
     return "";
   }
   if (1 != EVP_DigestInit_ex(ctx, EVP_md5(), NULL)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
-  if(1 != EVP_DigestUpdate(ctx, op, 64)) {
+  if (1 != EVP_DigestUpdate(ctx, op, 64)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
 
-  if(1 != EVP_DigestUpdate(ctx, digest, 16)) {
+  if (1 != EVP_DigestUpdate(ctx, digest, 16)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
 
   size = 16;
 
-
-  if(1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
+  if (1 != EVP_DigestFinal_ex(ctx, digest, &size)) {
     EVP_MD_CTX_free(ctx);
     return "";
   }
@@ -284,7 +281,8 @@ std::string untranslate_name(std::string name) {
   std::stringstream new_name;
   for (size_t i = 0; i < name.size(); i++) {
     if (name.at(i) == '\\') {
-	  if (name.at(i+1) == 'x') i++;
+      if (name.at(i + 1) == 'x')
+        i++;
       int digit1 = 0;
       int digit2 = 0;
 
@@ -1192,7 +1190,7 @@ int Server::run(NETADDR *addr, std::string domain) {
   for (size_t i = 0; i < c.addresses.size(); i++) {
     if (c.addresses.at(i).addr->point != 0) {
       ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "." << c.addresses.at(i).addr->point
-        << "@" << c.addresses.at(i).domain;
+         << "@" << c.addresses.at(i).domain;
     } else {
       ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "@" << c.addresses.at(i).domain;
     }
@@ -1345,7 +1343,7 @@ int Server::run(int socket) {
   for (size_t i = 0; i < c.addresses.size(); i++) {
     if (c.addresses.at(i).addr->point != 0) {
       ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "." << c.addresses.at(i).addr->point
-        << "@" << c.addresses.at(i).domain;
+         << "@" << c.addresses.at(i).domain;
     } else {
       ss << c.addresses.at(i).addr->zone << ":" << c.addresses.at(i).addr->net << "/" << c.addresses.at(i).addr->node << "@" << c.addresses.at(i).domain;
     }

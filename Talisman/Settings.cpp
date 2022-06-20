@@ -48,7 +48,7 @@ void Settings::do_settings(Node *n) {
         n->get_user().set_attribute("email", ret);
       } break;
       case 'c': {
-        std::string cp = n->get_user().get_attribute("codepage", "auto"); 
+        std::string cp = n->get_user().get_attribute("codepage", "auto");
         if (cp == "auto") {
           n->get_user().set_attribute("codepage", "utf-8");
         } else if (cp == "utf-8") {

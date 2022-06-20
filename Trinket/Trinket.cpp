@@ -106,7 +106,6 @@ bool check_password(std::string datapath, std::string username, std::string pass
   }
   sqlite3_bind_text(stmt, 1, username.c_str(), -1, NULL);
 
-
   if (sqlite3_step(stmt) == SQLITE_ROW) {
     hash = (const char *)sqlite3_column_text(stmt, 0);
     salt = (const char *)sqlite3_column_text(stmt, 1);
@@ -123,7 +122,6 @@ bool check_password(std::string datapath, std::string username, std::string pass
 
   return false;
 }
-
 
 int main(int argc, char **argv) {
   INIReader inir("talisman.ini");
@@ -153,9 +151,7 @@ int main(int argc, char **argv) {
 
     } else if (strcmp(argv[1], "pull") == 0) {
       // pull new messages from database to message base
-        
     }
   }
   return 0;
 }
-

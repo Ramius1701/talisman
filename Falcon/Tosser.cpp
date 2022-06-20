@@ -15,20 +15,17 @@
 
 static inline uint16_t host2le_s(uint16_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s  >> 8 ) & 0xffu ) | (( s  & 0xffu ) << 8 ));
+  return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
 #endif
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
 #if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
-	return s;
+  return s;
 #else
-	return ((( s & 0xff000000u ) >> 24 ) |
-			(( s & 0x00ff0000u ) >> 8  ) |
-            (( s & 0x0000ff00u ) << 8  ) |
-            (( s & 0x000000ffu ) << 24 ));
+  return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
 #endif
 }
 
@@ -90,7 +87,8 @@ bool Tosser::import_email(Logger *log, int to, std::string from, int fromsys, st
   return false;
 }
 
-bool Tosser::import_email(Logger *log, std::string to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+bool Tosser::import_email(Logger *log, std::string to, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network,
+                          time_t sent) {
   sq_msg_base_t *mb;
   sq_msg_t newmsg;
 
@@ -208,7 +206,8 @@ bool Tosser::import_email(Logger *log, std::string to, std::string from, int fro
   return true;
 }
 
-bool Tosser::import_message(Logger *log, std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network, time_t sent) {
+bool Tosser::import_message(Logger *log, std::string subtype, std::string from, int fromsys, std::string subject, std::vector<std::string> msg, int network,
+                            time_t sent) {
   for (size_t i = 0; i < config.areas.size(); i++) {
     if (strcasecmp(config.areas.at(i).subtype.c_str(), subtype.c_str()) == 0 &&
         strcasecmp(config.areas.at(i).netname.c_str(), config.networks.at(network).name.c_str()) == 0) {
@@ -724,7 +723,7 @@ void Tosser::run() {
         try {
           std::cerr << fspath << std::endl;
           std::filesystem::remove(fspath);
-        } catch (std::exception const&) {
+        } catch (std::exception const &) {
           log.log(LOG_ERROR, "Failed to remove file %s", fspath.u8string().c_str());
         }
       }

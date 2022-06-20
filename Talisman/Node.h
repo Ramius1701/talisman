@@ -56,7 +56,7 @@ public:
   std::string get_string(size_t maxlen, bool masked, bool clear, std::string def);
   Config *get_config() { return &config; }
 
-  User& get_user() { return u; }
+  User &get_user() { return u; }
   int getnodenum() { return node; }
 
   int get_socket() { return socket; }
@@ -108,11 +108,10 @@ private:
 
   Config config;
   User u;
-  
+
   void send_file(std::filesystem::path p, bool pause, bool script);
   time_t last_on;
   time_t last_time_check;
-
 
   time_t timeleft;
   int timeout;

@@ -85,11 +85,9 @@ void Protocol::upload(Node *n, int socket, std::string uploadpath) {
 
 void Protocol::download(Node *n, int socket, std::vector<std::filesystem::path> *files) {
   std::vector<std::string> args;
- 
+
   bool gotcmd = false;
   std::string cmd;
-
-
 
   if (batch) {
     std::istringstream iss;

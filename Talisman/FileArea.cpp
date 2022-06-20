@@ -153,9 +153,9 @@ bool FileArea::file_exists(Node *n, std::string filename) {
   std::string fullpath = p.u8string();
 
   if (std::filesystem::exists(fullpath)) {
-      return true;
+    return true;
   }
-  
+
   if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
     std::cerr << "Error opening file database" << std::endl;
 
@@ -178,7 +178,7 @@ bool FileArea::file_exists(Node *n, std::string filename) {
 
   sqlite3_finalize(stmt);
   sqlite3_close(db);
-  
+
   return ret;
 }
 
@@ -470,9 +470,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
             size_t ftag;
             try {
               ftag = (size_t)stoi(res);
-            } catch (std::invalid_argument const&) {
+            } catch (std::invalid_argument const &) {
               ftag = 0;
-            } catch (std::out_of_range const&) {
+            } catch (std::out_of_range const &) {
               ftag = 0;
             }
             if (ftag > 0 && ftag <= filelist->size()) {
@@ -509,9 +509,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
         size_t ftag;
         try {
           ftag = (size_t)stoi(res);
-        } catch (std::invalid_argument const&) {
+        } catch (std::invalid_argument const &) {
           ftag = 0;
-        } catch (std::out_of_range const&) {
+        } catch (std::out_of_range const &) {
           ftag = 0;
         }
         if (ftag > 0 && ftag <= filelist->size()) {
@@ -538,9 +538,9 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
       size_t ftag;
       try {
         ftag = (size_t)stoi(res);
-      } catch (std::invalid_argument const&) {
+      } catch (std::invalid_argument const &) {
         ftag = 0;
-      } catch (std::out_of_range const&) {
+      } catch (std::out_of_range const &) {
         ftag = 0;
       }
       if (ftag > 0 && ftag <= filelist->size()) {

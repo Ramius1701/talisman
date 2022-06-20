@@ -8,8 +8,8 @@ class MsgConf;
 
 class MsgArea {
 public:
-  MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline, int qwk,
-          bool rn, int wwivnode);
+  MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline,
+          int qwk, bool rn, int wwivnode);
   int get_r_sec_level() { return read_sec_level; }
   int get_w_sec_level() { return write_sec_level; }
   std::string get_name() { return name; }
