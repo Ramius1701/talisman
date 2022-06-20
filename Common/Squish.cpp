@@ -5,7 +5,11 @@
 #else
 #include <unistd.h>
 #include <limits.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #define MAX_PATH PATH_MAX
 #endif
 #include <cctype>

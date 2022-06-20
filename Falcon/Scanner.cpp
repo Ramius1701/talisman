@@ -11,7 +11,11 @@
 #ifdef _MSC_VER
 #define strcasecmp stricmp
 #else
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #endif
 
 static inline uint16_t host2le_s(uint16_t s) {

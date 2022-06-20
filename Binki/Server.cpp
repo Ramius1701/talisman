@@ -26,7 +26,6 @@
 #include <iostream>
 #include <openssl/md5.h>
 #include <sstream>
-#include <openssl/types.h>
 #include <openssl/evp.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L

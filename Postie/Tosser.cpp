@@ -4,7 +4,11 @@
 #define strncasecmp _strnicmp
 #else
 #include <unistd.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #endif
 #include "../Common/INIReader.h"
 #include "../Common/Logger.h"
