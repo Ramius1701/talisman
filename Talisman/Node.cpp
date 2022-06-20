@@ -489,7 +489,7 @@ void Node::send_raw(std::string filename) {
 
   if (in.is_open()) {
     while (!in.eof() && in.get(c)) {
-      if (socket) {
+      if (socket != 0) {
         send(socket, &c, 1, 0);
       }
     }
@@ -1518,12 +1518,11 @@ void Node::send_font(int slot, std::string filename) {
   buffer << t.rdbuf();
 
   std::string data = base64_encode(buffer.str());
+  std::string full = "\x1bPCTerm:Font:" + std::to_string(slot) + ":" + data + "\x1b\\";
 
-  print_f("\x1bPCTerm:Font:%d:", slot);
-  for (size_t i = 0; i < data.size(); i++) {
-    print_f_nc("%c", data.at(i));
+  if (socket != 0) {
+    send(socket, full.c_str(), full.size(), 0);
   }
-  print_f("\x1b\\");
 }
 
 int Node::run(std::string *sshusername, std::string *sshpassword) {
