@@ -488,9 +488,12 @@ void Node::send_raw(std::string filename) {
   char c;
 
   if (in.is_open()) {
-    while (in.get(c)) {
-      putch(c);
+    while (!in.eof() && in.get(c)) {
+      if (socket) {
+        send(socket, &c, 1, 0);
+      }
     }
+    in.close();
   }
 }
 
