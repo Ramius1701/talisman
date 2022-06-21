@@ -1094,7 +1094,7 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
   bool found = false;
   time_t postieid;
 
-  char buffer[9];
+  char buffer[20];
 
   ttime = time(NULL);
   FILE *fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "rb");

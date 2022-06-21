@@ -1440,7 +1440,7 @@ bool Tosser::run(bool protinbound) {
           strncpy(sqmsg.xmsg.from, fromstr.str().c_str(), 35);
 
           free(intlorig);
-          free(intldest);
+
 
           std::tm lt;
 
@@ -1535,6 +1535,7 @@ bool Tosser::run(bool protinbound) {
           } else {
             log.log(LOG_ERROR, "Got netmail not for me in unprotected inbound! Discarding...");
           }
+          free(intldest);
           free(sqmsg.msg);
           free(sqmsg.ctrl);
         } else if (areatag != "" && !protinbound) {
