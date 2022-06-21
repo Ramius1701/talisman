@@ -64,8 +64,11 @@ std::string Config::convert_cp437(std::string input) {
   size_t osz = input.size();
 
   memset(str, 0, osz + 1);
-
+#ifdef __GLIBC__
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+#else
   while (iconv(ic, (const char **)&inp, &isz, &oup, &osz) == -1) {
+#endif
     if (errno == E2BIG) {
       delete[] str;
       i++;
@@ -128,7 +131,11 @@ int Config::convert_utf8(const char *input, int len, char **output) {
 
   memset(str, 0, osz + 1);
 
+#ifdef __GLIBC__
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+#else
   while (iconv(ic, (const char **)&inp, &isz, &oup, &osz) == -1) {
+#endif
     if (errno == E2BIG) {
       delete[] str;
       i++;
@@ -192,7 +199,11 @@ std::string Config::convert_utf8(std::string input) {
 
   memset(str, 0, osz + 1);
 
+#ifdef __GLIBC__
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+#else
   while (iconv(ic, (const char **)&inp, &isz, &oup, &osz) == -1) {
+#endif
     if (errno == E2BIG) {
       delete[] str;
       i++;
