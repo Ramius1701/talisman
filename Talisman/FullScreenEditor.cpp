@@ -155,7 +155,11 @@ public:
       lines.clear();
       lines.push_back("");
     }
+    if (col_at > lines.at(line_at).size()) {
+      col_at = lines.at(line_at).size();
+    }
     refresh_screen();
+    update_cursor();
   }
 
   void insert_line() {
