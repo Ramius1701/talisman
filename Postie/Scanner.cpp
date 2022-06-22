@@ -995,15 +995,21 @@ bool Scanner::run() {
         bundlename = bpath.u8string();
       }
 
-      for (size_t arc = 0; arc < c.archivers.size(); arc++) {
-        if (strcasecmp(c.archivers.at(arc)->name.c_str(), c.links.at(fil).archiver.c_str()) == 0) {
-          std::vector<std::string> files;
+      if (c.links.at(fil).archiver == "") {
+        std::filesystem::path pktcopy(c.packetdir() + "/" + c.links.at(fil).packetpath.filename().u8string());
+        std::filesystem::copy(c.links.at(fil).packetpath, pktcopy);
+        append_flo_file(&c.links.at(fil), &c, pktcopy.u8string(), "ref");
+      } else {
+        for (size_t arc = 0; arc < c.archivers.size(); arc++) {
+          if (strcasecmp(c.archivers.at(arc)->name.c_str(), c.links.at(fil).archiver.c_str()) == 0) {
+            std::vector<std::string> files;
 
-          files.push_back(c.links.at(fil).packetpath.u8string());
+            files.push_back(c.links.at(fil).packetpath.u8string());
 
-          c.archivers.at(arc)->compress(bundlename, files);
-          append_flo_file(&c.links.at(fil), &c, bundlename, "ref");
-          break;
+            c.archivers.at(arc)->compress(bundlename, files);
+            append_flo_file(&c.links.at(fil), &c, bundlename, "ref");
+            break;
+          }
         }
       }
     }
