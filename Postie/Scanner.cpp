@@ -1096,7 +1096,7 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
   return true;
 }
 
-uint32_t Scanner::get_postieid(std::string data_path) {
+time_t Scanner::get_postieid(std::string data_path) {
   time_t ttime;
   ttime = time(NULL);
   FILE *fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "rb");
