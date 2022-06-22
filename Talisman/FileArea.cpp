@@ -278,6 +278,9 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
       if (descr.at(i) == '\n') {
         f.desc.push_back(ss.str());
         ss.str("");
+      } else if (descr.at(i) == '\x1b') {
+        i++;
+        while (std::string("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz").find(descr.at(i)) == std::string::npos) i++;
       } else if (descr.at(i) != '\r') {
         ss << descr.at(i);
       }
