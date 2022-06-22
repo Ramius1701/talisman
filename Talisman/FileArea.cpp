@@ -317,7 +317,7 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
   int start = 0;
   int selected = 0;
   // bool redraw = true;
-  bool sortby = false;
+  bool sortby = true;
   static const char units[] = " KMGT";
 
   if (filelist->size() == 0)
