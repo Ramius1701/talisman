@@ -20,7 +20,7 @@ public:
   static std::string initialize_netmail_packet(NETADDR *dest, std::string working_path, NETADDR *myaka, FILE **fptr);
   static std::vector<struct seenby_t> parse_seenbys(std::string msgbuf);
   static bool check_seenby(std::vector<struct seenby_t> *seenbys, NETADDR *node);
-
+  static uint32_t get_postieid(std::string data_path);
 private:
   static void add_seenby(std::vector<struct seenby_t> *seenbys, NETADDR *node);
   std::string _datapath;

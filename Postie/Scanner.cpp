@@ -996,7 +996,13 @@ bool Scanner::run() {
       }
 
       if (c.links.at(fil).archiver == "") {
-        std::filesystem::path pktcopy(c.packetdir() + "/" + c.links.at(fil).packetpath.filename().u8string());
+        std::filesystem::path pktpath(c.packetdir() + "/" + std::to_string(c.links.at(fil).aka->zone) + "_" + std::to_string(c.links.at(fil).aka->net) + "_" + std::to_string(c.links.at(fil).aka->node) + "_" + std::to_string(c.links.at(fil).aka->point));
+
+        if (!std::filesystem::exists(pktpath)) {
+          std::filesystem::create_directories(pktpath);
+        }
+
+        std::filesystem::path pktcopy(pktpath.u8string() + "/" + c.links.at(fil).packetpath.filename().u8string());
         std::filesystem::copy(c.links.at(fil).packetpath, pktcopy);
         append_flo_file(&c.links.at(fil), &c, pktcopy.u8string(), "ref");
       } else {
@@ -1090,6 +1096,35 @@ bool Scanner::append_flo_file(struct link_conf_t *link, Config *c, std::string b
   return true;
 }
 
+uint32_t Scanner::get_postieid(std::string data_path) {
+  time_t ttime;
+  ttime = time(NULL);
+  FILE *fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "rb");
+  time_t postieid;
+  time_t opostieid;
+
+  if (!fptr) {
+    opostieid = ttime;
+  } else {
+    fread(&opostieid, sizeof(time_t), 1, fptr);
+    fclose(fptr);
+
+    if (ttime > opostieid) {
+      opostieid = ttime;
+    }
+  }
+
+  postieid = opostieid;
+  opostieid++;
+
+  fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "wb");
+  if (fptr) {
+    fwrite(&opostieid, sizeof(time_t), 1, fptr);
+    fclose(fptr);
+  }
+  return postieid;
+}
+
 std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string packetpath, bool bundle_ts, std::string data_path) {
   time_t ttime;
   struct tm thetm;
@@ -1103,20 +1138,9 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
   char buffer[20];
 
   ttime = time(NULL);
-  FILE *fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "rb");
-
-  if (!fptr) {
-    postieid = ttime;
-  } else {
-    fread(&postieid, sizeof(time_t), 1, fptr);
-    fclose(fptr);
-
-    if (ttime > postieid) {
-      postieid = ttime;
-    }
-  }
 
   if (bundle_ts) {
+    postieid = get_postieid(data_path);
     if (postieid > 0xffffffff) {
       postieid -= 0x100000000;
     }
@@ -1141,14 +1165,8 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
         ss.seekp(-1, ss.cur);
       }
       if (found) {
-        fptr = fopen(std::string(data_path + "/postieid.dat").c_str(), "wb");
-        if (fptr) {
-          fwrite(&postieid, sizeof(time_t), 1, fptr);
-          fclose(fptr);
-        }
         return ss.str();
       }
-      postieid++;
     }
   } else {
     if (dest->point != 0) {
