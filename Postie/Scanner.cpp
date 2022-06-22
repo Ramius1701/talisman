@@ -996,7 +996,8 @@ bool Scanner::run() {
       }
 
       if (c.links.at(fil).archiver == "") {
-        std::filesystem::path pktpath(c.packetdir() + "/" + std::to_string(c.links.at(fil).aka->zone) + "_" + std::to_string(c.links.at(fil).aka->net) + "_" + std::to_string(c.links.at(fil).aka->node) + "_" + std::to_string(c.links.at(fil).aka->point));
+        std::filesystem::path pktpath(c.packetdir() + "/" + std::to_string(c.links.at(fil).aka->zone) + "_" + std::to_string(c.links.at(fil).aka->net) + "_" +
+                                      std::to_string(c.links.at(fil).aka->node) + "_" + std::to_string(c.links.at(fil).aka->point));
 
         if (!std::filesystem::exists(pktpath)) {
           std::filesystem::create_directories(pktpath);

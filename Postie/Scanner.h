@@ -21,6 +21,7 @@ public:
   static std::vector<struct seenby_t> parse_seenbys(std::string msgbuf);
   static bool check_seenby(std::vector<struct seenby_t> *seenbys, NETADDR *node);
   static time_t get_postieid(std::string data_path);
+
 private:
   static void add_seenby(std::vector<struct seenby_t> *seenbys, NETADDR *node);
   std::string _datapath;

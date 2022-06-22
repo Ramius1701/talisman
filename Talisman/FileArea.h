@@ -42,6 +42,7 @@ public:
   bool file_exists(Node *n, std::string filename);
   bool insert_file(Node *n, std::string filename, std::vector<std::string> descr);
   bool delete_file(Node *n, std::string filename);
+
 private:
   bool do_list(Node *n, std::vector<struct file_list_t> *filelist, bool cancel);
   bool do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, bool cancel);

@@ -83,7 +83,6 @@ bool FileConf::load(Node *n) {
         my_del_sec_level = -1;
       }
 
-
       if (mydatabase == "" || mypath == "") {
         continue;
       }

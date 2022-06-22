@@ -298,18 +298,14 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
   }
 }
 
-bool sort_by_alpha(struct file_list_t f1, struct file_list_t f2)
-{
-    std::filesystem::path fpath1 = std::filesystem::path(f1.filename);
-    std::filesystem::path fpath2 = std::filesystem::path(f2.filename);
+bool sort_by_alpha(struct file_list_t f1, struct file_list_t f2) {
+  std::filesystem::path fpath1 = std::filesystem::path(f1.filename);
+  std::filesystem::path fpath2 = std::filesystem::path(f2.filename);
 
-    return (strcasecmp(fpath1.u8string().c_str(), fpath2.u8string().c_str()) <= 0);
+  return (strcasecmp(fpath1.u8string().c_str(), fpath2.u8string().c_str()) <= 0);
 }
 
-bool sort_by_date(struct file_list_t f1, struct file_list_t f2)
-{
-    return (f1.uldate < f2.uldate);
-}
+bool sort_by_date(struct file_list_t f1, struct file_list_t f2) { return (f1.uldate < f2.uldate); }
 
 bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, bool cancel) {
   int unit;

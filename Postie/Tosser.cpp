@@ -1441,7 +1441,6 @@ bool Tosser::run(bool protinbound) {
 
           free(intlorig);
 
-
           std::tm lt;
 
           memset(&lt, 0, sizeof(std::tm));

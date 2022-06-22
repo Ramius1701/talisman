@@ -7,6 +7,7 @@
 #include <string>
 #include <iomanip>
 #include <openssl/evp.h>
+#include <mysql/mysql.h>
 #include "../Common/INIReader.h"
 
 bool open_database(std::string filename, sqlite3 **db) {
@@ -148,7 +149,24 @@ int main(int argc, char **argv) {
       return -1;
     } else if (strcmp(argv[1], "push") == 0) {
       // push from LASTREAD to current to database
+      MYSQL *conn = mysql_init(NULL);
 
+      if (!conn) {
+        fprintf(stderr, "mysql_init() failed\n");
+        return -1;
+      }
+      if (mysql_real_connect(conn, inir.Get("trinket", "db host", "localhost").c_str(), inir.Get("trinket", "db user", "").c_str(), inir.Get("trinket", "db password", "").c_str(), inir.Get("trinket", "db name", "trinket").c_str(), 0, NULL, 0) == NULL) {
+        fprintf(stderr, "Failed to connect to database\n");
+        return -1;
+      }
+      static const char *query = "INSERT INTO messages ('group', 'umsgid', 'subject', 'to', 'from', 'oaddr', 'daddr', 'body', 'local', 'sent') VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+      // iterate through msg bases
+      //   fetch lastread
+      //   insert messages
+      //   set lastread
+      // close database
+      // done
     } else if (strcmp(argv[1], "pull") == 0) {
       // pull new messages from database to message base
     }
