@@ -16,13 +16,14 @@ struct file_list_t {
 
 class FileArea {
 public:
-  FileArea(std::string name, std::string file_path, std::string database, int dl_sec_level, int ul_sec_level, int vis_sec_level) {
+  FileArea(std::string name, std::string file_path, std::string database, int dl_sec_level, int ul_sec_level, int vis_sec_level, int del_sec_level) {
     this->name = name;
     this->file_path = file_path;
     this->database = database;
     this->dl_sec_level = dl_sec_level;
     this->ul_sec_level = ul_sec_level;
     this->vis_sec_level = vis_sec_level;
+    this->del_sec_level = del_sec_level;
   }
   int get_d_sec_level() { return dl_sec_level; }
   int get_u_sec_level() { return ul_sec_level; }
@@ -40,7 +41,7 @@ public:
   bool upload_file(Node *n);
   bool file_exists(Node *n, std::string filename);
   bool insert_file(Node *n, std::string filename, std::vector<std::string> descr);
-
+  bool delete_file(Node *n, std::string filename);
 private:
   bool do_list(Node *n, std::vector<struct file_list_t> *filelist, bool cancel);
   bool do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, bool cancel);
@@ -51,4 +52,5 @@ private:
   int dl_sec_level;
   int vis_sec_level;
   int ul_sec_level;
+  int del_sec_level;
 };

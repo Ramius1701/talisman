@@ -12,6 +12,7 @@
 #include <iostream>
 #include <sqlite3.h>
 #include <sstream>
+#include <algorithm>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -35,6 +36,31 @@ bool FileArea::open_database(std::string filename, sqlite3 **db) {
     sqlite3_close(*db);
     return false;
   }
+  return true;
+}
+
+bool FileArea::delete_file(Node *n, std::string filename) {
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+
+  static const char *sql = "DELETE FROM files WHERE filename = ?";
+
+  if (std::filesystem::exists(filename)) {
+    std::filesystem::remove(filename);
+  }
+  if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
+    return false;
+  }
+
+  if (sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, NULL) != SQLITE_OK) {
+    sqlite3_close(db);
+    return false;
+  }
+  sqlite3_bind_text(stmt, 1, filename.c_str(), -1, NULL);
+  sqlite3_step(stmt);
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
   return true;
 }
 
@@ -239,7 +265,7 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
     f.uldate = sqlite3_column_int64(stmt, 3);
     f.ulname = std::string((const char *)sqlite3_column_text(stmt, 4));
 
-    if (stat(f.filename.c_str(), &s) != 0) {
+    if (stat(f.filename.c_str(), &s) != 0 || s.st_size == 0) {
       f.missing = true;
     } else {
       f.missing = false;
@@ -272,12 +298,26 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
   }
 }
 
+bool sort_by_alpha(struct file_list_t f1, struct file_list_t f2)
+{
+    std::filesystem::path fpath1 = std::filesystem::path(f1.filename);
+    std::filesystem::path fpath2 = std::filesystem::path(f2.filename);
+
+    return (strcasecmp(fpath1.u8string().c_str(), fpath2.u8string().c_str()) <= 0);
+}
+
+bool sort_by_date(struct file_list_t f1, struct file_list_t f2)
+{
+    return (f1.uldate < f2.uldate);
+}
+
 bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, bool cancel) {
   int unit;
   bool tagged = false;
   int start = 0;
   int selected = 0;
   // bool redraw = true;
+  bool sortby = false;
   static const char units[] = " KMGT";
 
   if (filelist->size() == 0)
@@ -292,9 +332,9 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
   n->print_f("\x1b[%d;1H", n->get_term_height() - 1);
   n->print_f("%s", n->get_config()->get_prompt_colour());
   if (cancel) {
-    n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit, X to cancel scan");
+    n->print_f("Up/Down: Scroll, SPACE to tag, S to Sort, Q to quit, X to cancel scan");
   } else {
-    n->print_f("Up/Down: Scroll, SPACE to tag, Q to quit.");
+    n->print_f("Up/Down: Scroll, SPACE to tag, S to Sort, Q to quit.");
   }
   n->print_f("\x1b[K");
 
@@ -409,8 +449,23 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
           n->tag_file(filelist->at(selected).filename, this);
         }
       }
+    } else if (c == 'd' || c == 'D') {
+      if (del_sec_level != -1 && del_sec_level <= n->get_user().get_sec_level()) {
+        delete_file(n, filelist->at(selected).filename);
+      }
     } else if (c == 'Q' || c == 'q') {
       return false;
+    } else if (c == 'S' || c == 's') {
+      if (sortby) {
+        // sort by alpha
+        std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
+      } else {
+        // sort by uldate
+        std::sort(filelist->begin(), filelist->end(), sort_by_date);
+      }
+      selected = 0;
+      start = 0;
+      sortby = !sortby;
     } else if (cancel && (c == 'X' || c == 'x')) {
       return true;
     }

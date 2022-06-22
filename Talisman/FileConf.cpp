@@ -35,6 +35,7 @@ bool FileConf::load(Node *n) {
       int my_d_sec_level;
       int my_u_sec_level;
       int my_v_sec_level;
+      int my_del_sec_level;
       auto name = itemtable->get("name");
       if (name != nullptr) {
         myname = Config::convert_cp437(name->as_string()->value_or("Invalid Name"));
@@ -75,11 +76,19 @@ bool FileConf::load(Node *n) {
         my_v_sec_level = my_d_sec_level;
       }
 
+      auto del_sec_level = itemtable->get("delete_sec_level");
+      if (del_sec_level != nullptr) {
+        my_del_sec_level = del_sec_level->as_integer()->value_or(-1);
+      } else {
+        my_del_sec_level = -1;
+      }
+
+
       if (mydatabase == "" || mypath == "") {
         continue;
       }
 
-      FileArea *f = new FileArea(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level, my_v_sec_level);
+      FileArea *f = new FileArea(myname, mypath, mydatabase, my_d_sec_level, my_u_sec_level, my_v_sec_level, my_del_sec_level);
 
       areas.push_back(f);
     }
