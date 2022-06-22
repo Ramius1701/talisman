@@ -335,8 +335,14 @@ int Files::trim(std::string dbname) {
   }
 
   while (sqlite3_step(stmt) == SQLITE_ROW) {
-    if (stat((const char *)sqlite3_column_text(stmt, 1), &s) != 0) {
+    std::filesystem::path pth((const char *)sqlite3_column_text(stmt, 1));
+    if (stat(pth.u8string().c_str(), &s) != 0) {
       totrim.push_back(sqlite3_column_int(stmt, 0));
+    } else {
+      if (s.st_size == 0) {
+        std::filesystem::remove(pth);
+        totrim.push_back(sqlite3_column_int(stmt, 0));
+      }
     }
   }
   sqlite3_finalize(stmt);
