@@ -142,6 +142,22 @@ public:
     col_at++;
     update_cursor();
   }
+
+  void delete_line() {
+    if (lines.size() > 1) {
+      if (line_at == lines.size() - 1) { // on the last line
+        lines.erase(lines.begin() + line_at);
+        line_at--;
+      } else {
+        lines.erase(lines.begin() + line_at);
+      }
+    } else {
+      lines.clear();
+      lines.push_back("");
+    }
+    refresh_screen();
+  }
+
   void insert_line() {
     int old_line_at = line_at;
     if (col_at == 0) {
@@ -627,6 +643,8 @@ std::vector<std::string> FullScreenEditor::edit() {
       fsb.delete_char();
     } else if (c >= 32 && c <= 126) {
       fsb.add_char(c);
+    } else if (c == 'y' - 'a' + 1) {
+      fsb.delete_line();
     } else if (c == 'z' - 'a' + 1) {
       // ctrl-z
       n->print_f_nc("\x1b[%d;23H\x1b[0;30;47m+--------[MENU]--------+", n->get_term_height() / 2 - 4);
