@@ -837,6 +837,12 @@ void Script::exec(Node *n, std::string script) {
   lua_close(l);
 }
 
+void Script::predoor(Node *n) {
+  if (std::filesystem::exists(n->get_config()->script_path() + "/predoor.lua")) {
+    exec(n, n->get_config()->script_path() + "/predoor.lua");
+  }
+}
+
 bool Script::prelogin(Node *n, std::string script) {
   lua_State *l = luaL_newstate();
 

@@ -543,6 +543,7 @@ bool Menu::run() {
           arguments.push_back(std::to_string(n->get_socket()));
 #endif
           Door::createDropfiles(n);
+          Script::predoor(n);
           if (!Door::runExternal(n, items[i].data, arguments, false)) {
             n->disconnected();
           }
