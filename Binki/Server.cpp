@@ -722,7 +722,6 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
         return false;
       }
     }
-    log.log(LOG_INFO, "Sending file %s (%s)", files.at(i).name.c_str(), files.at(i).file.c_str());
     if (!send_file_packet(files.at(i).file, files.at(i).name)) {
       break;
     }
