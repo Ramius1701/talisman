@@ -735,6 +735,10 @@ bool Menu::run() {
           n->print_f("\r\n|14Read only subscribed areas? (Y/N) : |07");
           subonly = (tolower(n->getch()) != 'n');
 
+          bool personal = false;
+          n->print_f("\r\n|14Read only messages to you? (Y/N) : |07");
+          personal = (tolower(n->getch()) != 'n');
+
           bool done = false;
           for (size_t msgconf = 0; msgconf < n->get_config()->msgconfs.size(); msgconf++) {
             if (n->get_config()->msgconfs.at(msgconf)->get_sec_level() <= n->get_user().get_sec_level()) {
@@ -745,7 +749,7 @@ bool Menu::run() {
                     int last_offt = n->get_config()->msgconfs.at(msgconf)->areas.at(msgarea)->umsgid_to_offset(
                         n->get_user().user_get_lastread(n->get_config()->msgconfs.at(msgconf)->areas.at(msgarea)->get_file()));
                     if (last_offt < n->get_config()->msgconfs.at(msgconf)->areas.at(msgarea)->get_total_msgs()) {
-                      done = !n->get_config()->msgconfs.at(msgconf)->areas.at(msgarea)->read_message(last_offt + 1, false, true, true, NULL);
+                      done = !n->get_config()->msgconfs.at(msgconf)->areas.at(msgarea)->read_message(last_offt + 1, false, true, true, NULL, personal);
                     }
                     if (done) {
                       break;

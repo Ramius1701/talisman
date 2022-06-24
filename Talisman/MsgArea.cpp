@@ -1399,6 +1399,10 @@ bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
 }
 
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
+  return read_message(start, search, unread, set_last_read, last, false);
+}
+
+bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last, bool personal) {
   sq_msg_base_t *mb;
   bool fsr = (n->get_user().get_attribute("fullscreenreader", "true") == "true" && n->hasANSI);
   mb = SquishOpenMsgBase(file.c_str());
@@ -1422,12 +1426,12 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
     sq_msg_t *msg = SquishReadMsg(mb, msg_to_read);
     if (msg == NULL) {
       SquishCloseMsgBase(mb);
-      if (search || unread) {
+      if (search || unread || personal) {
         return true;
       }
       return false;
     }
-    if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
+    if ((msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) || (personal && !is_to_me(n, msg))) {
       if (direction == 1) {
         msg_to_read++;
       } else {
@@ -1554,7 +1558,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
       if (search) {
         n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
 
-      } else if (unread) {
+      } else if (unread || personal) {
         n->print_f(
             "|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
       } else {
@@ -1593,7 +1597,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           SquishCloseMsgBase(mb);
           return false;
         case 'c':
-          if (search || unread) {
+          if (search || unread || personal) {
             SquishCloseMsgBase(mb);
             return true;
           }
@@ -1760,7 +1764,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
             n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 1);
             n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->get_term_height() - 8) / 2 + 4) + 2);
             n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->get_term_height() - 8) / 2 + 4) + 3);
-            if (unread) {
+            if (unread || personal) {
               n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->get_term_height() - 8) / 2 + 4) + 4);
             } else if (search) {
               n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->get_term_height() - 8) / 2 + 4) + 4);
