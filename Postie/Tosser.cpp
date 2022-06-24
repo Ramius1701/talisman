@@ -1149,28 +1149,26 @@ bool Tosser::run(bool protinbound) {
           // check if dupe
           std::string msgid = get_msgid(ctrlstr.str());
 
-          if (msgid != "") {
-            if (Dupe::is_dupe(_datapath + "/dupehist.dat", msgid)) {
+          if (Dupe::is_dupe(_datapath + "/dupehist_v2.dat", msgid, &sqmsg)) {
 
-              if (c.dupebase() == "") {
-                log.log(LOG_INFO, "Found duplicate, discarding as no dupe base is configured.");
+            if (c.dupebase() == "") {
+              log.log(LOG_INFO, "Found duplicate, discarding as no dupe base is configured.");
+            } else {
+              sq_msg_base_t *mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.dupebase()).c_str());
+
+              if (mb != NULL) {
+                SquishLockMsgBase(mb);
+                SquishWriteMsg(mb, &sqmsg);
+                SquishUnlockMsgBase(mb);
+                SquishCloseMsgBase(mb);
+                log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
               } else {
-                sq_msg_base_t *mb = SquishOpenMsgBase(std::string(_msgpath + "/" + c.dupebase()).c_str());
-
-                if (mb != NULL) {
-                  SquishLockMsgBase(mb);
-                  SquishWriteMsg(mb, &sqmsg);
-                  SquishUnlockMsgBase(mb);
-                  SquishCloseMsgBase(mb);
-                  log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
-                } else {
-                  log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
-                }
+                log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
               }
-              free(sqmsg.msg);
-              free(sqmsg.ctrl);
-              continue;
             }
+            free(sqmsg.msg);
+            free(sqmsg.ctrl);
+            continue;
           }
 
           for (size_t a = 0; a < c.areas.size(); a++) {

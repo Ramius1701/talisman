@@ -1,4 +1,5 @@
 #include "Dupe.h"
+#include "../Common/Squish.h"
 #include <filesystem>
 #include <string>
 /* Crc - 32 BIT ANSI X3.66 CRC checksum files */
@@ -128,14 +129,27 @@ bool Dupe::crc32file(const char *name, uint32_t *crc) {
   return true;
 }
 
-bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
+extern std::string remove_seenby_path(std::string msgbuf);
+
+bool Dupe::is_dupe(std::string crcfile, std::string msgid, struct sq_msg *msg) {
   uint32_t crc = crc32buf(msgid.c_str(), msgid.size());
-  uint32_t checkcrc;
+  uint32_t checkcrc[3];
   FILE *fptr = fopen(crcfile.c_str(), "rb");
   int dupcount = 0;
+
+  std::string msgbuf(msg->msg, msg->msg + msg->msg_len);
+
+  std::string noseenbypath = remove_seenby_path(msgbuf);
+  std::string ctrlstr(msg->ctrl, msg->ctrl + msg->ctrl_len);
+
+  uint32_t msgcrc = crc32buf(noseenbypath.c_str(), noseenbypath.size());
+  uint32_t ctrlcrc = crc32buf(ctrlstr.c_str(), ctrlstr.size());
+
+
+
   if (fptr) {
-    while (fread(&checkcrc, sizeof(uint32_t), 1, fptr) == 1) {
-      if (checkcrc == crc) {
+    while (fread(checkcrc, sizeof(uint32_t), 3, fptr) == 3) {
+      if (checkcrc[0] == crc && checkcrc[1] == ctrlcrc && checkcrc[2] == msgcrc) {
         fclose(fptr);
         return true;
       }
@@ -151,10 +165,12 @@ bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
     if (fptr1 != NULL && fptr2 != NULL) {
       fseek(fptr1, sizeof(uint32_t) * 300, SEEK_SET);
 
-      while (fread(&checkcrc, sizeof(uint32_t), 1, fptr1) == 1) {
-        fwrite(&checkcrc, sizeof(uint32_t), 1, fptr2);
+      while (fread(checkcrc, sizeof(uint32_t), 3, fptr1) == 3) {
+        fwrite(checkcrc, sizeof(uint32_t), 3, fptr2);
       }
       fwrite(&crc, sizeof(uint32_t), 1, fptr2);
+      fwrite(&ctrlcrc, sizeof(uint32_t), 1, fptr2);
+      fwrite(&msgcrc, sizeof(uint32_t), 1, fptr2);
       fclose(fptr1);
       fclose(fptr2);
       std::filesystem::remove(std::filesystem::path(crcfile));
@@ -164,6 +180,8 @@ bool Dupe::is_dupe(std::string crcfile, std::string msgid) {
   } else {
     fptr = fopen(crcfile.c_str(), "ab");
     fwrite(&crc, sizeof(uint32_t), 1, fptr);
+    fwrite(&ctrlcrc, sizeof(uint32_t), 1, fptr);
+    fwrite(&msgcrc, sizeof(uint32_t), 1, fptr);
     fclose(fptr);
   }
 
