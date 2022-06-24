@@ -619,6 +619,27 @@ extern "C" int lua_get_top(lua_State *L) {
   return 2;
 }
 
+extern "C" int lua_display_sixel(lua_State *L) {
+  const char *sixel = lua_tostring(L, 1);
+  Node *n = lua_getNode(L);
+
+  if (n->sixel_support()) {
+    n->send_raw(std::string(sixel));
+  }
+
+  return 0;
+}
+
+extern "C" int lua_switch_font(lua_State *L) {
+  int font = lua_tonumber(L, 1);
+  int place = lua_tonumber(L, 2);
+  Node *n = lua_getNode(L);
+
+  n->switch_font(font, place);
+
+  return 0;
+}
+
 void Script::init_state(Node *n, lua_State *l) {
 
   luaL_openlibs(l);
@@ -761,6 +782,12 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_getTermType);
   lua_setglobal(l, "bbs_get_term_type");
+
+  lua_pushcfunction(l, lua_display_sixel);
+  lua_setglobal(l, "bbs_display_sixel");
+
+  lua_pushcfunction(l, lua_switch_font);
+  lua_setglobal(l, "bbs_switch_font");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.40"
+#define MyAppVersion "0.41"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"

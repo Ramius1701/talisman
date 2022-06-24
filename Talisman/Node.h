@@ -95,6 +95,7 @@ public:
   std::string ipaddr;
   void switch_font();
   void switch_font(int fontslot, int place);
+  bool sixel_support() { return sixel_allowed; }
 
 private:
   int node;

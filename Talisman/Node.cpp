@@ -1993,6 +1993,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
         arguments.push_back(std::to_string(socket));
 #endif
         Door::createDropfiles(this);
+        Script::predoor(this);
         if (!Door::runExternal(this, config.get_login_items()->at(i).data, arguments, false)) {
 #ifdef _MSC_VER
           closesocket(socket);
