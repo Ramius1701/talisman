@@ -425,281 +425,284 @@ bool Server::send_file_packet(std::filesystem::path file, std::string name) {
   return true;
 }
 
-bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesystem::path dir, std::filesystem::path outbox) {
+bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesystem::path *dir, std::filesystem::path outbox) {
   std::vector<struct outfile_t> files;
 
-  for (const struct address_t &a : c.addresses) {
-    if (a.domain == domain) {
-      std::stringstream flowfname;
-      char buffer[13];
-      struct outfile_t outf;
+  if (dir != nullptr) {
 
-      flowfname.str("");
+    for (const struct address_t &a : c.addresses) {
+      if (a.domain == domain) {
+        std::stringstream flowfname;
+        char buffer[13];
+        struct outfile_t outf;
 
-      outf.flo = "";
+        flowfname.str("");
 
-      if (theirnode->point != 0) {
-        snprintf(buffer, sizeof buffer, "%08x", theirnode->point);
-        flowfname << buffer;
-      } else {
-        snprintf(buffer, sizeof buffer, "%04x%04x", theirnode->net, theirnode->node);
-        flowfname << buffer;
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".cut")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".cut");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".out")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".out");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".hut")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".hut");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".clo")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".clo");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".clo";
+        outf.flo = "";
+
+        if (theirnode->point != 0) {
+          snprintf(buffer, sizeof buffer, "%08x", theirnode->point);
+          flowfname << buffer;
+        } else {
+          snprintf(buffer, sizeof buffer, "%04x%04x", theirnode->net, theirnode->node);
+          flowfname << buffer;
+        }
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".cut")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".cut");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
           files.push_back(outf);
         }
-        is.close();
-
-      } else if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".hlo")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".hlo");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".hlo";
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".out")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".out");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
           files.push_back(outf);
         }
-        is.close();
-
-      } else if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".flo")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".flo");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".flo";
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".hut")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".hut");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
           files.push_back(outf);
         }
-        is.close();
-      }
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".clo")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".clo");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".clo";
+            files.push_back(outf);
+          }
+          is.close();
+
+        } else if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".hlo")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".hlo");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".hlo";
+            files.push_back(outf);
+          }
+          is.close();
+
+        } else if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".flo")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".flo");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".flo";
+            files.push_back(outf);
+          }
+          is.close();
+        }
 #ifndef _MSC_VER
-      flowfname.str("");
-      outf.flo = "";
-      if (theirnode->point != 0) {
-        snprintf(buffer, sizeof buffer, "%08X", theirnode->point);
-        flowfname << buffer;
-      } else {
-        snprintf(buffer, sizeof buffer, "%04X%04X", theirnode->net, theirnode->node);
-        flowfname << buffer;
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".CUT")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".CUT");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".OUT")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".OUT");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".HUT")) {
-        outf.file = std::filesystem::path(dir.u8string() + "/" + flowfname.str() + ".HUT");
-        outf.name = genpktname();
-        outf.del = true;
-        outf.trunc = false;
-        files.push_back(outf);
-      }
-      if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".CLO")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".CLO");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".CLO";
+        flowfname.str("");
+        outf.flo = "";
+        if (theirnode->point != 0) {
+          snprintf(buffer, sizeof buffer, "%08X", theirnode->point);
+          flowfname << buffer;
+        } else {
+          snprintf(buffer, sizeof buffer, "%04X%04X", theirnode->net, theirnode->node);
+          flowfname << buffer;
+        }
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".CUT")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".CUT");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
           files.push_back(outf);
         }
-        is.close();
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".OUT")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".OUT");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
+          files.push_back(outf);
+        }
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".HUT")) {
+          outf.file = std::filesystem::path(dir->u8string() + "/" + flowfname.str() + ".HUT");
+          outf.name = genpktname();
+          outf.del = true;
+          outf.trunc = false;
+          files.push_back(outf);
+        }
+        if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".CLO")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".CLO");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".CLO";
+            files.push_back(outf);
+          }
+          is.close();
 
-      } else if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".HLO")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".HLO");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
+        } else if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".HLO")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".HLO");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".HLO";
+            files.push_back(outf);
           }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".HLO";
-          files.push_back(outf);
-        }
-        is.close();
+          is.close();
 
-      } else if (std::filesystem::exists(dir.u8string() + "/" + flowfname.str() + ".FLO")) {
-        std::ifstream is(dir.u8string() + "/" + flowfname.str() + ".FLO");
-        std::string str;
-        while (getline(is, str)) {
-          if (str[0] == '^' || str[0] == '-') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = true;
-            outf.trunc = false;
-          } else if (str[0] == '~' || str[0] == '!') {
-            // skip
-            continue;
-          } else if (str[0] == '#') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = true;
-          } else if (str[0] == '@') {
-            outf.file = std::filesystem::path(str.substr(1));
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
-          } else {
-            outf.file = std::filesystem::path(str);
-            outf.name = outf.file.filename().u8string();
-            outf.del = false;
-            outf.trunc = false;
+        } else if (std::filesystem::exists(dir->u8string() + "/" + flowfname.str() + ".FLO")) {
+          std::ifstream is(dir->u8string() + "/" + flowfname.str() + ".FLO");
+          std::string str;
+          while (getline(is, str)) {
+            if (str[0] == '^' || str[0] == '-') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = true;
+              outf.trunc = false;
+            } else if (str[0] == '~' || str[0] == '!') {
+              // skip
+              continue;
+            } else if (str[0] == '#') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = true;
+            } else if (str[0] == '@') {
+              outf.file = std::filesystem::path(str.substr(1));
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            } else {
+              outf.file = std::filesystem::path(str);
+              outf.name = outf.file.filename().u8string();
+              outf.del = false;
+              outf.trunc = false;
+            }
+            outf.flo = dir->u8string() + "/" + flowfname.str() + ".FLO";
+            files.push_back(outf);
           }
-          outf.flo = dir.u8string() + "/" + flowfname.str() + ".FLO";
-          files.push_back(outf);
+          is.close();
         }
-        is.close();
-      }
 #endif
+      }
     }
   }
 
-  for (const auto &dir : std::filesystem::directory_iterator{outbox}) {
+   for (const auto &dir : std::filesystem::directory_iterator{outbox}) {
     struct outfile_t outf;
 
     outf.file = std::filesystem::absolute(dir.path());
@@ -1259,6 +1262,7 @@ int Server::run(NETADDR *addr, std::string domain) {
         snprintf(buffer, 5, "%03X", l.addr->zone);
         fspath.assign(c.outbound + "." + buffer);
         if (!std::filesystem::exists(fspath)) {
+          transfer_files(l.network, l.addr, nullptr, std::filesystem::path(l.outbox));
           continue;
         }
       }
@@ -1266,7 +1270,7 @@ int Server::run(NETADDR *addr, std::string domain) {
       fspath.assign(c.outbound);
     }
 
-    transfer_files(l.network, l.addr, fspath, std::filesystem::path(l.outbox));
+    transfer_files(l.network, l.addr, &fspath, std::filesystem::path(l.outbox));
   }
 
   if (!process_frames(2, 0xff)) {
@@ -1455,6 +1459,7 @@ int Server::run(int socket) {
         snprintf(buffer, 5, "%03X", l.addr->zone);
         fspath.assign(c.outbound + "." + buffer);
         if (!std::filesystem::exists(fspath)) {
+          transfer_files(l.network, l.addr, nullptr, std::filesystem::path(l.outbox));
           continue;
         }
       }
@@ -1462,7 +1467,7 @@ int Server::run(int socket) {
       fspath.assign(c.outbound);
     }
 
-    transfer_files(l.network, l.addr, fspath, std::filesystem::path(l.outbox));
+    transfer_files(l.network, l.addr, &fspath, std::filesystem::path(l.outbox));
   }
 
   if (!senteob) {
