@@ -702,7 +702,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
     }
   }
 
-   for (const auto &dir : std::filesystem::directory_iterator{outbox}) {
+  for (const auto &dir : std::filesystem::directory_iterator{outbox}) {
     struct outfile_t outf;
 
     outf.file = std::filesystem::absolute(dir.path());

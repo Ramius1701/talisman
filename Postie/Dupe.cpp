@@ -145,8 +145,6 @@ bool Dupe::is_dupe(std::string crcfile, std::string msgid, struct sq_msg *msg) {
   uint32_t msgcrc = crc32buf(noseenbypath.c_str(), noseenbypath.size());
   uint32_t ctrlcrc = crc32buf(ctrlstr.c_str(), ctrlstr.size());
 
-
-
   if (fptr) {
     while (fread(checkcrc, sizeof(uint32_t), 3, fptr) == 3) {
       if (checkcrc[0] == crc && checkcrc[1] == ctrlcrc && checkcrc[2] == msgcrc) {
