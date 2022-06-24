@@ -490,7 +490,7 @@ std::vector<std::string> FullScreenEditor::do_quote() {
 
         continue;
       }
-    } else if (c == ' ') {
+    } else if (c == ' ' || c == '\r') {
       to_quote.push_back(quotelines.at(selected));
       if (selected < (int)quotelines.size() - 1) {
         selected++;
