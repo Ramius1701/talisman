@@ -26,7 +26,7 @@ public:
   int run(int socket);
   int run(NETADDR *addr, std::string domain);
   int send_command_packet(uint8_t type, std::string data);
-  bool transfer_files(std::string domain, NETADDR *theirnode, std::filesystem::path outdir, std::filesystem::path outbox);
+  bool transfer_files(std::string domain, NETADDR *theirnode, std::filesystem::path *outdir, std::filesystem::path outbox);
   bool process_data(uint16_t header, int timeout);
   uint8_t process_command(uint16_t header, int timeout);
   bool process_frames(int timeout, uint8_t upto);
