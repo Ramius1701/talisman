@@ -317,11 +317,13 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
   int start = 0;
   int selected = 0;
   // bool redraw = true;
-  bool sortby = true;
+  bool sortby = false;
   static const char units[] = " KMGT";
 
   if (filelist->size() == 0)
     return false;
+
+  std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
 
   n->cls();
   n->print_f("\x1b[1;1H");
@@ -475,6 +477,13 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
 bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool cancel) {
   static const char units[] = " KMGT";
   int lines = 0;
+
+  n->print_f("|14Sort by filename, or upload date? (F/D) : |07");
+  if (n->getch() != 'd') {
+    std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
+  }
+  n->print_f("\r\n");
+
   for (size_t i = 0; i < filelist->size(); i++) {
     int unit;
     bool tagged = false;
