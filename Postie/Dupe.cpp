@@ -97,8 +97,8 @@ uint32_t Dupe::crc32buf(const char *buf, size_t len) {
 
   oldcrc32 = 0xFFFFFFFF;
 
-  for (i = 0; len; len--, i++) {
-    oldcrc32 = UPDC32(buf[i], oldcrc32);
+  for (i = 0; i < len; i++) {
+    oldcrc32 = UPDC32((const unsigned char)buf[i], oldcrc32);
   }
 
   return ~oldcrc32;
@@ -107,7 +107,7 @@ uint32_t Dupe::crc32buf(const char *buf, size_t len) {
 bool Dupe::crc32file(const char *name, uint32_t *crc) {
   FILE *fin;
   uint32_t oldcrc32;
-  int c;
+  char c;
 
   oldcrc32 = 0xFFFFFFFF;
 
@@ -116,7 +116,7 @@ bool Dupe::crc32file(const char *name, uint32_t *crc) {
     return false;
   }
   while ((c = getc(fin)) != EOF) {
-    oldcrc32 = UPDC32(c, oldcrc32);
+    oldcrc32 = UPDC32((const unsigned char)c, oldcrc32);
   }
 
   if (ferror(fin)) {

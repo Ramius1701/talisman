@@ -5,12 +5,13 @@
 #include <ctime>
 #include <iostream>
 
-CallLog::CallLog(Config *c) {
+CallLog::CallLog(Config *c, bool invisible) {
   id = -1;
   bytesup = 0;
   bytesdown = 0;
   msgsposted = 0;
   doorsrun = 0;
+  this->invisible = invisible;
   this->c = c;
 }
 
@@ -44,6 +45,10 @@ void CallLog::log_on(std::string username, int node) {
   time_t thetime = time(NULL);
   const char *sql = "INSERT INTO calllog (username, node, timeon, timeoff, rundoor, upload, download, msgpost) VALUES(?, ?, ?, 0, 0, 0, 0, 0)";
 
+  if (invisible) {
+    return;
+  }
+
   if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
     return;
   }
@@ -72,6 +77,11 @@ void CallLog::log_off() {
   if (id == -1) {
     return;
   }
+
+  if (invisible) {
+    return;
+  }
+
   if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
     return;
   }
@@ -100,6 +110,11 @@ void CallLog::ran_door() {
   if (id == -1) {
     return;
   }
+
+  if (invisible) {
+    return;
+  }
+
   if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
     return;
   }
@@ -128,6 +143,11 @@ void CallLog::up_bytes(uint32_t bytes) {
   if (id == -1) {
     return;
   }
+
+  if (invisible) {
+    return;
+  }
+
   if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
     return;
   }
@@ -156,6 +176,11 @@ void CallLog::down_bytes(uint32_t bytes) {
   if (id == -1) {
     return;
   }
+
+  if (invisible) {
+    return;
+  }
+
   if (!open_database(c->data_path() + "/call_log.sqlite3", &db)) {
     return;
   }
@@ -180,6 +205,10 @@ void CallLog::post_msg() {
   const char *sql = "UPDATE calllog SET msgpost = ? WHERE id = ?";
 
   msgsposted++;
+
+  if (invisible) {
+    return;
+  }
 
   if (id == -1) {
     return;

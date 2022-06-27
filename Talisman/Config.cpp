@@ -349,6 +349,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
       bool my_can_delete_msgs;
       bool my_can_delete_own_msgs;
       bool mybulk;
+      bool myinvisible;
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
@@ -397,6 +398,14 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         my_can_delete_own_msgs = false;
       }
 
+      auto isinvisible = itemtable->get("invisible");
+      if (isinvisible != nullptr) {
+        myinvisible = isinvisible->as_boolean()->value_or(false);
+      } else {
+        myinvisible = false;
+      }
+
+
       if (mysec_level != 0) {
         struct sec_level_t slvl;
         slvl.level = mysec_level;
@@ -406,6 +415,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
         slvl.bulk_msg_allowed = mybulk;
         slvl.can_delete_msgs = my_can_delete_msgs;
         slvl.can_delete_own_msgs = my_can_delete_own_msgs;
+        slvl.invisible = myinvisible;
         seclevels.push_back(slvl);
       }
     }

@@ -1149,6 +1149,8 @@ bool Tosser::run(bool protinbound) {
           // check if dupe
           std::string msgid = get_msgid(ctrlstr.str());
 
+          log.log(LOG_DEBUG, "MSGID for DUPE CHECKER \"%s\"", msgid.c_str());
+
           if (Dupe::is_dupe(_datapath + "/dupehist_v2.dat", msgid, &sqmsg)) {
 
             if (c.dupebase() == "") {
@@ -1163,7 +1165,7 @@ bool Tosser::run(bool protinbound) {
                 SquishCloseMsgBase(mb);
                 log.log(LOG_INFO, "Found duplicate, saved in dupe base.");
               } else {
-                log.log(LOG_INFO, "Found duplicate, discarding because error occured opening the dupe base.");
+                log.log(LOG_INFO, "Found duplicate, discarding because an error occured opening the dupe base.");
               }
             }
             free(sqmsg.msg);

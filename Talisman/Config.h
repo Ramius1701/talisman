@@ -24,6 +24,7 @@ struct sec_level_t {
   int can_delete_msgs;
   int can_delete_own_msgs;
   bool bulk_msg_allowed;
+  bool invisible;
 };
 
 struct login_item_t {

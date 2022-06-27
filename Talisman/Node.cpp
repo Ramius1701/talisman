@@ -86,6 +86,7 @@ Node::Node(int node, int socket, bool telnet) {
   strcpy(term_type, "UNKNOWN");
   pause_loaded = false;
   isutf8 = false;
+  invisible = false;
 }
 
 Node::~Node() {
@@ -1749,12 +1750,15 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   }
   log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
   srand((uint32_t)time(NULL));
-  clog = new CallLog(&config);
+
+  struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
+
+  invisible = sl->invisible;
+
+  clog = new CallLog(&config, invisible);
   clog->log_on(u.get_username(), node);
   u.inc_attrib("calls");
   update_node_use("Logging in.");
-
-  struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());
 
   last_on = stol(u.get_attribute("last_on", "0"));
   time_t now = time(NULL);

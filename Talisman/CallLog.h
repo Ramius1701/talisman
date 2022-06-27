@@ -18,7 +18,7 @@ struct caller_t {
 
 class CallLog {
 public:
-  CallLog(Config *c);
+  CallLog(Config *c, bool invisible);
   static bool get_last_x(Node *n, int x, struct caller_t *ct);
   void log_on(std::string username, int node);
   void log_off();
@@ -48,4 +48,5 @@ private:
   int doorsrun;
   int id;
   Config *c;
+  bool invisible;
 };
