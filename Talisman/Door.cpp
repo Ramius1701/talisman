@@ -325,7 +325,11 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
 
       close(slave);
       setsid();
+#ifdef __HAIKU__
+	  ioctl(0, TIOCSCTTY, (void *)1);
+#else      
       ioctl(0, TIOCSCTTY, 1);
+#endif
       execvp(command.c_str(), argv);
       exit(0);
     } else {
