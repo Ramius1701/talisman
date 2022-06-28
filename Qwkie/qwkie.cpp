@@ -18,6 +18,10 @@
 #define strcasecmp _stricmp
 #endif
 
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+}
+
 static int safe_atoi(const char *str, int len) {
   int ret = 0;
 
@@ -738,7 +742,11 @@ bool Qwkie::toss(int net) {
             }
           }
 
-          sqmsg.msg_len = msgbody.str().size();
+          std::string trimmedmsg = msgbody.str();
+
+          rtrim(trimmedmsg);
+
+          sqmsg.msg_len = trimmedmsg.size();
 
           sqmsg.msg = (char *)malloc(sqmsg.msg_len);
 
@@ -749,7 +757,7 @@ bool Qwkie::toss(int net) {
             }
             return false;
           }
-          memcpy(sqmsg.msg, msgbody.str().c_str(), msgbody.str().size());
+          memcpy(sqmsg.msg, trimmedmsg.c_str(), trimmedmsg.size());
 
           sqmsg.xmsg.date_written.date |= (((sq_word)thedate.tm_mday) & 31);
           sqmsg.xmsg.date_written.date |= (((sq_word)(thedate.tm_mon + 1)) & 15) << 5;

@@ -43,6 +43,10 @@ Menu::Menu(Node *n) {
   this->n = n;
 }
 
+static inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+}
+
 bool Menu::load(std::string filename) {
   try {
     auto data = toml::parse_file(filename);
@@ -2450,14 +2454,17 @@ void Menu::qwk_up(Node *n) {
 
       free(msgcontent);
 
+      std::string trimmedmsg = msgbody.str();
+      rtrim(trimmedmsg);
+
       ss.str("");
-      for (size_t i = 0; i < msgbody.str().size(); i++) {
-        if (msgbody.str().at(i) == '\r') {
+      for (size_t i = 0; i < trimmedmsg.size(); i++) {
+        if (trimmedmsg.at(i) == '\r') {
           text.push_back(ss.str());
           ss.str("");
           continue;
         }
-        ss << msgbody.str().at(i);
+        ss << trimmedmsg.at(i);
       }
 
       if (ss.str().size() > 0) {
