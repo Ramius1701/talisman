@@ -887,19 +887,28 @@ bool Tosser::run(bool protinbound) {
       }
     }
 
-    for (auto &pkt : std::filesystem::directory_iterator(tempdir)) {
+    std::vector<std::filesystem::path> packet_files;
+
+    for (auto &pkt : std::filesystem::directory_iterator{tempdir}) {
       if (std::filesystem::is_directory(pkt.path()))
         continue;
-      if (std::filesystem::file_size(pkt.path()) < 58) {
+      else {
+        printf("ADDING %s\n", pkt.path().u8string().c_str());
+        packet_files.push_back(pkt.path());
+      }
+    }
+
+    for (std::filesystem::path pkt : packet_files) {
+      if (std::filesystem::file_size(pkt) < 58) {
         // move bad packet to .bad
         log.log(LOG_ERROR, "Packet size < 58 bytes");
-        bad_packet(&c, pkt.path().u8string());
+        bad_packet(&c, pkt.u8string());
         continue;
       }
-      FILE *fptr = fopen(pkt.path().u8string().c_str(), "rb");
+      FILE *fptr = fopen(pkt.u8string().c_str(), "rb");
 
       if (!fptr) {
-        log.log(LOG_ERROR, "Unable to open packet! %s", pkt.path().u8string().c_str());
+        log.log(LOG_ERROR, "Unable to open packet! %s", pkt.u8string().c_str());
         continue;
       }
 
@@ -916,7 +925,7 @@ bool Tosser::run(bool protinbound) {
         fclose(fptr);
         log.log(LOG_ERROR, "Packet version != 2");
         // move bad packet to .bad
-        bad_packet(&c, pkt.path().u8string());
+        bad_packet(&c, pkt.u8string());
         continue;
       }
 
@@ -989,7 +998,7 @@ bool Tosser::run(bool protinbound) {
 
         fclose(fptr);
         // move bad packet to .bad
-        bad_packet(&c, pkt.path().u8string());
+        bad_packet(&c, pkt.u8string());
         continue;
       }
 
@@ -1545,10 +1554,11 @@ bool Tosser::run(bool protinbound) {
         // move bad packet to .bad
         log.log(LOG_ERROR, "Packet message version != 2");
         fclose(fptr);
-        bad_packet(&c, pkt.path().u8string());
+        bad_packet(&c, pkt.u8string());
         continue;
       }
       fclose(fptr);
+      std::filesystem::remove(pkt);
     }
 
     std::filesystem::remove(temp_name);
