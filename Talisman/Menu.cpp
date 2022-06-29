@@ -37,6 +37,7 @@
 #include <fstream>
 #include <iterator>
 #include <sstream>
+#include <algorithm>
 
 Menu::Menu(Node *n) {
   isloaded = false;
