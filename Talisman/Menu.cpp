@@ -1312,7 +1312,7 @@ bool Menu::run() {
                   nmsgp.append("node.msg");
                   FILE *fptr = fopen(nmsgp.u8string().c_str(), "a");
                   if (fptr) {
-                    fprintf(fptr, "|15%s |14on Node %d |07 Wishes to Chat with you!\n@CHATREQUEST:%d@", n->get_user().get_username().c_str(), n->getnodenum(),
+                    fprintf(fptr, "|15%s |14on Node %d |07 Wishes to Chat with you!\n@CHATREQUEST:%d@\n", n->get_user().get_username().c_str(), n->getnodenum(),
                             n->getnodenum());
                     fclose(fptr);
                     n->print_f("\r\n|10Sent!|07\r\n");
@@ -1331,7 +1331,7 @@ bool Menu::run() {
 
                     FILE *fptr = fopen(nmsgp.u8string().c_str(), "a");
                     if (fptr) {
-                      fprintf(fptr, "|14Message from |15%s |14on Node %d|08:|07\r\n\r\n%s\r\n\r\n", n->get_user().get_username().c_str(), n->getnodenum(),
+                      fprintf(fptr, "|14Message from |15%s |14on Node %d|08:|07\n\n%s\n\n", n->get_user().get_username().c_str(), n->getnodenum(),
                               msg.c_str());
                       fclose(fptr);
                       n->print_f("\r\n|10Sent!|07\r\n");
