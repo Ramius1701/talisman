@@ -478,12 +478,13 @@ bool FileArea::do_list(Node *n, std::vector<struct file_list_t> *filelist, bool 
   static const char units[] = " KMGT";
   int lines = 0;
 
-  n->print_f("|14Sort by filename, or upload date? (F/D) : |07");
-  if (n->getch() != 'd') {
-    std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
+  if (filelist->size() > 0) {
+    n->print_f("|14Sort by filename, or upload date? (F/D) : |07");
+    if (n->getch() != 'd') {
+      std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
+    }
+    n->print_f("\r\n");
   }
-  n->print_f("\r\n");
-
   for (size_t i = 0; i < filelist->size(); i++) {
     int unit;
     bool tagged = false;
