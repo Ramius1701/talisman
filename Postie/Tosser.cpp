@@ -750,6 +750,24 @@ static uint16_t bswap16(uint16_t arg) {
   return lobyte << 8 | hibyte;
 }
 #endif
+
+bool sort_by_last_write(std::filesystem::path p1, std::filesystem::path p2) {
+  return (std::filesystem::last_write_time(p1) < std::filesystem::last_write_time(p2));
+}
+
+bool sort_by_filename(std::filesystem::path p1, std::filesystem::path p2) {
+  time_t t1 = 0;
+  time_t t2 = 0;
+
+  try {
+    t1 = std::stoi(p1.stem(), nullptr, 16);
+    t2 = std::stoi(p2.stem(), nullptr, 16);
+  } catch (std::exception const &) {
+    return false;
+  }
+  return (t1 < t2);
+}
+
 bool Tosser::run(bool protinbound) {
   INIReader inir("talisman.ini");
 
@@ -823,9 +841,12 @@ bool Tosser::run(bool protinbound) {
   std::vector<std::filesystem::path> totoss;
 
   for (auto &p : std::filesystem::directory_iterator(inbound)) {
-    std::filesystem::path packetpth = p.path();
-    totoss.push_back(p.path());
+    if (std::filesystem::is_regular_file(p.path())) {
+      totoss.push_back(p.path());
+    }
   }
+
+  std::sort(totoss.begin(), totoss.end(), sort_by_last_write);
 
   std::filesystem::remove_all(tempdir);
   std::filesystem::create_directories(tempdir);
@@ -893,10 +914,11 @@ bool Tosser::run(bool protinbound) {
       if (std::filesystem::is_directory(pkt.path()))
         continue;
       else {
-        printf("ADDING %s\n", pkt.path().u8string().c_str());
         packet_files.push_back(pkt.path());
       }
     }
+
+    std::sort(packet_files.begin(), packet_files.end(), sort_by_filename);
 
     for (std::filesystem::path pkt : packet_files) {
       if (std::filesystem::file_size(pkt) < 58) {
