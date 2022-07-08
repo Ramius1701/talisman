@@ -653,6 +653,8 @@ bool FileArea::upload_file(Node *n) {
       }
       std::filesystem::create_directories(t);
 
+      descr.clear();
+
       Archiver::extract(n, f.path().u8string(), file_id, t.u8string());
       for (auto &d : std::filesystem::directory_iterator(t)) {
         if (strcasecmp(d.path().filename().u8string().c_str(), "file_id.diz") == 0) {

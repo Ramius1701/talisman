@@ -851,6 +851,8 @@ bool Scanner::run() {
         SquishUpdateHdr(mb, msg);
         SquishUnlockMsgBase(mb);
 
+        log.log(LOG_INFO, "Exported echomail \"%s\" by \"%s\"...", msg->xmsg.subject, msg->xmsg.from);
+
         if (c.areas.at(i).shook != "") {
           std::stringstream hss;
 
@@ -961,10 +963,14 @@ bool Scanner::run() {
           }
         }
 
+
+
         msg->xmsg.attr |= MSGSENT;
         SquishLockMsgBase(mb);
         SquishUpdateHdr(mb, msg);
         SquishUnlockMsgBase(mb);
+        log.log(LOG_INFO, "Exported Netmail \"%s\" by \"%s\"...", msg->xmsg.subject, msg->xmsg.from);
+
       }
       SquishFreeMsg(msg);
     }

@@ -1180,8 +1180,6 @@ bool Tosser::run(bool protinbound) {
           // check if dupe
           std::string msgid = get_msgid(ctrlstr.str());
 
-          log.log(LOG_DEBUG, "MSGID for DUPE CHECKER \"%s\"", msgid.c_str());
-
           if (Dupe::is_dupe(_datapath + "/dupehist_v2.dat", msgid, &sqmsg)) {
 
             if (c.dupebase() == "") {
