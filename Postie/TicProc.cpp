@@ -567,7 +567,7 @@ bool TicProc::run() {
       for (size_t i = 0; i < filearea->links.size(); i++) {
         if (filearea->links.at(i).link->aka->zone == ticfrom->zone && filearea->links.at(i).link->aka->net == ticfrom->net &&
             filearea->links.at(i).link->aka->node == ticfrom->node && filearea->links.at(i).link->aka->point == ticfrom->point) {
-          if (filearea->links.at(i).link->ticpwd == tic.password) {
+          if (strcasecmp(filearea->links.at(i).link->ticpwd.c_str(), tic.password.c_str()) == 0) {
             passok = true;
             canforward = filearea->links.at(i).forward_allowed;
             canprocess = filearea->links.at(i).process_allowed;
