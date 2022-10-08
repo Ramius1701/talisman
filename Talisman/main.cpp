@@ -231,7 +231,11 @@ int main(int argc, char **argv) {
             try {
               ret = n.run(&sshc->username, &sshc->password);
               sshc->dis_flag = true;
+#ifdef _MSC_VER
+              closesocket(new_sock);
+#else
               close(new_sock);
+#endif
             } catch(DisconnectException e) {
               sshc->dis_flag = true;
               ret = -1;
