@@ -23,7 +23,7 @@ public:
   SshClient();
   ~SshClient();
   bool do_auth();
-
+  bool dis_flag;
 private:
   void do_run();
   ssh_channel chan;

@@ -13,6 +13,7 @@
 #include "Config.h"
 #include "Node.h"
 #include "SshClient.h"
+#include "Disconnect.h"
 #include <iostream>
 #include <libssh/libssh.h>
 #include <thread>
@@ -211,7 +212,7 @@ int main(int argc, char **argv) {
               }
               sshc->run();
             });
-            t.detach();
+            //t.detach();
             new_sock = accept(listener, (sockaddr *)&sa, &addr_len);
 #ifdef _MSC_VER
             closesocket(listener);
@@ -227,7 +228,15 @@ int main(int argc, char **argv) {
             n.set_term_type(sshc->term_type);
             n.sshc = sshc;
             n.ssht = &t;
-            ret = n.run(&sshc->username, &sshc->password);
+            try {
+              ret = n.run(&sshc->username, &sshc->password);
+              sshc->dis_flag = true;
+              close(new_sock);
+            } catch(DisconnectException e) {
+              sshc->dis_flag = true;
+              ret = -1;
+            }
+            t.join();
           }
         }
         delete sshc;
@@ -235,7 +244,11 @@ int main(int argc, char **argv) {
     }
   } else {
     Node n(node, sock, telnet);
-    ret = n.run();
+    try {
+      ret = n.run();
+    } catch(DisconnectException e) {
+      ret = -1;
+    }
   }
 
   return ret;

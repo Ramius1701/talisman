@@ -29,6 +29,7 @@
 #include "Script.h"
 #include "SshClient.h"
 #include "User.h"
+#include "Disconnect.h"
 #include <algorithm>
 #include <cinttypes>
 #include <ctime>
@@ -2087,7 +2088,7 @@ void Node::disconnected() {
   }
 
   log->log(LOG_INFO, "Node %d logged off (disconnected)", node);
-  exit(-1);
+  throw(DisconnectException("Disconnected"));
 }
 
 void Node::display_nodes() {

@@ -6,7 +6,7 @@
 #endif
 #include "SshClient.h"
 
-SshClient::SshClient() { chan = NULL; }
+SshClient::SshClient() { chan = NULL; dis_flag = false; }
 
 SshClient::~SshClient() {}
 
@@ -18,6 +18,7 @@ static int ssh_copy_fd_to_chan(socket_t fd, int revents, void *userdata) {
   if (!chan) {
     return -1;
   }
+
   if (revents & POLLIN) {
     sz = recv(fd, buf, 2048, 0);
     if (sz > 0) {
@@ -42,7 +43,14 @@ static int ssh_copy_chan_to_fd(ssh_session session, ssh_channel channel, void *d
   (void)channel;
   (void)is_stderr;
 
+  char buffer[32];
+
   sz = send(sshc->rsock, (const char *)data, len, 0);
+
+  if (sshc->dis_flag) {
+    ssh_channel_close(channel);
+  }
+
   return sz;
 }
 
@@ -168,7 +176,7 @@ void SshClient::do_run() {
   ssh_callbacks_init(&ssh_cb);
   ssh_set_channel_callbacks(chan, &ssh_cb);
 
-  short events = POLLIN | POLLPRI | POLLERR | POLLHUP | POLLNVAL;
+  short events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 
   ssh_event ev = ssh_event_new();
   if (ev == NULL) {
