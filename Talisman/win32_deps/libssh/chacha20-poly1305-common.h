@@ -1,7 +1,9 @@
 /*
  * This file is part of the SSH Library
  *
- * Copyright (c) 2003-2008 by Aris Adamantiadis
+ * Copyright (c) 2020 Red Hat, Inc.
+ *
+ * Author: Jakub Jelen <jjelen@redhat.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,15 +20,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef SFTP_PRIV_H
-#define SFTP_PRIV_H
+/*
+ * chacha20-poly1305.h file
+ * This file includes definitions needed for Chacha20-poly1305 AEAD cipher
+ * using different crypto backends.
+ */
 
-sftp_packet sftp_packet_read(sftp_session sftp);
-int sftp_packet_write(sftp_session sftp, uint8_t type, ssh_buffer payload);
-void sftp_packet_free(sftp_packet packet);
-int buffer_add_attributes(ssh_buffer buffer, sftp_attributes attr);
-sftp_attributes sftp_parse_attr(sftp_session session,
-                                ssh_buffer buf,
-                                int expectname);
+#ifndef CHACHA20_POLY1305_H
+#define CHACHA20_POLY1305_H
 
-#endif /* SFTP_PRIV_H */
+#define CHACHA20_BLOCKSIZE 64
+#define CHACHA20_KEYLEN 32
+
+#define POLY1305_TAGLEN 16
+/* size of the keys k1 and k2 as defined in specs */
+#define POLY1305_KEYLEN 32
+
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif
+struct ssh_packet_header {
+    uint32_t length;
+    uint8_t payload[];
+}
+#if defined(__GNUC__)
+__attribute__ ((packed))
+#endif
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif
+;
+
+#endif /* CHACHA20_POLY1305_H */

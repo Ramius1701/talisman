@@ -43,8 +43,6 @@ static int ssh_copy_chan_to_fd(ssh_session session, ssh_channel channel, void *d
   (void)channel;
   (void)is_stderr;
 
-  char buffer[32];
-
   sz = send(sshc->rsock, (const char *)data, len, 0);
 
   if (sshc->dis_flag) {
