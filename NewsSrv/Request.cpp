@@ -802,7 +802,8 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   for (size_t i = 0; i < end; i++) {
     if (should_convert) {
-      send(socket, std::string(convert_utf8(lines.at(i)) + "\r\n").c_str(), lines.at(i).size() + 2, 0);
+      std::string converted = convert_utf8(lines.at(i));
+      send(socket, std::string(converted + "\r\n").c_str(), converted.size() + 2, 0);
     } else {
       send(socket, std::string(lines.at(i) + "\r\n").c_str(), lines.at(i).size() + 2, 0);
     }
