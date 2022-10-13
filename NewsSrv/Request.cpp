@@ -518,20 +518,45 @@ void Request::dohead(int grp, int article, bool byid) {
   msg_tm.tm_sec = ((msg->xmsg.date_written.time) & 31) * 2;
   msg_tm.tm_isdst = -1;
 
-
-  mktime(&msg_tm);
-
-  std::string tzutc = find_kludge(msg, "TZUTC");
-
-  if (tzutc == "") {
-    tzutc = "+00:00";
-  } else if (tzutc.at(0) != '-') {
-    tzutc = "+" + tzutc;
-  }
-
+  time_t the_time = timegm(&msg_tm);
 
   char datestr[36];
 
+  std::string tzutc = find_kludge(msg, "TZUTC");
+
+ if (tzutc.size() == 4 && tzutc.at(0) != '-') {
+    int tzhr = (tzutc.at(0) - '0') * 10 + (tzutc.at(1) - '0');
+    int tzmin = (tzutc.at(2) - '0') * 10 + (tzutc.at(3) - '0');
+
+    the_time -= tzhr * 60 * 60;
+    the_time -= tzmin * 60;
+#ifdef __MSC_VER
+    gmtime_s(&msg_tm, &the_time);
+#else
+    gmtime_r(&the_time, &msg_tm);
+#endif
+    std::stringstream ss;
+    ss << "+" << tzutc.at(0) << tzutc.at(1) << ":" << tzutc.at(2) << tzutc.at(3);
+    tzutc = ss.str();
+
+  } else if (tzutc.size() == 4) {
+    int tzhr = (tzutc.at(1) - '0') * 10 + (tzutc.at(2) - '0');
+    int tzmin = (tzutc.at(3) - '0') * 10 + (tzutc.at(4) - '0');
+
+    the_time += tzhr * 60 * 60;
+    the_time += tzmin * 60;
+#ifdef __MSC_VER
+    gmtime_s(&msg_tm, &the_time);
+#else
+    gmtime_r(&the_time, &msg_tm);
+#endif
+    std::stringstream ss;
+    ss << "-" << tzutc.at(1) << tzutc.at(2) << ":" << tzutc.at(3) << tzutc.at(4);
+    tzutc = ss.str();
+
+  } else {
+    tzutc = "+00:00";
+  }
   snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d %s", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec, tzutc.c_str());
 
   ss.str("");
@@ -605,16 +630,44 @@ void Request::doarticle(int grp, int article, bool byid) {
   msg_tm.tm_sec = ((msg->xmsg.date_written.time) & 31) * 2;
   msg_tm.tm_isdst = -1;
 
-  mktime(&msg_tm);
+  time_t the_time = timegm(&msg_tm);
 
   char datestr[36];
 
   std::string tzutc = find_kludge(msg, "TZUTC");
 
-  if (tzutc == "") {
+  if (tzutc.size() == 4 && tzutc.at(0) != '-') {
+    int tzhr = (tzutc.at(0) - '0') * 10 + (tzutc.at(1) - '0');
+    int tzmin = (tzutc.at(2) - '0') * 10 + (tzutc.at(3) - '0');
+
+    the_time -= tzhr * 60 * 60;
+    the_time -= tzmin * 60;
+#ifdef __MSC_VER
+    gmtime_s(&msg_tm, &the_time);
+#else
+    gmtime_r(&the_time, &msg_tm);
+#endif
+    std::stringstream ss;
+    ss << "+" << tzutc.at(0) << tzutc.at(1) << ":" << tzutc.at(2) << tzutc.at(3);
+    tzutc = ss.str();
+
+  } else if (tzutc.size() == 5){
+    int tzhr = (tzutc.at(1) - '0') * 10 + (tzutc.at(2) - '0');
+    int tzmin = (tzutc.at(3) - '0') * 10 + (tzutc.at(4) - '0');
+
+    the_time += tzhr * 60 * 60;
+    the_time += tzmin * 60;
+#ifdef __MSC_VER
+    gmtime_s(&msg_tm, &the_time);
+#else
+    gmtime_r(&the_time, &msg_tm);
+#endif
+
+    std::stringstream ss;
+    ss << "-" << tzutc.at(1) << tzutc.at(2) << ":" << tzutc.at(3) << tzutc.at(4);
+    tzutc = ss.str();
+  } else {
     tzutc = "+00:00";
-  } else if (tzutc.at(0) != '-') {
-    tzutc = "+" + tzutc;
   }
 
   snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d %s", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec, tzutc.c_str());
