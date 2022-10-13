@@ -18,6 +18,29 @@
 #include "../Common/toml.hpp"
 #include "../Common/Squish.h"
 
+static std::string find_kludge(sq_msg_t *msg, std::string kludge) {
+  std::stringstream ret;
+
+  for (size_t z = 0; z < msg->ctrl_len; z++) {
+    if (msg->ctrl[z] == '\001') {
+      if (ret.str().size() > 0) {
+        if (ret.str().find(kludge + ": ") == 0) {
+          return ret.str().substr(kludge.size() + 2);
+        }
+      }
+      ret.str("");
+      continue;
+    }
+    ret << msg->ctrl[z];
+  }
+  if (ret.str().size() > 0) {
+    if (ret.str().find(kludge + ": ") == 0) {
+      return ret.str().substr(kludge.size() + 2);
+    }
+  }
+  return "";
+}
+
 Request::Request() {
   authenticated = false;
   log = new Logger();
@@ -498,9 +521,18 @@ void Request::dohead(int grp, int article, bool byid) {
 
   mktime(&msg_tm);
 
+  std::string tzutc = find_kludge(msg, "TZUTC");
+
+  if (tzutc == "") {
+    tzutc = "+00:00";
+  } else if (tzutc.at(0) != '-') {
+    tzutc = "+" + tzutc;
+  }
+
+
   char datestr[36];
 
-  snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d +00:00", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec);
+  snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d %s", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec, tzutc.c_str());
 
   ss.str("");
   ss << "Date: " << datestr << "\r\n";
@@ -577,7 +609,15 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   char datestr[36];
 
-  snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d +00:00", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec);
+  std::string tzutc = find_kludge(msg, "TZUTC");
+
+  if (tzutc == "") {
+    tzutc = "+00:00";
+  } else if (tzutc.at(0) != '-') {
+    tzutc = "+" + tzutc;
+  }
+
+  snprintf(datestr, 36, "%s, %d %s %d %02d:%02d:%02d %s", days[msg_tm.tm_wday], msg_tm.tm_mday, months[msg_tm.tm_mon], msg_tm.tm_year + 1900, msg_tm.tm_hour, msg_tm.tm_min, msg_tm.tm_sec, tzutc.c_str());
 
   ss.str("");
   ss << "Date: " << datestr << "\r\n";
@@ -592,13 +632,14 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   ss.str("");
 
+  std::vector<std::string> lines;
+
   for (int i = 0; i < msg->msg_len; i++) {
     if (msg->msg[i] == '\r') {
       if (ss.str() == ".") {
         ss << ".";
       }
-      ss << "\r\n";
-      send(socket, ss.str().c_str(), ss.str().size(), 0);
+      lines.push_back(ss.str());
       ss.str("");
     } else {
       ss << msg->msg[i];
@@ -609,9 +650,24 @@ void Request::doarticle(int grp, int article, bool byid) {
       if (ss.str() == ".") {
         ss << ".";
       }
-      ss << "\r\n";
-      send(socket, ss.str().c_str(), ss.str().size(), 0);
+      lines.push_back(ss.str());
       ss.str("");
+  }
+
+  size_t end = lines.size();
+
+  for (size_t i = lines.size() - 1; i >= 0; i--) {
+    if (lines.at(i).substr(0, 9) == "SEEN-BY: ") {
+      end--;
+    } else if (lines.at(i).substr(0, 7) == "\001PATH: ") {
+      end--;
+    } else {
+      break;
+    }
+  }
+
+  for (size_t i = 0; i < end; i++) {
+    send(socket, lines.at(i).c_str(), lines.at(i).size(), 0);
   }
 
   ss.str("");
