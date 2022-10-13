@@ -609,7 +609,17 @@ void Request::dohead(int grp, int article, bool byid) {
   char datestr[36];
 
   std::string tzutc = find_kludge(msg, "TZUTC");
+  std::string chrs = find_kludge(msg, "CHRS");
 
+  bool should_convert = true;
+
+  if (chrs == "" || chrs.find("CP437") != std::string::npos) {
+    should_convert = true;
+  } else {
+    if (chrs.find(" ") != std::string::npos) {
+      chrs = chrs.substr(0, chrs.find(" "));
+    }
+  }
   if (tzutc.size() == 4 && tzutc.at(0) != '-') {
     std::stringstream ss;
     ss << "+" << tzutc.at(0) << tzutc.at(1) << tzutc.at(2) << tzutc.at(3);
@@ -630,6 +640,14 @@ void Request::dohead(int grp, int article, bool byid) {
   send(socket, ss.str().c_str(), ss.str().size(), 0);
   ss.str("");
   ss << "Message-ID: " << msgid(article, groups.at(grp)->newsgrp) << "\r\n";
+  send(socket, ss.str().c_str(), ss.str().size(), 0);
+
+  ss.str("");
+  if (chrs != "" && should_convert == false) {
+    ss << "Content-Type: text/plain; charset=" << chrs << ";format=fixed\r\n";
+  } else {
+    ss << "Content-Type: text/plain; charset=utf8; format=fixed\r\n";
+  }
   send(socket, ss.str().c_str(), ss.str().size(), 0);
 
   ss.str("");
@@ -703,10 +721,14 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   std::string chrs = find_kludge(msg, "CHRS");
 
-  bool should_convert = false;
+  bool should_convert = true;
 
-  if (chrs.find("CP437") != std::string::npos) {
+  if (chrs == "" || chrs.find("CP437") != std::string::npos) {
     should_convert = true;
+  } else {
+    if (chrs.find(" ") != std::string::npos) {
+      chrs = chrs.substr(0, chrs.find(" "));
+    }
   }
 
   if (tzutc.size() == 4 && tzutc.at(0) != '-') {
@@ -729,6 +751,14 @@ void Request::doarticle(int grp, int article, bool byid) {
   ss.str("");
   ss << "Message-ID: " << msgid(article, groups.at(grp)->newsgrp) << "\r\n";
   send(socket, ss.str().c_str(), ss.str().size(), 0);
+  ss.str("");
+  if (chrs != "" && should_convert == false) {
+    ss << "Content-Type: text/plain; charset=" << chrs << ";format=fixed\r\n";
+  } else {
+    ss << "Content-Type: text/plain; charset=utf8; format=fixed\r\n";
+  }
+  send(socket, ss.str().c_str(), ss.str().size(), 0);
+
 
   ss.str("");
   ss << "\r\n";
