@@ -2,6 +2,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <WinSock2.h>
 #include <Windows.h>
+#define strcasecmp stricmp
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
