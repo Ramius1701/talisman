@@ -35,9 +35,10 @@ static int count;
 void sigchld_handler(int s) {
   // waitpid() might overwrite errno, so we save and restore it:
   int saved_errno = errno;
+  pid_t p;
+  while ((p = waitpid(-1, NULL, WNOHANG)) > 0) {
 
-  while (waitpid(-1, NULL, WNOHANG) > 0)
-    ;
+  }
 
   errno = saved_errno;
 }
@@ -122,11 +123,12 @@ bool in_multiallowed(std::vector<std::string> *list, std::string item) {
 int main() {
   int sshport;
   int gopherport;
+  int nntpport;
   int binkport;
   bool ipv6 = false;
   int port;
-  struct sockaddr_in gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr, bink_serv_addr;
-  struct sockaddr_in6 gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6, bink_serv_addr6;
+  struct sockaddr_in nntp_serv_addr, gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr, bink_serv_addr;
+  struct sockaddr_in6 nntp_serv_addr6, gopher_serv_addr6, ssh_serv_addr6, serv_addr6, client_addr6, bink_serv_addr6;
   int csockfd;
   int on = 1;
   size_t max_nodes = 4;
@@ -163,6 +165,7 @@ int main() {
   sshport = inir.GetInteger("main", "ssh port", -1);
   max_nodes = inir.GetInteger("main", "max nodes", 4);
   gopherport = inir.GetInteger("main", "gopher port", -1);
+  nntpport = inir.GetInteger("main", "nntp port", -1);
   binkport = inir.GetInteger("main", "binkp port", -1);
   datapath = inir.Get("paths", "data path", "data");
   ipv6 = inir.GetBoolean("main", "enable ipv6", false);
@@ -374,6 +377,65 @@ int main() {
     std::cout << norm() << ts() << "GopherServer: Listening on port " << gopherport << "(Gopher)" << rst() << std::endl;
   }
 
+
+  int nntpfd = -1;
+  int nntpfd6 = -1;
+
+  if (nntpport != -1) {
+    nntpfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    memset(&nntp_serv_addr, 0, sizeof(struct sockaddr_in));
+
+    nntp_serv_addr.sin_family = AF_INET;
+    nntp_serv_addr.sin_addr.s_addr = INADDR_ANY;
+    nntp_serv_addr.sin_port = htons(nntpport);
+    if (setsockopt(nntpfd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0) {
+      std::cerr << err() << ts() << "NNTPServer  : Error setting SO_REUSEADDR (NNTP)" << rst() << std::endl;
+      return -1;
+    }
+    if (setsockopt(nntpfd, IPPROTO_TCP, TCP_NODELAY, (char *)&on, sizeof(on)) < 0) {
+      std::cerr << err() << ts() << "NNTPServer  : Error setting TCP_NODELAY (NNTP)" << rst() << std::endl;
+      return -1;
+    }
+    if (bind(nntpfd, (struct sockaddr *)&nntp_serv_addr, sizeof(struct sockaddr_in)) < 0) {
+      std::cerr << err() << ts() << "NNTPServer  : Error binding. (NNTP)" << rst() << std::endl;
+      return -1;
+    }
+
+    if (ipv6) {
+      nntpfd6 = socket(AF_INET6, SOCK_STREAM, 0);
+
+      memset(&nntp_serv_addr6, 0, sizeof(struct sockaddr_in6));
+
+      nntp_serv_addr6.sin6_family = AF_INET6;
+      nntp_serv_addr6.sin6_addr = in6addr_any;
+      nntp_serv_addr6.sin6_port = htons(nntpport);
+
+      if (setsockopt(nntpfd6, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NNTPServer  : Error setting IPV6_V6ONLY (NNTP - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (setsockopt(nntpfd6, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NNTPServer  : Error setting SO_REUSEADDR (NNTP - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (setsockopt(nntpfd6, IPPROTO_TCP, TCP_NODELAY, (char *)&on, sizeof(on)) < 0) {
+        std::cerr << err() << ts() << "NNTPServer  : Error setting TCP_NODELAY (NNTP - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+      if (bind(nntpfd6, (struct sockaddr *)&nntp_serv_addr6, sizeof(struct sockaddr_in6)) < 0) {
+        std::cerr << err() << ts() << "NNTPServer  : Error binding. (NNTP - ipv6)" << rst() << std::endl;
+        return -1;
+      }
+
+      listen(nntpfd6, 5);
+      std::cout << norm() << ts() << "NNTPServer  : Listening on port " << nntpport << "(NNTP - ipv6)" << rst() << std::endl;
+    }
+    listen(nntpfd, 5);
+    std::cout << norm() << ts() << "NNTPServer  : Listening on port " << nntpport << "(NNTP)" << rst() << std::endl;
+  }
+
+
   int binkfd = -1;
   int binkfd6 = -1;
 
@@ -442,6 +504,12 @@ int main() {
       maxfd = gopherfd;
     }
   }
+  if (nntpport != -1) {
+    FD_SET(nntpfd, &server_fds);
+    if (nntpfd > maxfd) {
+      maxfd = nntpfd;
+    }
+  }
 
   if (binkport != -1) {
     FD_SET(binkfd, &server_fds);
@@ -474,6 +542,13 @@ int main() {
       FD_SET(gopherfd6, &server_fds);
       if (gopherfd6 > maxfd) {
         maxfd = gopherfd6;
+      }
+    }
+
+    if (nntpport != -1) {
+      FD_SET(nntpfd6, &server_fds);
+      if (nntpfd6 > maxfd) {
+        maxfd = nntpfd6;
       }
     }
 
@@ -726,6 +801,106 @@ int main() {
             }
           } else if (pid == -1) {
             std::cerr << err() << ts() << "GopherServer: Failed to create process!" << rst() << std::endl;
+            close(csockfd);
+          } else {
+            close(csockfd);
+          }
+#endif
+          continue;
+        }
+      }
+    }
+    if (nntpport != -1) {
+      if (FD_ISSET(nntpfd, &copy_fds)) {
+        csockfd = accept(nntpfd, (struct sockaddr *)&client_addr, (socklen_t *)&clen);
+#ifdef _MSC_VER
+        std::stringstream ss;
+        ss.str("");
+        ss << "\"newssrv.exe\" " << csockfd;
+
+        char *cmd = strdup(ss.str().c_str());
+
+        STARTUPINFOA si;
+        PROCESS_INFORMATION pi;
+
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        //	si.dwFlags = STARTF_USESTDHANDLES;
+        //	si.hStdInput = INVALID_HANDLE_VALUE;
+        //	si.hStdError = INVALID_HANDLE_VALUE;
+        //	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+        ZeroMemory(&pi, sizeof(pi));
+
+        if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+          std::cerr << err() << ts() << "NNTPServer  : Failed to create process!" << rst() << std::endl;
+          free(cmd);
+          closesocket(csockfd);
+          continue;
+        }
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        free(cmd);
+        closesocket(csockfd);
+#else
+        pid_t pid = fork();
+        if (pid == 0) {
+          snprintf(sockstr, 10, "%d", csockfd);
+          if (execlp("./newssrv", "./newssrv", sockstr, NULL) == -1) {
+            perror("Execlp: ");
+            exit(-1);
+          }
+        } else if (pid == -1) {
+          std::cerr << err() << ts() << "NNTPServer  : Failed to create process!" << rst() << std::endl;
+          close(csockfd);
+        } else {
+          close(csockfd);
+        }
+#endif
+        continue;
+      }
+      if (ipv6) {
+        if (FD_ISSET(nntpfd6, &copy_fds)) {
+          csockfd = accept(nntpfd6, (struct sockaddr *)&client_addr6, (socklen_t *)&clen6);
+#ifdef _MSC_VER
+          std::stringstream ss;
+          ss.str("");
+          ss << "\"newssrv.exe\" " << csockfd;
+
+          char *cmd = strdup(ss.str().c_str());
+
+          STARTUPINFOA si;
+          PROCESS_INFORMATION pi;
+
+          ZeroMemory(&si, sizeof(si));
+          si.cb = sizeof(si);
+          //	si.dwFlags = STARTF_USESTDHANDLES;
+          //	si.hStdInput = INVALID_HANDLE_VALUE;
+          //	si.hStdError = INVALID_HANDLE_VALUE;
+          //	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+          ZeroMemory(&pi, sizeof(pi));
+
+          if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) {
+            std::cerr << err() << ts() << "NNTPServer  : Failed to create process!" << rst() << std::endl;
+            free(cmd);
+            closesocket(csockfd);
+            continue;
+          }
+          CloseHandle(pi.hProcess);
+          CloseHandle(pi.hThread);
+          free(cmd);
+          closesocket(csockfd);
+#else
+          pid_t pid = fork();
+          if (pid == 0) {
+            snprintf(sockstr, 10, "%d", csockfd);
+            if (execlp("./newssrv", "./newssrv", sockstr, NULL) == -1) {
+              perror("Execlp: ");
+              exit(-1);
+            }
+          } else if (pid == -1) {
+            std::cerr << err() << ts() << "NNTPServer  : Failed to create process!" << rst() << std::endl;
             close(csockfd);
           } else {
             close(csockfd);

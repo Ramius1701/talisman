@@ -39,16 +39,20 @@
 #ifndef _MSC_VER
 
 int running_door;
+pid_t door_pid;
 
 void doorchld_handler(int s) {
   int tmperrno = errno;
 
-  while (waitpid(-1, NULL, WNOHANG) > 0)
-    ;
+  pid_t p;
+
+  while ((p = waitpid(-1, NULL, WNOHANG)) > 0) {
+    if (door_pid == p) {
+      running_door = 0;
+    }
+  }
 
   errno = tmperrno;
-
-  running_door = 0;
 }
 
 int ttySetRaw(int fd, struct termios *prevTermios) {
@@ -251,6 +255,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
   int door_out;
   struct winsize ws;
   struct sigaction sa;
+  struct sigaction osa;
   int t;
   fd_set fdset;
   int master;
@@ -295,7 +300,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
     sa.sa_handler = doorchld_handler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART | SA_SIGINFO;
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+    if (sigaction(SIGCHLD, &sa, &osa) == -1) {
       for (size_t j = 0; j < args.size(); j++) {
         free(argv[j]);
       }
@@ -317,6 +322,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
         free(argv[j]);
       }
       free(argv);
+      sigaction(SIGCHLD, &osa, NULL);
       return true;
     } else if (pid == 0) {
       close(master);
@@ -333,6 +339,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
       execvp(command.c_str(), argv);
       exit(0);
     } else {
+      door_pid = pid;
       gotiac = 0;
       while (running_door) {
         if (door_in == -1) {
@@ -367,6 +374,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
                 free(argv[i]);
               }
               free(argv);
+              sigaction(SIGCHLD, &osa, NULL);
               return false;
             }
             g = 0;
@@ -455,6 +463,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
         } else {
           if (ret == -1) {
             if (errno != EINTR) {
+              sigaction(SIGCHLD, &osa, NULL);
               return false;
             }
           }
@@ -467,6 +476,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
     free(argv[i]);
   }
   free(argv);
+  sigaction(SIGCHLD, &osa, NULL);
 #endif
   n->stop_timeout = false;
   return true;
