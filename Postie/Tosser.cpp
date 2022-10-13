@@ -669,6 +669,71 @@ void Tosser::bad_packet(Config *c, std::string filename) {
   log.log(LOG_ERROR, "Encountered Bad Packet: %s", badpkt.u8string().c_str());
 }
 
+UMSGID Tosser::get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg) {
+  // get reply id from CTRL
+  std::string reply = "";
+  std::stringstream kludge;
+
+  for (size_t z = 0; z < msg->ctrl_len; z++) {
+    if (msg->ctrl[z] == '\001') {
+      if (kludge.str().size() > 0) {
+        if (kludge.str().find("REPLY: ") == 0) {
+          reply = kludge.str().substr(7);
+          break;
+        }
+      }
+      kludge.str("");
+      continue;
+    }
+    kludge << msg->ctrl[z];
+  }
+
+  if (reply == "") {
+    return 0;
+  }
+
+  for (size_t i = 1; i <= mb->basehdr.num_msg; i++) {
+    sq_msg_t *rmsg = SquishReadMsg(mb, i);
+    std::string msgid = "";
+    // get msg id from CTRL
+    for (size_t z = 0; z < rmsg->ctrl_len; z++) {
+      if (rmsg->ctrl[z] == '\001') {
+        if (kludge.str().size() > 0) {
+          if (kludge.str().find("MSGID: ") == 0) {
+            msgid = kludge.str().substr(7);
+            break;
+          }
+        }
+        kludge.str("");
+        continue;
+      }
+      kludge << rmsg->ctrl[z];
+    }
+
+    if (msgid == "") {
+      SquishFreeMsg(rmsg);
+      continue;
+    }
+    if (msgid == reply) {
+      UMSGID ret = rmsg->xmsg.umsgid;
+
+      for (int k = 0; k < 9; k++) {
+        if (rmsg->xmsg.replies[k] == 0) {
+          rmsg->xmsg.replies[k] = msg->xmsg.umsgid;
+
+          SquishLockMsgBase(mb);
+          SquishUpdateHdr(mb, rmsg);
+          SquishUnlockMsgBase(mb);
+          SquishFreeMsg(rmsg);
+          return ret;
+        }
+      }
+    }
+    SquishFreeMsg(rmsg);
+  }
+  return 0;
+}
+
 NETADDR *Tosser::get_echomail_addr(std::string ctrlbody, std::string msgbody) {
   // first try getting address from origin line
   std::stringstream ss(msgbody);
@@ -1248,6 +1313,16 @@ bool Tosser::run(bool protinbound) {
                 SquishLockMsgBase(mb);
                 SquishWriteMsg(mb, &sqmsg);
                 SquishUnlockMsgBase(mb);
+
+                UMSGID reply;
+
+                if ((reply = get_reply_msg(mb, &sqmsg)) != 0) {
+                  sqmsg.xmsg.replyto = reply;
+                  SquishLockMsgBase(mb);
+                  SquishUpdateHdr(mb, &sqmsg);
+                  SquishUnlockMsgBase(mb);
+                }
+
                 SquishCloseMsgBase(mb);
                 log.log(LOG_INFO, "Added echomail \"%s\" to area \"%s\"", sqmsg.xmsg.subject, c.areas.at(a).areatag.c_str());
 

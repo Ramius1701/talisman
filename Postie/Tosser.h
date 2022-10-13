@@ -14,6 +14,7 @@ public:
 private:
   unsigned long pid;
   Logger log;
+  UMSGID get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg);
   void bad_packet(Config *c, std::string filename);
   void filefix(Config *c, sq_msg_t *msg);
   void areafix(Config *c, sq_msg_t *msg);
