@@ -204,7 +204,7 @@ bool Request::dorequest(int socket, std::string request) {
 
 
           std::stringstream ss;
-          ss << msg->xmsg.umsgid << "\t" << msg->xmsg.subject << "\t" << msg->xmsg.from << "\t" << datestr << "\t" << msgid(msg->xmsg.umsgid, groups.at(selected_group)->newsgrp) << "\t" << msgid(msg->xmsg.replyto, groups.at(selected_group)->newsgrp) << "\t\t\t\r\n";
+          ss << msg->xmsg.umsgid << "\t" << msg->xmsg.subject << "\t" << msg->xmsg.from << "\t" << datestr << "\t" << msgid(msg->xmsg.umsgid, groups.at(selected_group)->newsgrp) << "\t" << (msg->xmsg.replyto == 0 ? "" : msgid(msg->xmsg.replyto, groups.at(selected_group)->newsgrp)) << "\t\t\t\r\n";
 
           send(socket, ss.str().c_str(), ss.str().size(), 0);
 
