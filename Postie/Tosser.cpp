@@ -688,6 +688,12 @@ UMSGID Tosser::get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg) {
     kludge << msg->ctrl[z];
   }
 
+  if (kludge.str().size() > 0) {
+    if (kludge.str().find("REPLY: ") == 0) {
+      reply = kludge.str().substr(7);
+    }
+  }
+
   if (reply == "") {
     return 0;
   }
@@ -709,7 +715,11 @@ UMSGID Tosser::get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg) {
       }
       kludge << rmsg->ctrl[z];
     }
-
+    if (kludge.str().size() > 0) {
+      if (kludge.str().find("MSGID: ") == 0) {
+        reply = kludge.str().substr(7);
+      }
+    }
     if (msgid == "") {
       SquishFreeMsg(rmsg);
       continue;
