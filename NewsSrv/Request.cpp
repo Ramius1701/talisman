@@ -667,7 +667,7 @@ void Request::doarticle(int grp, int article, bool byid) {
   }
 
   for (size_t i = 0; i < end; i++) {
-    send(socket, lines.at(i).c_str(), lines.at(i).size(), 0);
+    send(socket, std::string(lines.at(i) + "\r\n").c_str(), lines.at(i).size(), 0);
   }
 
   ss.str("");
