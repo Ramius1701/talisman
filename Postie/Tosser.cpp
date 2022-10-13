@@ -650,7 +650,15 @@ std::string Tosser::get_msgid(std::string ctrlbody) {
     }
     kludge << ctrlbody.at(z);
   }
+  if (kludge.str().size() > 0) {
+    if (kludge.str().find("MSGID: ") == 0) {
+      int start = 7;
 
+      std::string msgid = kludge.str().substr(start);
+
+      return msgid;
+    }
+  }
   return "";
 }
 
@@ -719,7 +727,7 @@ UMSGID Tosser::get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg) {
     }
     if (kludge.str().size() > 0) {
       if (kludge.str().find("MSGID: ") == 0) {
-        reply = kludge.str().substr(7);
+        msgid = kludge.str().substr(7);
       }
     }
     if (msgid == "") {
