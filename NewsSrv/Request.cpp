@@ -775,6 +775,14 @@ void Request::doarticle(int grp, int article, bool byid) {
       }
       lines.push_back(ss.str());
       ss.str("");
+    } else if (msg->msg[i] == '\x1b') {
+      i++;
+      while (i < msg->msg_len && !isalpha(msg->msg[i])) {
+        i++;
+      }
+      if (i < msg->msg_len) {
+        ss << msg->msg[i];
+      }
     } else {
       ss << msg->msg[i];
     }
