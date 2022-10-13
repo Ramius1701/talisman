@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <iconv.h>
 #endif
 #include <string>
 #include <iostream>
@@ -18,6 +19,77 @@
 #include "../Common/Logger.h"
 #include "../Common/toml.hpp"
 #include "../Common/Squish.h"
+
+std::string Request::convert_utf8(std::string input) {
+  std::string output;
+
+#ifdef _MSC_VER
+  int wchars_num = MultiByteToWideChar(437, 0, input.c_str(), -1, NULL, 0);
+  wchar_t *wstr = new wchar_t[wchars_num];
+  MultiByteToWideChar(437, 0, input.c_str(), -1, wstr, wchars_num);
+
+  int chars_num = WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, NULL, 0, NULL, NULL);
+
+  char *str = new char[chars_num + 1];
+  memset(str, 0, chars_num + 1);
+
+  WideCharToMultiByte(CP_UTF8, 0, wstr, wchars_num, str, chars_num, NULL, NULL);
+
+  output = std::string(str);
+
+  delete[] str;
+  delete[] wstr;
+#else
+  iconv_t ic;
+  ic = iconv_open("UTF-8", "CP437");
+  if (ic == (iconv_t)-1) {
+    return input;
+  }
+
+  int i = 1;
+
+  char *str = new char[input.size() + 1];
+
+  char *inp = (char *)input.c_str();
+  size_t isz = input.size();
+
+  char *oup = str;
+  size_t osz = input.size();
+
+  memset(str, 0, osz + 1);
+
+#if defined(__GLIBC__) || defined(__HAIKU__) || defined(__FreeBSD__)
+  while (iconv(ic, &inp, &isz, &oup, &osz) == -1) {
+#else
+  while (iconv(ic, (const char **)&inp, &isz, &oup, &osz) == -1) {
+#endif
+    if (errno == E2BIG) {
+      delete[] str;
+      i++;
+      str = new char[input.size() * i + 1];
+      memset(str, 0, input.size() * i + 1);
+      osz = input.size() * i;
+      oup = str;
+      inp = (char *)input.c_str();
+      isz = input.size();
+      continue;
+    } else {
+      output = input;
+      iconv_close(ic);
+      delete[] str;
+      return output;
+    }
+  }
+
+  output = str;
+
+  iconv_close(ic);
+
+  delete[] str;
+
+#endif
+  return output;
+}
 
 static std::string find_kludge(sq_msg_t *msg, std::string kludge) {
   std::stringstream ret;
@@ -629,6 +701,14 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   std::string tzutc = find_kludge(msg, "TZUTC");
 
+  std::string chrs = find_kludge(msg, "CHRS");
+
+  bool should_convert = false;
+
+  if (chrs.find("CP437") != std::string::npos) {
+    should_convert = true;
+  }
+
   if (tzutc.size() == 4 && tzutc.at(0) != '-') {
     std::stringstream ss;
     ss << "+" << tzutc.at(0) << tzutc.at(1) << tzutc.at(2) << tzutc.at(3);
@@ -691,7 +771,11 @@ void Request::doarticle(int grp, int article, bool byid) {
   }
 
   for (size_t i = 0; i < end; i++) {
-    send(socket, std::string(lines.at(i) + "\r\n").c_str(), lines.at(i).size() + 2, 0);
+    if (should_convert) {
+      send(socket, std::string(convert_utf8(lines.at(i)) + "\r\n").c_str(), lines.at(i).size() + 2, 0);
+    } else {
+      send(socket, std::string(lines.at(i) + "\r\n").c_str(), lines.at(i).size() + 2, 0);
+    }
   }
 
   ss.str("");

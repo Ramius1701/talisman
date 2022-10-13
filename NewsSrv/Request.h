@@ -12,6 +12,7 @@ public:
   bool loadconfig();
   bool dorequest(int socket, std::string request);
 private:
+  std::string convert_utf8(std::string input);
   void doarticle(int group, int article, bool byid);
   void dohead(int group, int article, bool byid);
   void dolist(std::string arg);
