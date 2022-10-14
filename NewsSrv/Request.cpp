@@ -611,7 +611,7 @@ void Request::dohead(int grp, int article, bool byid) {
   std::string tzutc = find_kludge(msg, "TZUTC");
   std::string chrs = find_kludge(msg, "CHRS");
 
-  bool should_convert = true;
+  bool should_convert = false;
 
   if (chrs == "" || chrs.find("CP437") != std::string::npos) {
     should_convert = true;
@@ -644,9 +644,9 @@ void Request::dohead(int grp, int article, bool byid) {
 
   ss.str("");
   if (chrs != "" && should_convert == false) {
-    ss << "Content-Type: text/plain; charset=" << chrs << ";format=fixed\r\n";
+    ss << "Content-Type: text/plain; charset=" << chrs << "; format=fixed\r\n";
   } else {
-    ss << "Content-Type: text/plain; charset=utf8; format=fixed\r\n";
+    ss << "Content-Type: text/plain; charset=UTF-8; format=fixed\r\n";
   }
   send(socket, ss.str().c_str(), ss.str().size(), 0);
 
@@ -721,7 +721,7 @@ void Request::doarticle(int grp, int article, bool byid) {
 
   std::string chrs = find_kludge(msg, "CHRS");
 
-  bool should_convert = true;
+  bool should_convert = false;
 
   if (chrs == "" || chrs.find("CP437") != std::string::npos) {
     should_convert = true;
@@ -753,9 +753,9 @@ void Request::doarticle(int grp, int article, bool byid) {
   send(socket, ss.str().c_str(), ss.str().size(), 0);
   ss.str("");
   if (chrs != "" && should_convert == false) {
-    ss << "Content-Type: text/plain; charset=" << chrs << ";format=fixed\r\n";
+    ss << "Content-Type: text/plain; charset=" << chrs << "; format=fixed\r\n";
   } else {
-    ss << "Content-Type: text/plain; charset=utf8; format=fixed\r\n";
+    ss << "Content-Type: text/plain; charset=UTF-8; format=fixed\r\n";
   }
   send(socket, ss.str().c_str(), ss.str().size(), 0);
 
