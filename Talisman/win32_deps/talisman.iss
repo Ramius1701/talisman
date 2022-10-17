@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.44"
+#define MyAppVersion "0.45"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
@@ -33,57 +33,57 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\Talisman\Release\Servo.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Talisman.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Toolbelt.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Postie.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Gofer.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Falcon.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Qwkie.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Release\Binki.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\gfiles\pause\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\menus\*"; DestDir: "{app}\menus\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\scripts\*"; DestDir: "{app}\scripts"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\gopher"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\mb_local.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "E:\curl-7.85.0\build\Win32\VC14.30\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Servo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Talisman.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Toolbelt.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Postie.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Gofer.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Falcon.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Qwkie.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Release\Binki.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\gfiles\*"; DestDir: "{app}\gfiles\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\gfiles\pause\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\menus\*"; DestDir: "{app}\menus\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\scripts\*"; DestDir: "{app}\scripts"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\gopher"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\mb_local.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\libs\curl-7.85.0\curl-7.85.0\build\Win32\VC14.30\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libssl-3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}\dist"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\gfiles\*"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\dist\gfiles\pause\"; Flags: onlyifdoesntexist
-Source: "E:\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\menus\*"; DestDir: "{app}\dist\menus\"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\scripts\*"; DestDir: "{app}\dist\scripts"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\dist\gopher"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\mb_local.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
-Source: "E:\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}\dist"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\gfiles\*"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\gfiles\pause\*"; DestDir: "{app}\dist\gfiles\pause\"; Flags: onlyifdoesntexist
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\system.ans"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\system.asc"; DestDir: "{app}\dist\gfiles\"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\menus\*"; DestDir: "{app}\dist\menus\"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\scripts\*"; DestDir: "{app}\dist\scripts"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\gophermap"; DestDir: "{app}\dist\gopher"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\trashcan.txt"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\bulletins.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\msgconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\mb_local.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\fileconfs.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\fb_general.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\seclevels.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\loginitems.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\data\postie.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\dist\data"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Dirs]
