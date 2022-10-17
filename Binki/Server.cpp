@@ -881,14 +881,14 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
       secure = false;
       pwdack = false;
     }
-    std::cerr << "Got Error : " << data << std::endl;
+    //std::cerr << "Got Error : " << data << std::endl;
   } break;
   case M_OK: {
     if (pwdack) {
       secure = true;
       pwdack = false;
     }
-    std::cerr << "Got OK : " << data << std::endl;
+    //std::cerr << "Got OK : " << data << std::endl;
   } break;
   case M_GOT: {
     if (data != NULL) {
@@ -928,6 +928,8 @@ uint8_t Server::process_command(uint16_t header, int timeout) {
       std::stringstream ss(data);
       std::string fragment;
       while (std::getline(ss, fragment, ' ')) {
+        if (fragment.find_first_of('@') == std::string::npos)
+          continue;
         NETADDR *newaddr = parse_fido_addr(fragment.substr(0, fragment.find_first_of('@')).c_str());
         if (!newaddr) {
           continue;
@@ -999,6 +1001,7 @@ bool Server::process_frames(int timeout, uint8_t upto) {
 
       if (header & 0x8000) {
         // process command
+        
         cmd = process_command(header & 0x7fff, timeout);
         if (cmd == 0xff) {
           return false;
@@ -1220,7 +1223,6 @@ int Server::run(NETADDR *addr, std::string domain) {
       return -1;
     }
   }
-
   senteob = false;
   std::vector<struct link_t> common_links;
 
@@ -1244,7 +1246,6 @@ int Server::run(NETADDR *addr, std::string domain) {
   if (!process_frames(1, 0xff)) {
     return 0;
   }
-
   sending_filename = "";
 
   char buffer[6];
