@@ -433,7 +433,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
     for (const struct address_t &a : c.addresses) {
       if (a.domain == domain) {
         std::stringstream flowfname;
-        char buffer[13];
+        char buffer[23];
         struct outfile_t outf;
 
         flowfname.str("");
@@ -1499,14 +1499,14 @@ int Server::runall() {
       ss << c.outbound;
     }
 
-    char flowfname[9];
+    char flowfname[23];
 
-    memset(flowfname, 0, 9);
+    memset(flowfname, 0, 23);
 
     if (c.links.at(i).addr->point == 0) {
-      snprintf(flowfname, 9, "%04x%04x", c.links.at(i).addr->net, c.links.at(i).addr->node);
+      snprintf(flowfname, sizeof(flowfname), "%04x%04x", c.links.at(i).addr->net, c.links.at(i).addr->node);
     } else {
-      snprintf(flowfname, 9, "%04x%04x.pnt/%08x", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
+      snprintf(flowfname, sizeof(flowfname), "%04x%04x.pnt/%08x", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
     }
 
     if (std::filesystem::exists(ss.str() + "/" + flowfname + ".clo")) {
