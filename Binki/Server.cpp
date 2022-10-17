@@ -441,7 +441,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
         outf.flo = "";
 
         if (theirnode->point != 0) {
-          snprintf(buffer, sizeof buffer, "%08x", theirnode->point);
+          snprintf(buffer, sizeof buffer, "%04x%04x.pnt/%08x", theirnode->net, theirnode->node, theirnode->point);
           flowfname << buffer;
         } else {
           snprintf(buffer, sizeof buffer, "%04x%04x", theirnode->net, theirnode->node);
@@ -571,7 +571,7 @@ bool Server::transfer_files(std::string domain, NETADDR *theirnode, std::filesys
         flowfname.str("");
         outf.flo = "";
         if (theirnode->point != 0) {
-          snprintf(buffer, sizeof buffer, "%08X", theirnode->point);
+          snprintf(buffer, sizeof buffer, "%04X%04X.PNT/%08X", theirnode->net, theirnode->node, theirnode->point);
           flowfname << buffer;
         } else {
           snprintf(buffer, sizeof buffer, "%04X%04X", theirnode->net, theirnode->node);
