@@ -1506,7 +1506,7 @@ int Server::runall() {
     if (c.links.at(i).addr->point == 0) {
       snprintf(flowfname, 9, "%04x%04x", c.links.at(i).addr->net, c.links.at(i).addr->node);
     } else {
-      snprintf(flowfname, 9, "%08x", c.links.at(i).addr->point);
+      snprintf(flowfname, 9, "%04x%04x.pnt/%08x", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
     }
 
     if (std::filesystem::exists(ss.str() + "/" + flowfname + ".clo")) {
@@ -1542,7 +1542,7 @@ int Server::runall() {
     if (c.links.at(i).addr->point == 0) {
       snprintf(flowfname, 9, "%04X%04X", c.links.at(i).addr->net, c.links.at(i).addr->node);
     } else {
-      snprintf(flowfname, 9, "%08X", c.links.at(i).addr->point);
+      snprintf(flowfname, 9, "%04X%04X.PNT/%08X", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
     }
 
     if (std::filesystem::exists(ss.str() + "/" + flowfname + ".CLO")) {
