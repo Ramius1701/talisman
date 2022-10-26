@@ -956,7 +956,6 @@ int SquishPackMsgBase(const char *str) {
   }
 
   fseek(psqd, 0, SEEK_SET);
-  fwrite(&bhdr, sizeof(SQBASE), 1, psqd);
   write_sq_base(psqd, &bhdr);
 
   SquishUnlockMsgBase(mb);
