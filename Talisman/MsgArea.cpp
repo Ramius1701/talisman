@@ -235,7 +235,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     memset(replyidbuffer, 0, 256);
 
     if (inreply_to > 0) {
-      rep_msg = SquishReadMsg(mb, inreply_to);
+      rep_msg = SquishReadMsg(mb, umsgid_to_offset(inreply_to));
       if (rep_msg != NULL && rep_msg->xmsg.attr & MSGUID) {
         repmsgid = rep_msg->xmsg.umsgid;
         for (int i = 0; i < rep_msg->ctrl_len - 8; i++) {
