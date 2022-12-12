@@ -66,3 +66,8 @@
 /NewsSrv/Release
 /NewsSrv/NewsSrv.vcxproj.user
 /NewsSrv/NewsSrv.vcxproj.filters
+/Bridge/Debug
+/Bridge/Release
+/Bridge/x64/Debug
+/Bridge/Bridge.vcxproj.filters
+*.user

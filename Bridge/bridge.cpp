@@ -65,6 +65,9 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
         fclose(lastread2_fptr);
     }
 
+    lr1++;
+    lr2++;
+
     std::vector<sq_msg_t *> new_msgs1;
     std::vector<sq_msg_t *> new_msgs2;
 
@@ -96,8 +99,12 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
         return;
     }
 
-    for (uint32_t i = SquishUMSGID2Offset(mb1, lr1, 1); i < mb1->basehdr.num_msg; i++) {
+    for (uint32_t i = SquishUMSGID2Offset(mb1, lr1, 1); i <= mb1->basehdr.num_msg; i++) {
         sq_msg_t *msg = SquishReadMsg(mb1, i);
+
+        if (!msg)
+            break;
+
         msg->xmsg.attr &= ~(MSGSENT);
         msg->xmsg.attr |= MSGLOCAL;
 
@@ -151,8 +158,12 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
         new_msgs1.push_back(msg);
     }
 
-    for (uint32_t i = SquishUMSGID2Offset(mb2, lr2, 1); i < mb2->basehdr.num_msg; i++) {
+    for (uint32_t i = SquishUMSGID2Offset(mb2, lr2, 1); i <= mb2->basehdr.num_msg; i++) {
         sq_msg_t *msg = SquishReadMsg(mb2, i);
+
+        if (!msg)
+            break;
+
         msg->xmsg.attr &= ~(MSGSENT);
         msg->xmsg.attr |= MSGLOCAL;
 
