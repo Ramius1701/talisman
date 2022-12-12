@@ -211,11 +211,27 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
     for (size_t i = 0; i < new_msgs1.size(); i++) {
         // add to mb2
         SquishWriteMsg(mb2, new_msgs1.at(i));
+        lr2 = new_msgs1.at(i)->xmsg.umsgid;
     }
 
     for (size_t i = 0; i < new_msgs2.size(); i++) {
         // add to mb1
         SquishWriteMsg(mb1, new_msgs2.at(i));
+        lr1 = new_msgs2.at(i)->xmsg.umsgid;
+    }
+
+    
+
+    lastread1_fptr = fopen(std::string(msgbase1 + ".blr").c_str(), "wb");
+    if (lastread1_fptr) {
+        fwrite(&lr1, sizeof(uint32_t), 1 , lastread1_fptr);
+        fclose(lastread1_fptr);
+    }
+    
+    lastread2_fptr = fopen(std::string(msgbase2 + ".blr").c_str(), "wb");
+    if (lastread2_fptr) {
+        fwrite(&lr2, sizeof(uint32_t), 1 , lastread2_fptr);
+        fclose(lastread2_fptr);
     }
 
     fprintf(stderr, "Bridged %d messages to %s\n", new_msgs1.size(), msgbase2.c_str());
