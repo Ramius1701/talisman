@@ -126,7 +126,7 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         std::stringstream ss;
 
-        ss << "\r---\r Talisman Bridge (";
+        ss << "\r---\r * Origin: Talisman Bridge (";
         ss << o2->zone;
         ss << ":";
         ss << o2->net;
@@ -186,7 +186,7 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         std::stringstream ss;
 
-        ss << "\r---\r Talisman Bridge (";
+        ss << "\r---\r * Origin: Talisman Bridge (";
         ss << o1->zone;
         ss << ":";
         ss << o1->net;
@@ -232,19 +232,21 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
     }
 
     
-
-    lastread1_fptr = fopen(std::string(msgbase1 + ".blr").c_str(), "wb");
-    if (lastread1_fptr) {
-        fwrite(&lr1, sizeof(uint32_t), 1 , lastread1_fptr);
-        fclose(lastread1_fptr);
-    }
-    
-    lastread2_fptr = fopen(std::string(msgbase2 + ".blr").c_str(), "wb");
-    if (lastread2_fptr) {
-        fwrite(&lr2, sizeof(uint32_t), 1 , lastread2_fptr);
-        fclose(lastread2_fptr);
+    if (new_msgs1.size() > 0) {
+        lastread1_fptr = fopen(std::string(msgbase1 + ".blr").c_str(), "wb");
+        if (lastread1_fptr) {
+            fwrite(&lr1, sizeof(uint32_t), 1, lastread1_fptr);
+            fclose(lastread1_fptr);
+        }
     }
 
+    if (new_msgs2.size() > 0) {
+        lastread2_fptr = fopen(std::string(msgbase2 + ".blr").c_str(), "wb");
+        if (lastread2_fptr) {
+            fwrite(&lr2, sizeof(uint32_t), 1, lastread2_fptr);
+            fclose(lastread2_fptr);
+        }
+    }
     fprintf(stderr, "Bridged %d messages to %s\n", new_msgs1.size(), msgbase2.c_str());
     fprintf(stderr, "Bridged %d messages to %s\n", new_msgs2.size(), msgbase1.c_str());
 
