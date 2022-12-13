@@ -252,9 +252,9 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
             fclose(lastread2_fptr);
         }
     }
-    log->log(LOG_INFO, "Bridge run for %s\n", linkdesc->linkname.c_str());
-    log->log(LOG_INFO, "Bridged %d messages to %s\n", new_msgs1.size(), linkdesc->msgfile2.c_str());
-    log->log(LOG_INFO, "Bridged %d messages to %s\n", new_msgs2.size(), linkdesc->msgfile1.c_str());
+    log->log(LOG_INFO, "Bridge run for %s", linkdesc->linkname.c_str());
+    log->log(LOG_INFO, "Bridged %d messages to %s lr %d", new_msgs1.size(), linkdesc->msgfile2.c_str(), lr2);
+    log->log(LOG_INFO, "Bridged %d messages to %s lr %d", new_msgs2.size(), linkdesc->msgfile1.c_str(), lr1);
 
 clean_up:
 
