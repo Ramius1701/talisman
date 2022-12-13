@@ -59,9 +59,6 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         fclose(lastread2_fptr);
     }
 
-    lr1++;
-    lr2++;
-
     std::vector<sq_msg_t *> new_msgs1;
     std::vector<sq_msg_t *> new_msgs2;
 
@@ -93,7 +90,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         return;
     }
 
-    for (uint32_t i = SquishUMSGID2Offset(mb1, lr1, 1); i <= mb1->basehdr.num_msg; i++) {
+    for (uint32_t i = SquishUMSGID2Offset(mb1, lr1 + 1, 1); i <= mb1->basehdr.num_msg; i++) {
         sq_msg_t *msg = SquishReadMsg(mb1, i);
 
         if (!msg)
@@ -159,7 +156,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         new_msgs1.push_back(msg);
     }
 
-    for (uint32_t i = SquishUMSGID2Offset(mb2, lr2, 1); i <= mb2->basehdr.num_msg; i++) {
+    for (uint32_t i = SquishUMSGID2Offset(mb2, lr2 + 1, 1); i <= mb2->basehdr.num_msg; i++) {
         sq_msg_t *msg = SquishReadMsg(mb2, i);
 
         if (!msg)
@@ -240,7 +237,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
     }
 
     
-    if (new_msgs2.size() > 0) {
+    if (lr1 != 0) {
         lastread1_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile1 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread1_fptr) {
             fwrite(&lr1, sizeof(uint32_t), 1, lastread1_fptr);
@@ -248,7 +245,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         }
     }
 
-    if (new_msgs1.size() > 0) {
+    if (lr2 != 0) {
         lastread2_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile2 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread2_fptr) {
             fwrite(&lr2, sizeof(uint32_t), 1, lastread2_fptr);
