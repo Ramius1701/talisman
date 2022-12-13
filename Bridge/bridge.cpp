@@ -122,7 +122,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
 
         ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline2;
         if (linkdesc->msgbase_type2 > 0) {    
-            ss << "(";
+            ss << " (";
             if (linkdesc->msgbase_type2 == 1) {
                 ss << linkdesc->address2->zone;
                 ss << ":";
@@ -189,7 +189,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
 
         ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline1;
         if (linkdesc->msgbase_type1 > 0) {    
-            ss << "(";
+            ss << " (";
             if (linkdesc->msgbase_type1 == 1) {
                 ss << linkdesc->address1->zone;
                 ss << ":";
@@ -240,7 +240,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
     }
 
     
-    if (new_msgs1.size() > 0) {
+    if (new_msgs2.size() > 0) {
         lastread1_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile1 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread1_fptr) {
             fwrite(&lr1, sizeof(uint32_t), 1, lastread1_fptr);
@@ -248,7 +248,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         }
     }
 
-    if (new_msgs2.size() > 0) {
+    if (new_msgs1.size() > 0) {
         lastread2_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile2 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread2_fptr) {
             fwrite(&lr2, sizeof(uint32_t), 1, lastread2_fptr);
