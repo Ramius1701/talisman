@@ -79,6 +79,8 @@ int main(int argc, char **argv) {
                         newlink.msgbase_type1 = 1;
                     } else if (strcasecmp(_msg_base_t_1.c_str(), "wwiv") == 0) {
                         newlink.msgbase_type1 = 2;
+                    } else if (strcasecmp(_msg_base_t_1.c_str(), "qwk") == 0) {
+                        newlink.msgbase_type1 = 3;
                     } else {
                         newlink.msgbase_type1 = 0;
                     }
@@ -97,6 +99,8 @@ int main(int argc, char **argv) {
                         newlink.msgbase_type2 = 1;
                     } else if (strcasecmp(_msg_base_t_2.c_str(), "wwiv") == 0) {
                         newlink.msgbase_type2 = 2;
+                    } else if (strcasecmp(_msg_base_t_2.c_str(), "qwk") == 0) {
+                        newlink.msgbase_type2 = 3;
                     } else {
                         newlink.msgbase_type2 = 0;
                     }

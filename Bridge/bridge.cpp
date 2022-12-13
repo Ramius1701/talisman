@@ -119,27 +119,31 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
 
         std::stringstream ss;
 
-        ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline2;
-        if (linkdesc->msgbase_type2 > 0) {    
-            ss << " (";
-            if (linkdesc->msgbase_type2 == 1) {
-                ss << linkdesc->address2->zone;
-                ss << ":";
-                ss << linkdesc->address2->net;
-                ss << "/";
-                ss << linkdesc->address2->node;
+        if (linkdesc->msgbase_type2 == 3) {
+            ss.str("");
+            // QWKIE will append the tagline
+        } else {
+            ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline2;
+            if (linkdesc->msgbase_type2 > 0) {    
+                ss << " (";
+                if (linkdesc->msgbase_type2 == 1) {
+                    ss << linkdesc->address2->zone;
+                    ss << ":";
+                    ss << linkdesc->address2->net;
+                    ss << "/";
+                    ss << linkdesc->address2->node;
 
-                if (linkdesc->address2->point != 0) {
-                    ss << ".";
-                    ss << linkdesc->address2->point;
+                    if (linkdesc->address2->point != 0) {
+                        ss << ".";
+                        ss << linkdesc->address2->point;
+                    }
+                } else if (linkdesc->msgbase_type2 == 2) {
+                    ss << "@" << linkdesc->address2->node;
                 }
-            } else if (linkdesc->msgbase_type2 == 2) {
-                ss << "@" << linkdesc->address2->node;
+                ss << ")";
             }
-            ss << ")";
+            ss << "\r";
         }
-        ss << "\r";
-
         msgcontent.append(ss.str());
 
         free(msg->msg);
@@ -187,26 +191,31 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
 
         std::stringstream ss;
 
-        ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline1;
-        if (linkdesc->msgbase_type1 > 0) {    
-            ss << " (";
-            if (linkdesc->msgbase_type1 == 1) {
-                ss << linkdesc->address1->zone;
-                ss << ":";
-                ss << linkdesc->address1->net;
-                ss << "/";
-                ss << linkdesc->address1->node;
+        if (linkdesc->msgbase_type1 == 3) {
+            // QWKIE will append the tagline
+            ss.str("");
+        } else {
+            ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline1;
+            if (linkdesc->msgbase_type1 > 0) {    
+                ss << " (";
+                if (linkdesc->msgbase_type1 == 1) {
+                    ss << linkdesc->address1->zone;
+                    ss << ":";
+                    ss << linkdesc->address1->net;
+                    ss << "/";
+                    ss << linkdesc->address1->node;
 
-                if (linkdesc->address1->point != 0) {
-                    ss << ".";
-                    ss << linkdesc->address1->point;
+                    if (linkdesc->address1->point != 0) {
+                        ss << ".";
+                        ss << linkdesc->address1->point;
+                    }
+                } else if (linkdesc->msgbase_type1 == 2) {
+                    ss << "@" << linkdesc->address1->node;
                 }
-            } else if (linkdesc->msgbase_type1 == 2) {
-                ss << "@" << linkdesc->address1->node;
+                ss << ")";
             }
-            ss << ")";
+            ss << "\r";
         }
-        ss << "\r";
 
         msgcontent.append(ss.str());
 
