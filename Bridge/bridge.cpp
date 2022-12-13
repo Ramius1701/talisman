@@ -99,6 +99,8 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         msg->xmsg.attr &= ~(MSGSENT);
         msg->xmsg.attr |= MSGLOCAL;
 
+        lr1 = msg->xmsg.umsgid;
+
         // strip seenby
         std::string msgcontent = std::string(msg->msg, msg->msg_len);
         msgcontent = remove_seenby_path(msgcontent);
@@ -165,6 +167,7 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         msg->xmsg.attr &= ~(MSGSENT);
         msg->xmsg.attr |= MSGLOCAL;
 
+        lr2 = msg->xmsg.umsgid;
 
         // strip seenby
         std::string msgcontent = std::string(msg->msg, msg->msg_len);
@@ -224,18 +227,21 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
     }
 
 
-    for (size_t i = 0; i < new_msgs1.size(); i++) {
-        // add to mb2
-        SquishWriteMsg(mb2, new_msgs1.at(i));
-        lr2 = new_msgs1.at(i)->xmsg.umsgid;
+    if (new_msgs1.size() > 0) {
+        for (size_t i = 0; i < new_msgs1.size(); i++) {
+            // add to mb2
+            SquishWriteMsg(mb2, new_msgs1.at(i));
+            lr2 = new_msgs1.at(i)->xmsg.umsgid;
+        }
     }
 
-    for (size_t i = 0; i < new_msgs2.size(); i++) {
-        // add to mb1
-        SquishWriteMsg(mb1, new_msgs2.at(i));
-        lr1 = new_msgs2.at(i)->xmsg.umsgid;
+    if (new_msgs2.size() > 0) {
+        for (size_t i = 0; i < new_msgs2.size(); i++) {
+            // add to mb1
+            SquishWriteMsg(mb1, new_msgs2.at(i));
+            lr1 = new_msgs2.at(i)->xmsg.umsgid;
+        }
     }
-
     
     if (lr1 != 0) {
         lastread1_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile1 + ".bl_" + linkdesc->linkname).c_str(), "wb");
