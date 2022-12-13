@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstring>
 #include "../Common/Squish.h"
+#include "../Common/Logger.h"
 #include "bridge.h"
 
 std::string remove_seenby_path(std::string msgbuf) {
@@ -39,27 +40,20 @@ std::string remove_seenby_path(std::string msgbuf) {
   return ss2.str();
 }
 
-void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string msgbase2, std::string origin2) {
+void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *log) {
     FILE *lastread1_fptr;
     FILE *lastread2_fptr;
 
     uint32_t lr1 = 0;
     uint32_t lr2 = 0;
 
-    NETADDR *o1 = parse_fido_addr(origin1.c_str());
-    NETADDR *o2 = parse_fido_addr(origin2.c_str());
-
-    if (!o1 || !o2) {
-        return;
-    }
-
-    lastread1_fptr = fopen(std::string(msgbase1 + ".blr").c_str(), "rb");
+    lastread1_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile1 + ".bl_" + linkdesc->linkname).c_str(), "rb");
     if (lastread1_fptr) {
         fread(&lr1, sizeof(uint32_t), 1 , lastread1_fptr);
         fclose(lastread1_fptr);
     }
     
-    lastread2_fptr = fopen(std::string(msgbase2 + ".blr").c_str(), "rb");
+    lastread2_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile2 + ".bl_" + linkdesc->linkname).c_str(), "rb");
     if (lastread2_fptr) {
         fread(&lr2, sizeof(uint32_t), 1 , lastread2_fptr);
         fclose(lastread2_fptr);
@@ -71,28 +65,28 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
     std::vector<sq_msg_t *> new_msgs1;
     std::vector<sq_msg_t *> new_msgs2;
 
-    sq_msg_base_t *mb1 = SquishOpenMsgBase(msgbase1.c_str());
+    sq_msg_base_t *mb1 = SquishOpenMsgBase(std::string(msg_path + "/" + linkdesc->msgfile1).c_str());
 
     if (!mb1) {
-        fprintf(stderr, "Failed to open %s", msgbase1.c_str());
+        fprintf(stderr, "Failed to open %s", std::string(msg_path + "/" + linkdesc->msgfile1).c_str());
         return;
     }
 
-    sq_msg_base_t *mb2 = SquishOpenMsgBase(msgbase2.c_str());
+    sq_msg_base_t *mb2 = SquishOpenMsgBase(std::string(msg_path + "/" + linkdesc->msgfile2).c_str());
     if (!mb2) {
-        fprintf(stderr, "Failed to open %s", msgbase2.c_str());
+        fprintf(stderr, "Failed to open %s", std::string(msg_path + "/" + linkdesc->msgfile2).c_str());
         SquishCloseMsgBase(mb1);
         return;
     }
 
     if (!SquishLockMsgBase(mb1)) {
-        fprintf(stderr, "Failed to lock %s", msgbase1.c_str());
+        fprintf(stderr, "Failed to lock %s", std::string(msg_path + "/" + linkdesc->msgfile1).c_str());
         SquishCloseMsgBase(mb1);
         SquishCloseMsgBase(mb2);
         return;
     }
     if (!SquishLockMsgBase(mb2)) {
-        fprintf(stderr, "Failed to lock %s", msgbase2.c_str());
+        fprintf(stderr, "Failed to lock %s", std::string(msg_path + "/" + linkdesc->msgfile2).c_str());
         SquishUnlockMsgBase(mb1);
         SquishCloseMsgBase(mb1);
         SquishCloseMsgBase(mb2);
@@ -126,19 +120,26 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         std::stringstream ss;
 
-        ss << "\r---\r * Origin: Talisman Bridge (";
-        ss << o2->zone;
-        ss << ":";
-        ss << o2->net;
-        ss << "/";
-        ss << o2->node;
+        ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline2;
+        if (linkdesc->msgbase_type2 > 0) {    
+            ss << "(";
+            if (linkdesc->msgbase_type2 == 1) {
+                ss << linkdesc->address2->zone;
+                ss << ":";
+                ss << linkdesc->address2->net;
+                ss << "/";
+                ss << linkdesc->address2->node;
 
-        if (o2->point != 0) {
-            ss << ".";
-            ss << o2->point;
+                if (linkdesc->address2->point != 0) {
+                    ss << ".";
+                    ss << linkdesc->address2->point;
+                }
+            } else if (linkdesc->msgbase_type2 == 2) {
+                ss << "@" << linkdesc->address2->node;
+            }
+            ss << ")";
         }
-
-        ss << ")\r";
+        ss << "\r";
 
         msgcontent.append(ss.str());
 
@@ -153,7 +154,7 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         // change origin
 
-        memcpy(&msg->xmsg.orig, o2, sizeof(NETADDR));
+        memcpy(&msg->xmsg.orig, linkdesc->address2, sizeof(NETADDR));
 
         new_msgs1.push_back(msg);
     }
@@ -186,19 +187,26 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         std::stringstream ss;
 
-        ss << "\r---\r * Origin: Talisman Bridge (";
-        ss << o1->zone;
-        ss << ":";
-        ss << o1->net;
-        ss << "/";
-        ss << o1->node;
+        ss << "\r--- Talisman Bridge/" << VERSION <<"\r * Origin: " << linkdesc->tagline1;
+        if (linkdesc->msgbase_type1 > 0) {    
+            ss << "(";
+            if (linkdesc->msgbase_type1 == 1) {
+                ss << linkdesc->address1->zone;
+                ss << ":";
+                ss << linkdesc->address1->net;
+                ss << "/";
+                ss << linkdesc->address1->node;
 
-        if (o1->point != 0) {
-            ss << ".";
-            ss << o1->point;
+                if (linkdesc->address1->point != 0) {
+                    ss << ".";
+                    ss << linkdesc->address1->point;
+                }
+            } else if (linkdesc->msgbase_type1 == 2) {
+                ss << "@" << linkdesc->address1->node;
+            }
+            ss << ")";
         }
-
-        ss << ")\r";
+        ss << "\r";
 
         msgcontent.append(ss.str());
 
@@ -213,7 +221,7 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
         // change origin
 
-        memcpy(&msg->xmsg.orig, o1, sizeof(NETADDR));
+        memcpy(&msg->xmsg.orig, linkdesc->address1, sizeof(NETADDR));
 
         new_msgs2.push_back(msg);
     }
@@ -233,7 +241,7 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
 
     
     if (new_msgs1.size() > 0) {
-        lastread1_fptr = fopen(std::string(msgbase1 + ".blr").c_str(), "wb");
+        lastread1_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile1 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread1_fptr) {
             fwrite(&lr1, sizeof(uint32_t), 1, lastread1_fptr);
             fclose(lastread1_fptr);
@@ -241,14 +249,15 @@ void Bridge::do_bridge(std::string msgbase1, std::string origin1, std::string ms
     }
 
     if (new_msgs2.size() > 0) {
-        lastread2_fptr = fopen(std::string(msgbase2 + ".blr").c_str(), "wb");
+        lastread2_fptr = fopen(std::string(msg_path + "/" + linkdesc->msgfile2 + ".bl_" + linkdesc->linkname).c_str(), "wb");
         if (lastread2_fptr) {
             fwrite(&lr2, sizeof(uint32_t), 1, lastread2_fptr);
             fclose(lastread2_fptr);
         }
     }
-    fprintf(stderr, "Bridged %d messages to %s\n", new_msgs1.size(), msgbase2.c_str());
-    fprintf(stderr, "Bridged %d messages to %s\n", new_msgs2.size(), msgbase1.c_str());
+    log->log(LOG_INFO, "Bridge run for %s\n", linkdesc->linkname.c_str());
+    log->log(LOG_INFO, "Bridged %d messages to %s\n", new_msgs1.size(), linkdesc->msgfile2.c_str());
+    log->log(LOG_INFO, "Bridged %d messages to %s\n", new_msgs2.size(), linkdesc->msgfile1.c_str());
 
 clean_up:
 
