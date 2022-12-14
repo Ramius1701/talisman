@@ -1361,11 +1361,11 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
   FILE *dest_ptr;
   unsigned char c;
 
-  src_ptr = fopen(src.u8string().c_str(), "r");
+  src_ptr = fopen(src.u8string().c_str(), "rb");
   if (!src_ptr) {
     return false;
   }
-  dest_ptr = fopen(dest.u8string().c_str(), "w");
+  dest_ptr = fopen(dest.u8string().c_str(), "wb");
   if (!dest_ptr) {
     fclose(src_ptr);
     return false;
@@ -1784,7 +1784,7 @@ void Menu::qwk_down(Node *n) {
     std::filesystem::path ctrl_dat(fpath);
     ctrl_dat.append("CONTROL.DAT");
     flist.push_back(ctrl_dat.string());
-    fptr = fopen(ctrl_dat.string().c_str(), "w");
+    fptr = fopen(ctrl_dat.string().c_str(), "wb");
     if (!fptr) {
       // error
       return;
