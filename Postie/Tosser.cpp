@@ -710,6 +710,10 @@ UMSGID Tosser::get_reply_msg(sq_msg_base_t *mb, sq_msg_t *msg) {
     sq_msg_t *rmsg = SquishReadMsg(mb, i);
     std::string msgid = "";
 
+    if (!rmsg) {
+      continue;
+    }
+
     kludge.str("");
     // get msg id from CTRL
     for (size_t z = 0; z < rmsg->ctrl_len; z++) {
