@@ -168,7 +168,7 @@ void Door::createDropfiles(Node *n) {
   f2 << CallLog::total_calls(n, n->get_user().get_username()) << LINE_END;
   f2 << "01-01-1971" << LINE_END;
   f2 << std::to_string(n->get_timeleft()) << LINE_END;
-  f2 << "999" << LINE_END;
+  f2 << std::to_string(n->get_timeleft() / 60) << LINE_END;
   f2 << "GR" << LINE_END;
   f2 << "25" << LINE_END;
   f2 << "N" << LINE_END;
