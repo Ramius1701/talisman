@@ -1538,12 +1538,12 @@ int Server::runall() {
       ss << c.outbound;
     }
 
-    memset(flowfname, 0, 9);
+    memset(flowfname, 0, sizeof(flowfname));
 
     if (c.links.at(i).addr->point == 0) {
-      snprintf(flowfname, 9, "%04X%04X", c.links.at(i).addr->net, c.links.at(i).addr->node);
+      snprintf(flowfname, sizeof(flowfname), "%04X%04X", c.links.at(i).addr->net, c.links.at(i).addr->node);
     } else {
-      snprintf(flowfname, 9, "%04X%04X.PNT/%08X", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
+      snprintf(flowfname, sizeof(flowfname), "%04X%04X.PNT/%08X", c.links.at(i).addr->net, c.links.at(i).addr->node, c.links.at(i).addr->point);
     }
 
     if (std::filesystem::exists(ss.str() + "/" + flowfname + ".CLO")) {
