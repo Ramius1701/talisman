@@ -135,6 +135,9 @@ int main(int argc, char **argv) {
 
           return -1;
         } else {
+          long timeout = 120;
+          ssh_options_set(sshc->p_ssh_session, SSH_OPTIONS_TIMEOUT, (void *)&timeout);
+
           if (ssh_bind_accept_fd(p_ssh_bind, sshc->p_ssh_session, sock) == SSH_OK) {
 
             sockaddr_in sa;
