@@ -315,7 +315,7 @@ void Node::detectCterm() {
                   break;
                 }
               }
-              break;
+              return;
             }
           }
         }
