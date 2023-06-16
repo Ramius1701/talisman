@@ -71,3 +71,6 @@
 /Bridge/x64/Debug
 /Bridge/Bridge.vcxproj.filters
 *.user
+/HttpSrv/Debug
+/HttpSrv/Release
+/HttpSrv/HttpSrv.vcxproj.filters

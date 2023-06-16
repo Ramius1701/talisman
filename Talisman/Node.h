@@ -62,7 +62,7 @@ public:
   int get_socket() { return socket; }
 
   time_t get_timeleft() { return timeleft; }
-
+  void set_timeleft(time_t tl) { timeleft = tl; }
   bool is_telnet() { return telnet; }
   time_t get_last_on() { return last_on; }
   void system_info();

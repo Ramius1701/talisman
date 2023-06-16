@@ -637,6 +637,22 @@ extern "C" int lua_display_sixel(lua_State *L) {
   return 0;
 }
 
+
+extern "C" int lua_set_timeleft(lua_State *L) { 
+  time_t tl = lua_tonumber(L, 1);
+  Node *n = lua_getNode(L);
+  n->get_user().set_attribute("time_left", std::to_string(tl));
+  n->set_timeleft(tl * 60);
+  return 0;
+}
+
+extern "C" int lua_get_timeleft(lua_State *L) {
+  Node *n = lua_getNode(L);
+
+  lua_pushnumber(L, n->get_timeleft() / 60);
+  return 1;
+}
+
 extern "C" int lua_switch_font(lua_State *L) {
   int font = lua_tonumber(L, 1);
   int place = lua_tonumber(L, 2);
@@ -798,6 +814,12 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_switch_font);
   lua_setglobal(l, "bbs_switch_font");
+
+  lua_pushcfunction(l, lua_set_timeleft);
+  lua_setglobal(l, "bbs_set_time_left");
+
+  lua_pushcfunction(l, lua_get_timeleft);
+  lua_setglobal(l, "bbs_get_time_left");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {
