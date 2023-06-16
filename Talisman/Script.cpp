@@ -84,6 +84,13 @@ extern "C" int lua_getTermType(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_GetSixelSupport(lua_State *L) {
+  Node *n = lua_getNode(L);
+  lua_pushboolean(L, n->sixel_support());
+
+  return 1;
+}
+
 extern "C" int lua_getBBSMsg(lua_State *L) {
   const char *mbfile = lua_tostring(L, 1);
   uint32_t mid = (uint32_t)lua_tonumber(L, 2);
@@ -746,6 +753,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_hasAnsi);
   lua_setglobal(l, "bbs_user_has_ansi");
+
+  lua_pushcfunction(l, lua_GetSixelSupport);
+  lua_setglobal(l, "bbs_user_has_sixel");
 
   lua_pushcfunction(l, lua_editAnsi);
   lua_setglobal(l, "bbs_edit_ansi");
