@@ -102,15 +102,45 @@ bool read_line(int csock, char **str) {
   } 
 }
 
+static bool locked = false;
+
+void log(int t, std::string message) {
+  while (locked) {
+    std::this_thread::sleep_for(std::chrono::microseconds(100));
+  }
+  locked = true;
+  if (t == 0) {
+    std::cout << norm() << ts() << message << rst() << std::endl;
+  } else {
+    std::cout << err() << ts() << message << rst() << std::endl;
+  }
+  locked = false;
+}
+
 std::optional<std::filesystem::path> MakeAbsolute(const std::filesystem::path &root, const std::filesystem::path &userPath) {
   auto finalPath = (root / userPath).lexically_normal();
+  for (auto b = root.begin(), s = finalPath.begin(); b != root.end(); ++b, ++s) {
 
-  auto [rootEnd, nothing] = std::mismatch(root.begin(), root.end(), finalPath.begin());
+      
+      if (s == finalPath.end() || *s != *b) {
 
-  if (rootEnd != root.end())
-    return std::nullopt;
 
+      return std::nullopt;
+    }
+  }
   return finalPath;
+#if 0
+  auto mm = std::mismatch(finalPath.begin(), finalPath.end(), root.begin());
+
+  log(1, root.string());
+  log(1, finalPath.string());
+
+  if (mm.second != root.end()) {
+    log(1, "HERE");
+    return std::nullopt;
+  }
+  return finalPath;
+#endif
 }
 
 #if 0
@@ -142,7 +172,13 @@ std::string MimeTypeFromString(const std::string &str) {
   return "";
 }
 #else
-std::string MimeTypeFromString(const std::string &str) { return mime::lookup(str); }
+std::string MimeTypeFromString(const std::string &str) {
+  try {
+    return mime::lookup(str);
+  } catch (std::exception) {
+    return "application/octet-stream";
+  }
+}
 #endif
 
 void service(int csock, std::string root) {
@@ -194,7 +230,6 @@ void service(int csock, std::string root) {
       goto end;
     }
 
-
     if (req_vers == HTTP_VERSION_1_1) {
       while (true) {
         if (!read_line(csock, &line))
@@ -208,68 +243,95 @@ void service(int csock, std::string root) {
       }
     }
     std::filesystem::path rootp(root);
-    std::filesystem::path reqp(args[1] == "/" ? "/" : args[1].substr(1));
-    std::filesystem::path resource = rootp / MakeAbsolute(rootp, reqp).value_or("");
+    std::filesystem::path reqp(args[1] == "/" ? "" : args[1].substr(1));
+    auto ab = MakeAbsolute((rootp.has_filename() ? rootp : rootp.parent_path()), reqp);
+    std::filesystem::path resource;
 
-    if (!resource.has_filename()) {
-      resource /= "index.html";
-    }
-    std::stringstream ss;
-
-
-
-    if (std::filesystem::exists(resource)) {
-      size_t clen = std::filesystem::file_size(resource);
-
-      std::cout << norm() << ts() << "200 " << resource << rst() << std::endl;
-
-      ss << (req_vers == HTTP_VERSION_1_0 ? "HTTP/1.0" : "HTTP/1.1") << " 200 OK\r\n";
-      ss << "Server: TalismanHTTPd/" << PROGRAM_VERSION << "\r\n";
-      if (req_vers == HTTP_VERSION_1_1) {
-        ss << "Connection: close\r\n";
+    if (ab.has_value()) {
+      resource = ab.value();
+      if (!resource.has_filename()) {
+        resource /= "index.html";
       }
-      ss << "Content-Type: " << MimeTypeFromString(resource.extension().string()) << "\r\n";
-      ss << "Content-Length: " << clen << "\r\n";
-      ss << "\r\n";
+      std::stringstream ss;
 
-      send(csock, ss.str().c_str(), ss.str().size(), 0);
+      if (std::filesystem::exists(resource)) {
+        size_t clen = std::filesystem::file_size(resource);
 
-      if (req_type == HTTP_TYPE_GET || req_type == HTTP_TYPE_POST) {
+        log(0, "200 " + resource.string());
 
-        char *data = (char *)malloc(clen);
-        if (!data) {
-          goto end;
+        ss << (req_vers == HTTP_VERSION_1_0 ? "HTTP/1.0" : "HTTP/1.1") << " 200 OK\r\n";
+        ss << "Server: TalismanHTTPd/" << PROGRAM_VERSION << "\r\n";
+        if (req_vers == HTTP_VERSION_1_1) {
+          ss << "Connection: close\r\n";
         }
-        FILE *fptr = fopen(resource.string().c_str(), "rb");
-        if (!fptr) {
-          free(data);
+        ss << "Content-Type: " << MimeTypeFromString(resource.extension().string()) << "\r\n";
+        ss << "Content-Length: " << clen << "\r\n";
+        ss << "\r\n";
 
-          std::cout << err() << ts() << "Unable to open resource" << rst() << std::endl;
+        send(csock, ss.str().c_str(), ss.str().size(), 0);
 
-          goto end;
-        }
-        if (fread(data, 1, clen, fptr) != clen) {
-          std::cout << err() << ts() << "Unable to read resource" << rst() << std::endl;
+        if (req_type == HTTP_TYPE_GET || req_type == HTTP_TYPE_POST) {
 
+          char *data = (char *)malloc(clen);
+          if (!data) {
+            goto end;
+          }
+          FILE *fptr = fopen(resource.string().c_str(), "rb");
+          if (!fptr) {
+            free(data);
+
+            log(1, "Unable to open resource");
+
+            goto end;
+          }
+          if (fread(data, 1, clen, fptr) != clen) {
+            log(1, "Unable to read resource");
+
+            free(data);
+            fclose(fptr);
+            goto end;
+          }
+          send(csock, data, clen, 0);
           free(data);
           fclose(fptr);
-          goto end;
         }
-        send(csock, data, clen, 0);
-        free(data);
-        fclose(fptr);
+      } else {
+        log(1, "404 " + resource.string());
+        
+        std::string err404 = "<html><head>\r\n"
+                             "<title>404 Not Found</title>\r\n"
+                             "</head><body>\r\n"
+                             "<h1>Not Found</h1>\r\n"
+                             "The requested resource was not found.\r\n"
+                             "</body></html>\r\n";
+
+        ss << (req_vers == HTTP_VERSION_1_0 ? "HTTP/1.0" : "HTTP/1.1") << " 404 Not Found\r\n";
+        ss << "Server: TalismanHTTPd/" << PROGRAM_VERSION << "\r\n";
+        if (req_vers == HTTP_VERSION_1_1) {
+          ss << "Connection: close\r\n";
+        }
+        ss << "Content-Type: text/html\r\n";
+        ss << "Content-Length: " << err404.size() << "\r\n";
+        ss << "\r\n";
+
+        send(csock, ss.str().c_str(), ss.str().size(), 0);
+
+        if (req_type == HTTP_TYPE_GET || req_type == HTTP_TYPE_POST) {
+          send(csock, err404.c_str(), err404.size(), 0);
+        }
       }
     } else {
-      std::cout << err() << ts() << "404 " << resource << rst() << std::endl;
+      std::stringstream ss;
+
+      log(1, "403 " + (root / reqp).string());
       std::string err404 = "<html><head>\r\n"
-      "<title>404 Not Found</title>\r\n"
-      "</head><body>\r\n"
-      "<h1>Not Found</h1>\r\n"
-      "The requested resource was not found.\r\n"
-      "</body></html>\r\n";
+                           "<title>403 Forbidden</title>\r\n"
+                           "</head><body>\r\n"
+                           "<h1>Access Denied</h1>\r\n"
+                           "Forbidden.\r\n"
+                           "</body></html>\r\n";
 
-
-      ss << (req_vers == HTTP_VERSION_1_0 ? "HTTP/1.0" : "HTTP/1.1") << " 404 Not Found\r\n";
+      ss << (req_vers == HTTP_VERSION_1_0 ? "HTTP/1.0" : "HTTP/1.1") << " 403 Forbidden\r\n";
       ss << "Server: TalismanHTTPd/" << PROGRAM_VERSION << "\r\n";
       if (req_vers == HTTP_VERSION_1_1) {
         ss << "Connection: close\r\n";
@@ -285,7 +347,6 @@ void service(int csock, std::string root) {
       }
     }
   }
-
 end:
 #ifdef _MSC_VER
   closesocket(csock);
@@ -384,7 +445,8 @@ int main(int argc, char **argv)
     }
     if (FD_ISSET(httpdfd, &copy_fds)) {
       csockfd = accept(httpdfd, (struct sockaddr *)&client_addr, (socklen_t *)&clen);
-      service(csockfd, std::string(argv[2]));
+      std::thread th(service, csockfd, argv[2]);
+      th.detach();
     }
     if (httpd6fd != -1) {
       if (FD_ISSET(httpd6fd, &copy_fds)) {
