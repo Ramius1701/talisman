@@ -25,6 +25,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NewsSrv", "NewsSrv\NewsSrv.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bridge", "Bridge\Bridge.vcxproj", "{C55CBC75-5E38-424F-B3D5-38FBA9A4DB90}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HttpSrv", "HttpSrv\HttpSrv.vcxproj", "{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -120,6 +122,14 @@ Global
 		{C55CBC75-5E38-424F-B3D5-38FBA9A4DB90}.Release|x64.Build.0 = Release|x64
 		{C55CBC75-5E38-424F-B3D5-38FBA9A4DB90}.Release|x86.ActiveCfg = Release|Win32
 		{C55CBC75-5E38-424F-B3D5-38FBA9A4DB90}.Release|x86.Build.0 = Release|Win32
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Debug|x64.ActiveCfg = Debug|x64
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Debug|x64.Build.0 = Debug|x64
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Debug|x86.ActiveCfg = Debug|Win32
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Debug|x86.Build.0 = Debug|Win32
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Release|x64.ActiveCfg = Release|x64
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Release|x64.Build.0 = Release|x64
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Release|x86.ActiveCfg = Release|Win32
+		{00F8E8BA-57BA-4A87-9490-9EDEB40B2D0C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

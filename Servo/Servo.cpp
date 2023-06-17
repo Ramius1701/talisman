@@ -125,6 +125,8 @@ int main() {
   int gopherport;
   int nntpport;
   int binkport;
+  int httpport;
+  std::string httproot;
   bool ipv6 = false;
   int port;
   struct sockaddr_in nntp_serv_addr, gopher_serv_addr, ssh_serv_addr, serv_addr, client_addr, bink_serv_addr;
@@ -167,6 +169,8 @@ int main() {
   gopherport = inir.GetInteger("main", "gopher port", -1);
   nntpport = inir.GetInteger("main", "nntp port", -1);
   binkport = inir.GetInteger("main", "binkp port", -1);
+  httpport = inir.GetInteger("main", "http port", -1);
+  httproot = inir.Get("paths", "http root", "");
   datapath = inir.Get("paths", "data path", "data");
   ipv6 = inir.GetBoolean("main", "enable ipv6", false);
   span = inir.GetInteger("main", "ip block timeout", 300);
@@ -491,6 +495,59 @@ int main() {
     }
     listen(binkfd, 5);
     std::cout << norm() << ts() << "BinkpServer : Listening on port " << binkport << "(Binkp)" << rst() << std::endl;
+  }
+
+  if (httpport != -1 && httproot != "") {
+    std::cout << norm() << ts() << "HttpServer  : Launching port " << httpport << "(HTTP)" << rst() << std::endl;
+#ifdef _MSC_VER
+    std::stringstream ss;
+    ss.str("");
+    ss << "\"httpsrv.exe\" " << httpport << " \"" << httproot << "\"";
+
+    if (ipv6) {
+      ss << " -6";
+    }
+
+    char *cmd = strdup(ss.str().c_str());
+
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    //	si.dwFlags = STARTF_USESTDHANDLES;
+    //	si.hStdInput = INVALID_HANDLE_VALUE;
+    //	si.hStdError = INVALID_HANDLE_VALUE;
+    //	si.hStdOutput = INVALID_HANDLE_VALUE;
+
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (!CreateProcessA(NULL, cmd, NULL, NULL, TRUE, CREATE_NEW_CONSOLE, NULL, NULL, &si, &pi)) {
+      std::cerr << err() << ts() << "HttpServer: Failed to create process!" << rst() << std::endl;
+      free(cmd);
+    }
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    free(cmd);
+#else
+    pid_t pid = fork();
+    if (pid == 0) {
+      snprintf(sockstr, 10, "%d", csockfd);
+      if (ipv6) {
+        if (execlp("./httpsrv", "./httpsrv", std::to_string(httpport).c_str(), httproot.c_str(), "-6", NULL) == -1) {
+          perror("Execlp: ");
+          exit(-1);
+        }
+      } else {
+        if (execlp("./httpsrv", "./httpsrv", std::to_string(httpport).c_str(), httproot.c_str(), NULL) == -1) {
+          perror("Execlp: ");
+          exit(-1);
+        }
+      }
+    } else if (pid == -1) {
+      std::cerr << err() << ts() << "HttpServer: Failed to create process!" << rst() << std::endl;
+    }
+#endif
   }
 
   int nfds;
