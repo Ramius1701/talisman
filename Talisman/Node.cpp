@@ -308,7 +308,7 @@ void Node::detectCterm() {
                 case 1:
                   fonts_allowed = true;
                   break;
-                case 3:
+                case 4:
                   sixel_allowed = true;
                   break;
                 default:
