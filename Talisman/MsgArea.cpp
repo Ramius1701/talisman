@@ -864,7 +864,7 @@ struct line_t {
   int type;
 };
 
-bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer) {
+bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer, bool manual_kludge = false) {
   std::stringstream ss;
 
   ss.str("");
@@ -1016,7 +1016,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
   quotebuffer->clear();
   ss.str("");
 
-  if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+  if (n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge) {
     for (int i = 0; i < msg->ctrl_len; i++) {
       if (msg->ctrl[i] == '\x01' && ss.str().size() > 0) {
         if (ss.str().size() > 69) {
@@ -1058,7 +1058,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
   }
 
   for (size_t i = 0; i < q_msg.size(); i++) {
-    if (q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" &&
+    if (!manual_kludge && q_msg.at(i).size() > 0 && n->get_user().get_attribute("viewkludges", "false") == "false" &&
         (q_msg.at(i).at(0) == '\x01' || q_msg.at(i).find("SEEN-BY: ") == 0)) {
       continue;
     } else {
@@ -1404,6 +1404,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
 
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last, bool personal) {
   sq_msg_base_t *mb;
+  bool manual_kludge = false;
   bool fsr = (n->get_user().get_attribute("fullscreenreader", "true") == "true" && n->hasANSI);
   mb = SquishOpenMsgBase(file.c_str());
   if (!mb) {
@@ -1453,7 +1454,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
     linesv.clear();
     quotebuffer.clear();
 
-    bool ansimsg = prepare_msg(msg, &linesv, &quotebuffer);
+    bool ansimsg = prepare_msg(msg, &linesv, &quotebuffer, manual_kludge);
     bool isutf8 = false;
 
     for (size_t i = 0; i < linesv.size(); i++) {
@@ -1519,7 +1520,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           n->print_f("|10%s\r\n", linesv.at(lno).line.c_str());
           lines++;
         } else if (linesv.at(lno).type == 2) {
-          if (n->get_user().get_attribute("viewkludges", "false") == "true") {
+          if (n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge) {
             if (linesv.at(lno).line[0] == '\x01') {
               n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
             } else {
@@ -1593,6 +1594,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           direction = 0;
           msg_to_read--;
           break;
+        case 'k':
+          manual_kludge = !manual_kludge;
+          break;
         case 'q':
           SquishCloseMsgBase(mb);
           return false;
@@ -1606,7 +1610,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
     } else if (fsr == true) {
       int top = 0;
       std::vector<std::string> linesv2;
-      bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true";
+      bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge;
       for (size_t i = 0; i < linesv.size(); i++) {
         if (linesv.at(i).type == 0) {
           linesv2.push_back(linesv.at(i).line);
@@ -1732,6 +1736,11 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
                 break;
               }
             }
+          }
+          if (tolower(c) == 'k') {
+            manual_kludge = !manual_kludge;
+            done = true;
+            break;
           }
           if (c == '\r') {
             msg_to_read++;

@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "../Common/INIReader.h"
 #include "../Common/wwivnet.h"
 #include "../Common/Logger.h"
@@ -6,6 +7,7 @@
 #include "SubReq.h"
 #include <filesystem>
 #include <iostream>
+
 
 #ifdef _MSC_VER
 #define strcasecmp stricmp

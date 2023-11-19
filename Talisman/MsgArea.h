@@ -57,7 +57,7 @@ public:
 private:
   bool print_msg_header(int msgno, int totmsg, sq_msg_t *msg);
 
-  bool prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer);
+  bool prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer, bool manual_kludge);
   void reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer);
   std::string name;
   std::string file;

@@ -1,6 +1,7 @@
 #ifdef _MSC_VER
 #include <Windows.h>
 #endif
+#include <cstdint>
 #include "Archiver.h"
 #include <algorithm>
 #include <sstream>

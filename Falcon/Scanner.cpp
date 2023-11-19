@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "../Common/INIReader.h"
 #include "../Common/Squish.h"
 #include "../Common/wwivnet.h"
