@@ -2655,6 +2655,30 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
 
   std::filesystem::path pth = std::filesystem::path("temp/" + std::to_string(n->getnodenum()) + "/message.txt");
 
+  std::stringstream msgss;
+  for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
+    if (msg->msg[i] == '\r') {
+      if (i < (size_t)msg->msg_len - 1) {
+        if (msg->msg[i] == '\001') {
+          i++;
+          while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
+            i++;
+          }
+          continue;
+        }
+      } else if (i < (size_t)msg->msg_len - 9) {
+        if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
+            msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+          while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
+            i++;
+          }
+          continue;
+        }
+      }
+    }
+    msgss << msg->msg[i];
+  }
+
   std::ofstream of;
   of.open(pth, std::ofstream::out | std::ofstream::trunc);
 
@@ -2664,9 +2688,9 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
   of << "-------------------------------------------------------------------------------"
      << "\r\n";
 
-  for (int i = 0; i < msg->msg_len; i++) {
-    of << msg->msg[i];
-    if (msg->msg[i] == '\r') {
+  for (size_t i = 0; i < msgss.str().size(); i++) {
+    of << msgss.str().at(i);
+    if (msgss.str().at(i) == '\r') {
       of << "\n";
     }
   }
@@ -2678,6 +2702,8 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
   if (!std::filesystem::exists(pth)) {
     return;
   }
+
+  n->cls();
 
   Protocol *p = n->get_config()->select_protocol(n);
 
