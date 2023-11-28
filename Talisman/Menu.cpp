@@ -1385,7 +1385,7 @@ static bool copy_file_without_sauce(std::filesystem::path src, std::filesystem::
 }
 
 tWORD converts(tWORD s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
@@ -1393,7 +1393,7 @@ tWORD converts(tWORD s) {
 }
 
 tLONG convertl(tLONG s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN))
+#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));

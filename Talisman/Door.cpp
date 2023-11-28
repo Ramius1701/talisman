@@ -130,8 +130,11 @@ void Door::createDropfiles(Node *n) {
   d32path.append("door32.sys");
 
   std::ofstream f(d32path);
-
+#ifdef _MSC_VER
   f << "2" << LINE_END;
+#else
+  f << "0" << LINE_END;
+#endif
   f << n->get_socket() << LINE_END;
   f << "38400" << LINE_END;
   f << "Talisman v" << VERSION_MAJOR << "." << VERSION_MINOR << "-" << VERSION_STR << LINE_END;
