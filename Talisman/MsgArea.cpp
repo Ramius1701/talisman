@@ -2377,19 +2377,18 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
     std::stringstream msgss;
     for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
       if (msg->msg[i] == '\r') {
-        if (i < (size_t)msg->msg_len - 1) {
-          i++;
-          if (msg->msg[i] == '\001') {
+        if (i < (size_t)msg->msg_len - 2) {
+          if (msg->msg[i + 1] == '\001') {
             i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
             continue;
           }
-        } else if (i < (size_t)msg->msg_len - 9) {
-          i++;
-          if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
-              msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+        } else if (i < (size_t)msg->msg_len - 10) {
+
+          if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
+              msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
@@ -2597,19 +2596,18 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
     std::stringstream msgss;
     for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
       if (msg->msg[i] == '\r') {
-        if (i < (size_t)msg->msg_len - 1) {
-          i++;
-          if (msg->msg[i] == '\001') {
+        if (i < (size_t)msg->msg_len - 2) {
+          if (msg->msg[i + 1] == '\001') {
             i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
             continue;
           }
-        } else if (i < (size_t)msg->msg_len - 9) {
-          i++;
-          if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
-              msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+        } else if (i < (size_t)msg->msg_len - 10) {
+
+          if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
+              msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
@@ -2663,19 +2661,18 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
   std::stringstream msgss;
   for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
     if (msg->msg[i] == '\r') {
-      if (i < (size_t)msg->msg_len - 1) {
-        i++;
-        if (msg->msg[i] == '\001') {
+      if (i < (size_t)msg->msg_len - 2) {
+        if (msg->msg[i+1] == '\001') {
           i++;
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
             i++;
           }
           continue;
         }
-      } else if (i < (size_t)msg->msg_len - 9) {
-        i++;
-        if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
-            msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
+      } else if (i < (size_t)msg->msg_len - 10) {
+        
+        if (msg->msg[i+1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
+            msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
             i++;
           }
