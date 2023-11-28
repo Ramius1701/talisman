@@ -2378,6 +2378,7 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
     for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
       if (msg->msg[i] == '\r') {
         if (i < (size_t)msg->msg_len - 1) {
+          i++;
           if (msg->msg[i] == '\001') {
             i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
@@ -2386,6 +2387,7 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
             continue;
           }
         } else if (i < (size_t)msg->msg_len - 9) {
+          i++;
           if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
               msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
@@ -2596,6 +2598,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
     for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
       if (msg->msg[i] == '\r') {
         if (i < (size_t)msg->msg_len - 1) {
+          i++;
           if (msg->msg[i] == '\001') {
             i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
@@ -2604,6 +2607,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
             continue;
           }
         } else if (i < (size_t)msg->msg_len - 9) {
+          i++;
           if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
               msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
@@ -2660,6 +2664,7 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
   for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
     if (msg->msg[i] == '\r') {
       if (i < (size_t)msg->msg_len - 1) {
+        i++;
         if (msg->msg[i] == '\001') {
           i++;
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
@@ -2668,6 +2673,7 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
           continue;
         }
       } else if (i < (size_t)msg->msg_len - 9) {
+        i++;
         if (msg->msg[i] == 'S' && msg->msg[i + 1] == 'E' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'N' && msg->msg[i + 4] == '-' &&
             msg->msg[i + 5] == 'B' && msg->msg[i + 6] == 'Y' && msg->msg[i + 7] == ':' && msg->msg[i + 8] == ' ') {
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
