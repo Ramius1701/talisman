@@ -2666,7 +2666,7 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
   for (size_t i = 0; i < (size_t)msg->msg_len; i++) {
     if (msg->msg[i] == '\r') {
       if (i < (size_t)msg->msg_len - 2) {
-        if (msg->msg[i+1] == '\001') {
+        if (msg->msg[i + 1] == '\001') {
           i++;
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
             i++;
