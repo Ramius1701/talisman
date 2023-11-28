@@ -22,6 +22,7 @@
 #include "Qwk.h"
 #include "Script.h"
 #include "Config.h"
+#include "Protocol.h"
 
 MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail,
                  std::string tagline, int qwk, bool rn, int wwivnode) {
@@ -1597,6 +1598,9 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
         case 'k':
           manual_kludge = !manual_kludge;
           break;
+        case 'o':
+          download(n, msg);
+          break;
         case 'q':
           SquishCloseMsgBase(mb);
           return false;
@@ -1765,6 +1769,10 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
           if (tolower(c) == 'r') {
             n->cls();
             reply_to_msg(msg, &quotebuffer);
+            done = true;
+            break;
+          } else if (tolower(c) == 'o') {
+            download(n, msg);
             done = true;
             break;
           }
@@ -2641,4 +2649,46 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
   fwrite(&mix, sizeof(MIX_REC), 1, mix_file);
 
   return tot_msgs;
+}
+
+void MsgArea::download(Node *n, sq_msg_t* msg) {
+
+  std::filesystem::path pth = std::filesystem::path("temp/" + std::to_string(n->getnodenum()) + "/message.txt");
+
+  std::ofstream of;
+  of.open(pth, std::ofstream::out | std::ofstream::trunc);
+
+  of << "To     : " << msg->xmsg.to << "\r\n";
+  of << "From   : " << msg->xmsg.from << "\r\n";
+  of << "Subject: " << msg->xmsg.subject << "\r\n";
+  of << "-------------------------------------------------------------------------------"
+     << "\r\n";
+
+  for (int i = 0; i < msg->msg_len; i++) {
+    of << msg->msg[i];
+    if (msg->msg[i] == '\r') {
+      of << "\n";
+    }
+  }
+  of << "-------------------------------------------------------------------------------"
+     << "\r\n";
+
+  of.close();
+
+  if (!std::filesystem::exists(pth)) {
+    return;
+  }
+
+  Protocol *p = n->get_config()->select_protocol(n);
+
+  if (p == nullptr) {
+    return;
+  }
+
+  std::vector<std::filesystem::path> sendlist;
+  sendlist.push_back(pth);
+
+  p->download(n, n->get_socket(), &sendlist);
+
+  return;
 }

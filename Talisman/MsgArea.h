@@ -53,6 +53,7 @@ public:
 
   static void attach_sig(std::vector<std::string> *msg, std::string sig);
   int bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *mix_file, FILE *dat_file, int *last_ptr, int *last_read);
+  void download(Node *n, sq_msg_t *msg);
 
 private:
   bool print_msg_header(int msgno, int totmsg, sq_msg_t *msg);
