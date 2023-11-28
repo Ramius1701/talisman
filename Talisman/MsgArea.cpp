@@ -1777,21 +1777,22 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
             break;
           }
           if (c == '?') {
-            n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->get_term_height() - 8) / 2 + 4);
-            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 1);
-            n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->get_term_height() - 8) / 2 + 4) + 2);
-            n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->get_term_height() - 8) / 2 + 4) + 3);
+            n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->get_term_height() - 9) / 2 + 4);
+            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 1);
+            n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->get_term_height() - 9) / 2 + 4) + 2);
+            n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->get_term_height() - 9) / 2 + 4) + 3);
             if (unread || personal) {
-              n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->get_term_height() - 8) / 2 + 4) + 4);
+              n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->get_term_height() - 9) / 2 + 4) + 4);
             } else if (search) {
-              n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->get_term_height() - 8) / 2 + 4) + 4);
+              n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->get_term_height() - 9) / 2 + 4) + 4);
             } else {
-              n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 4);
+              n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 4);
             }
-            n->print_f("\x1b[%d;20H|  (D) Delete Message        |", ((n->get_term_height() - 8) / 2 + 4) + 5);
-            n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 8) / 2 + 4) + 6);
-            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 8) / 2 + 4) + 7);
-            n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 8) / 2 + 4) + 8);
+            n->print_f("\x1b[%d;20H|  (O) Download Message      |", ((n->get_term_height() - 9) / 2 + 4) + 5);
+            n->print_f("\x1b[%d;20H|  (D) Delete Message        |", ((n->get_term_height() - 9) / 2 + 4) + 6);
+            n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 9) / 2 + 4) + 7);
+            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 8);
+            n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 9) / 2 + 4) + 9);
             n->getch();
             break;
           }
