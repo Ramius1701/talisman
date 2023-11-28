@@ -2389,6 +2389,7 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
 
           if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
               msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
+            i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
@@ -2608,6 +2609,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
 
           if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
               msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
+            i++;
             while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
               i++;
             }
@@ -2673,6 +2675,7 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
         
         if (msg->msg[i+1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
             msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
+          i++;
           while (i < (size_t)msg->msg_len && msg->msg[i] != '\r') {
             i++;
           }
