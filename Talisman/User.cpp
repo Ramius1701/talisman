@@ -618,9 +618,9 @@ std::string User::user_exists(Config *c, std::string usern) {
   if (sqlite3_step(stmt) == SQLITE_ROW) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return usern;
+    return std::string((const char *)sqlite3_column_text(stmt, 0));
   }
-
+  sqlite3_finalize(stmt);
   if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
     sqlite3_close(db);
     return "";
@@ -636,9 +636,9 @@ std::string User::user_exists(Config *c, std::string usern) {
     }
     sqlite3_bind_int(stmt, 1, id);
     if (sqlite3_step(stmt) == SQLITE_ROW) {
+      std::string ret = std::string((const char *)sqlite3_column_text(stmt, 0));
       sqlite3_finalize(stmt);
       sqlite3_close(db);
-      std::string ret = std::string((const char *)sqlite3_column_text(stmt, 0));
       return ret;
     } else {
       sqlite3_finalize(stmt);
