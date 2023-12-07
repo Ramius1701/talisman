@@ -417,7 +417,6 @@ int SquishWriteMsg(sq_msg_base_t *mb, sq_msg_t *msg) {
     sqhdr.msg_length = msg->msg_len + msg->ctrl_len + sizeof(XMSG);
     sqhdr.next_frame = 0;
     sqhdr.prev_frame = mb->basehdr.last_frame;
-    sqhdr.frame_length = sizeof(XMSG) + msg->ctrl_len + msg->msg_len;
     sqhdr.frame_type = 0;
     sqhdr.id = 0xAFAE4453;
 
@@ -750,11 +749,11 @@ sq_msg_t *SquishReadMsg(sq_msg_base_t *mb, sq_dword msgno) {
   if (sqhdr.id != 0xAFAE4453 || sqhdr.frame_type != 0) {
     return NULL;
   }
-  data = (char *)malloc(sqhdr.frame_length);
+  data = (char *)malloc(sqhdr.msg_length);
   if (!data) {
     return NULL;
   }
-  fread(data, sqhdr.frame_length, 1, mb->datafile);
+  fread(data, sqhdr.msg_length, 1, mb->datafile);
 
   sq_msg_t *msg = (sq_msg_t *)malloc(sizeof(sq_msg_t));
   if (!msg) {
