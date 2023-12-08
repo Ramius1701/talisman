@@ -616,9 +616,10 @@ std::string User::user_exists(Config *c, std::string usern) {
   sqlite3_bind_text(stmt, 1, usern.c_str(), -1, NULL);
 
   if (sqlite3_step(stmt) == SQLITE_ROW) {
+    std::string ret = std::string((const char *)sqlite3_column_text(stmt, 0));
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-    return std::string((const char *)sqlite3_column_text(stmt, 0));
+    return ret;
   }
   sqlite3_finalize(stmt);
   if (sqlite3_prepare_v2(db, sql2, strlen(sql2), &stmt, NULL) != SQLITE_OK) {
