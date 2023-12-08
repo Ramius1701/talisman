@@ -6,6 +6,7 @@
 #endif
 #include "../Common/INIReader.h"
 #include "../Common/Logger.h"
+#include "../Common/tendian.h"
 #include "Archiver.h"
 #include "Config.h"
 #include "GenDefs.h"
@@ -19,7 +20,7 @@
 extern void sig_handler(int signal);
 
 static inline uint16_t host2le_s(uint16_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
@@ -27,7 +28,7 @@ static inline uint16_t host2le_s(uint16_t s) {
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
@@ -35,7 +36,7 @@ static inline uint32_t host2le_l(uint32_t s) {
 }
 
 static inline void convert_phdr(struct packet_t *pkt) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
   pkt->orignode = host2le_s(pkt->orignode);
@@ -64,7 +65,7 @@ static inline void convert_phdr(struct packet_t *pkt) {
 }
 
 static inline void convert_pmsghdr(struct packed_message_t *msg) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
   msg->message_type = host2le_s(msg->message_type);

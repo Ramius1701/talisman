@@ -1,4 +1,5 @@
 #include "Squish.h"
+#include "tendian.h"
 #ifdef _MSC_VER
 #include <Windows.h>
 #include <io.h>
@@ -23,7 +24,7 @@ off_t tell(int fd) { return lseek(fd, 0, SEEK_CUR); }
 #endif
 
 static inline uint16_t host2le_s(uint16_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
@@ -31,7 +32,7 @@ static inline uint16_t host2le_s(uint16_t s) {
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
@@ -39,7 +40,7 @@ static inline uint32_t host2le_l(uint32_t s) {
 }
 
 static inline void convert_sq_hdr(SQHDR *h) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
   h->id = host2le_l(h->id);
@@ -53,7 +54,7 @@ static inline void convert_sq_hdr(SQHDR *h) {
 }
 
 static inline void convert_sq_base(SQBASE *b) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
   b->begin_frame = host2le_l(b->begin_frame);
@@ -74,7 +75,7 @@ static inline void convert_sq_base(SQBASE *b) {
 }
 
 static inline void convert_xmsg(XMSG *x) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
 
@@ -113,7 +114,7 @@ static inline void convert_xmsg(XMSG *x) {
 }
 
 static inline void convert_sqidx(SQIDX *s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return;
 #else
   s->hash = host2le_l(s->hash);

@@ -2,6 +2,7 @@
 #include "../Common/INIReader.h"
 #include "../Common/wwivnet.h"
 #include "../Common/Logger.h"
+#include "../Common/tendian.h"
 #include "Config.h"
 #include "Scanner.h"
 #include "SubReq.h"
@@ -20,7 +21,7 @@
 #endif
 
 static inline uint16_t host2le_s(uint16_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s >> 8) & 0xffu) | ((s & 0xffu) << 8));
@@ -28,7 +29,7 @@ static inline uint16_t host2le_s(uint16_t s) {
 }
 
 static inline uint32_t host2le_l(uint32_t s) {
-#if defined(_MSC_VER) || (defined(__BYTE_ORDER) && (__BYTE_ORDER == __LITTLE_ENDIAN)) || defined(__LITTLE_ENDIAN__)
+#if defined(__LITTLE_ENDIAN__)
   return s;
 #else
   return (((s & 0xff000000u) >> 24) | ((s & 0x00ff0000u) >> 8) | ((s & 0x0000ff00u) << 8) | ((s & 0x000000ffu) << 24));
