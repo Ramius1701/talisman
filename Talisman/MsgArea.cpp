@@ -210,9 +210,9 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     GetTimeZoneInformation(&tz);
     int bias = tz.Bias;
     if (bias > 0) {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d\r", abs(bias / 60), abs(bias % 60));
     } else {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d\r", abs(bias / 60), abs(bias % 60));
     }
 #else
     time_t gmt, rawtime = time(NULL);
@@ -227,9 +227,9 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
     int bias = (int)difftime(rawtime, gmt);
     bias /= 60;
     if (bias < 0) {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d\r", abs(bias / 60), abs(bias % 60));
     } else {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d\r", abs(bias / 60), abs(bias % 60));
     }
 #endif
 
@@ -246,6 +246,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
             for (int j = i + 8; j < rep_msg->ctrl_len && rep_msg->ctrl[j] != '\x01'; j++) {
               replyidbuffer[h++] = rep_msg->ctrl[j];
             }
+            replyidbuffer[h] = '\r';
             break;
           }
         }
@@ -275,7 +276,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
       fclose(fptr);
     }
     if (orig_addr != "") {
-      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X\r", orig_addr.c_str(), msgid);
     } else {
       std::stringstream sanitizefile;
 
@@ -287,7 +288,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
         }
       }
 
-      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: <%x.%u.%s@%s>", msgid, mb->basehdr.uid, sanitizefile.str().c_str(),
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: <%x.%u.%s@%s>\r", msgid, mb->basehdr.uid, sanitizefile.str().c_str(),
                n->get_config()->get_hostname().c_str());
     }
 
@@ -323,15 +324,15 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
         newmsg.xmsg.dest.node = dest->node;
         newmsg.xmsg.dest.point = dest->point;
         free(dest);
-        snprintf(intlbuffer, sizeof intlbuffer, "\x01INTL %d:%d/%d %d:%d/%d", newmsg.xmsg.dest.zone, newmsg.xmsg.dest.net, newmsg.xmsg.dest.node,
+        snprintf(intlbuffer, sizeof intlbuffer, "\x01INTL %d:%d/%d %d:%d/%d\r", newmsg.xmsg.dest.zone, newmsg.xmsg.dest.net, newmsg.xmsg.dest.node,
                  newmsg.xmsg.orig.zone, newmsg.xmsg.orig.net, newmsg.xmsg.orig.node);
         newmsg.ctrl_len += strlen(intlbuffer);
         if (newmsg.xmsg.dest.point > 0) {
-          snprintf(toptbuffer, sizeof toptbuffer, "\x01TOPT %d", newmsg.xmsg.dest.point);
+          snprintf(toptbuffer, sizeof toptbuffer, "\x01TOPT %d\r", newmsg.xmsg.dest.point);
           newmsg.ctrl_len += strlen(toptbuffer);
         }
         if (newmsg.xmsg.orig.point > 0) {
-          snprintf(fmptbuffer, sizeof fmptbuffer, "\001FMPT %d", newmsg.xmsg.orig.point);
+          snprintf(fmptbuffer, sizeof fmptbuffer, "\001FMPT %d\r", newmsg.xmsg.orig.point);
           newmsg.ctrl_len += strlen(fmptbuffer);
         }
       } else {
@@ -889,7 +890,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
         linesv->push_back(nline);
       }
       ss.str("");
-    } else if (msg->ctrl[i] != '\x01') {
+    } else if (msg->ctrl[i] != '\x01' && msg->ctrl[i] != '\r') {
       ss << msg->ctrl[i];
     }
   }

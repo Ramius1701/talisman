@@ -336,12 +336,12 @@ void Tosser::areafix(Config *c, sq_msg_t *msg) {
     std::stringstream ctrlstr;
 
     ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/"
-            << link->ouraka->node;
+            << link->ouraka->node << "\r";
     if (link->aka->point > 0) {
-      ctrlstr << "\x01TOPT " << link->aka->point;
+      ctrlstr << "\x01TOPT " << link->aka->point << "\r";
     }
     if (link->ouraka->point > 0) {
-      ctrlstr << "\001FMPT " << link->ouraka->point;
+      ctrlstr << "\001FMPT " << link->ouraka->point << "\r";
     }
 
     sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
@@ -575,12 +575,12 @@ void Tosser::filefix(Config *c, sq_msg_t *msg) {
     std::stringstream ctrlstr;
 
     ctrlstr << "\x01INTL " << link->aka->zone << ":" << link->aka->net << "/" << link->aka->node << " " << link->ouraka->zone << ":" << link->ouraka->net << "/"
-            << link->ouraka->node;
+            << link->ouraka->node << "\r";
     if (link->aka->point > 0) {
-      ctrlstr << "\x01TOPT " << link->aka->point;
+      ctrlstr << "\x01TOPT " << link->aka->point << "\r";
     }
     if (link->ouraka->point > 0) {
-      ctrlstr << "\001FMPT " << link->ouraka->point;
+      ctrlstr << "\001FMPT " << link->ouraka->point << "\r";
     }
 
     sqmsg.ctrl = (char *)malloc(ctrlstr.str().size());
@@ -1187,7 +1187,7 @@ bool Tosser::run(bool protinbound) {
             pastorigin = true;
           }
           if (line[0] == '\001' && !pastorigin) {
-            ctrlstr << line;
+            ctrlstr << line << "\r";
           } else {
             msgstr << line << "\r";
           }
