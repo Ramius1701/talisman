@@ -148,7 +148,7 @@ bool MsgArea::save_message(std::string to, std::string from, std::string subject
   }
 
   char replyidbuffer[256];
-  char charsbuffer[] = "\001CHRS: CP437 2";
+  char charsbuffer[] = "\001CHRS: CP437 2\r";
   char tzutcbuffer[256];
   char toptbuffer[256];
   char fmptbuffer[256];
