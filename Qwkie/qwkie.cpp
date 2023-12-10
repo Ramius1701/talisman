@@ -99,7 +99,7 @@ bool Qwkie::scan(int net) {
 
         for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01MSGID: ", 8) == 0) {
-            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01' && msg->ctrl[j] != '\r'; j++) {
               msgid << msg->ctrl[j];
             }
             break;
@@ -107,7 +107,7 @@ bool Qwkie::scan(int net) {
         }
         for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01REPLY: ", 8) == 0) {
-            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01' && msg->ctrl[j] != '\r'; j++) {
               replyid << msg->ctrl[j];
             }
             break;
@@ -115,7 +115,7 @@ bool Qwkie::scan(int net) {
         }
         for (int i = 0; i < msg->ctrl_len - 8; i++) {
           if (strncmp(&msg->ctrl[i], "\x01TZUTC: ", 8) == 0) {
-            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01'; j++) {
+            for (int j = i + 8; j < msg->ctrl_len && msg->ctrl[j] != '\x01' && msg->ctrl[j] != '\r'; j++) {
               tzutc << msg->ctrl[j];
             }
             break;
@@ -710,13 +710,13 @@ bool Qwkie::toss(int net) {
             int size = 0;
 
             if (msgid != "") {
-              size = msgid.size() + 8;
+              size = msgid.size() + 9;
             }
             if (replyid != "") {
-              size += replyid.size() + 8;
+              size += replyid.size() + 9;
             }
             if (qwkorig != "") {
-              size += qwkorig.size() + 10;
+              size += qwkorig.size() + 11;
             }
 
             sqmsg.ctrl_len = size;
@@ -727,18 +727,24 @@ bool Qwkie::toss(int net) {
               ptr += 8;
               memcpy(ptr, msgid.c_str(), msgid.size());
               ptr += msgid.size();
+              *ptr = '\r';
+              ptr++;
             }
             if (replyid != "") {
               memcpy(ptr, "\001REPLY: ", 8);
               ptr += 8;
               memcpy(ptr, replyid.c_str(), replyid.size());
               ptr += replyid.size();
+              *ptr = '\r';
+              ptr++;
             }
             if (qwkorig != "") {
               memcpy(ptr, "\001QWKORIG: ", 10);
               ptr += 10;
               memcpy(ptr, qwkorig.c_str(), qwkorig.size());
               ptr += qwkorig.size();
+              *ptr = '\r';
+              ptr++;
             }
           }
 
