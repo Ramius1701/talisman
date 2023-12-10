@@ -82,13 +82,14 @@ std::string add_cr_to_kludges(sq_msg_t *msg) {
   std::stringstream ss;
 
   for (size_t i = 0; i < (size_t)msg->ctrl_len; i++) {
-    if (i > 0 && msg->ctrl[i] == '\001') {
+    if (i > 0 && msg->ctrl[i] == '\001' && msg->ctrl[i - 1] != '\r') {
       ss << "\r";
     }
     ss << msg->ctrl[i];
   }
-  ss << "\r";
-
+  if (ss.str().at(ss.str().length() - 1) != '\r') {
+    ss << "\r";
+  }
   return ss.str();
 }
 
