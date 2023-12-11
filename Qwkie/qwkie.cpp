@@ -727,24 +727,18 @@ bool Qwkie::toss(int net) {
               ptr += 8;
               memcpy(ptr, msgid.c_str(), msgid.size());
               ptr += msgid.size();
-              *ptr = '\r';
-              ptr++;
             }
             if (replyid != "") {
               memcpy(ptr, "\001REPLY: ", 8);
               ptr += 8;
               memcpy(ptr, replyid.c_str(), replyid.size());
               ptr += replyid.size();
-              *ptr = '\r';
-              ptr++;
             }
             if (qwkorig != "") {
               memcpy(ptr, "\001QWKORIG: ", 10);
               ptr += 10;
               memcpy(ptr, qwkorig.c_str(), qwkorig.size());
               ptr += qwkorig.size();
-              *ptr = '\r';
-              ptr++;
             }
           }
 

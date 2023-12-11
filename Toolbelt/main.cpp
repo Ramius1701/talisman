@@ -20,7 +20,7 @@ bool save_message(std::string datapath, std::string file, std::string to, std::s
                   time_t date) {
   sq_msg_base_t *mb;
 
-  char charsbuffer[] = "\001CHRS: CP437 2\r";
+  char charsbuffer[] = "\001CHRS: CP437 2";
   char tzutcbuffer[256];
   char msgidbuffer[256];
   FILE *fptr;
@@ -49,9 +49,9 @@ bool save_message(std::string datapath, std::string file, std::string to, std::s
     GetTimeZoneInformation(&tz);
     int bias = tz.Bias;
     if (bias > 0) {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d\r", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
     } else {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d\r", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
     }
 #else
     time_t gmt, rawtime = time(NULL);
@@ -66,9 +66,9 @@ bool save_message(std::string datapath, std::string file, std::string to, std::s
     int bias = (int)difftime(rawtime, gmt);
     bias /= 60;
     if (bias < 0) {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d\r", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: -%02d%02d", abs(bias / 60), abs(bias % 60));
     } else {
-      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d\r", abs(bias / 60), abs(bias % 60));
+      snprintf(tzutcbuffer, sizeof tzutcbuffer, "\x01TZUTC: %02d%02d", abs(bias / 60), abs(bias % 60));
     }
 #endif
 
@@ -94,7 +94,7 @@ bool save_message(std::string datapath, std::string file, std::string to, std::s
         fwrite(&msgid, sizeof(uint32_t), 1, fptr);
         fclose(fptr);
       }
-      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X\r", orig_addr.c_str(), msgid);
+      snprintf(msgidbuffer, sizeof msgidbuffer, "\x01MSGID: %s %08X", orig_addr.c_str(), msgid);
     }
 
     // are we a netmail

@@ -238,7 +238,6 @@ bool Tosser::import_message(Logger *log, std::string subtype, std::string from, 
           }
         }
         if (ctrlline) {
-          cs << "\r";
           ctrlline = false;
         } else {
           ss << '\r';
