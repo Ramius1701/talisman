@@ -135,7 +135,13 @@ void Node::set_term_width(size_t w) { term_width = w; }
 
 void Node::set_term_height(size_t h) { term_height = h; }
 
-void Node::set_term_type(const char *tt) { strncpy(term_type, tt, 256); }
+void Node::set_term_type(const char *tt) { 
+  if (tt != NULL) {
+    strncpy(term_type, tt, 256); 
+  } else {
+    strncpy(term_type, "unknown", 256);
+  }
+}
 
 const char *Node::get_term_type() { return term_type; }
 
