@@ -12,6 +12,7 @@ struct file_list_t {
   bool missing = false;
   std::string ulname;
   std::vector<std::string> desc;
+  int order;
 };
 
 class FileArea {

@@ -220,8 +220,8 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
   std::vector<file_list_t> filelist;
 
   struct stat s;
-  static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY uldate DESC";
-  static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY uldate DESC";
+  static const char sql[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files ORDER BY filename";
+  static const char sql2[] = "SELECT filename, filesize, dlcount, uldate, ulname, descr FROM files WHERE uldate > ? ORDER BY filename";
   std::stringstream sql3;
 
   if (!open_database(n->get_config()->data_path() + "/" + database + ".sqlite3", &db)) {
@@ -256,6 +256,7 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
       return false;
     }
   }
+  int o = 0;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     struct file_list_t f;
 
@@ -264,7 +265,7 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
     f.dlcount = sqlite3_column_int(stmt, 2);
     f.uldate = sqlite3_column_int64(stmt, 3);
     f.ulname = std::string((const char *)sqlite3_column_text(stmt, 4));
-
+    f.order = o++;
     if (stat(f.filename.c_str(), &s) != 0 || s.st_size == 0) {
       f.missing = true;
     } else {
@@ -303,10 +304,7 @@ bool FileArea::list_files(Node *n, time_t date, std::vector<std::string> *keywor
 }
 
 bool sort_by_alpha(struct file_list_t f1, struct file_list_t f2) {
-  std::filesystem::path fpath1 = std::filesystem::path(f1.filename);
-  std::filesystem::path fpath2 = std::filesystem::path(f2.filename);
-
-  return (strcasecmp(fpath1.u8string().c_str(), fpath2.u8string().c_str()) <= 0);
+  return f1.order < f2.order;
 }
 
 bool sort_by_date(struct file_list_t f1, struct file_list_t f2) { return (f1.uldate < f2.uldate); }
@@ -322,6 +320,7 @@ bool FileArea::do_list_fsr(Node *n, std::vector<struct file_list_t> *filelist, b
 
   if (filelist->size() == 0)
     return false;
+
 
   std::sort(filelist->begin(), filelist->end(), sort_by_alpha);
 
