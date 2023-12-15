@@ -150,6 +150,7 @@
     <ClCompile Include="..\Common\Logger.cpp" />
     <ClCompile Include="..\Common\Squish.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Dupe.cpp" />
     <ClCompile Include="Falcon.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="SubReq.cpp" />
@@ -158,6 +159,7 @@
   <ItemGroup>
     <ClInclude Include="..\Common\Squish.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Dupe.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="SubReq.h" />
