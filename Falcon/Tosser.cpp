@@ -5,6 +5,7 @@
 #include "../Common/tendian.h"
 #include "Config.h"
 #include "Tosser.h"
+#include "Dupe.h"
 #include <filesystem>
 #include <iostream>
 #include <sstream>
@@ -243,6 +244,13 @@ bool Tosser::import_message(Logger *log, std::string subtype, std::string from, 
           ss << '\r';
         }
       }
+
+
+      if (Dupe::is_dupe(_datapath + "/falcon_dupehist.dat", ss.str(), (uint32_t)sent)) {
+        log->log(LOG_INFO, "Duplicate Found!");
+        return false;
+      }
+
 
       newmsg.ctrl_len = cs.str().size();
       newmsg.ctrl = (char *)malloc(newmsg.ctrl_len + 1);
