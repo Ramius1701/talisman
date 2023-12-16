@@ -1996,6 +1996,37 @@ int MsgArea::list_messages_full(size_t start) {
       return msgs.at(selected).msgno;
     }
 
+    if (tolower(c) == 'j') {
+      n->print_f("\x1b[%d;%dH%sJUMP: ", n->get_term_height() - 1, n->get_term_width() - 13, n->get_config()->get_prompt_colour());
+      int jump = 0;
+      try {
+        jump = std::stoi(n->get_string(6, false));
+      } catch (std::invalid_argument const &) {
+
+      } catch (std::out_of_range const &) {
+        
+      }
+      n->print_f("\x1b[%d;%dH%s\x1b[K\x1b[0m", n->get_term_height() - 1, n->get_term_width() - 13, n->get_config()->get_prompt_colour());
+      if (jump > 0) {
+        bool found = false;
+        for (int i = 0; i < msgs.size(); i++) {
+          if (msgs.at(i).umsgid == jump) {
+            selected = i;
+            pos = selected - (n->get_term_height() - 4);
+            if (pos < 0) {
+              pos = 0;
+            }
+            redraw = true;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          n->print_f("\x1b[%d;%dH%sNo Such Msg!\x1b[K\x1b[0m", n->get_term_height() - 1, n->get_term_width() - 13, n->get_config()->get_prompt_colour());
+        }
+      }
+    }
+
     if (c == '\x1b') {
       c = n->getch();
       if (c == '[') {
