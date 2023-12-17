@@ -130,7 +130,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 
       if (myfile != "") {
         MsgArea *a = new MsgArea(this, n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr,
-                                 mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode, subbed_by_default);
+                                 mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode, mysubbed_by_default);
         areas.push_back(a);
       }
     }
