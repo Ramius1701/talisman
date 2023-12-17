@@ -25,7 +25,7 @@
 #include "Protocol.h"
 
 MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail,
-                 std::string tagline, int qwk, bool rn, int wwivnode) {
+                 std::string tagline, int qwk, bool rn, int wwivnode, bool subbed_by_default) {
   this->myconf = mc;
   this->name = Config::convert_cp437(name);
   this->file = filename;
@@ -40,6 +40,7 @@ MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, i
   this->qwk_base_no = qwk;
   this->real_names = rn;
   this->wwivnode = wwivnode;
+  this->subbed_by_default = subbed_by_default;
 }
 
 void MsgArea::delete_message(sq_msg_base_t *mb, sq_msg_t *msg) {

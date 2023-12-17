@@ -9,14 +9,14 @@ class MsgConf;
 class MsgArea {
 public:
   MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail, std::string tagline,
-          int qwk, bool rn, int wwivnode);
+          int qwk, bool rn, int wwivnode, bool subbed_by_default);
   int get_r_sec_level() { return read_sec_level; }
   int get_w_sec_level() { return write_sec_level; }
   std::string get_name() { return name; }
   bool is_netmail() { return _is_netmail; }
 
   std::string get_file() { return file; }
-
+  bool get_sub_default() { return subbed_by_default; }
   bool get_real_names() { return real_names; }
 
   void delete_message(sq_msg_base_t *mb, sq_msg_t *msg);
@@ -74,4 +74,5 @@ private:
   bool real_names;
   int wwivnode;
   MsgConf *myconf;
+  bool subbed_by_default;
 };

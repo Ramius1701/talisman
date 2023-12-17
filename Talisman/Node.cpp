@@ -1487,6 +1487,19 @@ bool Node::newuser() {
         if (std::filesystem::exists(config.script_path() + "/newuser.lua")) {
           Script::exec(this, config.script_path() + "/newuser.lua");
         }
+
+        for (int mc = 0; mc < config.msgconfs.size(); mc++) {
+          if (config.msgconfs.at(mc)->get_sec_level() <= u.get_sec_level()) {
+            for (int ma = 0; ma < config.msgconfs.at(mc)->areas.size(); ma++) {
+              if (config.msgconfs.at(mc)->areas.at(ma)->get_r_sec_level() <= u.get_sec_level()) {
+                if (config.msgconfs.at(mc)->areas.at(ma)->get_sub_default()) {
+                  u.set_subscribed(config.msgconfs.at(mc)->areas.at(ma)->get_file(), true);
+                }
+              }
+            }
+          }
+        }
+
         return true;
       } else {
         print_f("\r\n|12Sorry, an error occured!|07\r\n");

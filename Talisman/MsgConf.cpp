@@ -43,6 +43,7 @@ bool MsgConf::load(Node *n, std::string filename) {
       bool mynetmail;
       int my_qwk_base_no;
       bool myrealnames;
+      bool mysubbed_by_default;
 
       auto name = itemtable->get("name");
       if (name != nullptr) {
@@ -106,6 +107,13 @@ bool MsgConf::load(Node *n, std::string filename) {
         mynetmail = false;
       }
 
+      auto subbed_by_default = itemtable->get("subbed_by_default");
+      if (subbed_by_default != nullptr) {
+        mysubbed_by_default = subbed_by_default->as_boolean()->value_or(false);
+      } else {
+        mysubbed_by_default = false;
+      }
+
       auto realnames = itemtable->get("real_names");
       if (realnames != nullptr) {
         myrealnames = realnames->as_boolean()->value_or(false);
@@ -122,7 +130,7 @@ bool MsgConf::load(Node *n, std::string filename) {
 
       if (myfile != "") {
         MsgArea *a = new MsgArea(this, n, myname, c->msg_path() + "/" + myfile, my_r_sec_level, my_w_sec_level, my_d_sec_level, my_do_sec_level, myoaddr,
-                                 mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode);
+                                 mynetmail, tagline, my_qwk_base_no, myrealnames, wwivnode, subbed_by_default);
         areas.push_back(a);
       }
     }
