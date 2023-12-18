@@ -674,7 +674,12 @@ void Tosser::bad_packet(Config *c, std::string filename) {
     ext++;
   }
 
-  std::filesystem::rename(filename, badpkt);
+  try {
+    std::filesystem::rename(filename, badpkt);
+  } catch (std::filesystem::filesystem_error const &) {
+    std::filesystem::copy(filename, badpkt);
+    std::filesystem::remove(filename);
+  }
   log.log(LOG_ERROR, "Encountered Bad Packet: %s", badpkt.u8string().c_str());
 }
 
