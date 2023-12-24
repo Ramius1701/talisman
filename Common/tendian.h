@@ -23,6 +23,6 @@
 #  endif
 #endif
 
-#if !defined(__LITTLE_ENDIAN__) & !defined(__BIG_ENDIAN__)
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
 #  error "Unknown Platform Endianess"
 #endif
