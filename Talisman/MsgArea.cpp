@@ -2300,7 +2300,7 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
         return true;
       }
       memcpy(body, msg->msg, msg->msg_len);
-      body[msg->msg_len] = '0';
+      body[msg->msg_len] = '\0';
       std::string bodystr(body);
       free(body);
       for (size_t k = 0; k < keywords.size(); k++) {
