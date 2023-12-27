@@ -2280,6 +2280,10 @@ bool MsgArea::search(std::vector<std::string> keywords, int type, bool newonly) 
     foundmsg = false;
     sq_msg_t *msg = SquishReadMsg(mb, i);
 
+    if (msg == NULL) {
+      continue;
+    }
+
     if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
       SquishFreeMsg(msg);
       continue;
