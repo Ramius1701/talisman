@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Talisman BBS"
-#define MyAppVersion "0.52"
+#define MyAppVersion "0.53"
 #define MyAppPublisher "Andrew Pamment"
 #define MyAppURL "https://talismanbbs.com/"
 #define MyAppExeName "Servo.exe"
@@ -61,7 +61,7 @@ Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\*.dll"; DestDir: "{app}
 Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\protocols.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
 Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\archivers.toml"; DestDir: "{app}\data"; Flags: onlyifdoesntexist
-Source: "C:\Users\apamm\Desktop\curl-8.4.0\build\Win32\VC14.30\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\apamm\src\curl-8.5.0\build\Win32\VC14.30\DLL Release - DLL OpenSSL\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libcrypto-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Program Files (x86)\OpenSSL-Win32\bin\libssl-3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\apamm\src\Talisman\Talisman\win32_deps\talisman.ini"; DestDir: "{app}"; Flags: onlyifdoesntexist
