@@ -1434,9 +1434,8 @@ int Server::run(int socket) {
     log.log(LOG_INFO, "No Password, Insecure Session.");
     send_command_packet(M_OK, "No Password, Insecure Session.");
   } else {
-    log.log(LOG_ERROR, "Unable to find common address");
-    send_command_packet(M_ERR, "Unable to find common address!");
-    return 0;
+    log.log(LOG_INFO, "No Password, Unconfigured Link.");
+    send_command_packet(M_OK, "No Password, Insecure Session.");
   }
 
   if (!process_frames(1, 0xff)) {
