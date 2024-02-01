@@ -19,6 +19,8 @@ struct network_t {
   int port;
   std::string password;
   std::string tagline;
+  std::string override_out;
+  std::string override_in;
   std::vector<struct area_t> areas;
 };
 

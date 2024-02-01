@@ -376,16 +376,20 @@ bool Qwkie::poll(int net) {
 
     curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-    if (networks.at(net).port != 21) {
-      curl_easy_setopt(curl, CURLOPT_URL,
-                       std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" +
-                                   std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".QWK")
-                           .c_str());
+    if (networks.at(net).override_in != "") {
+      curl_easy_setopt(curl, CURLOPT_URL, networks.at(net).override_in.c_str());
     } else {
-      curl_easy_setopt(curl, CURLOPT_URL,
-                       std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
-                                   networks.at(net).qwkid + ".QWK")
-                           .c_str());
+      if (networks.at(net).port != 21) {
+        curl_easy_setopt(curl, CURLOPT_URL,
+                        std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" +
+                                    std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".QWK")
+                            .c_str());
+      } else {
+        curl_easy_setopt(curl, CURLOPT_URL,
+                        std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
+                                    networks.at(net).qwkid + ".QWK")
+                            .c_str());
+      }
     }
     // printf("%s\n", std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
     // networks.at(net).qwkid + ".QWK").c_str());
@@ -422,16 +426,21 @@ bool Qwkie::poll(int net) {
     curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-    if (networks.at(net).port != 21) {
-      curl_easy_setopt(curl, CURLOPT_URL,
-                       std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" +
-                                   std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".REP")
-                           .c_str());
+
+    if (networks.at(net).override_out != "") {
+      curl_easy_setopt(curl, CURLOPT_URL, networks.at(net).override_out.c_str());
     } else {
-      curl_easy_setopt(curl, CURLOPT_URL,
-                       std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
-                                   networks.at(net).qwkid + ".REP")
-                           .c_str());
+      if (networks.at(net).port != 21) {
+        curl_easy_setopt(curl, CURLOPT_URL,
+                        std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + ":" +
+                                    std::to_string(networks.at(net).port) + "/" + networks.at(net).qwkid + ".REP")
+                            .c_str());
+      } else {
+        curl_easy_setopt(curl, CURLOPT_URL,
+                        std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
+                                    networks.at(net).qwkid + ".REP")
+                            .c_str());
+      }
     }
     // printf("%s\n", std::string("ftp://" + networks.at(net).myqwkid + ":" + networks.at(net).password + "@" + networks.at(net).ftpserver + "/" +
     // networks.at(net).qwkid + ".REP").c_str());
@@ -893,6 +902,20 @@ bool Qwkie::loadConfig(std::string datapath, std::string msgpath, std::string te
           newnet.tagline = "";
         } else {
           newnet.tagline = _tagline->as_string()->value_or("");
+        }
+
+        auto _override_in = itemtable->get("curl_in");
+        if (_override_in == nullptr) {
+          newnet.override_in = "";
+        } else {
+          newnet.override_in = _override_in->as_string()->value_or("");
+        }
+
+        auto _override_out = itemtable->get("curl_out");
+        if (_override_in == nullptr) {
+          newnet.override_out = "";
+        } else {
+          newnet.override_out = _override_out->as_string()->value_or("");
         }
 
         if (newnet.name == "" || newnet.qwkid == "") {
