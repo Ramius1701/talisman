@@ -14,6 +14,8 @@
 #else
 #ifdef __FreeBSD__
 #include <sys/endian.h>
+#elif defined(__APPLE__)
+#include <machine/endian.h>
 #else
 #include <endian.h>
 #endif
