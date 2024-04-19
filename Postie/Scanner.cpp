@@ -918,7 +918,7 @@ bool Scanner::run() {
                 if (c.links.at(l).fptr == NULL) {
                   Scanner::initialize_packet(&c.links.at(l), std::string(_tmppath + "/postie-" + std::to_string(pid)), &msg->xmsg.orig);
                 }
-                Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, c.links.at(l).aka, msg, true, c.links.at(l).fptr, c.links.at(l).flavour);
+                Scanner::write_netmail_to_pkt(c.links.at(l).ouraka, &msg->xmsg.dest, msg, true, c.links.at(l).fptr, c.links.at(l).flavour);
                 break;
               }
             }
