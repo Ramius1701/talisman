@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr auto VERSION_MAJOR = 0;
-constexpr auto VERSION_MINOR = 53;
+constexpr auto VERSION_MINOR = 54;
 constexpr auto VERSION_STR = "dev";
 
 constexpr unsigned char IAC = 255;

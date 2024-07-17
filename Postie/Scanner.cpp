@@ -87,7 +87,9 @@ std::string add_cr_to_kludges(sq_msg_t *msg) {
     }
     ss << msg->ctrl[i];
   }
-  if (ss.str().at(ss.str().length() - 1) != '\r') {
+  // Implmenenting for from issue: https://gitlab.com/lawrencestockman/talisman/-/issues/2
+  std::string result = ss.str();
+  if (!result.empty() && result.at(result.length() - 1) != '\r') {
     ss << "\r";
   }
   return ss.str();
