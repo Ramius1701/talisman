@@ -234,8 +234,21 @@ extern "C" int lua_BBSGetMaskedString(lua_State *L) {
   return 1;
 }
 
+// Attempt to get a character from the user
+//
+// Optional Argument: a delay in milliseconds to delay upto (number/integer/whole number)
+//
+// Returns: nil | string (of what was recieved)
 extern "C" int lua_BBSGetChar(lua_State *L) {
-  char c = lua_getNode(L)->getch();
+  int delay = (int)lua_tonumber(L, -1);
+  if (delay <= 0) {
+    delay = -1;
+  }
+  char c = lua_getNode(L)->getch(delay);
+  if (c == -1) {
+    lua_pushnil(L); // Returns nil when delay was reached
+    return 1;
+  }
   lua_pushlstring(L, &c, 1);
   return 1;
 }
