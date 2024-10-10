@@ -14,7 +14,7 @@ struct address_conf_t {
 struct route_conf_t {
   NETADDR *aka;
   std::string route;
-  std::string flavour;
+  int priority;
 };
 
 struct link_conf_t {

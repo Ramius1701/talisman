@@ -187,6 +187,10 @@ void Config::sort_addr(std::vector<NETADDR *> *links) {
   }
 }
 
+bool route_compare(struct route_conf_t r1, struct route_conf_t r2) {
+  return r1.priority < r2.priority;
+}
+
 bool Config::load(std::string datapath, Logger *log) {
   try {
     auto data = toml::parse_file(datapath + "/postie.toml");
@@ -272,7 +276,7 @@ bool Config::load(std::string datapath, Logger *log) {
         auto itemtable = routeitems->get(i)->as_table();
         NETADDR *myaka;
         std::string myroute;
-        std::string myflavour;
+        int mypriority;
 
         auto addr = itemtable->get("aka");
         if (addr != nullptr) {
@@ -292,11 +296,11 @@ bool Config::load(std::string datapath, Logger *log) {
           myroute = "";
         }
 
-        auto flavour = itemtable->get("flavour");
-        if (flavour != nullptr) {
-          myflavour = flavour->as_string()->value_or("normal");
+        auto priority = itemtable->get("priority");
+        if (priority != nullptr) {
+          mypriority = priority->as_integer()->value_or(255);
         } else {
-          myflavour = "normal";
+          mypriority = 255;
         }
 
         if (myroute == "") {
@@ -306,11 +310,12 @@ bool Config::load(std::string datapath, Logger *log) {
         struct route_conf_t r;
 
         r.aka = myaka;
-        r.flavour = myflavour;
         r.route = myroute;
 
         routes.push_back(r);
       }
+
+      sort(routes.begin(), routes.end(), route_compare);
     }
 
     auto linkitems = data.get_as<toml::array>("link");
