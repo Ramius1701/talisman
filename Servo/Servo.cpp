@@ -1075,14 +1075,14 @@ int main() {
       for (size_t i = 0; i < max_nodes; i++) {
         if (nodes.at(i).pid != 0) {
 #ifdef __APPLE__
-          char buffer[PROC_PIDPATHINFO_MAXSIZE];
-          if (proc_name(nodes.at(i).pid, buffer, sizeof(buffer)) == -1) {
-            std::cerr << err() << ts() << "NodeManager : ERROR getting proc_name" << rst() << std::endl;
-          }
+	        struct proc_bsdshortinfo bsdinfo;
+	        int ret;
 
-          if (strncmp(buffer, "talisman", 8) == 0) {
+	        ret = proc_pidinfo(nodes.at(i).pid, PROC_PIDT_SHORTBSDINFO, 0, &bsdinfo, sizeof bsdinfo);
+
+	        if (ret == sizeof bsdinfo && strncmp(bsdinfo.pbsi_comm, "talisman", 8) == 0) {
             continue;
-          }
+	        }
 #else
           char buffer[PATH_MAX];
           snprintf(buffer, sizeof buffer, "/proc/%lu/cmdline", nodes.at(i).pid);

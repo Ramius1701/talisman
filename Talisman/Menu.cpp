@@ -220,6 +220,7 @@ bool Menu::run() {
         if (strcasecmp(items[i].command.c_str(), "goodbye") == 0) {
           return true;
         } else if (strcasecmp(items[i].command.c_str(), "prevmenu") == 0) {
+          n->log->log(LOG_INFO, "%s returning to previous menu on node %d", n->get_user().get_username().c_str(), n->getnodenum());
           return false;
         } else if (strcasecmp(items[i].command.c_str(), "submenu") == 0) {
           Menu m(n);

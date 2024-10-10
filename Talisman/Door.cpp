@@ -219,7 +219,7 @@ bool Door::runExternal(Node *n, std::string command, std::vector<std::string> ar
   ss.str("");
   ss << "\"" << command << "\"";
   for (size_t i = 0; i < args.size(); i++) {
-    ss << " " << args.at(i);
+    ss << " \"" << args.at(i) << "\"";
   }
 
   char *cmd = strdup(ss.str().c_str());
