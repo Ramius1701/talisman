@@ -1768,7 +1768,7 @@ int Node::run(std::string *sshusername, std::string *sshpassword) {
   } else {
     return 0;
   }
-  log->log(LOG_INFO, "%s logged in on node %d", u.get_username().c_str(), node);
+  log->log(LOG_INFO, "%s logged in on node %d (%s)", u.get_username().c_str(), node, (telnet ? "TELNET" : "SSH"));
   srand((uint32_t)time(NULL));
 
   struct sec_level_t *sl = config.get_sec_level_info(u.get_sec_level());

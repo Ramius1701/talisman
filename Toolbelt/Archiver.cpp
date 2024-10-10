@@ -5,6 +5,14 @@
 #include <algorithm>
 #include <sstream>
 
+static inline std::string quote() {
+#ifdef _MSC_VER
+    return "\"";
+#else
+  return "\\\"";
+#endif
+}
+
 static inline void rtrim(std::string &s) {
   s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
 }
@@ -17,9 +25,9 @@ void Archiver::extract(std::string archive, std::string outdir) {
     if (s == "@FILELIST@") {
       // all files
     } else if (s == "@OUTDIR@") {
-      ss << outdir << " ";
+      ss << quote() << outdir << quote() << " ";
     } else if (s == "@ARCHIVE@") {
-      ss << archive << " ";
+      ss << quote() << archive << quote() << " ";
     } else {
       ss << s << " ";
     }
@@ -35,12 +43,12 @@ void Archiver::extract(std::string archive, std::vector<std::string> filelist, s
   for (std::string s; iss >> s;) {
     if (s == "@FILELIST@") {
       for (size_t i = 0; i < filelist.size(); i++) {
-        ss << filelist.at(i) << " ";
+        ss << quote() <<  filelist.at(i) << quote() << " ";
       }
     } else if (s == "@OUTDIR@") {
-      ss << outdir << " ";
+      ss << quote() << outdir << quote() << " ";
     } else if (s == "@ARCHIVE@") {
-      ss << archive << " ";
+      ss << quote() << archive << quote() << " ";
     } else {
       ss << s << " ";
     }
@@ -55,10 +63,10 @@ void Archiver::compress(std::string archive, std::vector<std::string> filelist) 
   for (std::string s; iss >> s;) {
     if (s == "@FILELIST@") {
       for (size_t i = 0; i < filelist.size(); i++) {
-        ss << filelist.at(i) << " ";
+        ss << quote() << filelist.at(i) << quote() << " ";
       }
     } else if (s == "@ARCHIVE@") {
-      ss << archive << " ";
+      ss << quote() << archive << quote() << " ";
     } else {
       ss << s << " ";
     }
