@@ -1165,7 +1165,7 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 #endif
       ss << buffer << "." << days[thetm.tm_wday];
 
-      for (int i = 0; i < 37; i++) {
+      for (int i = 0; i < 36; i++) {
         ss << ext[i];
         finalpath = packetpath;
         finalpath.append(ss.str());
@@ -1192,7 +1192,7 @@ std::string Scanner::get_bundle_name(NETADDR *orig, NETADDR *dest, std::string p
 #endif
     ss << buffer << "." << days[thetm.tm_wday];
 
-    for (int i = 0; i < 37; i++) {
+    for (int i = 0; i < 36; i++) {
       ss << ext[i];
       finalpath = packetpath;
       finalpath.append(ss.str());
