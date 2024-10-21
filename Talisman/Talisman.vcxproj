@@ -165,6 +165,7 @@
     <ClCompile Include="IndexReader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="MessageReader.cpp" />
     <ClCompile Include="MsgArea.cpp" />
     <ClCompile Include="MsgConf.cpp" />
     <ClCompile Include="Node.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="GenDefs.h" />
     <ClInclude Include="IndexReader.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="MessageReader.h" />
     <ClInclude Include="MsgArea.h" />
     <ClInclude Include="MsgConf.h" />
     <ClInclude Include="Node.h" />

@@ -4,11 +4,14 @@
 #include "Node.h"
 #include "Qwk.h"
 #include "bluewave.h"
+#include "MessageReader.h"
+#include "Protocol.h"
 #include <cstring>
 #include <iostream>
 #include <sqlite3.h>
 #include <sstream>
 #include <string>
+#include <fstream>
 
 bool Email::open_database(std::string filename, sqlite3 **db) {
   const char *create_users_sql = "CREATE TABLE IF NOT EXISTS email(id INTEGER PRIMARY KEY, sender TEXT COLLATE NOCASE, recipient TEXT COLLATE NOCASE, subject "
@@ -232,7 +235,7 @@ void Email::list_email(Node *n) {
           try {
             emailno = (size_t)(std::stoi(res) - 1);
             while (emailno >= 0 && emailno < emails.size()) {
-              int ret = view_email(n, emails.at(emailno));
+              int ret = view_email(n, emails.at(emailno), emailno, emails.size());
 
               emails.at(emailno).seen = true;
 
@@ -271,7 +274,7 @@ void Email::list_email(Node *n) {
         emailno = (size_t)(std::stoi(res) - 1);
         // view email
         while (emailno >= 0 && emailno < emails.size()) {
-          int ret = view_email(n, emails.at(emailno));
+          int ret = view_email(n, emails.at(emailno), emailno, emails.size());
           emails.at(emailno).seen = true;
           if (ret == 0) {
             lines = 0;
@@ -289,7 +292,7 @@ void Email::list_email(Node *n) {
   }
 }
 
-int Email::view_email(Node *n, Email e) {
+int Email::view_email(Node *n, Email e, int emailno, int tot_emails) {
   struct tm time_tm;
   size_t lines = 0;
   sqlite3 *db;
@@ -319,39 +322,57 @@ int Email::view_email(Node *n, Email e) {
   localtime_r(&e.date, &time_tm);
 #endif
 
-  n->cls();
-  n->print_f("|14Subject: |15%-65.65s\r\n", e.subject.c_str());
-  n->print_f("|14   From: |15%-41.41s\r\n", e.sender.c_str());
-  n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d\r\n", time_tm.tm_year + 1900, time_tm.tm_mon + 1, time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min);
-  n->print_f("|08------------------------------------------------------------------------------\r\n");
-  lines = 4;
+  struct msg_reader_msg_t msg;
+
+  msg.subject = e.subject;
+  msg.from = e.sender;
+  msg.to = n->get_user().get_username();
+  char datebuf[17];
+  snprintf(datebuf, 17, "%04d-%02d-%02d %02d:%02d", time_tm.tm_year + 1900, time_tm.tm_mon + 1, time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min);
+  msg.date = std::string(datebuf);
+  msg.msg_no = emailno + 1;
+  msg.msg_serial = e.id;
+  msg.area = NULL;
+  msg.destaddr = NULL;
+  msg.origaddr = NULL;
+  msg.msg_type = 3;
+  msg.showkluges = false;
+  msg.ansi = false;
+  msg.body = new std::vector<struct line_t>();
+  std::stringstream ss;
 
   for (size_t i = 0; i < e.msg.size(); i++) {
+    struct line_t line;
+
+    line.line = e.msg.at(i);
+
     if (e.msg.at(i).find('>') < 5) {
-      n->print_f("|10%s\r\n", e.msg.at(i).c_str());
+      line.type = 1;
     } else {
-      n->print_f("|15%s\r\n", e.msg.at(i).c_str());
+      line.type = 0;
     }
-    lines++;
-    if (lines == n->get_term_height() - 2) {
-      n->print_f("|14Continue (Y/N) : |07");
-      if (tolower(n->getche()) == 'n') {
-        n->print_f("\r\n");
-        break;
-      }
-      n->print_f("\r\n");
-      lines = 0;
-    }
+
+    msg.body->push_back(line);
   }
 
-  n->print_f("\r\n");
-  n->print_f("|15R|08=|14Reply|08, |15D|08=|14Delete|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
-  std::string res = n->get_string(1, false);
-  if (res.size() == 0) {
-    return 1;
-  } else {
-    switch (tolower(res[0])) {
-    case 'r': {
+  while (true) {
+    int ret = MessageReader::read_message(n, &msg, tot_emails, DISABLE_SEARCH | DISABLE_UNREAD);
+
+    switch (ret) {
+    case 0:
+      delete msg.body;
+      return 0;
+    case 2:
+      delete_email(n, e.id);
+      delete msg.body;
+      return 0;
+    case 5:
+      delete msg.body;
+      return 1;
+    case 6:
+      delete msg.body;
+      return -1;
+    case 3: {
       std::vector<std::string> quotemsg;
 
       for (size_t i = 0; i < e.msg.size(); i++) {
@@ -373,19 +394,15 @@ int Email::view_email(Node *n, Email e) {
         Email::save_message(n, e.sender, n->get_user().get_username(), e.subject, newmsg);
       }
     }
+      delete msg.body;
       return 0;
-    case 'd':
-      delete_email(n, e.id);
-      return 0;
-    case 'p':
-      return -1;
-    case 'n':
-      return 1;
-    case 'q':
-      return 0;
+    case 8:
+      download(n, &e);
+      break;
+    default:
+      break;
     }
   }
-  return 0;
 }
 
 void Email::set_all_seen(Node *n) {
@@ -708,4 +725,46 @@ int Email::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *con
   sqlite3_close(db);
 
   return tot;
+}
+
+void Email::download(Node *n, Email *e) {
+
+  std::filesystem::path pth = std::filesystem::path("temp/" + std::to_string(n->getnodenum()) + "/message.txt");
+
+  std::ofstream of;
+  of.open(pth, std::ofstream::out | std::ofstream::trunc);
+
+  of << "To     : " << n->get_user().get_username() << "\r\n";
+  of << "From   : " << e->sender << "\r\n";
+  of << "Subject: " << e->subject << "\r\n";
+  of << "-------------------------------------------------------------------------------"
+     << "\r\n";
+
+  for (size_t i = 0; i < e->msg.size(); i++) {
+    of << e->msg.at(i);
+    of << "\r\n";
+  }
+  of << "-------------------------------------------------------------------------------"
+     << "\r\n";
+
+  of.close();
+
+  if (!std::filesystem::exists(pth)) {
+    return;
+  }
+
+  n->cls();
+
+  Protocol *p = n->get_config()->select_protocol(n);
+
+  if (p == nullptr) {
+    return;
+  }
+
+  std::vector<std::filesystem::path> sendlist;
+  sendlist.push_back(pth);
+
+  p->download(n, n->get_socket(), &sendlist);
+
+  return;
 }

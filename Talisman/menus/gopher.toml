@@ -2,6 +2,10 @@
 gfile = "gopher"
 
 [[menuitem]]
+command = "PHLOGRECENT"
+hotkey = "R"
+
+[[menuitem]]
 command = "PHLOGNEW"
 hotkey = "E"
 

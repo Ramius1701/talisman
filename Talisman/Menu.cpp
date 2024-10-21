@@ -1125,6 +1125,8 @@ bool Menu::run() {
           }
         } else if (strcasecmp(items[i].command.c_str(), "phlogmanage") == 0) {
           Phlog::list_articles(n);
+        } else if (strcasecmp(items[i].command.c_str(), "phlogrecent") == 0) {
+          Phlog::recent_articles(n);
         } else if (strcasecmp(items[i].command.c_str(), "editsig") == 0) {
           std::vector<std::string> siglines;
           std::string sig = n->get_user().get_attribute("signature", "");

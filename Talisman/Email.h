@@ -15,7 +15,7 @@ public:
   int id = 0;
   static int count_email(Node *n);
   static int unread_email(Node *n);
-  static int view_email(Node *n, Email e);
+  static int view_email(Node *n, Email e, int emailno, int tot_emails);
   static void list_email(Node *n);
   static bool save_message(Node *n, std::string to, std::string from, std::string subject, std::vector<std::string> msg);
   static int qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *conf_ndx_fptr, int tot);
@@ -26,4 +26,5 @@ public:
 private:
   static bool load_emails(Node *n, std::vector<Email> *emails);
   static bool open_database(std::string filename, sqlite3 **db);
+  static void download(Node *n, Email *e);
 };

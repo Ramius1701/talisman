@@ -2,10 +2,182 @@
 #include "Editor.h"
 #include "Node.h"
 #include "Phlog.h"
+#include "MessageReader.h"
 #include <cstring>
 #include <sqlite3.h>
 #include <sstream>
 #include <string>
+
+struct recent_phlog_t {
+  int id;
+  std::string author;
+  std::string subject;
+  time_t datestamp;
+};
+
+void Phlog::recent_articles(Node *n) {
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  std::vector<struct recent_phlog_t> recent;
+
+  static const char *load_recent_sql = "SELECT id, author, subject, datestamp FROM phlog WHERE draft = 0 ORDER BY datestamp DESC LIMIT 10";
+  static const char *load_body_sql = "SELECT body FROM phlog WHERE id=?";
+  if (!open_database(n->get_config()->data_path() + "/gopher.sqlite3", &db)) {
+    n->log->log(LOG_ERROR, "Unable to open gopher sqlite database");
+    return;
+  }
+  if (sqlite3_prepare_v2(db, load_recent_sql, strlen(load_recent_sql), &stmt, NULL) != SQLITE_OK) {
+    n->log->log(LOG_ERROR, "Unable to prepare load_recent_sql (gopher) sql");
+    sqlite3_close(db);
+    return;
+  }
+
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    struct recent_phlog_t r;
+
+    r.id = sqlite3_column_int(stmt, 0);
+    r.author = std::string((const char *)sqlite3_column_text(stmt, 1));
+    r.subject = std::string((const char *)sqlite3_column_text(stmt, 2));
+    r.datestamp = sqlite3_column_int64(stmt, 3);
+
+    recent.push_back(r);
+  }
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+
+  size_t lines = 1;
+  n->cls();
+
+  n->print_f("|14Recent User Phlogs|07\r\n\r\n");
+
+  for (size_t i = 0; i < recent.size(); i++) {
+    struct tm rt;
+
+#ifdef _MSC_VER
+    localtime_s(&rt, &recent.at(i).datestamp);
+#else
+    localtime_r(&recent.at(i).datestamp, &rt);
+#endif
+
+    n->print_f("|14%4d. |07%04d-%02d-%02d |15%-54.54s\r\n", i + 1, rt.tm_year + 1900, rt.tm_mon + 1, rt.tm_mday, recent.at(i).subject.c_str());
+    n->print_f("      |07by |11%-32.32s|07\r\n", recent.at(i).author.c_str());
+  }
+
+  n->print_f("\r\n|14View |08[|151|08-|15%d|08]|14: |07", recent.size());
+  std::string res = n->get_string(2, false);
+
+  if (res.size() == 0) {
+    return;
+  }
+
+  size_t choice = 0;
+  try {
+    choice = std::stoi(res);
+  } catch (std::invalid_argument const &) {
+
+  } catch (std::out_of_range const &) {
+  }
+
+  if (choice <= 0 || choice > recent.size()) {
+    return;
+  }
+  while (true) {
+    if (!open_database(n->get_config()->data_path() + "/gopher.sqlite3", &db)) {
+      n->log->log(LOG_ERROR, "Unable to open gopher sqlite database");
+      return;
+    }
+    if (sqlite3_prepare_v2(db, load_body_sql, strlen(load_body_sql), &stmt, NULL) != SQLITE_OK) {
+      n->log->log(LOG_ERROR, "Unable to prepare load_recent_sql (gopher) sql");
+      sqlite3_close(db);
+      return;
+    }
+
+    std::vector<line_t> body;
+
+    sqlite3_bind_int(stmt, 1, recent.at(choice - 1).id);
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+      std::string btmp = std::string((const char *)sqlite3_column_text(stmt, 0));
+      std::stringstream ss(btmp);
+      std::string ltmp;
+
+      struct line_t hdr;
+      hdr.line = " Title: " + recent.at(choice - 1).subject;
+      hdr.type = 1;
+      body.push_back(hdr);
+
+      hdr.line = "Author: " + recent.at(choice - 1).author;
+      hdr.type = 1;
+      body.push_back(hdr);
+
+      struct tm post_tm;
+#ifdef _MSC_VER
+      localtime_s(&post_tm, &recent.at(choice - 1).datestamp);
+#else
+      localtime_r(&recent.at(choice - 1).datestamp, &post_tm);
+#endif
+
+      hdr.line = "  Date: " + std::to_string(post_tm.tm_year + 1900) + "-" + std::to_string(post_tm.tm_mon + 1) + "-" + std::to_string(post_tm.tm_mday) + " " +
+                 std::to_string(post_tm.tm_hour) + ":" + std::to_string(post_tm.tm_min);
+      hdr.type = 1;
+      body.push_back(hdr);
+
+      hdr.line = "--------------------------------------------------------------------";
+      hdr.type = 1;
+      body.push_back(hdr);
+
+      while (getline(ss, ltmp, '\r')) {
+        struct line_t l;
+        l.line = ltmp;
+        l.type = 0;
+        body.push_back(l);
+      }
+    } else {
+      sqlite3_finalize(stmt);
+      sqlite3_close(db);
+      return;
+    }
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    struct msg_reader_msg_t msg;
+
+    msg.area = NULL;
+    msg.ansi = false;
+    msg.body = &body;
+    msg.date = "";
+    msg.msg_no = choice;
+    msg.msg_serial = recent.at(choice - 1).id;
+    msg.destaddr = NULL;
+    msg.origaddr = NULL;
+    msg.from = recent.at(choice - 1).author;
+    msg.to = "ALL";
+    msg.msg_type = 4;
+    msg.showkluges = false;
+    msg.subject = recent.at(choice - 1).subject;
+
+    int ret = MessageReader::read_message(
+        n, &msg, recent.size(), DISABLE_DELETE | DISABLE_DOWNLOAD | DISABLE_HEADER | DISABLE_KLUDGE | DISABLE_REPLY | DISABLE_SEARCH | DISABLE_UNREAD);
+
+    switch (ret) {
+    case 0:
+      return;
+    case 4:
+      break;
+    case 5:
+      choice += 1;
+      if (choice > recent.size()) {
+        return;
+      }
+      break;
+    case 6:
+      choice -= 1;
+      if (choice <= 0) {
+        return;
+      }
+      break;
+    }
+  }
+}
 
 bool Phlog::open_database(std::string db_path, sqlite3 **db) {
   static const char *create_gopher_sql =
