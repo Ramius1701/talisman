@@ -86,6 +86,38 @@ void Door::createDropfiles(Node *n) {
     std::filesystem::create_directories(fpath);
   }
 
+  std::filesystem::path dorinfo(fpath);
+  dorinfo.append("dorinfo1.def");
+
+  std::ofstream f4(dorinfo);  
+
+  f4 << n->get_config()->sys_name() << LINE_END;
+  f4 << n->get_config()->op_name() << LINE_END;
+  f4 << " " << LINE_END;
+  f4 << "COM1" << LINE_END;
+  f4 << "115200 BAUD,N,8,1" << LINE_END;
+  f4 << "0" << LINE_END;
+  std::string s = n->get_user().get_attribute("fullname", "UNKNOWN");
+
+  if (s.find(' ') != std::string::npos) {
+    f4 << s.substr(0, s.find(' ')) << LINE_END;
+    if (s.find(' ') < s.length()) {
+      f4 << s.substr(s.find(' ') + 1) << LINE_END;
+    } else {
+      f4 << "Unknown";
+    }
+  } else {
+    f4 << "Unknown" << LINE_END;
+    f4 << "Unknown" << LINE_END;
+  }
+
+  f4 << n->get_user().get_attribute("location", "Somewhere, The World") << LINE_END;
+  f4 << "1" << LINE_END;
+  f4 << n->get_user().get_sec_level() << LINE_END;
+  f4 << (n->get_timeleft() / 60) << LINE_END;
+  f4 << "-1" << LINE_END;
+  f4.close();
+
   std::filesystem::path chaintxt(fpath);
   chaintxt.append("chain.txt");
 
