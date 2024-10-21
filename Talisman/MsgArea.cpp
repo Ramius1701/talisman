@@ -23,6 +23,7 @@
 #include "Script.h"
 #include "Config.h"
 #include "Protocol.h"
+#include "MessageReader.h"
 
 MsgArea::MsgArea(MsgConf *mc, Node *n, std::string name, std::string filename, int r, int w, int d, int down, std::string oaddr, bool netmail,
                  std::string tagline, int qwk, bool rn, int wwivnode, bool subbed_by_default) {
@@ -481,7 +482,7 @@ void MsgArea::do_semaphore(std::string sem) {
 
 std::vector<std::string> MsgArea::strip_ansi(const char *msg, size_t len) {
   std::stringstream output;
-  std::vector<std::string> ansi_msg = demangle_ansi(msg, len);
+  std::vector<std::string> ansi_msg = demangle_ansi(n, msg, len);
   std::vector<std::string> new_msg;
 
   for (size_t i = 0; i < ansi_msg.size(); i++) {
@@ -507,7 +508,7 @@ struct character_t {
   bool bold;
 };
 
-std::vector<std::string> MsgArea::demangle_ansi(const char *msg, size_t len) {
+std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t len) {
   std::vector<std::string> new_msg;
   int lines = 0;
   int line_at = 0;
@@ -861,11 +862,6 @@ std::vector<std::string> MsgArea::demangle_ansi(const char *msg, size_t len) {
   return new_msg;
 }
 
-struct line_t {
-  std::string line;
-  int type;
-};
-
 bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std::vector<std::string> *quotebuffer, bool manual_kludge = false) {
   std::stringstream ss;
 
@@ -915,7 +911,7 @@ bool MsgArea::prepare_msg(sq_msg_t *msg, std::vector<struct line_t> *linesv, std
   bool got_tearline = false;
 
   if (ansimsg && n->hasANSI) {
-    std::vector<std::string> new_msg = demangle_ansi(msg->msg, msg->msg_len);
+    std::vector<std::string> new_msg = demangle_ansi(n, msg->msg, msg->msg_len);
     for (size_t i = 0; i < new_msg.size(); i++) {
       int type = 0;
       if (!got_tearline) {
@@ -1272,134 +1268,6 @@ void MsgArea::reply_to_msg(sq_msg_t *msg, std::vector<std::string> *quotebuffer)
 
 void MsgArea::read_message(int start, int *last) { read_message(start, false, false, true, last); }
 
-bool MsgArea::print_msg_header(int msgno, int totmsg, sq_msg_t *msg) {
-  char lastc = 'x';
-  bool gottag = false;
-  std::stringstream ss;
-  std::ifstream in;
-  char c;
-
-  if (orig_addr == "" && wwivnode == 0) {
-    in.open(n->get_config()->gfile_path() + "/fsr_header_local.ans");
-  } else if (is_netmail()) {
-    in.open(n->get_config()->gfile_path() + "/fsr_header_net.ans");
-    if (!in.is_open()) {
-      in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
-    }
-  } else {
-    in.open(n->get_config()->gfile_path() + "/fsr_header_echo.ans");
-  }
-
-  if (in.is_open()) {
-    while (in.get(c)) {
-      if (c == 0x1a)
-        break;
-      if (c == '@' && gottag == false) {
-        gottag = true;
-        continue;
-      }
-      if (c == '@' && gottag == true) {
-        // parse tags
-        if (n->compare_token(ss.str(), "MSGAREA")) {
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, name.c_str());
-        } else if (n->compare_token(ss.str(), "MSGCONF")) {
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, myconf->get_name().c_str());
-        } else if (n->compare_token(ss.str(), "MSGSUBJ")) {
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.subject);
-        } else if (n->compare_token(ss.str(), "MSGFROM")) {
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.from);
-        } else if (n->compare_token(ss.str(), "MSGTO")) {
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, msg->xmsg.to);
-        } else if (n->compare_token(ss.str(), "FROMBBS")) {
-          if (wwivnode == 0) {
-            if (msg->xmsg.orig.point == 0) {
-              std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" +
-                                                                 std::to_string(msg->xmsg.orig.node));
-              n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
-            } else {
-              n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
-            }
-          } else {
-            n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A WWIVnet System");
-          }
-        } else if (n->compare_token(ss.str(), "FROMADDR")) {
-          std::stringstream ss2;
-          if (wwivnode == 0) {
-            ss2 << msg->xmsg.orig.zone << ":" << msg->xmsg.orig.net << "/" << msg->xmsg.orig.node << "." << msg->xmsg.orig.point;
-          } else {
-            ss2 << "@" << msg->xmsg.orig.node;
-          }
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
-        } else if (n->compare_token(ss.str(), "TOBBS")) {
-          if (wwivnode == 0) {
-            if (msg->xmsg.dest.point == 0) {
-              std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.dest.zone) + ":" + std::to_string(msg->xmsg.dest.net) + "/" +
-                                                                 std::to_string(msg->xmsg.dest.node));
-              n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, node.c_str());
-            } else {
-              n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A Point System");
-            }
-          } else {
-            n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, "A WWIVnet System");
-          }
-        } else if (n->compare_token(ss.str(), "TOADDR")) {
-          std::stringstream ss2;
-          if (wwivnode == 0) {
-            ss2 << msg->xmsg.dest.zone << ":" << msg->xmsg.dest.net << "/" << msg->xmsg.dest.node << "." << msg->xmsg.dest.point;
-          } else {
-            ss2 << "@" << msg->xmsg.dest.node;
-          }
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
-        } else if (n->compare_token(ss.str(), "MSGDATE")) {
-          char datebuf[17];
-          snprintf(datebuf, 17, "%04d-%02d-%02d %02d:%02d", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15,
-                   msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63);
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, datebuf);
-        } else if (n->compare_token(ss.str(), "MSGN")) {
-          std::stringstream ss2;
-          ss2 << msgno;
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
-        } else if (n->compare_token(ss.str(), "TOTN")) {
-          std::stringstream ss2;
-          ss2 << totmsg;
-          n->print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
-        } else if (ss.str().substr(0, 10) == "RUNSCRIPT:") {
-          std::stringstream ss2;
-          ss2 << n->get_config()->script_path() << "/" << ss.str().substr(10) << ".lua";
-
-          Script::msgheader(n, ss2.str(), file.substr(n->get_config()->msg_path().size() + 1), msg->xmsg.umsgid, std::string(msg->xmsg.from),
-                            std::string(msg->xmsg.to), std::string(msg->xmsg.subject));
-        }
-        ss.str("");
-        gottag = false;
-        continue;
-      }
-      if (gottag == true) {
-        if (c == '\r' || c == '\n') {
-          n->print_f("@%s", ss.str().c_str());
-          lastc = ss.str().at(ss.str().size() - 1);
-          ss.str("");
-          gottag = false;
-        } else {
-          ss << c;
-          continue;
-        }
-      }
-      if (c == '\n') {
-        if (lastc != '\r') {
-          n->putch('\r');
-        }
-      }
-      lastc = c;
-      n->putch(c);
-    }
-    in.close();
-    return true;
-  }
-
-  return false;
-}
-
 bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_read, int *last) {
   return read_message(start, search, unread, set_last_read, last, false);
 }
@@ -1421,7 +1289,7 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
   int total_msgs = mb->basehdr.num_msg;
   int msg_to_read = start;
   int direction = 1;
-  size_t lines;
+
   std::vector<struct line_t> linesv;
   std::vector<std::string> quotebuffer;
 
@@ -1476,329 +1344,78 @@ bool MsgArea::read_message(int start, bool search, bool unread, bool set_last_re
       }
     }
 
-    n->cls();
+    struct msg_reader_msg_t msg_r_msg;
 
-    if (fsr == false || print_msg_header(msg_to_read, total_msgs, msg) == false) {
-      n->print_f("|14   Area: |15%-46.46s\r\n", name.c_str());
-      n->print_f("|14Subject: |15%-65.65s\r\n", msg->xmsg.subject);
-
-      if (msg->xmsg.orig.zone == 0 && msg->xmsg.orig.net == 0 && msg->xmsg.orig.node == 0) {
-        n->print_f("|14   From: |15%-41.41s\r\n", msg->xmsg.from);
-        n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
-      } else {
-        if (wwivnode == 0) {
-          n->print_f("|14   From: |15%-32.32s |14Addr: |15%d:%d/%d.%d\r\n", msg->xmsg.from, msg->xmsg.orig.zone, msg->xmsg.orig.net, msg->xmsg.orig.node,
-                     msg->xmsg.orig.point);
-
-          std::string node = Nodelist::lookup_bbsname(n, std::to_string(msg->xmsg.orig.zone) + ":" + std::to_string(msg->xmsg.orig.net) + "/" +
-                                                             std::to_string(msg->xmsg.orig.node));
-
-          if (msg->xmsg.orig.point == 0) {
-            n->print_f("|14     To: |15%-32.32s |14Host: |15%-30.30s\r\n", msg->xmsg.to, node.c_str());
-          } else {
-            n->print_f("|14     To: |15%-32.32s |14Host: |15A Point System\r\n", msg->xmsg.to);
-          }
-        } else {
-          n->print_f("|14   From: |15%-32.32s |14Addr: |15%d\r\n", msg->xmsg.from, msg->xmsg.orig.node);
-          n->print_f("|14     To: |15%-36.36s\r\n", msg->xmsg.to);
-        }
-      }
-      n->print_f("|14   Date: |15%04d-%02d-%02d %02d:%02d                 |14Msg#: |15%6d of %6d\r\n", ((msg->xmsg.date_written.date >> 9) & 127) + 1980,
-                 (msg->xmsg.date_written.date >> 5) & 15, msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31,
-                 (msg->xmsg.date_written.time >> 5) & 63, msg_to_read, total_msgs);
+    msg_r_msg.area = this;
+    msg_r_msg.body = &linesv;
+    msg_r_msg.from = std::string(msg->xmsg.from);
+    msg_r_msg.to = std::string(msg->xmsg.to);
+    msg_r_msg.subject = std::string(msg->xmsg.subject);
+    msg_r_msg.destaddr = &msg->xmsg.dest;
+    msg_r_msg.origaddr = &msg->xmsg.orig;
+    if (is_netmail()) {
+      msg_r_msg.msg_type = 2;
+    } else if (is_echomail()) {
+      msg_r_msg.msg_type = 1;
+    } else {
+      msg_r_msg.msg_type = 0;
     }
-    if (fsr == false || !n->hasANSI) {
-      n->print_f("|08------------------------------------------------------------------------------\r\n");
-      lines = 6;
-      for (size_t lno = 0; lno < linesv.size(); lno++) {
-        if (linesv.at(lno).type == 0) {
-          if (ansimsg) {
-            n->print_f("%s", linesv.at(lno).line.c_str());
-          } else {
-            n->print_f("|07%s\r\n", linesv.at(lno).line.c_str());
-          }
-          lines++;
-        } else if (linesv.at(lno).type == 1) {
-          n->print_f("|10%s\r\n", linesv.at(lno).line.c_str());
-          lines++;
-        } else if (linesv.at(lno).type == 2) {
-          if (n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge) {
-            if (linesv.at(lno).line[0] == '\x01') {
-              n->print_f("|08@%s\r\n", linesv.at(lno).line.substr(1).c_str());
-            } else {
-              n->print_f("|08%s\r\n", linesv.at(lno).line.c_str());
-            }
+    char datebuf[17];
+    snprintf(datebuf, 17, "%04d-%02d-%02d %02d:%02d", ((msg->xmsg.date_written.date >> 9) & 127) + 1980, (msg->xmsg.date_written.date >> 5) & 15,
+             msg->xmsg.date_written.date & 31, (msg->xmsg.date_written.time >> 11) & 31, (msg->xmsg.date_written.time >> 5) & 63);
+    msg_r_msg.date = std::string(datebuf);
+    msg_r_msg.msg_serial = msg->xmsg.umsgid;
+    msg_r_msg.msg_no = msg_to_read;
+    msg_r_msg.ansi = ansimsg;
+    msg_r_msg.showkluges = n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge;
 
-            lines++;
-          }
-        } else if (linesv.at(lno).type == 3) {
-          n->print_f("|13%s\r\n", linesv.at(lno).line.c_str());
-          lines++;
-        }
-        if (lines == n->get_term_height() - 2) {
-          if (n->hasANSI) {
-            n->print_f("\x1b[s|14Continue (Y/N) : |07");
-          } else {
-            n->print_f("|14Continue (Y/N) : |07");
-          }
-          if (tolower(n->getche()) == 'n') {
-            if (n->hasANSI) {
-              n->print_f("\x1b[u\x1b[K");
-            } else {
-              n->print_f("\r\n");
-            }
-            break;
-          }
-          if (n->hasANSI) {
-            n->print_f("\x1b[u\x1b[K");
-          } else {
-            n->print_f("\r\n");
-          }
-          lines = 0;
-        }
+    uint32_t flags = 0;
+    if (!unread && !personal) {
+      flags |= DISABLE_UNREAD;
+    }
+    if (!search) {
+      flags |= DISABLE_SEARCH;
+    }
+
+    int ret = MessageReader::read_message(n, &msg_r_msg, total_msgs, flags);
+
+    switch (ret) {
+    case 0: // Close and stop search
+      SquishCloseMsgBase(mb);
+      return false;
+    case 1: // close and continue search
+      SquishCloseMsgBase(mb);
+      return true;
+    case 2: // delete message
+      delete_message(mb, msg);
+      SquishCloseMsgBase(mb);
+      return false;
+    case 3: // reply to message
+      reply_to_msg(msg, &quotebuffer);
+      break;
+    case 4: // reshow message
+      direction = 1;
+      break;
+    case 5: // next message
+      direction = 1;
+      msg_to_read++;
+      break;
+    case 6: // previous message
+      direction = 0;
+      msg_to_read--;
+      break;
+    case 7: // toggle kludges
+      manual_kludge = !manual_kludge;
+      break;
+    case 8: // download message
+      download(n, msg);
+      break;
+    case 9:
+      if (search || unread || personal) {
+        SquishCloseMsgBase(mb);
+        return true;
       }
-      n->print_f("\r\n");
-      if (search) {
-        n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue Search|08, |15Q|08=|14Quit |08: |07");
-
-      } else if (unread || personal) {
-        n->print_f(
-            "|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15C|08=|14Continue to Next Area|08, |15Q|08=|14Quit |08: |07");
-      } else {
-        n->print_f("|15R|08=|14Reply|08, |15A|08=|14Again|08, |15P|08=|14Prev|08, |15N|08=|14Next|08, |15Q|08=|14Quit |08: |07");
-      }
-      std::string res = n->get_string(1, false);
-      if (res.size() == 0) {
-        if (search) {
-          SquishCloseMsgBase(mb);
-          return true;
-        } else {
-          direction = 1;
-          msg_to_read++;
-        }
-      } else {
-        switch (tolower(res[0])) {
-        case 'd':
-          delete_message(mb, msg);
-          SquishCloseMsgBase(mb);
-          return false;
-        case 'r':
-          reply_to_msg(msg, &quotebuffer);
-          break;
-        case 'a':
-          direction = 1;
-          break;
-        case 'n':
-          direction = 1;
-          msg_to_read++;
-          break;
-        case 'p':
-          direction = 0;
-          msg_to_read--;
-          break;
-        case 'k':
-          manual_kludge = !manual_kludge;
-          break;
-        case 'o':
-          download(n, msg);
-          break;
-        case 'q':
-          SquishCloseMsgBase(mb);
-          return false;
-        case 'c':
-          if (search || unread || personal) {
-            SquishCloseMsgBase(mb);
-            return true;
-          }
-        }
-      }
-    } else if (fsr == true) {
-      int top = 0;
-      std::vector<std::string> linesv2;
-      bool kludges = n->get_user().get_attribute("viewkludges", "false") == "true" || manual_kludge;
-      for (size_t i = 0; i < linesv.size(); i++) {
-        if (linesv.at(i).type == 0) {
-          linesv2.push_back(linesv.at(i).line);
-        } else if (linesv.at(i).type == 1) {
-          linesv2.push_back("\x1b[1;36m" + linesv.at(i).line + "\x1b[0m");
-        } else if (linesv.at(i).type == 2 && kludges) {
-          if (ansimsg) {
-            if (linesv.at(i).line[0] == '\x01') {
-              linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\r\n");
-            } else {
-              linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\r\n");
-            }
-          } else {
-            if (linesv.at(i).line[0] == '\x01') {
-              linesv2.push_back("\x1b[1;30m@" + linesv.at(i).line.substr(1) + "\x1b[0m");
-            } else {
-              linesv2.push_back("\x1b[1;30m" + linesv.at(i).line + "\x1b[0m");
-            }
-          }
-        } else if (linesv.at(i).type == 3) {
-          if (ansimsg) {
-            linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\r\n");
-          } else {
-            linesv2.push_back("\x1b[1;35m" + linesv.at(i).line + "\x1b[0m");
-          }
-        }
-      }
-      // n->print_f("\x1b[6;1H%s\x1b[K\x1b[0;40;37m", n->get_config()->get_prompt_colour());
-      n->print_f("\x1b[%d;1H%s ? For help\x1b[K\x1b[0;40;37m", n->get_term_height() - 1, n->get_config()->get_prompt_colour());
-
-      bool done = false;
-      while (!done) {
-
-        if (top + n->get_term_height() - 8 < linesv2.size()) {
-          n->print_f("\x1b[%d;%dH%sMORE\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5, n->get_config()->get_prompt_colour());
-        } else {
-          n->print_f("\x1b[%d;%dH%s END\x1b[0;40;37m", n->get_term_height() - 1, n->get_term_width() - 5, n->get_config()->get_prompt_colour());
-        }
-
-        for (size_t i = 0; i < n->get_term_height() - 8; i++) {
-          if (i + top < linesv2.size()) {
-            if (ansimsg) {
-              n->print_f("\x1b[%d;1H", i + 7);
-              for (size_t z = 0; z < linesv2.at(top + i).size(); z++) {
-                if (linesv2.at(top + i).at(z) == '\r') {
-                  n->print_f("\x1b[0m\x1b[K");
-                  break;
-                } else {
-                  n->print_f("%c", linesv2.at(top + i).at(z));
-                }
-              }
-
-            } else {
-              n->print_f("\x1b[%d;1H%s\x1b[K", i + 7, linesv2.at(i + top).c_str());
-            }
-          } else {
-            n->print_f("\x1b[%d;1H\x1b[K", i + 7);
-          }
-        }
-
-        while (true) {
-          char c = n->getch();
-
-          if (c == '\x1b') {
-            c = n->getch();
-            if (c == '[') {
-              c = n->getch();
-              if (c == 'A') {
-                // up
-                if (top > 0) {
-                  top--;
-                  break;
-                }
-              } else if (c == 'B') {
-                // down
-                if (top + n->get_term_height() - 8 < linesv2.size()) {
-                  top++;
-                  break;
-                }
-              } else if (c == 'C') {
-                // right
-                msg_to_read++;
-                done = true;
-                break;
-              } else if (c == 'D') {
-                // left
-                msg_to_read--;
-                done = true;
-                break;
-              } else if (c == 'K') {
-                // end
-                top = linesv2.size() - (n->get_term_height() - 8);
-                if (top < 0) {
-                  top = 0;
-                }
-                break;
-              } else if (c == 'H') {
-                // home
-                top = 0;
-                break;
-              } else if (c == 'V' || c == '5') {
-                // page up
-                if (c == '5') {
-                  n->getch();
-                }
-                top = top - (n->get_term_height() - 8);
-                if (top < 0) {
-                  top = 0;
-                }
-                break;
-              } else if (c == 'U' || c == '6') {
-                // page down
-                if (c == '6') {
-                  n->getch();
-                }
-                top = top + (n->get_term_height() - 8);
-                if (top > (int)linesv2.size() - (int)(n->get_term_height() - 8)) {
-                  top = (int)linesv2.size() - (int)(n->get_term_height() - 8);
-                  if (top < 0) {
-                    top = 0;
-                  }
-                }
-                break;
-              }
-            }
-          }
-          if (tolower(c) == 'k') {
-            manual_kludge = !manual_kludge;
-            done = true;
-            break;
-          }
-          if (c == '\r') {
-            msg_to_read++;
-            done = true;
-            break;
-          }
-          if (tolower(c) == 'q') {
-            SquishCloseMsgBase(mb);
-            return false;
-          }
-          if (tolower(c) == 'c') {
-            if (search || unread) {
-              SquishCloseMsgBase(mb);
-              return true;
-            }
-          }
-          if (tolower(c) == 'd') {
-            delete_message(mb, msg);
-            SquishCloseMsgBase(mb);
-            return false;
-          }
-          if (tolower(c) == 'r') {
-            n->cls();
-            reply_to_msg(msg, &quotebuffer);
-            done = true;
-            break;
-          } else if (tolower(c) == 'o') {
-            download(n, msg);
-            done = true;
-            break;
-          }
-          if (c == '?') {
-            n->print_f("\x1b[%d;20H\x1b[0;30;47m+-----------[HELP]-----------+", (n->get_term_height() - 9) / 2 + 4);
-            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 1);
-            n->print_f("\x1b[%d;20H|    (UP/DOWN) Scroll        |", ((n->get_term_height() - 9) / 2 + 4) + 2);
-            n->print_f("\x1b[%d;20H| (LEFT/RIGHT) Prev/Next Msg |", ((n->get_term_height() - 9) / 2 + 4) + 3);
-            if (unread || personal) {
-              n->print_f("\x1b[%d;20H|  (C) Continue to Next Area |", ((n->get_term_height() - 9) / 2 + 4) + 4);
-            } else if (search) {
-              n->print_f("\x1b[%d;20H|  (C) Continue Search       |", ((n->get_term_height() - 9) / 2 + 4) + 4);
-            } else {
-              n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 4);
-            }
-            n->print_f("\x1b[%d;20H|  (O) Download Message      |", ((n->get_term_height() - 9) / 2 + 4) + 5);
-            n->print_f("\x1b[%d;20H|  (D) Delete Message        |", ((n->get_term_height() - 9) / 2 + 4) + 6);
-            n->print_f("\x1b[%d;20H|  (Q) Quit                  |", ((n->get_term_height() - 9) / 2 + 4) + 7);
-            n->print_f("\x1b[%d;20H|                            |", ((n->get_term_height() - 9) / 2 + 4) + 8);
-            n->print_f("\x1b[%d;20H+----------------------------+\x1b[0m", ((n->get_term_height() - 9) / 2 + 4) + 9);
-            n->getch();
-            break;
-          }
-        }
-      }
+      break;
     }
   }
 }
@@ -2005,7 +1622,6 @@ int MsgArea::list_messages_full(size_t start) {
       } catch (std::invalid_argument const &) {
 
       } catch (std::out_of_range const &) {
-        
       }
       n->print_f("\x1b[%d;%dH%s\x1b[K\x1b[0m", n->get_term_height() - 1, n->get_term_width() - 13, n->get_config()->get_prompt_colour());
       if (jump > 0) {
@@ -2416,7 +2032,7 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
         if (i < (size_t)msg->msg_len - 2) {
           if (msg->msg[i + 1] == '\001') {
             i++;
-            while (i < (size_t)msg->msg_len - 1 && msg->msg[i+1] != '\r') {
+            while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
               i++;
             }
             continue;
@@ -2427,7 +2043,7 @@ int MsgArea::qwk_scan(Node *n, FILE *msgs_dat_fptr, FILE *pers_ndx_fptr, FILE *c
           if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
               msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
             i++;
-            while (i < (size_t)msg->msg_len - 1 && msg->msg[i+1] != '\r') {
+            while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
               i++;
             }
             continue;
@@ -2637,7 +2253,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
         if (i < (size_t)msg->msg_len - 2) {
           if (msg->msg[i + 1] == '\001') {
             i++;
-            while (i < (size_t)msg->msg_len - 1 && msg->msg[i+1] != '\r') {
+            while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
               i++;
             }
             continue;
@@ -2648,7 +2264,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
           if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
               msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
             i++;
-            while (i < (size_t)msg->msg_len - 1 && msg->msg[i+1] != '\r') {
+            while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
               i++;
             }
             continue;
@@ -2694,7 +2310,7 @@ int MsgArea::bwave_scan(Node *n, int totmsgs, int areano, FILE *fti_file, FILE *
   return tot_msgs;
 }
 
-void MsgArea::download(Node *n, sq_msg_t* msg) {
+void MsgArea::download(Node *n, sq_msg_t *msg) {
 
   std::filesystem::path pth = std::filesystem::path("temp/" + std::to_string(n->getnodenum()) + "/message.txt");
 
@@ -2704,25 +2320,23 @@ void MsgArea::download(Node *n, sq_msg_t* msg) {
       if (i < (size_t)msg->msg_len - 2) {
         if (msg->msg[i + 1] == '\001') {
           i++;
-          while (i < (size_t)msg->msg_len - 1 && msg->msg[i+1] != '\r') {
+          while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
             i++;
           }
           continue;
         }
       }
-      
-      if (i < (size_t)msg->msg_len - 10) {  
+
+      if (i < (size_t)msg->msg_len - 10) {
         if (msg->msg[i + 1] == 'S' && msg->msg[i + 2] == 'E' && msg->msg[i + 3] == 'E' && msg->msg[i + 4] == 'N' && msg->msg[i + 5] == '-' &&
             msg->msg[i + 6] == 'B' && msg->msg[i + 7] == 'Y' && msg->msg[i + 8] == ':' && msg->msg[i + 9] == ' ') {
           i++;
-          while (i < (size_t)msg->msg_len -1 && msg->msg[i+1] != '\r') {
+          while (i < (size_t)msg->msg_len - 1 && msg->msg[i + 1] != '\r') {
             i++;
           }
           continue;
         }
       }
-
-
     }
     msgss << msg->msg[i];
   }

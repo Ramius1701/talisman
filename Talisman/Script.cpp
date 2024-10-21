@@ -9,9 +9,11 @@
 #include "Protocol.h"
 #include "Rlogin.h"
 #include "Telnet.h"
+#include "MessageReader.h"
 #include <cstring>
 #include <sqlite3.h>
 #include <sstream>
+#include <fstream>
 #include <filesystem>
 #ifdef _MSC_VER
 #define strcasecmp _stricmp
@@ -453,6 +455,56 @@ extern "C" int lua_getTotBBSDoorRuns(lua_State *L) {
   return 1;
 }
 
+extern "C" int lua_ansiView(lua_State *L) {
+  Node *n = lua_getNode(L);
+  std::ifstream in;
+  std::string file = std::string(lua_tostring(L, 1));
+  bool is_ansi = false;
+  std::stringstream ss;
+  std::vector<struct line_t> lines;
+  char c;
+  in.open(file);
+  if (in.is_open()) {
+    while (in.get(c)) {
+      if (c == 0x1a) {
+        break;
+      }
+      ss << c;
+    }
+    in.close();
+    std::vector<std::string> ansi = MsgArea::demangle_ansi(n, ss.str().c_str(), ss.str().size());
+
+    for (size_t i = 0; i < ansi.size(); i++) {
+      struct line_t l;
+      l.line = ansi.at(i);
+      l.type = 0;
+
+      lines.push_back(l);
+    }
+    struct msg_reader_msg_t msg;
+
+    msg.body = &lines;
+    msg.to = "";
+    msg.from = "";
+    msg.subject = "";
+    msg.date = "";
+    msg.ansi = true;
+    msg.msg_type = 4;
+    msg.origaddr = NULL;
+    msg.destaddr = NULL;
+    msg.msg_no = 0;
+    msg.msg_serial = 0;
+    msg.showkluges = false;
+    while (MessageReader::read_message(n, &msg, 0,
+                                       DISABLE_DOWNLOAD | DISABLE_DELETE | DISABLE_HEADER | DISABLE_KLUDGE | DISABLE_NEXT | DISABLE_PREV | DISABLE_REPLY |
+                                           DISABLE_SEARCH | DISABLE_UNREAD) == 4) {
+      // nothing...
+    }
+  }
+
+  return 0;
+}
+
 extern "C" int lua_getCallLogX(lua_State *L) {
   int x = lua_tointeger(L, 1);
   Node *n = lua_getNode(L);
@@ -650,8 +702,7 @@ extern "C" int lua_display_sixel(lua_State *L) {
   return 0;
 }
 
-
-extern "C" int lua_set_timeleft(lua_State *L) { 
+extern "C" int lua_set_timeleft(lua_State *L) {
   time_t tl = lua_tonumber(L, 1);
   Node *n = lua_getNode(L);
   n->get_user().set_attribute("time_left", std::to_string(tl));
@@ -833,6 +884,9 @@ void Script::init_state(Node *n, lua_State *l) {
 
   lua_pushcfunction(l, lua_get_timeleft);
   lua_setglobal(l, "bbs_get_time_left");
+
+  lua_pushcfunction(l, lua_ansiView);
+  lua_setglobal(l, "bbs_ansi_view");
 }
 
 bool Script::msgheader(Node *n, std::string script, std::string file, unsigned int mid, std::string from, std::string to, std::string subject) {

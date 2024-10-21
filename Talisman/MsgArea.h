@@ -13,6 +13,7 @@ public:
   int get_r_sec_level() { return read_sec_level; }
   int get_w_sec_level() { return write_sec_level; }
   std::string get_name() { return name; }
+  MsgConf *get_conf() { return myconf; }
   bool is_netmail() { return _is_netmail; }
 
   std::string get_file() { return file; }
@@ -33,7 +34,7 @@ public:
   bool is_to_me(Node *n, sq_msg_t *msg);
   bool read_message(int start, bool search, bool unread, bool set_last_read, int *last, bool personal);
   bool read_message(int start, bool search, bool unread, bool set_last_read, int *last);
-  std::vector<std::string> demangle_ansi(const char *msg, size_t len);
+  static std::vector<std::string> demangle_ansi(Node *n, const char *msg, size_t len);
   std::vector<std::string> strip_ansi(const char *msg, size_t len);
   static std::vector<std::string> word_wrap(std::string str, size_t len);
   bool save_message(std::string to, std::string from, std::string subject, std::vector<std::string> text, std::string netaddr, unsigned int inreply_to,
@@ -45,7 +46,7 @@ public:
   int get_qwk_id() { return qwk_base_no; }
   int get_wwivnode() { return wwivnode; }
   bool is_echomail() {
-    if (!_is_netmail && wwivnode != 0 && orig_addr != "") {
+    if (!_is_netmail && wwivnode != 0 || orig_addr != "") {
       return true;
     }
     return false;

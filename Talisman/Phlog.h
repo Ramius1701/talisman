@@ -8,6 +8,7 @@ class Phlog {
 public:
   static bool save_article(Node *n, std::string subject, std::vector<std::string> msg);
   static void list_articles(Node *n);
+  static void recent_articles(Node *n);
 
 private:
   static bool open_database(std::string filename, sqlite3 **db);

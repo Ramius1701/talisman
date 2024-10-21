@@ -90,7 +90,6 @@ bool SshClient::do_auth() {
   while (!gotauth) {
     msg = ssh_message_get(p_ssh_session);
     if (msg == NULL) {
-      printf("Message = NULL\n");
       return false;
     }
 
@@ -131,7 +130,6 @@ bool SshClient::do_auth() {
         ssh_message_free(msg);
       }
     } else {
-      printf("MSG == NULL\n");
       return false;
     }
   } while (!chan);
