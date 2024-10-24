@@ -137,6 +137,13 @@ bool Config::load(std::string datapath, Logger *log) {
           newarea.hostnode = _upnode->as_integer()->value_or(0);
         }
 
+        auto _manual_sub = itemtable->get("manual subscription");
+        if (_manual_sub == nullptr) {
+          newarea.manual_subsciption = false;
+        } else {
+          newarea.manual_subsciption = _manual_sub->as_boolean()->value_or(false);
+        }
+
         if (newarea.basefile == "" || newarea.subtype == "" || newarea.mynode == 0 || newarea.hostnode == 0) {
           continue;
         }

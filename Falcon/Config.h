@@ -16,6 +16,7 @@ struct area_t {
   std::string netname;
   std::string basefile;
   std::string subtype;
+  bool manual_subsciption;
   int mynode;
   int hostnode;
 };

@@ -715,15 +715,30 @@ void Tosser::run() {
               status = 1;
             } else if (ret == 0) {
               // system is not subscribed
-              if (!add_subscriber(subtype, config.networks.at(i).name, msgrec.fromsys)) {
-                // failed to add
-                break;
+              bool should_add = true;
+
+              for (size_t a = 0; a < config.areas.size(); a++) {
+                if (config.areas.at(a).subtype == subtype) {
+                  if (config.areas.at(a).manual_subsciption) {
+                    should_add = false;
+                    break;
+                  }
+                }
+              }
+              if (should_add) {
+                if (!add_subscriber(subtype, config.networks.at(i).name, msgrec.fromsys)) {
+                  // failed to add
+                  break;
+                } else {
+                  status = 0;
+                  // successfully added
+                }
               } else {
-                status = 0;
-                // successfully added
+                status = 3;
               }
             } else {
               // fail
+              log.log(LOG_ERROR, "%d tried joined sub: %s, but something when wrong.", msgrec.fromsys, subtype.c_str());
               break;
             }
             // TODO: build and send response message
@@ -731,7 +746,7 @@ void Tosser::run() {
 
             if (status == 0) {
               ss << "You have successfully joined " << subtype << "!\r\r";
-
+              log.log(LOG_INFO, "%d joined sub: %s", msgrec.fromsys, subtype.c_str());
               std::filesystem::path welmsg(_datapath);
               welmsg.append("wwiv");
               welmsg.append(config.networks.at(i).name);
@@ -747,7 +762,7 @@ void Tosser::run() {
               }
             } else if (status == 3) {
               ss << "Subscribers to " << subtype << " can not be automatically added.\r\r";
-
+              log.log(LOG_INFO, "%d tried joined sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
               std::filesystem::path welmsg(_datapath);
               welmsg.append("wwiv");
               welmsg.append(config.networks.at(i).name);
@@ -763,8 +778,10 @@ void Tosser::run() {
               }              
             } else if (status == 4) {
               ss << "You're already subscribed to " << subtype << "!\r\r";
+              log.log(LOG_INFO, "%d tried joined sub: %s, but are already joined", msgrec.fromsys, subtype.c_str());
             } else if (status == 1) {
               ss << "This system is not the host of " << subtype << "!\r\r";
+              log.log(LOG_INFO, "%d tried joined sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
             }
 
             rmsgrec.length = subtype.length() + 2 + ss.str().length();
@@ -908,7 +925,7 @@ void Tosser::run() {
               stat_msg = "|12FAILED - I (" + std::to_string(msgrec.fromsys) + ") am not the host!|07";
               break;
             case 3:
-              stat_msg = "|12FAILED - Not allowed to add subscribers automatically.|07";
+              stat_msg = "|12FAILED - Not allowed to remove subscribers automatically.|07";
               break;
             case 2:
               stat_msg = "|12FAILED - You are not subscribed!|07";
