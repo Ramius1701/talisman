@@ -6,7 +6,13 @@
 #endif
 #include "SshClient.h"
 
-SshClient::SshClient() { chan = NULL; dis_flag = false; }
+SshClient::SshClient() {
+  chan = NULL;
+  dis_flag = false;
+  got_auth = false;
+  got_shell = false;
+  ev = NULL;
+}
 
 SshClient::~SshClient() {}
 
@@ -80,81 +86,107 @@ void SshClient::run() {
 #endif
 }
 
+static ssh_channel channel_open(ssh_session session, void *userdata) {
+  SshClient *c = (SshClient *)userdata;
+
+  c->chan = ssh_channel_new(session);
+  return c->chan;
+}
+
+static int auth_password(ssh_session session, const char *user, const char *pass, void *userdata) {
+  SshClient *c = (SshClient *)userdata;
+
+  (void)session;
+
+  c->username = std::string(user);
+  c->password = std::string(pass);
+
+  c->got_auth = true;
+
+  return SSH_AUTH_SUCCESS;
+}
+
 bool SshClient::do_auth() {
   ssh_message msg;
+  struct ssh_server_callbacks_struct server_cb = {
+      .userdata = this,
+      .auth_password_function = auth_password,
+      .channel_open_request_session_function = channel_open,
+  };
+
+  ssh_set_auth_methods(p_ssh_session, SSH_AUTH_METHOD_PASSWORD);
+
+  ssh_callbacks_init(&server_cb);
+  ssh_set_server_callbacks(p_ssh_session, &server_cb);
 
   if (ssh_handle_key_exchange(p_ssh_session)) {
     return false;
   }
-  bool gotauth = false;
-  while (!gotauth) {
-    msg = ssh_message_get(p_ssh_session);
-    if (msg == NULL) {
-      return false;
-    }
 
-    switch (ssh_message_type(msg)) {
-    case SSH_REQUEST_AUTH:
-      switch (ssh_message_subtype(msg)) {
-      case SSH_AUTH_METHOD_PASSWORD:
-        username = std::string(ssh_message_auth_user(msg));
-        password = std::string(ssh_message_auth_password(msg));
-        gotauth = true;
-        ssh_message_auth_reply_success(msg, 0);
-        break;
-      case SSH_AUTH_METHOD_NONE:
-      default:
-        ssh_message_auth_set_methods(msg, SSH_AUTH_METHOD_PASSWORD | SSH_AUTH_METHOD_INTERACTIVE);
-        ssh_message_reply_default(msg);
-        break;
-      }
-      break;
-    default:
-      ssh_message_auth_set_methods(msg, SSH_AUTH_METHOD_PASSWORD | SSH_AUTH_METHOD_INTERACTIVE);
-      ssh_message_reply_default(msg);
-      break;
-    }
-    ssh_message_free(msg);
+  ev = ssh_event_new();
+  if (ev == NULL) {
+    return false;
+  }
+  if (ssh_event_add_session(ev, p_ssh_session) != SSH_OK) {
+    ssh_event_free(ev);
+
+    return false;
   }
 
-  do {
-    msg = ssh_message_get(p_ssh_session);
-    if (msg) {
-      if (ssh_message_type(msg) == SSH_REQUEST_CHANNEL_OPEN && ssh_message_subtype(msg) == SSH_CHANNEL_SESSION) {
-
-        chan = ssh_message_channel_request_open_reply_accept(msg);
-        ssh_message_free(msg);
-      } else {
-
-        ssh_message_reply_default(msg);
-        ssh_message_free(msg);
-      }
-    } else {
+  while (!got_auth) {
+    if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
+      ssh_event_remove_session(ev, p_ssh_session);
+      ssh_event_free(ev);
       return false;
     }
-  } while (!chan);
-  while (true) {
-    msg = ssh_message_get(p_ssh_session);
-    if (msg) {
-      if (ssh_message_type(msg) == SSH_REQUEST_CHANNEL) {
-        if (ssh_message_subtype(msg) == SSH_CHANNEL_REQUEST_SHELL) {
-          ssh_message_channel_request_reply_success(msg);
-          ssh_message_free(msg);
-          break;
-        } else if (ssh_message_subtype(msg) == SSH_CHANNEL_REQUEST_PTY) {
-          term_width = ssh_message_channel_request_pty_width(msg);
-          term_height = ssh_message_channel_request_pty_height(msg);
-          term_type = strdup(ssh_message_channel_request_pty_term(msg));
-          ssh_message_channel_request_reply_success(msg);
-          ssh_message_free(msg);
-          continue;
-        }
-      }
-    } else {
+  }
+  while (!chan) {
+    if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
+      ssh_event_remove_session(ev, p_ssh_session);
+      ssh_event_free(ev);
       return false;
     }
   }
   return true;
+}
+
+static int pty_request(ssh_session session, ssh_channel channel, const char *term, int cols, int rows, int py, int px, void *userdata) {
+  SshClient *c = (SshClient *)userdata;
+
+  (void)session;
+  (void)channel;
+  (void)term;
+
+  c->term_height = rows;
+  c->term_width = cols;
+  c->term_type = strdup(term);
+
+  return SSH_OK;
+}
+
+static int shell_request(ssh_session session, ssh_channel channel, void *userdata) {
+  SshClient *c = (SshClient *)userdata;
+
+  (void)session;
+  (void)channel;
+
+  if (c->got_shell)
+    return SSH_ERROR;
+
+  c->got_shell = true;
+
+  return SSH_OK;
+}
+
+static int pty_resize(ssh_session session, ssh_channel channel, int cols, int rows, int py, int px, void *userdata) {
+  SshClient *c = (SshClient *)userdata;
+
+  (void)session;
+  (void)channel;
+  c->term_height = rows;
+  c->term_width = cols;
+
+  return SSH_OK;
 }
 
 void SshClient::do_run() {
@@ -163,7 +195,9 @@ void SshClient::do_run() {
   }
 
   memset(&ssh_cb, 0, sizeof(struct ssh_channel_callbacks_struct));
-
+  ssh_cb.channel_pty_request_function = pty_request;
+  ssh_cb.channel_pty_window_change_function = pty_resize;
+  ssh_cb.channel_shell_request_function = shell_request;
   ssh_cb.channel_data_function = ssh_copy_chan_to_fd;
   ssh_cb.channel_eof_function = ssh_chan_close;
   ssh_cb.channel_close_function = ssh_chan_close;
@@ -174,14 +208,14 @@ void SshClient::do_run() {
 
   short events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 
-  ssh_event ev = ssh_event_new();
-  if (ev == NULL) {
-    return;
+  while (!got_shell) {
+    if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
+      ssh_event_free(ev);
+      return;
+    }
   }
+
   if (ssh_event_add_fd(ev, rsock, events, ssh_copy_fd_to_chan, chan) != SSH_OK) {
-    return;
-  }
-  if (ssh_event_add_session(ev, p_ssh_session) != SSH_OK) {
     return;
   }
 

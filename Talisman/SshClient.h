@@ -24,7 +24,11 @@ public:
   ~SshClient();
   bool do_auth();
   bool dis_flag;
+  bool got_auth;
+  bool got_shell;
+  ssh_channel chan;
+  ssh_event ev;
+
 private:
   void do_run();
-  ssh_channel chan;
 };

@@ -151,7 +151,6 @@ int main(int argc, char **argv) {
             sa.sin_family = AF_INET;
             sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
             sa.sin_port = 0;
-
             if (!sshc->do_auth()) {
 #ifdef _MSC_VER
               SetConsoleMode(hInput, in_prev_mode);
@@ -215,7 +214,7 @@ int main(int argc, char **argv) {
               }
               sshc->run();
             });
-            //t.detach();
+            // t.detach();
             new_sock = accept(listener, (sockaddr *)&sa, &addr_len);
 #ifdef _MSC_VER
             closesocket(listener);
@@ -239,7 +238,7 @@ int main(int argc, char **argv) {
 #else
               close(new_sock);
 #endif
-            } catch(DisconnectException e) {
+            } catch (DisconnectException e) {
               sshc->dis_flag = true;
               ret = -1;
             }
@@ -253,7 +252,7 @@ int main(int argc, char **argv) {
     Node n(node, sock, telnet);
     try {
       ret = n.run();
-    } catch(DisconnectException e) {
+    } catch (DisconnectException e) {
       ret = -1;
     }
   }
