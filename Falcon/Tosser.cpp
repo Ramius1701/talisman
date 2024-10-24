@@ -608,10 +608,10 @@ void Tosser::run() {
             if (c == '\r' || (c == '\n' && lastc != '\r')) {
               msg.push_back(ss.str());
               ss.str("");
-            } else {
+            } else if (c != '\n') {
               ss << c;
-              lastc = c;
             }
+            lastc = c;
           }
 
           if (ss.str().size() > 0) {
