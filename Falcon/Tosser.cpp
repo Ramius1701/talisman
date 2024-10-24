@@ -1236,7 +1236,7 @@ void Tosser::run() {
               }
             }
             if (should_import) {
-              log.log(LOG_INFO "Importing message %s by %s @ %d (%s)", subject.c_str(), sender.c_str(), msgrec.fromsys, config.networks.at(i).name.c_str());
+              log.log(LOG_INFO, "Importing message %s by %s @ %d (%s)", subject.c_str(), sender.c_str(), msgrec.fromsys, config.networks.at(i).name.c_str());
               import_message(&log, subtype, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
             }
           }
