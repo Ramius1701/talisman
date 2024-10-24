@@ -1160,7 +1160,7 @@ void Tosser::run() {
                   subscribers = get_subscribers(_datapath, subtype, config.networks.at(i).name);
 
                   should_import = false;
-                  if (subscribers.size() > 0) {
+                  if (subscribers.size() > 1) {
                     size_t s;
                     for (s = 0; s < subscribers.size(); s++) {
                       if (subscribers.at(s) == msgrec.fromsys) {
@@ -1225,6 +1225,10 @@ void Tosser::run() {
                         }
                         fclose(fptr2);
                       }
+                    }
+                  } else if (subscribers.size() == 1) {
+                    if (subscribers.at(0) == msgrec.fromsys) {
+                      should_import = true;
                     }
                   }
                   break;
