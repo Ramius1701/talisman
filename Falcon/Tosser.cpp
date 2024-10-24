@@ -947,14 +947,14 @@ void Tosser::run() {
               log.log(LOG_INFO, "%d removed sub: %s", msgrec.fromsys, subtype.c_str());
             } else if (status == 3) {
               ss << "Subscribers to " << subtype << " can not be automatically removed.\r\r";
-              log.log(LOG_INFO, "%d tried depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
         
             } else if (status == 2) {
               ss << "You're not subscribed to " << subtype << "!\r\r";
-              log.log(LOG_INFO, "%d tried depart sub: %s, but is not joined", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to depart sub: %s, but is not joined", msgrec.fromsys, subtype.c_str());
             } else if (status == 1) {
               ss << "This system is not the host of " << subtype << "!\r\r";
-              log.log(LOG_INFO, "%d tried joined depart: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to depart sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
             }
 
             rmsgrec.length = subtype.length() + 2 + ss.str().length();
