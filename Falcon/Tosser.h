@@ -17,7 +17,7 @@ private:
   std::string strip_hearts(std::string line);
   int check_if_subscriber(std::string subtype, std::string network, int system);
   bool add_subscriber(std::string subtype, std::string network, int system);
-
+  bool remove_subscriber(std::string subtype, std::string network, int system);
   int calc_length(std::vector<std::string> msg);
 
   Config config;

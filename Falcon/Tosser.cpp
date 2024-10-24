@@ -346,6 +346,54 @@ bool Tosser::import_message(Logger *log, std::string subtype, std::string from, 
   return false;
 }
 
+bool Tosser::remove_subscriber(std::string subtype, std::string network, int system) {
+  std::filesystem::path subfile(_datapath);
+  subfile.append("wwiv");
+  subfile.append(network);
+  subfile.append("n" + subtype + ".new");
+
+  std::filesystem::path origfile(_datapath);
+  origfile.append("wwiv");
+  origfile.append(network);
+  origfile.append("n" + subtype + ".net");
+
+  std::ofstream out(subfile, std::ios_base::out);
+  std::ifstream in (origfile);
+
+  bool ret = false;
+
+  if (out.is_open() && in.is_open()) {
+    std::string str;
+    while(getline(in, str)) {
+      try {
+        uint16_t sys = (uint16_t)std::stoi(str);
+        if (sys != system) {
+          out << str << std::endl;
+        } else {
+          ret = true;
+        }
+      } catch (std::invalid_argument const &) {
+        out << str << std::endl;
+      } catch (std::out_of_range const &) {
+        out << str << std::endl;
+      }      
+    }
+    out.close();
+    in.close();
+    if (ret) {
+      std::filesystem::remove(origfile);
+      std::filesystem::rename(subfile, origfile);
+    } else {
+      std::filesystem::remove(subfile);
+    }
+  } else {
+    if (in.is_open()) in.close();
+    if (out.is_open()) out.close();
+  }
+
+  return ret;
+}
+
 bool Tosser::add_subscriber(std::string subtype, std::string network, int system) {
   std::filesystem::path subfile(_datapath);
   subfile.append("wwiv");
@@ -738,7 +786,7 @@ void Tosser::run() {
               }
             } else {
               // fail
-              log.log(LOG_ERROR, "%d tried joined sub: %s, but something when wrong.", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_ERROR, "%d tried joined sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
               break;
             }
             // TODO: build and send response message
@@ -818,7 +866,130 @@ void Tosser::run() {
             }
           } break;
           case 17: {
-            // TODO: main_type_sub_drop_req
+            std::string subtype;
+            bool numericsubtype = false;
+            if (msgrec.minor_type != 0) {
+              numericsubtype = true;
+              subtype = std::to_string(msgrec.minor_type);
+            }
+            if (!numericsubtype) {
+              for (size_t h = 0; h < msg.at(0).size(); h++) {
+                if (msg.at(0).at(h) == '\0') {
+                  subtype = ss.str();
+                  ss.str("");
+                  break;
+                }
+              }
+            }
+
+            struct net_header_rec rmsgrec;
+
+            memset(&rmsgrec, 0, sizeof(struct net_header_rec));
+
+            rmsgrec.fromsys = config.networks.at(i).mynode;
+            rmsgrec.tosys = msgrec.fromsys;
+            rmsgrec.main_type = 19;
+
+            if (numericsubtype) {
+              rmsgrec.minor_type = msgrec.minor_type;
+            } else {
+              rmsgrec.minor_type = 0;
+            }
+
+            rmsgrec.touser = 0;
+            rmsgrec.fromuser = 1;
+            rmsgrec.list_len = 0;
+            rmsgrec.daten = (uint32_t)time(NULL);
+
+            // check if system is on list
+            int ret = check_if_subscriber(subtype, config.networks.at(i).name, msgrec.fromsys);
+            uint8_t status;
+
+            if (ret == 1) {
+              // system is already subscribed
+              bool should_remove = true;
+
+              for (size_t a = 0; a < config.areas.size(); a++) {
+                if (config.areas.at(a).subtype == subtype) {
+                  if (config.areas.at(a).manual_subsciption) {
+                    should_remove = false;
+                    break;
+                  }
+                }
+              }
+              if (should_remove) {
+                if (!remove_subscriber(subtype, config.networks.at(i).name, msgrec.fromsys)) {
+                  // failed to remove
+                  break;
+                } else {
+                  status = 0;
+                  // successfully removed
+                }
+              } else {
+                status = 3;
+              }
+            } else if (ret == 1) {
+              // not host
+              status = 1;
+            } else if (ret == 0) {
+              // system is not subscribed
+              status = 2;
+            } else {
+              // fail
+              log.log(LOG_ERROR, "%d tried remove sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
+              break;
+            }
+            // TODO: build and send response message
+            std::stringstream ss;
+
+            if (status == 0) {
+              ss << "You have successfully departed " << subtype << "!\r\r";
+              log.log(LOG_INFO, "%d removed sub: %s", msgrec.fromsys, subtype.c_str());
+            } else if (status == 3) {
+              ss << "Subscribers to " << subtype << " can not be automatically removed.\r\r";
+              log.log(LOG_INFO, "%d tried depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
+        
+            } else if (status == 2) {
+              ss << "You're not subscribed to " << subtype << "!\r\r";
+              log.log(LOG_INFO, "%d tried depart sub: %s, but is not joined", msgrec.fromsys, subtype.c_str());
+            } else if (status == 1) {
+              ss << "This system is not the host of " << subtype << "!\r\r";
+              log.log(LOG_INFO, "%d tried joined depart: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
+            }
+
+            rmsgrec.length = subtype.length() + 2 + ss.str().length();
+            rmsgrec.tosys = host2le_s(rmsgrec.tosys);
+            rmsgrec.touser = host2le_s(rmsgrec.touser);
+            rmsgrec.fromsys = host2le_s(rmsgrec.fromsys);
+            rmsgrec.fromuser = host2le_s(rmsgrec.fromuser);
+            rmsgrec.main_type = host2le_s(rmsgrec.main_type);
+            rmsgrec.minor_type = host2le_s(rmsgrec.minor_type);
+            rmsgrec.list_len = host2le_s(rmsgrec.list_len);
+            rmsgrec.daten = host2le_l(rmsgrec.daten);
+            rmsgrec.length = host2le_l(rmsgrec.length);
+            rmsgrec.method = host2le_s(rmsgrec.method);
+
+
+            std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");
+
+            FILE *fptr2 = NULL;
+
+            if (!std::filesystem::exists(fspath)) {
+              // open for writing
+              fptr2 = fopen(fspath.u8string().c_str(), "wb");
+            } else {
+              // open for appending
+              fptr2 = fopen(fspath.u8string().c_str(), "ab");
+            }
+            if (fptr2) {
+              fwrite(&rmsgrec, sizeof(struct net_header_rec), 1, fptr2);
+              fwrite(subtype.c_str(), subtype.length(), 1, fptr2);
+              fputc('\0', fptr2);
+              fputc(status, fptr2);
+              fwrite(ss.str().c_str(), ss.str().length(), 1, fptr2);
+              fclose(fptr2);
+            }
+
           } break;
           case 18: {
             std::string subtype;
@@ -1067,7 +1238,6 @@ void Tosser::run() {
 
         fclose(fptr);
         try {
-          std::cerr << fspath << std::endl;
           std::filesystem::remove(fspath);
         } catch (std::exception const &) {
           log.log(LOG_ERROR, "Failed to remove file %s", fspath.u8string().c_str());
