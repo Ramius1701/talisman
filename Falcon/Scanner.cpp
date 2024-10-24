@@ -326,7 +326,7 @@ void Scanner::run() {
                 fwrite(&subscribers.at(su), sizeof(uint16_t), 1, fptr);
               }
             }
-            log.log(LOG_INFO, "Exporting message %s by %s @ %d (%s)", msg->xmsg.subject, msg->xmsg.sender, config.networks.at(i).mynode, config.networks.at(i).name.c_str());
+            log.log(LOG_INFO, "Exporting message %s by %s @ %d (%s)", msg->xmsg.subject, msg->xmsg.from, config.networks.at(i).mynode, config.networks.at(i).name.c_str());
             fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
             fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
             fwrite(buffer2, strlen(buffer2), 1, fptr);
