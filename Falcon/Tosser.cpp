@@ -728,6 +728,8 @@ void Tosser::run() {
                   subtype = ss.str();
                   ss.str("");
                   break;
+                } else {
+                  ss << msg.at(0).at(h);
                 }
               }
             }
@@ -878,6 +880,8 @@ void Tosser::run() {
                   subtype = ss.str();
                   ss.str("");
                   break;
+                } else {
+                  ss << msg.at(0).at(h);
                 }
               }
             }
