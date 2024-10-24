@@ -862,7 +862,7 @@ void Tosser::run() {
               fwrite(&rmsgrec, sizeof(struct net_header_rec), 1, fptr2);
               fwrite(subtype.c_str(), subtype.length(), 1, fptr2);
               fputc('\0', fptr2);
-              fputc(status, fptr2);
+              fwrite(&status, 1, 1, fptr2);
               fwrite(ss.str().c_str(), ss.str().length(), 1, fptr2);
               fclose(fptr2);
             }
@@ -989,7 +989,7 @@ void Tosser::run() {
               fwrite(&rmsgrec, sizeof(struct net_header_rec), 1, fptr2);
               fwrite(subtype.c_str(), subtype.length(), 1, fptr2);
               fputc('\0', fptr2);
-              fputc(status, fptr2);
+              fwrite(&status, 1, 1, fptr2);
               fwrite(ss.str().c_str(), ss.str().length(), 1, fptr2);
               fclose(fptr2);
             }
