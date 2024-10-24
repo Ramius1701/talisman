@@ -261,9 +261,16 @@ void Scanner::run() {
             std::vector<uint16_t> subscribers;
 
             if (config.areas.at(a).hostnode == config.areas.at(a).mynode) {
-              msgrec.tosys = 0;
-              subscribers = Tosser::get_subscribers(_datapath, config.areas.at(a).subtype, config.networks.at(i).name);
-              msgrec.list_len = host2le_s(subscribers.size());
+              subscribers = Tosser::get_subscribers(_datapath, config.areas.at(a).subtype, config.networks.at(i ).name);
+              if (subscribers.size() == 1) {
+                msgrec.tosys = subscribers.at(0);
+                msgrec.list_len = 0;
+              } else if (subscribers.size() == 0) {
+                continue;
+              } else {
+                msgrec.tosys = 0;
+                msgrec.list_len = host2le_s(subscribers.size());
+              }
             } else {
               msgrec.tosys = host2le_s(config.areas.at(a).hostnode);
               msgrec.list_len = 0;
@@ -315,7 +322,7 @@ void Scanner::run() {
             msgrec.length = host2le_l(msgrec.length);
             fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
             if (msgrec.list_len != 0) {
-              for (size_t su; su < subscribers.size(); su++) {
+              for (size_t su = 0; su < subscribers.size(); su++) {
                 fwrite(&subscribers.at(su), sizeof(uint16_t), 1, fptr);
               }
             }
