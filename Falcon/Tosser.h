@@ -19,7 +19,7 @@ private:
   bool add_subscriber(std::string subtype, std::string network, int system);
   bool remove_subscriber(std::string subtype, std::string network, int system);
   int calc_length(std::vector<std::string> msg);
-
+  std::vector<std::string> read_message(FILE *fptr, uint32_t length);
   Config config;
   std::string _datapath;
   std::string _logpath;
