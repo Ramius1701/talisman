@@ -1223,9 +1223,9 @@ void Tosser::run() {
                         }
 
                         fwrite(subject.c_str(), subject.size(), 1, fptr2);
-                        fwrite("\r", 1, 1, fptr2);
+                        fwrite("\0", 1, 1, fptr2);
                         fwrite(sender.c_str(), sender.size(), 1, fptr2);
-                        fwrite("\r", 1, 1, fptr2);
+                        fwrite("\r\n", 2, 1, fptr2);
                         
                         for (size_t ml = 0; ml < msg.size(); ml++) {
                           fwrite(msg.at(ml).c_str(), msg.at(ml).size(), 1, fptr2);
