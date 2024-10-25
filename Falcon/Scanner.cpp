@@ -110,7 +110,7 @@ void Scanner::run() {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
-
+  log.log(LOG_INFO, "Scanner starting...");
   // check email for outbound
   sq_msg_base_t *mb;
 

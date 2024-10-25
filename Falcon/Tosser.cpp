@@ -549,6 +549,9 @@ void Tosser::run() {
     return;
   }
 
+
+  log.log(LOG_DEBUG, "Tosser starting...");
+
   for (size_t i = 0; i < config.networks.size(); i++) {
     std::filesystem::path ibpath = config.inbound();
     for (const auto &di : std::filesystem::directory_iterator(ibpath)) {
@@ -661,7 +664,7 @@ void Tosser::run() {
               datestr = msg.at(1);
 
               msg.erase(msg.begin(), msg.begin() + 1);
-
+              log.log(LOG_INFO, "Importing email from %s @%d (%s)", sender.c_str(), msgrec.fromsys, config.networks.at(i).name.c_str());
               import_email(&log, msgrec.touser, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
             }
             break;
