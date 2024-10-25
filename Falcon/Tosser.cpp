@@ -1188,9 +1188,9 @@ void Tosser::run() {
                       rmsg.method = host2le_s(msgrec.method);
 
                       if (msgrec.minor_type == 0) {
-                        rmsg.length = host2le_l(subtype.length() + calc_length(msg) + 1);
+                        rmsg.length = host2le_l(subtype.length() + subject.length() + sender.length() + calc_length(msg) + 3);
                       } else {
-                        rmsg.length = host2le_l(calc_length(msg));
+                        rmsg.length = host2le_l(subject.length() + sender.length() + calc_length(msg) + 2);
                       }
 
                       FILE *fptr2 = NULL;
@@ -1222,6 +1222,11 @@ void Tosser::run() {
                           fwrite(subtype.c_str(), subtype.size() + 1, 1, fptr2);
                         }
 
+                        fwrite(subject.c_str(), subject.size(), 1, fptr2);
+                        fwrite("\r", 1, 1, fptr2);
+                        fwrite(sender.c_str(), sender.size(), 1, fptr2);
+                        fwrite("\r", 1, 1, fptr2);
+                        
                         for (size_t ml = 0; ml < msg.size(); ml++) {
                           fwrite(msg.at(ml).c_str(), msg.at(ml).size(), 1, fptr2);
                           fwrite("\r", 1, 1, fptr2);
