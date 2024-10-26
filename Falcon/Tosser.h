@@ -2,6 +2,7 @@
 #include "Config.h"
 #include <sqlite3.h>
 #include <vector>
+#include <cstdint>
 
 class Tosser {
 public:
