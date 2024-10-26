@@ -1228,7 +1228,7 @@ int Server::run(NETADDR *addr, std::string domain) {
 
   for (const struct address_t &a : remote_addresses) {
     for (const struct link_t &l : c.links) {
-      if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point) {
+      if (a.addr->zone == l.addr->zone && a.addr->net == l.addr->net && a.addr->node == l.addr->node && a.addr->point == l.addr->point && a.domain == l.network) {
         bool found = false;
         for (size_t lc = 0; lc < common_links.size(); lc++) {
           if (common_links.at(lc).network == l.network) {

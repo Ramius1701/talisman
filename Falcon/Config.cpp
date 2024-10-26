@@ -137,6 +137,34 @@ bool Config::load(std::string datapath, Logger *log) {
           newarea.hostnode = _upnode->as_integer()->value_or(0);
         }
 
+        auto _hidden_sub = itemtable->get("hidden");
+        if (_hidden_sub == nullptr) {
+          newarea.hidden_sub = false;
+        } else {
+          newarea.hidden_sub = _hidden_sub->as_boolean()->value_or(false);
+        }
+
+        auto _manual_sub = itemtable->get("manual subscription");
+        if (_manual_sub == nullptr) {
+          newarea.manual_subsciption = false;
+        } else {
+          newarea.manual_subsciption = _manual_sub->as_boolean()->value_or(false);
+        }
+
+        auto _description = itemtable->get("description");
+        if (_description == nullptr) {
+          newarea.description = "No description.";
+        } else {
+          newarea.description = _description->as_string()->value_or("No description.");
+        }
+
+        auto _cat = itemtable->get("category");
+        if (_cat == nullptr) {
+          newarea.category = 0;
+        } else {
+          newarea.category = _cat->as_integer()->value_or(0);
+        }
+
         if (newarea.basefile == "" || newarea.subtype == "" || newarea.mynode == 0 || newarea.hostnode == 0) {
           continue;
         }

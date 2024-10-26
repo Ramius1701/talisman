@@ -6,6 +6,7 @@
 #include "../Common/tendian.h"
 #include "Config.h"
 #include "Scanner.h"
+#include "Tosser.h"
 #include <filesystem>
 #include <iostream>
 #include <sqlite3.h>
@@ -109,7 +110,7 @@ void Scanner::run() {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
-
+  log.log(LOG_INFO, "Scanner starting...");
   // check email for outbound
   sq_msg_base_t *mb;
 
@@ -197,7 +198,7 @@ void Scanner::run() {
         msgrec.length += strlen(msg->xmsg.subject) + 1;
         msgrec.length += strlen(buffer2) + 2;
         msgrec.length += strlen(buffer) + 2;
-        msgrec.length += ss.str().size() + 1;
+        msgrec.length += ss.str().size();
 
         msgrec.length = host2le_l(msgrec.length);
 
@@ -209,7 +210,6 @@ void Scanner::run() {
         fwrite(buffer, strlen(buffer), 1, fptr);
         fwrite("\r\n", 2, 1, fptr);
         fwrite(ss.str().c_str(), ss.str().size(), 1, fptr);
-        fwrite("\x1a", 1, 1, fptr);
 
         msg->xmsg.attr |= MSGSENT;
         SquishLockMsgBase(mb);
@@ -256,7 +256,24 @@ void Scanner::run() {
             memset(&msgrec, 0, sizeof(struct net_header_rec));
 
             msgrec.fromsys = host2le_s((uint16_t)config.networks.at(i).mynode);
-            msgrec.tosys = host2le_s(config.areas.at(a).hostnode);
+
+            std::vector<uint16_t> subscribers;
+
+            if (config.areas.at(a).hostnode == config.areas.at(a).mynode) {
+              subscribers = Tosser::get_subscribers(_datapath, config.areas.at(a).subtype, config.networks.at(i ).name);
+              if (subscribers.size() == 1) {
+                msgrec.tosys = host2le_s(subscribers.at(0));
+                msgrec.list_len = 0;
+              } else if (subscribers.size() == 0) {
+                continue;
+              } else {
+                msgrec.tosys = 0;
+                msgrec.list_len = host2le_s(subscribers.size());
+              }
+            } else {
+              msgrec.tosys = host2le_s(config.areas.at(a).hostnode);
+              msgrec.list_len = 0;
+            }
             msgrec.main_type = host2le_s(26);
             int id = username_to_id(msg->xmsg.from);
             if (id > 0) {
@@ -303,6 +320,12 @@ void Scanner::run() {
             msgrec.length += ss.str().size() + 1;
             msgrec.length = host2le_l(msgrec.length);
             fwrite(&msgrec, sizeof(net_header_rec), 1, fptr);
+            if (msgrec.list_len != 0) {
+              for (size_t su = 0; su < subscribers.size(); su++) {
+                fwrite(&subscribers.at(su), sizeof(uint16_t), 1, fptr);
+              }
+            }
+            log.log(LOG_INFO, "Exporting message %s by %s @ %d (%s)", msg->xmsg.subject, msg->xmsg.from, config.networks.at(i).mynode, config.networks.at(i).name.c_str());
             fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
             fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
             fwrite(buffer2, strlen(buffer2), 1, fptr);
