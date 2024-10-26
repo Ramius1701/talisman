@@ -1483,7 +1483,8 @@ void Tosser::run() {
                           rmsg.list_len = host2le_s(subscribers.size());
                           fwrite(&rmsg, sizeof(struct net_header_rec), 1, fptr2);
                           for (size_t su = 0; su < subscribers.size(); su++) {
-                            fwrite(&host2le_s(subscribers.at(su)), sizeof(uint16_t), 1, fptr2);
+                            uint16_t subscriber = host2le_s(subscribers.at(su));
+                            fwrite(&subscriber, sizeof(uint16_t), 1, fptr2);
                           }
                           log.log(LOG_INFO, "Relaying message to %d subscribers", subscribers.size());
 
