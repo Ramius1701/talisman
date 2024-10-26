@@ -1001,7 +1001,7 @@ void Tosser::run() {
               }
             } else {
               // fail
-              log.log(LOG_ERROR, "%d tried joined sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_ERROR, "%d tried to join sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
               break;
             }
             // TODO: build and send response message
@@ -1024,7 +1024,7 @@ void Tosser::run() {
               }
             } else if (status == 3) {
               ss << "Subscribers to " << subtype << " can not be automatically added.\r\r";
-              log.log(LOG_INFO, "%d tried joined sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to join sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
               std::filesystem::path welmsg(_datapath);
               welmsg.append("wwiv");
               welmsg.append(config.networks.at(i).name);
@@ -1040,10 +1040,10 @@ void Tosser::run() {
               }              
             } else if (status == 4) {
               ss << "You're already subscribed to " << subtype << "!\r\r";
-              log.log(LOG_INFO, "%d tried joined sub: %s, but are already joined", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to join sub: %s, but are already joined", msgrec.fromsys, subtype.c_str());
             } else if (status == 1) {
               ss << "This system is not the host of " << subtype << "!\r\r";
-              log.log(LOG_INFO, "%d tried joined sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d tried to join sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
             }
 
             rmsgrec.length = subtype.length() + 2 + ss.str().length();
@@ -1207,14 +1207,14 @@ void Tosser::run() {
               status = 2;
             } else {
               // fail
-              log.log(LOG_ERROR, "%d tried remove sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_ERROR, "%d tried to depart sub: %s, but something went wrong.", msgrec.fromsys, subtype.c_str());
               break;
             }
             // TODO: build and send response message
 
             if (status == 0) {
               ss << "You have successfully departed " << subtype << "!\r\r";
-              log.log(LOG_INFO, "%d removed sub: %s", msgrec.fromsys, subtype.c_str());
+              log.log(LOG_INFO, "%d departed sub: %s", msgrec.fromsys, subtype.c_str());
             } else if (status == 3) {
               ss << "Subscribers to " << subtype << " can not be automatically removed.\r\r";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
@@ -1483,9 +1483,12 @@ void Tosser::run() {
                           rmsg.list_len = host2le_s(subscribers.size());
                           fwrite(&rmsg, sizeof(struct net_header_rec), 1, fptr2);
                           for (size_t su = 0; su < subscribers.size(); su++) {
-                            fwrite(&subscribers.at(su), sizeof(uint16_t), 1, fptr2);
+                            fwrite(&host2le_s(subscribers.at(su)), sizeof(uint16_t), 1, fptr2);
                           }
+                          log.log(LOG_INFO, "Relaying message to %d subscribers", subscribers.size());
+
                         } else {
+                          log.log(LOG_INFO, "Relaying message to node %d", subscribers.at(0));
                           rmsg.tosys = host2le_s(subscribers.at(0));
                           rmsg.list_len = 0;
                           fwrite(&rmsg, sizeof(struct net_header_rec), 1, fptr2);
