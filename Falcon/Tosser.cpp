@@ -1395,7 +1395,7 @@ void Tosser::run() {
               bool should_send = false;
               for (size_t s = 0; s < config.areas.size(); s++) {
                 if (config.areas.at(s).netname == config.networks.at(i).name) {
-                  if (config.areas.at(s).mynode == config.areas.at(s).hostnode) {
+                  if (config.areas.at(s).mynode == config.areas.at(s).hostnode && config.areas.at(s).hidden_sub == false) {
                     char buffer[256];
                     std::string flags;
 

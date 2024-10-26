@@ -137,6 +137,13 @@ bool Config::load(std::string datapath, Logger *log) {
           newarea.hostnode = _upnode->as_integer()->value_or(0);
         }
 
+        auto _hidden_sub = itemtable->get("hidden");
+        if (_hidden_sub == nullptr) {
+          newarea.hidden_sub = false;
+        } else {
+          newarea.hidden_sub = _hidden_sub->as_boolean()->value_or(false);
+        }
+
         auto _manual_sub = itemtable->get("manual subscription");
         if (_manual_sub == nullptr) {
           newarea.manual_subsciption = false;
