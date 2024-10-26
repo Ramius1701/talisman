@@ -144,6 +144,20 @@ bool Config::load(std::string datapath, Logger *log) {
           newarea.manual_subsciption = _manual_sub->as_boolean()->value_or(false);
         }
 
+        auto _description = itemtable->get("description");
+        if (_description == nullptr) {
+          newarea.description = "No description.";
+        } else {
+          newarea.description = _description->as_string()->value_or("No description.");
+        }
+
+        auto _cat = itemtable->get("category");
+        if (_cat == nullptr) {
+          newarea.category = 0;
+        } else {
+          newarea.category = _cat->as_integer()->value_or(0);
+        }
+
         if (newarea.basefile == "" || newarea.subtype == "" || newarea.mynode == 0 || newarea.hostnode == 0) {
           continue;
         }

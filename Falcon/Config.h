@@ -17,6 +17,8 @@ struct area_t {
   std::string basefile;
   std::string subtype;
   bool manual_subsciption;
+  std::string description;
+  int category;
   int mynode;
   int hostnode;
 };

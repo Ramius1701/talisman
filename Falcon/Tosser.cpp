@@ -1387,6 +1387,69 @@ void Tosser::run() {
 
             import_email(&log, 1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
           } break;
+          case 20:
+          {
+            // sub.inf ping
+            if (msgrec.minor_type == 0) {
+              std::stringstream rmsgtxt;
+              bool should_send = false;
+              for (size_t s = 0; s < config.areas.size(); s++) {
+                if (config.areas.at(s).netname == config.networks.at(i).name) {
+                  if (config.areas.at(s).mynode == config.areas.at(s).hostnode) {
+                    char buffer[256];
+                    std::string flags;
+
+                    if (!config.areas.at(s).manual_subsciption) {
+                      flags = "R";
+                    } else {
+                      flags = "";
+                    }
+                    std::string desc;
+                    if (config.areas.at(s).description.length()  > 60) {
+                      desc = config.areas.at(s).description.substr(0, 60);
+                    } else {
+                      desc = config.areas.at(s).description;
+                    }
+                    snprintf(buffer, 256, "%-7s %5u %-5s %s~%u", config.areas.at(s).subtype.c_str(), config.areas.at(s).mynode, flags.c_str(), desc.c_str(), config.areas.at(s).category);
+                    rmsgtxt << buffer << "\r\n";
+                    should_send = true;
+                  }
+                }
+              }
+
+              if (should_send) {
+                struct net_header_rec rmsg;
+
+                rmsg.fromsys = host2le_s(config.networks.at(i).mynode);
+                rmsg.touser = msgrec.fromuser;
+                rmsg.fromuser = host2le_s(1);
+                rmsg.daten = host2le_l(time(NULL));
+                rmsg.main_type = host2le_s(20);
+                rmsg.minor_type = host2le_s(1);
+                rmsg.method = 0;
+                rmsg.length = host2le_l(rmsgtxt.str().length());
+                rmsg.list_len = 0;
+                FILE *fptr2 = NULL;
+                      
+                std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");                      
+                      
+                if (!std::filesystem::exists(fspath)) {
+                  // open for writing
+                  fptr2 = fopen(fspath.u8string().c_str(), "wb");
+                } else {
+                  // open for appending
+                  fptr2 = fopen(fspath.u8string().c_str(), "ab");
+                }
+                if (fptr2) {
+                  fwrite(&rmsg, sizeof(struct net_header_rec), 1, fptr2);
+                  fwrite(rmsgtxt.str().c_str(), rmsgtxt.str().length(), 1, fptr2);
+                  fclose(fptr2);
+                }
+              }
+            } else if (msgrec.minor_type == 1) {
+              // do nothing.. we didn't request this.
+            }
+          } break;
           case 26: // main type post
           {
             std::string subtype;
