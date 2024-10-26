@@ -133,20 +133,40 @@ bool SshClient::do_auth() {
     return false;
   }
 
-  while (!got_auth) {
+  int n = 200;
+
+  while (!got_auth && n > 1) {
     if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
       ssh_event_remove_session(ev, p_ssh_session);
       ssh_event_free(ev);
       return false;
     }
+    n--;
   }
-  while (!chan) {
+
+  if (!got_auth) {
+    ssh_event_remove_session(ev, p_ssh_session);
+    ssh_event_free(ev);
+    return false;  
+  }
+
+  n = 200;
+
+  while (!chan && n > 1) {
     if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
       ssh_event_remove_session(ev, p_ssh_session);
       ssh_event_free(ev);
       return false;
     }
+    n--;
   }
+
+  if (!chan) {
+      ssh_event_remove_session(ev, p_ssh_session);
+      ssh_event_free(ev);
+      return false;
+  }
+  
   return true;
 }
 
@@ -208,11 +228,19 @@ void SshClient::do_run() {
 
   short events = POLLIN | POLLERR | POLLHUP | POLLNVAL;
 
-  while (!got_shell) {
+  int n = 200;
+
+  while (!got_shell && n > 1) {
     if (ssh_event_dopoll(ev, 100) == SSH_ERROR) {
       ssh_event_free(ev);
       return;
     }
+    n--;
+  }
+
+  if (!got_shell) {
+    ssh_event_free(ev);
+    return;  
   }
 
   if (ssh_event_add_fd(ev, rsock, events, ssh_copy_fd_to_chan, chan) != SSH_OK) {
