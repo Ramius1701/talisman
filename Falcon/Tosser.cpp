@@ -1007,7 +1007,7 @@ void Tosser::run() {
             // TODO: build and send response message
 
             if (status == 0) {
-              ss << "You have successfully joined " << subtype << "!\r\r";
+              ss << "You have successfully joined " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d joined sub: %s", msgrec.fromsys, subtype.c_str());
               std::filesystem::path welmsg(_datapath);
               welmsg.append("wwiv");
@@ -1018,12 +1018,12 @@ void Tosser::run() {
                 std::ifstream in(welmsg);
                 std::string str;
                 while (getline(in, str)) {
-                  ss << str << "\r";
+                  ss << str << "\r\n";
                 }
                 in.close();
               }
             } else if (status == 3) {
-              ss << "Subscribers to " << subtype << " can not be automatically added.\r\r";
+              ss << "Subscribers to " << subtype << " can not be automatically added.\r\n\r\n";
               log.log(LOG_INFO, "%d tried to join sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
               std::filesystem::path welmsg(_datapath);
               welmsg.append("wwiv");
@@ -1034,15 +1034,15 @@ void Tosser::run() {
                 std::ifstream in(welmsg);
                 std::string str;
                 while (getline(in, str)) {
-                  ss << str << "\r";
+                  ss << str << "\r\n";
                 }
                 in.close();
               }              
             } else if (status == 4) {
-              ss << "You're already subscribed to " << subtype << "!\r\r";
+              ss << "You're already subscribed to " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to join sub: %s, but are already joined", msgrec.fromsys, subtype.c_str());
             } else if (status == 1) {
-              ss << "This system is not the host of " << subtype << "!\r\r";
+              ss << "This system is not the host of " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to join sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
             }
 
@@ -1213,17 +1213,17 @@ void Tosser::run() {
             // TODO: build and send response message
 
             if (status == 0) {
-              ss << "You have successfully departed " << subtype << "!\r\r";
+              ss << "You have successfully departed " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d departed sub: %s", msgrec.fromsys, subtype.c_str());
             } else if (status == 3) {
-              ss << "Subscribers to " << subtype << " can not be automatically removed.\r\r";
+              ss << "Subscribers to " << subtype << " can not be automatically removed.\r\n\r\n";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
         
             } else if (status == 2) {
-              ss << "You're not subscribed to " << subtype << "!\r\r";
+              ss << "You're not subscribed to " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but is not joined", msgrec.fromsys, subtype.c_str());
             } else if (status == 1) {
-              ss << "This system is not the host of " << subtype << "!\r\r";
+              ss << "This system is not the host of " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but we are not the host", msgrec.fromsys, subtype.c_str());
             }
 
@@ -1569,7 +1569,7 @@ void Tosser::run() {
                         
                         for (size_t ml = 0; ml < msg.size(); ml++) {
                           fwrite(msg.at(ml).c_str(), msg.at(ml).size(), 1, fptr2);
-                          fwrite("\r", 1, 1, fptr2);
+                          fwrite("\r\n", 1, 1, fptr2);
                         }
                         fclose(fptr2);
                       }
@@ -1608,7 +1608,7 @@ int Tosser::calc_length(std::vector<std::string> msg) {
   int ret = 0;
 
   for (size_t i = 0; i < msg.size(); i++) {
-    ret += msg.at(i).length() + 1;
+    ret += msg.at(i).length() + 2;
   }
 
   return ret;
