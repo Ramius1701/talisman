@@ -251,12 +251,10 @@ bool Tosser::import_message(Logger *log, std::string subtype, std::string from, 
         }
       }
 
-
       if (Dupe::is_dupe(_datapath + "/falcon_dupehist.dat", ss.str(), (uint32_t)sent)) {
         log->log(LOG_INFO, "Duplicate Found!");
         return false;
       }
-
 
       newmsg.ctrl_len = cs.str().size();
       newmsg.ctrl = (char *)malloc(newmsg.ctrl_len + 1);
@@ -358,13 +356,13 @@ bool Tosser::remove_subscriber(std::string subtype, std::string network, int sys
   origfile.append("n" + subtype + ".net");
 
   std::ofstream out(subfile, std::ios_base::out);
-  std::ifstream in (origfile);
+  std::ifstream in(origfile);
 
   bool ret = false;
 
   if (out.is_open() && in.is_open()) {
     std::string str;
-    while(getline(in, str)) {
+    while (getline(in, str)) {
       try {
         uint16_t sys = (uint16_t)std::stoi(str);
         if (sys != system) {
@@ -376,7 +374,7 @@ bool Tosser::remove_subscriber(std::string subtype, std::string network, int sys
         out << str << std::endl;
       } catch (std::out_of_range const &) {
         out << str << std::endl;
-      }      
+      }
     }
     out.close();
     in.close();
@@ -387,8 +385,10 @@ bool Tosser::remove_subscriber(std::string subtype, std::string network, int sys
       std::filesystem::remove(subfile);
     }
   } else {
-    if (in.is_open()) in.close();
-    if (out.is_open()) out.close();
+    if (in.is_open())
+      in.close();
+    if (out.is_open())
+      out.close();
   }
 
   return ret;
@@ -399,7 +399,7 @@ bool Tosser::add_subscriber(std::string subtype, std::string network, int system
   subfile.append("wwiv");
   subfile.append(network);
   subfile.append("n" + subtype + ".net");
-  
+
   std::ofstream out(subfile, std::ios_base::app | std::ios_base::out);
 
   if (out.is_open()) {
@@ -425,7 +425,7 @@ std::vector<uint16_t> Tosser::get_subscribers(std::string dpath, std::string sub
   std::ifstream in(subfile);
   if (in.is_open()) {
     std::string line;
-    while(getline(in, line)) {
+    while (getline(in, line)) {
       try {
         uint16_t sys = (uint16_t)std::stoi(line);
         subscribers.push_back(sys);
@@ -436,7 +436,6 @@ std::vector<uint16_t> Tosser::get_subscribers(std::string dpath, std::string sub
     in.close();
   }
   return subscribers;
-
 }
 
 int Tosser::check_if_subscriber(std::string subtype, std::string network, int system) {
@@ -452,7 +451,7 @@ int Tosser::check_if_subscriber(std::string subtype, std::string network, int sy
   std::ifstream in(subfile);
   if (in.is_open()) {
     std::string line;
-    while(getline(in, line)) {
+    while (getline(in, line)) {
       try {
         int sys = std::stoi(line);
 
@@ -480,36 +479,36 @@ std::string Tosser::strip_hearts(std::string line) {
       if (lastc == 0x3) {
         if (!config.striphearts()) {
           switch (c) {
-            case '0':
-              ss << "|16|07";
-              break;
-            case '1':
-              ss << "|16|11";
-              break;
-            case '2':
-              ss << "|16|14";
-              break;
-            case '3':
-              ss << "|16|13";
-              break;
-            case '4':
-              ss << "|17|15";
-              break;
-            case '5':
-              ss << "|16|10";
-              break;
-            case '6':
-              ss << "|16|12";
-              break;
-            case '7':
-              ss << "|16|09";
-              break;
-            case '8':
-              ss << "|16|05";
-              break;
-            case '9':
-              ss << "|16|03";
-              break;
+          case '0':
+            ss << "|16|07";
+            break;
+          case '1':
+            ss << "|16|11";
+            break;
+          case '2':
+            ss << "|16|14";
+            break;
+          case '3':
+            ss << "|16|13";
+            break;
+          case '4':
+            ss << "|17|15";
+            break;
+          case '5':
+            ss << "|16|10";
+            break;
+          case '6':
+            ss << "|16|12";
+            break;
+          case '7':
+            ss << "|16|09";
+            break;
+          case '8':
+            ss << "|16|05";
+            break;
+          case '9':
+            ss << "|16|03";
+            break;
           }
         }
       } else if (lastc == 0x4) {
@@ -583,7 +582,6 @@ void Tosser::run() {
     return;
   }
 
-
   log.log(LOG_DEBUG, "Tosser starting...");
 
   for (size_t i = 0; i < config.networks.size(); i++) {
@@ -634,198 +632,195 @@ void Tosser::run() {
             break;
 
           switch (msgrec.main_type) {
-          case 1:
-          {
+          case 1: {
             switch (msgrec.minor_type) {
-              case 0:
-                {
-                  if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
-                    if (msgrec.tosys == 0) {
-                      bool found = false;
-                      for (size_t k = 0; k < nlist.size(); k++) {
-                        if (nlist.at(k) == config.networks.at(i).mynode) {
-                          found = true;
-                          break;
-                        }
-                      }
-                      if (!found) {
-                        break;
-                      }
-                      std::string subj;
-                      std::string sender;
-                      std::string datestr;
-                      std::stringstream ss;
-
-                      std::vector<std::string> msg = read_message(fptr, msgrec.length);
-
-                      if (msg.size() == 0)
-                        break;
-
-                      for (size_t h = 0; h < msg.at(0).size(); h++) {
-                        if (msg.at(0).at(h) == '\0') {
-                          subj = ss.str();
-                          ss.str("");
-                        } else {
-                          ss << msg.at(0).at(h);
-                        }
-                      }
-
-                      sender = ss.str();
-
-                      datestr = msg.at(1);
-
-                      msg.erase(msg.begin(), msg.begin() + 1);
-                      log.log(LOG_INFO, "Importing email from Network Coodinator (%s) @%d (%s)", sender.c_str(), msgrec.fromsys, config.networks.at(i).name.c_str());
-                      import_email(&log, 1, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);                      
+            case 0: {
+              if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+                if (msgrec.tosys == 0) {
+                  bool found = false;
+                  for (size_t k = 0; k < nlist.size(); k++) {
+                    if (nlist.at(k) == config.networks.at(i).mynode) {
+                      found = true;
+                      break;
                     }
                   }
+                  if (!found) {
+                    break;
+                  }
+                  std::string subj;
+                  std::string sender;
+                  std::string datestr;
+                  std::stringstream ss;
+
+                  std::vector<std::string> msg = read_message(fptr, msgrec.length);
+
+                  if (msg.size() == 0)
+                    break;
+
+                  for (size_t h = 0; h < msg.at(0).size(); h++) {
+                    if (msg.at(0).at(h) == '\0') {
+                      subj = ss.str();
+                      ss.str("");
+                    } else {
+                      ss << msg.at(0).at(h);
+                    }
+                  }
+
+                  sender = ss.str();
+
+                  datestr = msg.at(1);
+
+                  msg.erase(msg.begin(), msg.begin() + 1);
+                  log.log(LOG_INFO, "Importing email from Network Coodinator (%s) @%d (%s)", sender.c_str(), msgrec.fromsys,
+                          config.networks.at(i).name.c_str());
+                  import_email(&log, 1, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
                 }
-                break;
-              case 9:
-                {
-                  if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
-                    if (msgrec.tosys == 0) {
-                      bool found = false;
-                      for (size_t k = 0; k < nlist.size(); k++) {
-                        if (nlist.at(k) == config.networks.at(i).mynode) {
-                          found = true;
-                          break;
-                        }
-                      }
-                      if (!found) {
-                        break;
-                      }
-                                            
-                      uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                      if (!bytes) break;
-                      if (fread(bytes, msgrec.length, 1, fptr) != 1) {
-                        log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
-                        free(bytes);
-                        break;
-                      }
-                      if (msgrec.length < 4) {
-                        free(bytes);
-                        break;
-                      }
-                      uint16_t flags = (bytes[1] << 8) | bytes[0];
-
-                      const char *fntemp = (const char *)&bytes[2];
-                      std::string filename(fntemp);
-
-                      if (filename.empty() || filename.length() > 8) {
-                        free(bytes);
-                        break;
-                      }
-
-                      size_t pos = filename.length() + 3;
-
-                      if ((flags & 0x02) != 0) {
-                        filename = filename + ".zip";
-                      } else {
-                        filename = filename + ".net";
-                      }
-
-                      
-                      std::filesystem::path fp(_datapath);
-                      fp.append("wwiv");
-                      fp.append(config.networks.at(i).name);
-                      if (!std::filesystem::exists(fp)) {
-                        std::filesystem::create_directories(fp);
-                      }
-                      fp.append(filename);
-                      FILE *fptr2 = NULL;
-                      if ((flags & 1) != 0) {
-                        fptr2 = fopen(fp.u8string().c_str(), "wb");
-                      } else {
-                        fptr2 = fopen(fp.u8string().c_str(), "ab");
-                      }
-                      if (fptr2) {
-                        fwrite(&bytes[pos], msgrec.length - pos, 1, fptr2);
-                        fclose(fptr2);
-                        log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
-                      }
-                      free(bytes);
+              }
+            } break;
+            case 9: {
+              if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+                if (msgrec.tosys == 0) {
+                  bool found = false;
+                  for (size_t k = 0; k < nlist.size(); k++) {
+                    if (nlist.at(k) == config.networks.at(i).mynode) {
+                      found = true;
+                      break;
                     }
                   }
+                  if (!found) {
+                    break;
+                  }
 
-                } break;
-              default:
-                {
-                  if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
-                    if (msgrec.tosys == 0) {
-                      bool found = false;
-                      for (size_t k = 0; k < nlist.size(); k++) {
-                        if (nlist.at(k) == config.networks.at(i).mynode) {
-                          found = true;
-                          break;
-                        }
-                      }
-                      if (!found) {
-                        break;
-                      }
-                      std::string filename;
-                      bool append = false;
-                      switch(msgrec.minor_type) {
-                        case 1:
-                          filename = "bbslist.net";
-                          break;
-                        case 2:
-                          filename = "connect.net";
-                          break;
-                        case 3:
-                          filename = "subs.lst";
-                          break;
-                        case 4:
-                          filename = "wwivnews.net";
-                          break;
-                        case 5:
-                          filename = "fbackhdr.net";
-                          break;
-                        case 6:
-                          filename = "wwivnews.net";
-                          append = true;
-                          break;
-                        case 7:
-                          filename = "categ.net";
-                          break;
-                        case 8:
-                          filename = "networks.lst";
-                          break;
-                        case 10:
-                          filename = "binkp.net";
-                          break;
-                      }
+                  uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
+                  if (!bytes)
+                    break;
+                  if (fread(bytes, msgrec.length, 1, fptr) != 1) {
+                    log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
+                    free(bytes);
+                    break;
+                  }
+                  if (msgrec.length < 4) {
+                    free(bytes);
+                    break;
+                  }
+                  uint16_t flags = (bytes[1] << 8) | bytes[0];
 
-                      uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                      if (!bytes) break;
-                      if (fread(bytes, msgrec.length, 1, fptr) != 1) {
-                        log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
-                        free(bytes);
-                        break;
-                      }
+                  const char *fntemp = (const char *)&bytes[2];
+                  std::string filename(fntemp);
 
-                      std::filesystem::path fp(_datapath);
-                      fp.append("wwiv");
-                      fp.append(config.networks.at(i).name);
-                      if (!std::filesystem::exists(fp)) {
-                        std::filesystem::create_directories(fp);
-                      }
-                      fp.append(filename);
-                      FILE *fptr2 = NULL;
-                      if (!append) {
-                        fptr2 = fopen(fp.u8string().c_str(), "wb");
-                      } else {
-                        fptr2 = fopen(fp.u8string().c_str(), "ab");
-                      }
-                      if (fptr2) {
-                        fwrite(bytes, msgrec.length, 1, fptr2);
-                        fclose(fptr2);
-                        log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
-                      }
-                      free(bytes);
+                  if (filename.empty() || filename.length() > 8) {
+                    free(bytes);
+                    break;
+                  }
+
+                  size_t pos = filename.length() + 3;
+
+                  if ((flags & 0x02) != 0) {
+                    filename = filename + ".zip";
+                  } else {
+                    filename = filename + ".net";
+                  }
+
+                  std::filesystem::path fp(_datapath);
+                  fp.append("wwiv");
+                  fp.append(config.networks.at(i).name);
+                  if (!std::filesystem::exists(fp)) {
+                    std::filesystem::create_directories(fp);
+                  }
+                  fp.append(filename);
+                  FILE *fptr2 = NULL;
+                  if ((flags & 1) != 0) {
+                    fptr2 = fopen(fp.u8string().c_str(), "wb");
+                  } else {
+                    fptr2 = fopen(fp.u8string().c_str(), "ab");
+                  }
+                  if (fptr2) {
+                    fwrite(&bytes[pos], msgrec.length - pos, 1, fptr2);
+                    fclose(fptr2);
+                    log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
+                  }
+                  free(bytes);
+                }
+              }
+
+            } break;
+            default: {
+              if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
+                if (msgrec.tosys == 0) {
+                  bool found = false;
+                  for (size_t k = 0; k < nlist.size(); k++) {
+                    if (nlist.at(k) == config.networks.at(i).mynode) {
+                      found = true;
+                      break;
                     }
                   }
-                } break;
+                  if (!found) {
+                    break;
+                  }
+                  std::string filename;
+                  bool append = false;
+                  switch (msgrec.minor_type) {
+                  case 1:
+                    filename = "bbslist.net";
+                    break;
+                  case 2:
+                    filename = "connect.net";
+                    break;
+                  case 3:
+                    filename = "subs.lst";
+                    break;
+                  case 4:
+                    filename = "wwivnews.net";
+                    break;
+                  case 5:
+                    filename = "fbackhdr.net";
+                    break;
+                  case 6:
+                    filename = "wwivnews.net";
+                    append = true;
+                    break;
+                  case 7:
+                    filename = "categ.net";
+                    break;
+                  case 8:
+                    filename = "networks.lst";
+                    break;
+                  case 10:
+                    filename = "binkp.net";
+                    break;
+                  }
+
+                  uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
+                  if (!bytes)
+                    break;
+                  if (fread(bytes, msgrec.length, 1, fptr) != 1) {
+                    log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
+                    free(bytes);
+                    break;
+                  }
+
+                  std::filesystem::path fp(_datapath);
+                  fp.append("wwiv");
+                  fp.append(config.networks.at(i).name);
+                  if (!std::filesystem::exists(fp)) {
+                    std::filesystem::create_directories(fp);
+                  }
+                  fp.append(filename);
+                  FILE *fptr2 = NULL;
+                  if (!append) {
+                    fptr2 = fopen(fp.u8string().c_str(), "wb");
+                  } else {
+                    fptr2 = fopen(fp.u8string().c_str(), "ab");
+                  }
+                  if (fptr2) {
+                    fwrite(bytes, msgrec.length, 1, fptr2);
+                    fclose(fptr2);
+                    log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
+                  }
+                  free(bytes);
+                }
+              }
+            } break;
             }
           } break;
           case 2: // email to num type
@@ -1037,7 +1032,7 @@ void Tosser::run() {
                   ss << str << "\r\n";
                 }
                 in.close();
-              }              
+              }
             } else if (status == 4) {
               ss << "You're already subscribed to " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to join sub: %s, but are already joined", msgrec.fromsys, subtype.c_str());
@@ -1057,7 +1052,6 @@ void Tosser::run() {
             rmsgrec.daten = host2le_l(rmsgrec.daten);
             rmsgrec.length = host2le_l(rmsgrec.length);
             rmsgrec.method = host2le_s(rmsgrec.method);
-
 
             std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");
 
@@ -1092,9 +1086,10 @@ void Tosser::run() {
                 if (!found) {
                   break;
                 }
-                
+
                 uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                if (!bytes) break;
+                if (!bytes)
+                  break;
                 if (fread(bytes, msgrec.length, 1, fptr) != 1) {
                   log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
                   free(bytes);
@@ -1126,7 +1121,7 @@ void Tosser::run() {
                 free(bytes);
               }
             }
-          }break;
+          } break;
           case 17: {
             std::string subtype;
             bool numericsubtype = false;
@@ -1218,7 +1213,7 @@ void Tosser::run() {
             } else if (status == 3) {
               ss << "Subscribers to " << subtype << " can not be automatically removed.\r\n\r\n";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but subscriptions are manual", msgrec.fromsys, subtype.c_str());
-        
+
             } else if (status == 2) {
               ss << "You're not subscribed to " << subtype << "!\r\n\r\n";
               log.log(LOG_INFO, "%d tried to depart sub: %s, but is not joined", msgrec.fromsys, subtype.c_str());
@@ -1238,7 +1233,6 @@ void Tosser::run() {
             rmsgrec.daten = host2le_l(rmsgrec.daten);
             rmsgrec.length = host2le_l(rmsgrec.length);
             rmsgrec.method = host2le_s(rmsgrec.method);
-
 
             std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");
 
@@ -1270,7 +1264,6 @@ void Tosser::run() {
             bool gotsubtype = false;
 
             std::vector<std::string> msg = read_message(fptr, msgrec.length);
-
 
             if (msg.size() == 0)
               break;
@@ -1387,8 +1380,7 @@ void Tosser::run() {
 
             import_email(&log, 1, sender, msgrec.fromsys, subject, msg, i, msgrec.daten);
           } break;
-          case 20:
-          {
+          case 20: {
             // sub.inf ping
             if (msgrec.minor_type == 0) {
               std::stringstream rmsgtxt;
@@ -1405,12 +1397,13 @@ void Tosser::run() {
                       flags = "";
                     }
                     std::string desc;
-                    if (config.areas.at(s).description.length()  > 60) {
+                    if (config.areas.at(s).description.length() > 60) {
                       desc = config.areas.at(s).description.substr(0, 60);
                     } else {
                       desc = config.areas.at(s).description;
                     }
-                    snprintf(buffer, 256, "%-7s %5u %-5s %s~%u", config.areas.at(s).subtype.c_str(), config.areas.at(s).mynode, flags.c_str(), desc.c_str(), config.areas.at(s).category);
+                    snprintf(buffer, 256, "%-7s %5u %-5s %s~%u", config.areas.at(s).subtype.c_str(), config.areas.at(s).mynode, flags.c_str(), desc.c_str(),
+                             config.areas.at(s).category);
                     rmsgtxt << buffer << "\r\n";
                     should_send = true;
                   }
@@ -1430,9 +1423,9 @@ void Tosser::run() {
                 rmsg.length = host2le_l(rmsgtxt.str().length());
                 rmsg.list_len = 0;
                 FILE *fptr2 = NULL;
-                      
-                std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");                      
-                      
+
+                std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");
+
                 if (!std::filesystem::exists(fspath)) {
                   // open for writing
                   fptr2 = fopen(fspath.u8string().c_str(), "wb");
@@ -1490,7 +1483,7 @@ void Tosser::run() {
             for (size_t a = 0; a < config.areas.size(); a++) {
               if (strcasecmp(config.areas.at(a).subtype.c_str(), subtype.c_str()) == 0 &&
                   strcasecmp(config.areas.at(a).netname.c_str(), config.networks.at(i).name.c_str()) == 0) {
-              
+
                 if (config.areas.at(a).hostnode == config.areas.at(a).mynode) {
                   // I'm the host node, send to subscribers
 
@@ -1530,9 +1523,9 @@ void Tosser::run() {
                       }
 
                       FILE *fptr2 = NULL;
-                      
-                      std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");                      
-                      
+
+                      std::filesystem::path fspath(config.networks.at(i).outbox + "/s" + std::to_string(config.networks.at(i).upnode) + ".net");
+
                       if (!std::filesystem::exists(fspath)) {
                         // open for writing
                         fptr2 = fopen(fspath.u8string().c_str(), "wb");
@@ -1566,7 +1559,7 @@ void Tosser::run() {
                         fwrite("\0", 1, 1, fptr2);
                         fwrite(sender.c_str(), sender.size(), 1, fptr2);
                         fwrite("\r\n", 2, 1, fptr2);
-                        
+
                         for (size_t ml = 0; ml < msg.size(); ml++) {
                           fwrite(msg.at(ml).c_str(), msg.at(ml).size(), 1, fptr2);
                           fwrite("\r\n", 1, 1, fptr2);

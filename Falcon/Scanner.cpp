@@ -110,7 +110,7 @@ void Scanner::run() {
     std::cerr << "Failed to parse falcon.toml" << std::endl;
     return;
   }
-  log.log(LOG_INFO, "Scanner starting...");
+  log.log(LOG_DEBUG, "Scanner starting...");
   // check email for outbound
   sq_msg_base_t *mb;
 
@@ -260,7 +260,7 @@ void Scanner::run() {
             std::vector<uint16_t> subscribers;
 
             if (config.areas.at(a).hostnode == config.areas.at(a).mynode) {
-              subscribers = Tosser::get_subscribers(_datapath, config.areas.at(a).subtype, config.networks.at(i ).name);
+              subscribers = Tosser::get_subscribers(_datapath, config.areas.at(a).subtype, config.networks.at(i).name);
               if (subscribers.size() == 1) {
                 msgrec.tosys = host2le_s(subscribers.at(0));
                 msgrec.list_len = 0;
@@ -325,7 +325,8 @@ void Scanner::run() {
                 fwrite(&subscribers.at(su), sizeof(uint16_t), 1, fptr);
               }
             }
-            log.log(LOG_INFO, "Exporting message %s by %s @ %d (%s)", msg->xmsg.subject, msg->xmsg.from, config.networks.at(i).mynode, config.networks.at(i).name.c_str());
+            log.log(LOG_INFO, "Exporting message %s by %s @ %d (%s)", msg->xmsg.subject, msg->xmsg.from, config.networks.at(i).mynode,
+                    config.networks.at(i).name.c_str());
             fwrite(config.areas.at(a).subtype.c_str(), strlen(config.areas.at(a).subtype.c_str()) + 1, 1, fptr);
             fwrite(msg->xmsg.subject, strlen(msg->xmsg.subject) + 1, 1, fptr);
             fwrite(buffer2, strlen(buffer2), 1, fptr);
