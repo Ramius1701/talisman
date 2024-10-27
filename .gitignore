@@ -74,3 +74,4 @@
 /HttpSrv/Debug
 /HttpSrv/Release
 /HttpSrv/HttpSrv.vcxproj.filters
+vcpkg_installed

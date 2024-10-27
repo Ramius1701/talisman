@@ -1,0 +1,7 @@
+{
+  "dependencies": [
+    "libssh",
+    "sqlite3",
+    "lua"
+  ]
+}
