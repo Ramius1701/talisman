@@ -647,35 +647,35 @@ void Tosser::run() {
                   if (!found) {
                     break;
                   }
-                  std::string subj;
-                  std::string sender;
-                  std::string datestr;
-                  std::stringstream ss;
-
-                  std::vector<std::string> msg = read_message(fptr, msgrec.length);
-
-                  if (msg.size() == 0)
-                    break;
-
-                  for (size_t h = 0; h < msg.at(0).size(); h++) {
-                    if (msg.at(0).at(h) == '\0') {
-                      subj = ss.str();
-                      ss.str("");
-                    } else {
-                      ss << msg.at(0).at(h);
-                    }
-                  }
-
-                  sender = ss.str();
-
-                  datestr = msg.at(1);
-
-                  msg.erase(msg.begin(), msg.begin() + 1);
-                  log.log(LOG_INFO, "Importing email from Network Coodinator (%s) @%d (%s)", sender.c_str(), msgrec.fromsys,
-                          config.networks.at(i).name.c_str());
-                  import_email(&log, 1, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
                 }
+                std::string subj;
+                std::string sender;
+                std::string datestr;
+                std::stringstream ss;
+
+                std::vector<std::string> msg = read_message(fptr, msgrec.length);
+
+                if (msg.size() == 0)
+                  break;
+
+                for (size_t h = 0; h < msg.at(0).size(); h++) {
+                  if (msg.at(0).at(h) == '\0') {
+                    subj = ss.str();
+                    ss.str("");
+                  } else {
+                    ss << msg.at(0).at(h);
+                  }
+                }
+
+                sender = ss.str();
+
+                datestr = msg.at(1);
+
+                msg.erase(msg.begin(), msg.begin() + 1);
+                log.log(LOG_INFO, "Importing email from Network Coodinator (%s) @%d (%s)", sender.c_str(), msgrec.fromsys, config.networks.at(i).name.c_str());
+                import_email(&log, 1, sender, msgrec.fromsys, subj, msg, i, msgrec.daten);
               }
+
             } break;
             case 9: {
               if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
@@ -690,59 +690,56 @@ void Tosser::run() {
                   if (!found) {
                     break;
                   }
-
-                  uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                  if (!bytes)
-                    break;
-                  if (fread(bytes, msgrec.length, 1, fptr) != 1) {
-                    log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
-                    free(bytes);
-                    break;
-                  }
-                  if (msgrec.length < 4) {
-                    free(bytes);
-                    break;
-                  }
-                  uint16_t flags = (bytes[1] << 8) | bytes[0];
-
-                  const char *fntemp = (const char *)&bytes[2];
-                  std::string filename(fntemp);
-
-                  if (filename.empty() || filename.length() > 8) {
-                    free(bytes);
-                    break;
-                  }
-
-                  size_t pos = filename.length() + 3;
-
-                  if ((flags & 0x02) != 0) {
-                    filename = filename + ".zip";
-                  } else {
-                    filename = filename + ".net";
-                  }
-
-                  std::filesystem::path fp(_datapath);
-                  fp.append("wwiv");
-                  fp.append(config.networks.at(i).name);
-                  if (!std::filesystem::exists(fp)) {
-                    std::filesystem::create_directories(fp);
-                  }
-                  fp.append(filename);
-                  FILE *fptr2 = NULL;
-                  if ((flags & 1) != 0) {
-                    fptr2 = fopen(fp.u8string().c_str(), "wb");
-                  } else {
-                    fptr2 = fopen(fp.u8string().c_str(), "ab");
-                  }
-                  if (fptr2) {
-                    fwrite(&bytes[pos], msgrec.length - pos, 1, fptr2);
-                    fclose(fptr2);
-                    log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
-                  }
-                  free(bytes);
                 }
-              }
+                uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
+                if (!bytes)
+                  break;
+                if (fread(bytes, msgrec.length, 1, fptr) != 1) {
+                  log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
+                  free(bytes);
+                  break;
+                }
+                if (msgrec.length < 4) {
+                  free(bytes);
+                  break;
+                }
+                uint16_t flags = (bytes[1] << 8) | bytes[0];
+                const char *fntemp = (const char *)&bytes[2];
+                std::string filename(fntemp);
 
+                if (filename.empty() || filename.length() > 8) {
+                  free(bytes);
+                  break;
+                }
+
+                size_t pos = filename.length() + 3;
+
+                if ((flags & 0x02) != 0) {
+                  filename = filename + ".zip";
+                } else {
+                  filename = filename + ".net";
+                }
+
+                std::filesystem::path fp(_datapath);
+                fp.append("wwiv");
+                fp.append(config.networks.at(i).name);
+                if (!std::filesystem::exists(fp)) {
+                  std::filesystem::create_directories(fp);
+                }
+                fp.append(filename);
+                FILE *fptr2 = NULL;
+                if ((flags & 1) != 0) {
+                  fptr2 = fopen(fp.u8string().c_str(), "wb");
+                } else {
+                  fptr2 = fopen(fp.u8string().c_str(), "ab");
+                }
+                if (fptr2) {
+                  fwrite(&bytes[pos], msgrec.length - pos, 1, fptr2);
+                  fclose(fptr2);
+                  log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
+                }
+                free(bytes);
+              }
             } break;
             default: {
               if (msgrec.tosys == config.networks.at(i).mynode || msgrec.tosys == 0) {
@@ -757,68 +754,68 @@ void Tosser::run() {
                   if (!found) {
                     break;
                   }
-                  std::string filename;
-                  bool append = false;
-                  switch (msgrec.minor_type) {
-                  case 1:
-                    filename = "bbslist.net";
-                    break;
-                  case 2:
-                    filename = "connect.net";
-                    break;
-                  case 3:
-                    filename = "subs.lst";
-                    break;
-                  case 4:
-                    filename = "wwivnews.net";
-                    break;
-                  case 5:
-                    filename = "fbackhdr.net";
-                    break;
-                  case 6:
-                    filename = "wwivnews.net";
-                    append = true;
-                    break;
-                  case 7:
-                    filename = "categ.net";
-                    break;
-                  case 8:
-                    filename = "networks.lst";
-                    break;
-                  case 10:
-                    filename = "binkp.net";
-                    break;
-                  }
-
-                  uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                  if (!bytes)
-                    break;
-                  if (fread(bytes, msgrec.length, 1, fptr) != 1) {
-                    log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
-                    free(bytes);
-                    break;
-                  }
-
-                  std::filesystem::path fp(_datapath);
-                  fp.append("wwiv");
-                  fp.append(config.networks.at(i).name);
-                  if (!std::filesystem::exists(fp)) {
-                    std::filesystem::create_directories(fp);
-                  }
-                  fp.append(filename);
-                  FILE *fptr2 = NULL;
-                  if (!append) {
-                    fptr2 = fopen(fp.u8string().c_str(), "wb");
-                  } else {
-                    fptr2 = fopen(fp.u8string().c_str(), "ab");
-                  }
-                  if (fptr2) {
-                    fwrite(bytes, msgrec.length, 1, fptr2);
-                    fclose(fptr2);
-                    log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
-                  }
-                  free(bytes);
                 }
+                std::string filename;
+                bool append = false;
+                switch (msgrec.minor_type) {
+                case 1:
+                  filename = "bbslist.net";
+                  break;
+                case 2:
+                  filename = "connect.net";
+                  break;
+                case 3:
+                  filename = "subs.lst";
+                  break;
+                case 4:
+                  filename = "wwivnews.net";
+                  break;
+                case 5:
+                  filename = "fbackhdr.net";
+                  break;
+                case 6:
+                  filename = "wwivnews.net";
+                  append = true;
+                  break;
+                case 7:
+                  filename = "categ.net";
+                  break;
+                case 8:
+                  filename = "networks.lst";
+                  break;
+                case 10:
+                  filename = "binkp.net";
+                  break;
+                }
+
+                uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
+                if (!bytes)
+                  break;
+                if (fread(bytes, msgrec.length, 1, fptr) != 1) {
+                  log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
+                  free(bytes);
+                  break;
+                }
+
+                std::filesystem::path fp(_datapath);
+                fp.append("wwiv");
+                fp.append(config.networks.at(i).name);
+                if (!std::filesystem::exists(fp)) {
+                  std::filesystem::create_directories(fp);
+                }
+                fp.append(filename);
+                FILE *fptr2 = NULL;
+                if (!append) {
+                  fptr2 = fopen(fp.u8string().c_str(), "wb");
+                } else {
+                  fptr2 = fopen(fp.u8string().c_str(), "ab");
+                }
+                if (fptr2) {
+                  fwrite(bytes, msgrec.length, 1, fptr2);
+                  fclose(fptr2);
+                  log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
+                }
+                free(bytes);
               }
             } break;
             }
@@ -1086,40 +1083,40 @@ void Tosser::run() {
                 if (!found) {
                   break;
                 }
-
-                uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
-                if (!bytes)
-                  break;
-                if (fread(bytes, msgrec.length, 1, fptr) != 1) {
-                  log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
-                  free(bytes);
-                  break;
-                }
-
-                std::filesystem::path fp(_datapath);
-                fp.append("wwiv");
-                fp.append(config.networks.at(i).name);
-                if (!std::filesystem::exists(fp)) {
-                  std::filesystem::create_directories(fp);
-                }
-
-                std::string filename;
-                if (msgrec.minor_type == 0) {
-                  filename = "subs.lst";
-                } else {
-                  filename = "subs." + std::to_string(msgrec.minor_type);
-                }
-
-                fp.append(filename);
-                FILE *fptr2 = NULL;
-                fptr2 = fopen(fp.u8string().c_str(), "wb");
-                if (fptr2) {
-                  fwrite(bytes, msgrec.length, 1, fptr2);
-                  fclose(fptr2);
-                  log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
-                }
-                free(bytes);
               }
+
+              uint8_t *bytes = (uint8_t *)malloc(msgrec.length);
+              if (!bytes)
+                break;
+              if (fread(bytes, msgrec.length, 1, fptr) != 1) {
+                log.log(LOG_ERROR, "Short read (2) %s", fspath.u8string().c_str());
+                free(bytes);
+                break;
+              }
+
+              std::filesystem::path fp(_datapath);
+              fp.append("wwiv");
+              fp.append(config.networks.at(i).name);
+              if (!std::filesystem::exists(fp)) {
+                std::filesystem::create_directories(fp);
+              }
+
+              std::string filename;
+              if (msgrec.minor_type == 0) {
+                filename = "subs.lst";
+              } else {
+                filename = "subs." + std::to_string(msgrec.minor_type);
+              }
+
+              fp.append(filename);
+              FILE *fptr2 = NULL;
+              fptr2 = fopen(fp.u8string().c_str(), "wb");
+              if (fptr2) {
+                fwrite(bytes, msgrec.length, 1, fptr2);
+                fclose(fptr2);
+                log.log(LOG_INFO, "Saved file \"%s\"", fp.u8string().c_str());
+              }
+              free(bytes);
             }
           } break;
           case 17: {
