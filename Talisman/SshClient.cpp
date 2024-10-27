@@ -108,11 +108,14 @@ static int auth_password(ssh_session session, const char *user, const char *pass
 
 bool SshClient::do_auth() {
   ssh_message msg;
-  struct ssh_server_callbacks_struct server_cb = {
-      .userdata = this,
-      .auth_password_function = auth_password,
-      .channel_open_request_session_function = channel_open,
-  };
+  struct ssh_server_callbacks_struct server_cb;
+
+  memset(&server_cb, 0, sizeof(struct ssh_server_callbacks_struct));
+
+  server_cb.userdata = this;
+  server_cb.auth_password_function = auth_password;
+  server_cb.channel_open_request_session_function = channel_open;
+
 
   ssh_set_auth_methods(p_ssh_session, SSH_AUTH_METHOD_PASSWORD);
 
