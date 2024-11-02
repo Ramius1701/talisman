@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cstring>
+#include <cstdint>
 #ifdef _MSC_VER
 #include <Windows.h>
 #else
