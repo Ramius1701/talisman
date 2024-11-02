@@ -239,18 +239,6 @@ void Scanner::run() {
 
           if (msg->xmsg.attr & MSGLOCAL && !(msg->xmsg.attr & MSGSENT)) {
 
-            if (fptr == NULL) {
-              if (std::filesystem::exists(fspath)) {
-                fptr = fopen(fspath.u8string().c_str(), "ab");
-              } else {
-                fptr = fopen(fspath.u8string().c_str(), "wb");
-              }
-              if (!fptr) {
-                log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
-                break;
-              }
-            }
-
             struct net_header_rec msgrec;
 
             memset(&msgrec, 0, sizeof(struct net_header_rec));
@@ -265,6 +253,12 @@ void Scanner::run() {
                 msgrec.tosys = host2le_s(subscribers.at(0));
                 msgrec.list_len = 0;
               } else if (subscribers.size() == 0) {
+                // no subscribers... message goes nowhere...
+                msg->xmsg.attr |= MSGSENT;
+                SquishLockMsgBase(mb);
+                SquishUpdateHdr(mb, msg);
+                SquishUnlockMsgBase(mb);
+                SquishFreeMsg(msg);
                 continue;
               } else {
                 msgrec.tosys = 0;
@@ -286,6 +280,18 @@ void Scanner::run() {
                 ss << "\r\n";
               } else if (msg->msg[i] != '\n') {
                 ss << msg->msg[i];
+              }
+            }
+
+            if (fptr == NULL) {
+              if (std::filesystem::exists(fspath)) {
+                fptr = fopen(fspath.u8string().c_str(), "ab");
+              } else {
+                fptr = fopen(fspath.u8string().c_str(), "wb");
+              }
+              if (!fptr) {
+                log.log(LOG_ERROR, "Error opening %s", fspath.u8string().c_str());
+                break;
               }
             }
 
