@@ -75,3 +75,4 @@
 /HttpSrv/Release
 /HttpSrv/HttpSrv.vcxproj.filters
 vcpkg_installed
+.vscode
