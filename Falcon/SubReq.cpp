@@ -8,6 +8,9 @@
 #include "SubReq.h"
 #include <filesystem>
 #include <iostream>
+#include <cstring>
+#include <cctype>
+#include <sstream>
 
 
 #ifdef _MSC_VER
@@ -63,6 +66,12 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
 
   FILE *fptr;
 
+  std::stringstream ss;
+
+  for (size_t l = 0; l < strlen(subtype); l++) {
+    ss << toupper(subtype[l]);
+  }
+
   for (size_t i = 0; i < config.networks.size(); i++) {
     if (strcasecmp(config.networks.at(i).name.c_str(), netname) == 0) {
 
@@ -86,9 +95,9 @@ void SubReq::add(const char *netname, int hostid, const char *subtype) {
       msgrec.fromsys = host2le_s(config.networks.at(i).mynode);
       msgrec.tosys = host2le_s(hostid);
       msgrec.daten = host2le_l((uint32_t)time(NULL));
-      msgrec.length = host2le_l(strlen(subtype) + 1);
+      msgrec.length = host2le_l(ss.str().length() + 1);
       fwrite(&msgrec, sizeof(struct net_header_rec), 1, fptr);
-      fwrite(subtype, msgrec.length, 1, fptr);
+      fwrite(ss.str().c_str(), msgrec.length, 1, fptr);
       fclose(fptr);
       return;
     }
@@ -120,6 +129,13 @@ void SubReq::drop(const char *netname, int hostid, const char *subtype) {
 
   FILE *fptr;
 
+
+  std::stringstream ss;
+
+  for (size_t l = 0; l < strlen(subtype); l++) {
+    ss << toupper(subtype[l]);
+  }
+
   for (size_t i = 0; i < config.networks.size(); i++) {
     if (strcasecmp(config.networks.at(i).name.c_str(), netname) == 0) {
 
@@ -143,9 +159,9 @@ void SubReq::drop(const char *netname, int hostid, const char *subtype) {
       msgrec.fromsys = host2le_s(config.networks.at(i).mynode);
       msgrec.tosys = host2le_s(hostid);
       msgrec.daten = host2le_l((uint32_t)time(NULL));
-      msgrec.length = host2le_l(strlen(subtype) + 1);
+      msgrec.length = host2le_l(ss.str().length() + 1);
       fwrite(&msgrec, sizeof(struct net_header_rec), 1, fptr);
-      fwrite(subtype, msgrec.length, 1, fptr);
+      fwrite(ss.str().c_str(), msgrec.length, 1, fptr);
       fclose(fptr);
       return;
     }
