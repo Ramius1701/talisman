@@ -1780,6 +1780,11 @@ int MsgArea::list_messages_old(int start) {
   n->print_f("|09 Msg#    Subject                          From             To              |07\r\n");
   for (size_t i = start; i <= mb->basehdr.num_msg; i++) {
     sq_msg_t *msg = SquishReadMsg(mb, i);
+
+    if (msg == NULL) {
+      continue;
+    }
+
     if (msg->xmsg.attr & MSGPRIVATE && !is_to_me(n, msg) && !is_from_me(n, msg)) {
       SquishFreeMsg(msg);
       continue;

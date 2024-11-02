@@ -3,6 +3,7 @@
 #include <cctype>
 #include <sstream>
 #include <iomanip>
+#include <cstring>
 #ifdef _MSC_VER
 #include <Windows.h>
 #else
