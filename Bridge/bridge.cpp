@@ -105,6 +105,13 @@ void Bridge::do_bridge(std::string msg_path, struct brlink *linkdesc, Logger *lo
         std::string msgcontent = std::string(msg->msg, msg->msg_len);
         msgcontent = remove_seenby_path(msgcontent);
 
+        if (linkdesc->msgbase_type1 != linkdesc->msgbase_type2) {
+            free(msg->ctrl);
+            msg->ctrl = NULL;
+            msg->ctrl_len = 0;
+        }
+
+
         if (msgcontent.rfind("\r--- ") != std::string::npos) {
             size_t pos = msgcontent.rfind("\r--- ");
             msgcontent[pos + 1] = '=';
