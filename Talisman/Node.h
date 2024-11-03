@@ -105,6 +105,7 @@ private:
   bool isutf8;
   bool fonts_allowed;
   bool sixel_allowed;
+  bool slowmode;
   void detectCterm();
   void send_font(int slot, std::string filename);
 
