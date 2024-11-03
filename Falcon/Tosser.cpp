@@ -513,7 +513,7 @@ std::string Tosser::strip_hearts(std::string line) {
         }
       } else if (lastc == 0x4) {
         if (c == '0') {
-          ss << "\x4";
+          ss << '\x04';
           ss << c;
         }
       } else {
@@ -1559,7 +1559,7 @@ void Tosser::run() {
 
                         for (size_t ml = 0; ml < msg.size(); ml++) {
                           fwrite(msg.at(ml).c_str(), msg.at(ml).size(), 1, fptr2);
-                          fwrite("\r\n", 1, 1, fptr2);
+                          fwrite("\r\n", 2, 1, fptr2);
                         }
                         fclose(fptr2);
                       }
