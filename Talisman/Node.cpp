@@ -75,6 +75,7 @@ Node::Node(int node, int socket, bool telnet) {
   ipaddr = "UNKNOWN";
   sixel_allowed = false;
   fonts_allowed = false;
+  slowmode = false;
 #ifdef _MSC_VER
   hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
   DWORD dwMode = 0;
@@ -575,6 +576,10 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
           std::stringstream ss2;
           ss2 << (timeleft / 60) << " mins";
           print_f("%-*.*s", ss.str().size() + 2, ss.str().size() + 2, ss2.str().c_str());
+        } else if (compare_token(ss.str(), "SLOW")) {
+          slowmode = true;
+        } else if (compare_token(ss.str(), "FAST")) {
+          slowmode = false;
         } else if (ss.str().substr(0, 10) == "RUNSCRIPT:" && !script) {
           std::stringstream ss2;
           ss2 << config.script_path() << "/" << ss.str().substr(10) << ".lua";
@@ -714,6 +719,7 @@ void Node::send_file(std::filesystem::path p, bool pause, bool script) {
       }
     }
     in.close();
+    slowmode = false;
   }
 }
 
@@ -1079,17 +1085,50 @@ void Node::send_str(const char *str, int len) {
     char *out;
     if (Config::convert_utf8(str, len, &out) == -1) {
       if (socket != 0) {
-        send(socket, str, len, 0);
+        if (slowmode) {
+          for (size_t i = 0; i < len; i++) {
+            send (socket, &str[i], 1, 0);
+#ifdef _MSC_VER
+            Sleep(1);
+#else
+            usleep(1000);
+#endif
+          }
+        } else {
+          send(socket, str, len, 0);
+        }
       }
     } else {
       if (socket != 0) {
-        send(socket, out, strlen(out), 0);
+        if (slowmode) {
+          for (size_t i = 0; i < strlen(out); i++) {
+            send (socket, &out[i], 1, 0);
+#ifdef _MSC_VER
+            Sleep(1);
+#else
+            usleep(1000);
+#endif            
+          }
+        } else {
+          send(socket, out, strlen(out), 0);
+        }
       }
       delete[] out;
     }
   } else {
     if (socket != 0) {
-      send(socket, str, len, 0);
+      if (slowmode) {
+        for (int i = 0; i < len; i++) {
+          send(socket, &str[i], 1, 0);
+#ifdef _MSC_VER
+            Sleep(1);
+#else
+            usleep(1000);
+#endif            
+        }
+      } else {
+        send(socket, str, len, 0);
+      }
     }
   }
 #ifdef _MSC_VER
