@@ -76,3 +76,4 @@
 /HttpSrv/HttpSrv.vcxproj.filters
 vcpkg_installed
 .vscode
+.DS_Store
