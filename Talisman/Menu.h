@@ -6,6 +6,7 @@
 class Node;
 
 struct menuitem_t {
+  std::string description;
   std::string command;
   std::string data;
   std::string hotkey;
@@ -24,6 +25,8 @@ private:
   static void bwave_up(Node *n);
   static void qwk_down(Node *n);
   static void qwk_up(Node *n);
+  std::string description;
+  int columns;
   std::string gfile;
   std::string prompt;
   std::vector<struct menuitem_t> items;
