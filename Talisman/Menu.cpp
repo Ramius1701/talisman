@@ -57,6 +57,22 @@ bool Menu::load(std::string filename) {
 
     n->log->log(LOG_INFO, "%s loading menu %s on node %d", n->get_user().get_username().c_str(), filename.c_str(), n->getnodenum());
 
+    auto _desc = data["menu"]["description"].as_string();
+
+    if (_desc == nullptr) {
+      description = "";
+    } else {
+      description = _desc->value_or("No Description");
+    }
+
+    auto _columns = data["menu"]["columns"].as_integer();
+
+    if (_columns == nullptr) {
+      columns = 2;
+    } else {
+      columns = _columns->value_or(2);
+    }
+
     auto _gfile = data["menu"]["gfile"].as_string();
 
     if (_gfile == nullptr) {
@@ -79,6 +95,13 @@ bool Menu::load(std::string filename) {
       auto itemtable = menuitems->get(i)->as_table();
 
       struct menuitem_t item;
+      
+      auto desc = itemtable->get("description");
+      if (desc == nullptr) {
+        item.description = "";
+      } else {
+        item.description = desc->as_string()->value_or("");
+      }
 
       auto command = itemtable->get("command");
       if (command != nullptr) {
@@ -175,6 +198,20 @@ bool Menu::run() {
     n->cls();
     if (gfile != "") {
       n->send_gfile(gfile);
+    } else {
+      if (strncasecmp(description.c_str(), "@@GFILE:", 8) == 0) {
+        std::string headerfile = description.substr(8, description.size() - 10);
+        n->send_gfile(headerfile);
+      } else {
+        n->print_f("|07---- |15%s |07---------------\r\n\r\n", description.c_str());
+      }
+
+      for (size_t i = 0; i < items.size(); i+=columns) {
+        for (size_t j = 0; j < columns && j + i < items.size(); j++) {
+          n->print_f("|15%s. |07%-*.*s ", items.at(i+j).hotkey.c_str(), ((n->get_term_width() / columns) - 5), ((n->get_term_width() / columns) - 5), items.at(i+j).description.c_str());
+        }
+        n->print_f("\r\n");
+      }
     }
 
     std::stringstream ss;
