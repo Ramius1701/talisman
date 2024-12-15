@@ -783,7 +783,7 @@ void Tosser::run() {
                 case 8:
                   filename = "networks.lst";
                   break;
-                case 10:
+                case 0x10:
                   filename = "binkp.net";
                   break;
                 }
