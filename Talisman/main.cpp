@@ -106,13 +106,15 @@ int main(int argc, char **argv) {
       }
     }
 
-    if (std::filesystem::exists(ssh_dsa_key) && std::filesystem::exists(ssh_rsa_key)) {
+    if (std::filesystem::exists(ssh_dsa_key) || std::filesystem::exists(ssh_rsa_key) || std::filesystem::exists(ssh_ecdsa_key) || std::filesystem::exists(ssh_ed25519_key)) {
       p_ssh_bind = ssh_bind_new();
       if (p_ssh_bind != NULL) {
-
-        ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_dsa_key.u8string().c_str());
-        ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_rsa_key.u8string().c_str());
-
+        if (std::filesystem::exists(ssh_dsa_key)) {
+          ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_dsa_key.u8string().c_str());
+        }
+        if (std::filesystem::exists(ssh_rsa_key)) {
+          ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_rsa_key.u8string().c_str());
+        }
         if (std::filesystem::exists(ssh_ecdsa_key)) {
           ssh_bind_options_set(p_ssh_bind, SSH_BIND_OPTIONS_HOSTKEY, ssh_ecdsa_key.u8string().c_str());
         }
