@@ -268,12 +268,13 @@ void Node::detectCterm() {
   char buffer[1024];
   timeval t;
   time_t then = time(NULL);
-  t.tv_sec = 1;
-  t.tv_usec = 0;
+  t.tv_sec = 0;
+  t.tv_usec = 250000;
   time_t now;
   int len;
   int params[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   int param_count = 0;
+  std::stringstream ss;
   do {
     fd_set fds;
     FD_ZERO(&fds);
@@ -288,10 +289,18 @@ void Node::detectCterm() {
       if (len == 0) {
         disconnected();
       }
-      for (int i = 0; i < len; i++) {
-        if (buffer[i] == '\x1b' && buffer[i + 1] == '[' && buffer[i + 2] == '<') {
-          for (int j = i + 2; j < len; j++) {
-            switch (buffer[j]) {
+
+      ss << std::string(buffer, len);
+      for (int k = 0; k < 9; k++) {
+        params[k] = 0;
+      }
+      param_count = 0;
+
+
+      for (size_t i = 0; i < ss.str().length(); i++) {
+        if (i < ss.str().length() -2 && ss.str().at(i) == '\x1b' && ss.str().at(i + 1) == '[' && ss.str().at(i + 2) == '<') {
+          for (size_t j = i + 2; j < ss.str().length(); j++) {
+            switch (ss.str().at(j)) {
             case '0':
             case '1':
             case '2':
@@ -302,7 +311,7 @@ void Node::detectCterm() {
             case '7':
             case '8':
             case '9':
-              params[param_count] = params[param_count] * 10 + (buffer[j] - '0');
+              params[param_count] = params[param_count] * 10 + (ss.str().at(j) - '0');
               break;
             case ';':
               if (param_count < 7) {
@@ -330,7 +339,7 @@ void Node::detectCterm() {
     }
 
     now = time(NULL);
-  } while (now - then < 5);
+  } while (now - then < 2);
 }
 
 bool Node::detectUTF8() {
@@ -338,14 +347,17 @@ bool Node::detectUTF8() {
   char buffer[1024];
   timeval t;
   time_t then = time(NULL);
-  t.tv_sec = 1;
-  t.tv_usec = 0;
+  t.tv_sec = 0;
+  t.tv_usec = 250000;
   time_t now;
   int len;
   int gotnum = 0;
   int gotnum1 = 0;
   size_t x = 0;
   size_t y = 0;
+
+  std::stringstream ss;
+
   do {
     fd_set fds;
     FD_ZERO(&fds);
@@ -360,10 +372,17 @@ bool Node::detectUTF8() {
       if (len == 0) {
         disconnected();
       }
-      for (int i = 0; i < len; i++) {
-        if (buffer[i] == '\x1b' && buffer[i + 1] == '[') {
-          for (int j = i + 2; j < len; j++) {
-            switch (buffer[j]) {
+
+      ss << std::string(buffer, len);
+      gotnum1 = 0;
+      gotnum = 0;
+      x = 0;
+      y = 0;
+
+      for (size_t i = 0; i < ss.str().length(); i++) {
+        if (i < ss.str().length() - 1 && ss.str().at(i) == '\x1b' && ss.str().at(i + 1) == '[') {
+          for (size_t j = i + 2; j < ss.str().length(); j++) {
+            switch (ss.str().at(j)) {
             case '0':
             case '1':
             case '2':
@@ -375,9 +394,9 @@ bool Node::detectUTF8() {
             case '8':
             case '9':
               if (gotnum1) {
-                x = x * 10 + (buffer[j] - '0');
+                x = x * 10 + (ss.str().at(j) - '0');
               } else {
-                y = y * 10 + (buffer[j] - '0');
+                y = y * 10 + (ss.str().at(j) - '0');
               }
               gotnum = 1;
               break;
@@ -401,7 +420,7 @@ bool Node::detectUTF8() {
     }
 
     now = time(NULL);
-  } while (now - then < 5);
+  } while (now - then < 3);
 
   return false;
 }
@@ -411,14 +430,16 @@ bool Node::detectANSI() {
   char buffer[1024];
   timeval t;
   time_t then = time(NULL);
-  t.tv_sec = 1;
-  t.tv_usec = 0;
+  t.tv_sec = 0;
+  t.tv_usec = 250000;
   time_t now;
   int len;
   int gotnum = 0;
   int gotnum1 = 0;
   size_t w = 0;
   size_t h = 0;
+  std::stringstream ss;
+
   do {
     fd_set fds;
     FD_ZERO(&fds);
@@ -433,10 +454,18 @@ bool Node::detectANSI() {
       if (len == 0) {
         disconnected();
       }
-      for (int i = 0; i < len; i++) {
-        if (buffer[i] == '\x1b' && buffer[i + 1] == '[') {
-          for (int j = i + 2; j < len; j++) {
-            switch (buffer[j]) {
+
+      ss << std::string(buffer, len);
+
+      gotnum = 0;
+      gotnum1 = 0;
+      w = 0;
+      h = 0;
+
+      for (size_t i = 0; i < ss.str().length(); i++) {
+        if (i < ss.str().length() - 1 && ss.str().at(i) == '\x1b' && ss.str().at(i + 1) == '[') {
+          for (size_t j = i + 2; j < ss.str().length(); j++) {
+            switch (ss.str().at(j)) {
             case '0':
             case '1':
             case '2':
@@ -448,9 +477,9 @@ bool Node::detectANSI() {
             case '8':
             case '9':
               if (gotnum1) {
-                w = w * 10 + (buffer[j] - '0');
+                w = w * 10 + (ss.str().at(j) - '0');
               } else {
-                h = h * 10 + (buffer[j] - '0');
+                h = h * 10 + (ss.str().at(j) - '0');
               }
               gotnum = 1;
               break;
@@ -474,7 +503,7 @@ bool Node::detectANSI() {
     }
 
     now = time(NULL);
-  } while (now - then < 5);
+  } while (now - then < 3);
 
   return false;
 }
