@@ -6,7 +6,7 @@
     "menu_commands": 53,
     "toml_statements": 434
   },
-  "revision": "ec7161ef66ad62a089ad6d555ca54074b56aaac3",
+  "revision": "d6dc1297a9ca267d4b871a8df7b7e6713217bd8f",
   "scope": "Source and sample text files in named components, excluding bundled win32_deps and librethinkdbxx; docs and binaries excluded.",
   "sha256": {
     "Binki/Binki.cpp": "0433d5b387786b4d830f9bf6b870eb2766f0fd335dfda5e1d19f730e5248b5ca",

@@ -74,3 +74,31 @@ Verified macro branches include `MAILCONF`, `MAILAREA`, `FILEAREA` and `PHLOGURL
 The user settings screen supports codepage (`auto`, `utf-8`, `cp437`), theme, full-screen editor/reader choices, signature toggle, node-message preference and screen-size overrides. ANSI capability influences the available full-screen paths. Font/Sixel support depends on the terminal and corresponding code paths, not solely the server having an asset file.
 
 See [extended-color artwork](extended-color-artwork.md) for the new 256-color/RGB editor and renderer support, color literals, terminal limitations and showcase installation.
+
+## Animated pause prompts
+
+For ANSI callers, [Node::pause](../../Talisman/Node.cpp) randomly selects a file from `<GFile Path>/pause`. The first line is the frame delay in milliseconds; each following line is one single-line frame. For example:
+
+```text
+125
+|14PaUSE|07
+|14PAuSE|07
+|14PAUsE|07
+|14PAuSE|07
+```
+
+Frames are printed through `print_f`, supporting classic pipe codes, the newly added extended color tokens and actual ANSI sequences. Cursor save/restore and erase-to-end-of-line keep the animation at the same position. A caller key ends the pause. Use a positive delay and at least one frame: the loader defaults an unparsable delay to 1000 ms, but does not safely validate empty frame lists or nonpositive delays. The directory inventory is cached for the session. This existing feature is source-confirmed; its animation timing has not been runtime-tested here.
+
+## Custom strings and login artwork
+
+`<Data Path>/strings.dat` replaces exact format strings used by `Node::print_f`; it does not automatically replace every literal emitted by other output functions. Use separate lines for each pair:
+
+```text
+# Replace the login prompt and prepend an ANSI/ASCII asset.
+msgid "LOGIN: "
+msgstr "@gfile:login_banner@\r\nYour UserName: "
+```
+
+Place `login_banner.ans` and/or `login_banner.asc` under GFile Path. The loader ignores lines starting with `#` and processes escaped control characters. Match the original key exactly, including spaces and case. Preserve every printf conversion's type and order, such as `%s` and `%d`: [Strings::validate](../../Talisman/Strings.cpp) counts percent conversions but does not verify their types or argument order. Only `print_f` applies this substitution; `print_f_nc` bypasses it.
+
+The [historical GitLab wiki evidence](historical-gitlab-wiki.md) confirms these features were documented before our color-support changes and explains version and asset-selection differences.

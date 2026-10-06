@@ -1,6 +1,6 @@
 # Talisman reconstructed manual
 
-This manual describes Ramius1701's preserved Talisman checkout at revision `ec7161ef66ad62a089ad6d555ca54074b56aaac3`, reviewed 6 October 2026. It is an original reconstruction from the implementation and shipped samples, not a recovered copy of the lost website. The source is authoritative for behavior. The [extended-color chapter](extended-color-artwork.md) records development changes after this baseline.
+This manual describes Ramius1701's preserved Talisman checkout at revision `ec7161ef66ad62a089ad6d555ca54074b56aaac3`, reviewed 6 October 2026. It is an original reconstruction from the implementation and shipped samples, not a recovered copy of the lost website. A subsequently supplied [GitLab Home excerpt](historical-gitlab-wiki.md) now provides partial historical documentation, reconciled against the implementation. The source is authoritative for behavior. The [extended-color chapter](extended-color-artwork.md) records development changes after this baseline.
 
 Start with [building and running](building-and-running.md), then [configuration](configuration.md), [messages and files](messages-and-files.md), [menus and display](menus-and-display.md), and [Lua scripting](scripting.md). Development entry points are in [architecture and storage](development.md). Companion programs are covered in [networking and utilities](networking-and-utilities.md). Read [known discrepancies and validation](validation.md) before treating an example as production-tested.
 
