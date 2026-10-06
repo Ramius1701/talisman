@@ -1,0 +1,17 @@
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+Build started 10/7/2026 3:30:48 AM.
+
+Project "S:\Github\talisman\Talisman\Talisman.vcxproj" on node 1 (Build target(s)).
+C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(473,5): error MSB8020: The build tools for Visual Studio 2022 (Platform Toolset = 'v143') cannot be found. To build using the v143 build tools, please install Visual Studio 2022 build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution". [S:\Github\talisman\Talisman\Talisman.vcxproj]
+Done Building Project "S:\Github\talisman\Talisman\Talisman.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+"S:\Github\talisman\Talisman\Talisman.vcxproj" (Build target) (1) ->
+(PrepareForBuild target) -> 
+  C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(473,5): error MSB8020: The build tools for Visual Studio 2022 (Platform Toolset = 'v143') cannot be found. To build using the v143 build tools, please install Visual Studio 2022 build tools.  Alternatively, you may upgrade to the current Visual Studio tools by selecting the Project menu or right-click the solution, and then selecting "Retarget solution". [S:\Github\talisman\Talisman\Talisman.vcxproj]
+
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.25

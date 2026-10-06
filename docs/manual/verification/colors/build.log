@@ -1,0 +1,39 @@
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  AnsiEditor.cpp
+  Config.cpp
+  MsgArea.cpp
+S:\Github\talisman\Talisman\MsgArea.cpp(1556,27): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+  Node.cpp
+S:\Github\talisman\Talisman\Node.cpp(1119,32): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1569,29): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1571,33): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1908,20): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1914,22): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1951,21): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1957,23): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+  Script.cpp
+S:\Github\talisman\Talisman\Script.cpp(385,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(394,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(428,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(436,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(509,9): warning C4244: 'initializing': conversion from 'lua_Integer' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(518,25): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(519,25): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(549,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(550,14): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(620,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(632,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(644,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(659,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(681,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(689,21): warning C4244: 'argument': conversion from 'uint64_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(706,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'time_t', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(716,39): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(721,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(722,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\core.vcxproj]
+  Generating Code...
+  core.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\Release\core.lib
+  color-probe.cpp
+  talisman.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\Release\talisman.exe
+  color-probe.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\colors\build\Release\color-probe.exe

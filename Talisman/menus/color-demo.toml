@@ -1,0 +1,12 @@
+[menu]
+description = "ANSI Artwork Showcase"
+prompt = "|15Showcase: "
+[[menuitem]]
+description = "Color artwork"
+hotkey = "C"
+command = "RUNSCRIPT"
+data = "color-demo"
+[[menuitem]]
+description = "Return"
+hotkey = "Q"
+command = "PREVMENU"

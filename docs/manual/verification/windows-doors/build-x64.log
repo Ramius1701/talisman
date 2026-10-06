@@ -1,0 +1,14 @@
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- Configuring done (0.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/build-x64-clean
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/CMakeLists.txt
+  door-probe.cpp
+  door-probe.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x64-clean\bin\Release\door-probe.exe
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  Building Custom Rule C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/CMakeLists.txt
+  servo.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x64-clean\bin\Release\servo.exe

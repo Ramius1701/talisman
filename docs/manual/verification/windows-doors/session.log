@@ -1,0 +1,10 @@
+2026-10-07 03:30:25 [34460] DEBUG: talisman.ini hostname (under main) not set or is localhost
+2026-10-07 03:30:25 [34460] ERROR: Error parsing data/fonts.toml, Line 0, Column 0
+2026-10-07 03:30:25 [34460] ERROR:  -> File could not be opened for reading
+2026-10-07 03:30:25 [34460]  INFO: Connection From: 127.0.0.1 on Node 1
+2026-10-07 03:30:28 [34460]  INFO: DoorTester logged in on node 1 (TELNET)
+2026-10-07 03:30:28 [34460]  INFO: DoorTester loading menu menus/main.toml on node 1
+2026-10-07 03:30:28 [34460]  INFO: DoorTester running door ./door-x86.exe on node 1
+2026-10-07 03:30:28 [34460]  INFO: DoorTester running door ./door-x64.exe on node 1
+2026-10-07 03:30:28 [34460]  INFO: Node 1 logged off (graceful)
+2026-10-07 03:30:28 [34460]  INFO: Node 1 logged off (disconnected)

@@ -1,3 +1,4 @@
+#include "AnsiColor.h"
 #include <cstring>
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -513,7 +514,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
   int lines = 0;
   int line_at = 0;
   int col_at = 0;
-  int params[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::vector<int> params;
   int param_count = 0;
   int fg_color = 7;
   int bg_color = 0;
@@ -534,29 +535,17 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
       col_at = 0;
     } else if (msg[i] == '\x1b') {
       i++;
+      if (i >= len) break;
       if (msg[i] != '[') {
         i--;
         continue;
       } else {
-        param_count = 0;
-        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
-          if (msg[i] == ';') {
-            param_count++;
-          } else if (msg[i] >= '0' && msg[i] <= '9') {
-            if (param_count == 0) {
-              param_count = 1;
-              for (int j = 0; j < 9; j++) {
-                params[j] = 0;
-              }
-            }
-            params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
-          }
-          i++;
-        }
+        if (!AnsiColor::csi(msg, len, i, params)) continue;
+        param_count = static_cast<int>(params.size());
         switch (msg[i]) {
         case 'A':
           if (param_count > 0) {
-            line_at -= params[0];
+            line_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             line_at--;
           }
@@ -565,7 +554,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'B':
           if (param_count > 0) {
-            line_at += params[0];
+            line_at += (params[0] > 0 ? params[0] : 1);
           } else {
             line_at++;
           }
@@ -575,7 +564,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'C':
           if (param_count > 0) {
-            col_at += params[0];
+            col_at += (params[0] > 0 ? params[0] : 1);
           } else {
             col_at++;
           }
@@ -585,7 +574,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'D':
           if (param_count > 0) {
-            col_at -= params[0];
+            col_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             col_at--;
           }
@@ -594,12 +583,8 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'H':
         case 'f':
-          if (param_count > 1) {
-            params[0]--;
-            params[1]--;
-          }
-          line_at = params[0];
-          col_at = params[1];
+          line_at = (params[0] > 0 ? params[0] : 1) - 1;
+          col_at = (param_count > 1 && params[1] > 0 ? params[1] : 1) - 1;
 
           if (line_at > lines) {
             lines = line_at;
@@ -659,6 +644,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
       fakescreen[i][x].c = ' ';
       fakescreen[i][x].fg_color = 7;
       fakescreen[i][x].bg_color = 0;
+      fakescreen[i][x].bold = false;
     }
   }
   line_at = 0;
@@ -671,29 +657,17 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
       col_at = 0;
     } else if (msg[i] == '\x1b') {
       i++;
+      if (i >= len) break;
       if (msg[i] != '[') {
         i--;
         continue;
       } else {
-        param_count = 0;
-        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", msg[i]) == NULL) {
-          if (msg[i] == ';') {
-            param_count++;
-          } else if (msg[i] >= '0' && msg[i] <= '9') {
-            if (param_count == 0) {
-              param_count = 1;
-              for (int j = 0; j < 9; j++) {
-                params[j] = 0;
-              }
-            }
-            params[param_count - 1] = params[param_count - 1] * 10 + (msg[i] - '0');
-          }
-          i++;
-        }
+        if (!AnsiColor::csi(msg, len, i, params)) continue;
+        param_count = static_cast<int>(params.size());
         switch (msg[i]) {
         case 'A':
           if (param_count > 0) {
-            line_at -= params[0];
+            line_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             line_at--;
           }
@@ -702,14 +676,14 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'B':
           if (param_count > 0) {
-            line_at += params[0];
+            line_at += (params[0] > 0 ? params[0] : 1);
           } else {
             line_at++;
           }
           break;
         case 'C':
           if (param_count > 0) {
-            col_at += params[0];
+            col_at += (params[0] > 0 ? params[0] : 1);
           } else {
             col_at++;
           }
@@ -719,7 +693,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'D':
           if (param_count > 0) {
-            col_at -= params[0];
+            col_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             col_at--;
           }
@@ -728,12 +702,8 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
           break;
         case 'H':
         case 'f':
-          if (param_count > 1) {
-            params[0]--;
-            params[1]--;
-          }
-          line_at = params[0];
-          col_at = params[1];
+          line_at = (params[0] > 0 ? params[0] : 1) - 1;
+          col_at = (param_count > 1 && params[1] > 0 ? params[1] : 1) - 1;
           if (line_at < 0)
             line_at = 0;
           if (col_at < 0)
@@ -742,23 +712,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
             col_at = n->get_term_width();
           break;
         case 'm':
-          for (int z = 0; z < param_count; z++) {
-            if (params[z] == 0) {
-              bold = false;
-              fg_color = 7;
-              bg_color = 0;
-            } else if (params[z] == 1) {
-              bold = true;
-            } else if (params[z] == 2) {
-              bold = false;
-            }
-
-            else if (params[z] >= 30 && params[z] <= 37) {
-              fg_color = params[z] - 30;
-            } else if (params[z] >= 40 && params[z] <= 47) {
-              bg_color = params[z] - 40;
-            }
-          }
+          AnsiColor::apply(params, fg_color, bg_color, bold);
           break;
         case 'u':
           col_at = save_col;
@@ -783,9 +737,9 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
     }
   }
 
-  for (int i = 0; i < lines; i++) {
+  for (int i = 0; i <= lines; i++) {
     for (int j = n->get_term_width() - 1; j >= 0; j--) {
-      if (fakescreen[i][j].c == ' ') {
+      if (fakescreen[i][j].c == ' ' && (fakescreen[i][j].bg_color == 0 || fakescreen[i][j].bg_color == AnsiColor::Default)) {
         fakescreen[i][j].c = '\0';
       } else {
         break;
@@ -799,7 +753,7 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
   bg_color = 0;
   bold = false;
   bool got_tearline = false;
-  for (int i = 0; i < lines; i++) {
+  for (int i = 0; i <= lines; i++) {
     ss.str("");
     size_t j;
 
@@ -807,42 +761,15 @@ std::vector<std::string> MsgArea::demangle_ansi(Node *n, const char *msg, size_t
       got_tearline = true;
     }
 
-    if (!got_tearline) {
-      if (fakescreen[i][0].c != '\001') {
-        if (bold) {
-          ss << "\x1b[1m";
-        } else {
-          ss << "\x1b[0m";
-        }
-
-        ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
-        ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
-      }
-    }
+    if (i == lines && fakescreen[i][0].c == '\0') break;
     for (j = 0; j < n->get_term_width(); j++) {
-      if (fakescreen[i][j].c == '\0') {
-        break;
-      }
-      if (!got_tearline) {
-        bool reset = false;
-        if (fakescreen[i][j].bold != bold) {
-          bold = fakescreen[i][j].bold;
-          if (bold) {
-            ss << "\x1b[1m";
-          } else {
-            ss << "\x1b[0m";
-            reset = true;
-          }
-        }
-
-        if (fakescreen[i][j].fg_color != fg_color || reset) {
-          fg_color = fakescreen[i][j].fg_color;
-          ss << "\x1b[" << std::to_string(fg_color + 30) << "m";
-        }
-        if (fakescreen[i][j].bg_color != bg_color) {
-          bg_color = fakescreen[i][j].bg_color;
-          ss << "\x1b[" << std::to_string(bg_color + 40) << "m";
-        }
+      if (fakescreen[i][j].c == '\0') break;
+      if (!got_tearline && fakescreen[i][0].c != '\001' && (j == 0 || fakescreen[i][j].fg_color != fg_color ||
+          fakescreen[i][j].bg_color != bg_color || fakescreen[i][j].bold != bold)) {
+        fg_color = fakescreen[i][j].fg_color;
+        bg_color = fakescreen[i][j].bg_color;
+        bold = fakescreen[i][j].bold;
+        ss << AnsiColor::sgr(fg_color, bg_color, bold);
       }
       ss << fakescreen[i][j].c;
     }

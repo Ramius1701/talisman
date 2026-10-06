@@ -1,0 +1,18 @@
+{
+  "utc": "2026-10-06T19:33:51.510945+00:00",
+  "method": "Modified x86 Talisman; loopback inherited socket, bypasses Servo; byte capture, not visual terminal emulation.",
+  "checks": [
+    "\u001b[0;34mCLASSIC",
+    "\u001b[38;5;196mINDEX",
+    "\u001b[48;5;21mBLUE",
+    "\u001b[38;2;1;2;3m\u001b[48;2;4;5;6mRGB",
+    "\u001b[22;38;2;1;2;3m",
+    "\u001b[48;5;21m",
+    "TALISMAN / 256 COLOR ARTWORK",
+    "TALISMAN / TRUECOLOR COLOR ARTWORK",
+    "Shipped showcase script selects all three color-depth assets",
+    "Interactive RGB foreground / indexed background selection, typed output and saved file"
+  ],
+  "session_exit_code": 4294967295,
+  "pass": true
+}

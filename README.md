@@ -18,3 +18,7 @@ Features:
     Support for Terminal Sizes greater than 80×25
     Built in Full Screen Editor, with the option of an External (QuickBBS) Editor
     Native FTN, WWIVnet, and QWK networking support
+
+## Documentation
+
+The [reconstructed manual](docs/manual/README.md) documents this preserved revision from its source and shipped configurations, including development entry points, configuration, menus, Lua, storage and companion utilities. It distinguishes source evidence from runtime validation and includes reproducible reference inventories.

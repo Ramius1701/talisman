@@ -1,3 +1,4 @@
+#include "AnsiColor.h"
 #include "AnsiEditor.h"
 #include "Node.h"
 #include <cstdio>
@@ -29,10 +30,10 @@ void AnsiEditor::draw_pallet() {
   n->print_f_nc("\x1b[%d;1H", n->get_term_height());
 
   if (cur_pallet == -1) {
-    n->print_f_nc("\x1b[%d;3%d;4%dmAlpha / Numeric Pallet\x1b[K", (cur_bold ? 1 : 0), cur_fg, cur_bg);
+    n->print_f_nc("%sAlpha / Numeric Pallet\x1b[K", AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str());
   } else {
     // to do fill in pallet
-    n->print_f_nc("\x1b[%d;3%d;4%dm", (cur_bold ? 1 : 0), cur_fg, cur_bg);
+    n->print_f_nc("%s", AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str());
     for (size_t i = 0; i < pallets.at(cur_pallet).size(); i++) {
       n->print_f_nc("%d:%c ", i, pallets.at(cur_pallet).at(i));
     }
@@ -45,8 +46,8 @@ void AnsiEditor::refresh_screen() {
   for (int y = off_y; y < (int)n->get_term_height() + off_y - 1; y++) {
     for (int x = off_x; x < (int)n->get_term_width() + off_x; x++) {
       if (y < height && x < width) {
-        n->print_f_nc("\x1b[%d;%dH\x1b[%d;3%d;4%dm%c", y - off_y + 1, x - off_x + 1, (screen[y][x].bold ? 1 : 0), screen[y][x].fg_colour,
-                      screen[y][x].bg_colour, screen[y][x].c);
+        n->print_f_nc("\x1b[%d;%dH%s%c", y - off_y + 1, x - off_x + 1, AnsiColor::sgr(screen[y][x].fg_colour,
+                      screen[y][x].bg_colour, screen[y][x].bold).c_str(), screen[y][x].c);
       } else {
         n->print_f_nc("\x1b[%d;%dH\x1b[1;30;40m\xb1", y + 1 - off_y, x + 1 - off_x);
       }
@@ -59,40 +60,34 @@ void AnsiEditor::refresh_screen() {
 bool AnsiEditor::load(std::string filename) {
   FILE *fptr = fopen(filename.c_str(), "rb");
 
-  fseek(fptr, 0, SEEK_END);
+  if (!fptr) return false;
+  if (fseek(fptr, 0, SEEK_END) != 0) { fclose(fptr); return false; }
 
-  size_t len = ftell(fptr);
+  long file_len = ftell(fptr);
+  if (file_len < 0) { fclose(fptr); return false; }
+  size_t len = static_cast<size_t>(file_len);
 
   fseek(fptr, 0, SEEK_SET);
 
-  char *contents = (char *)malloc(len);
+  char *contents = (char *)malloc(len + 1);
   if (!contents) {
     fclose(fptr);
     return false;
   }
 
-  fread(contents, 1, len, fptr);
+  len = fread(contents, 1, len, fptr);
+  contents[len] = 0;
 
   fclose(fptr);
 
-  char *sauce = strrchr(contents, 0x1a);
-
-  if (sauce != NULL) {
-    size_t new_len = sauce - contents;
-    char *tmp = (char *)realloc(contents, new_len);
-    if (!tmp) {
-      free(contents);
-      return false;
-    }
-    contents = tmp;
-    len = new_len;
-  }
+  const char *sauce = static_cast<const char *>(memchr(contents, 0x1a, len));
+  if (sauce) len = static_cast<size_t>(sauce - contents);
 
   int line_at = 0;
   int lines = 0;
   int col_at = 0;
   int param_count;
-  int params[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::vector<int> params;
   int save_col = 0;
   int save_row = 0;
   bool bold = false;
@@ -108,29 +103,17 @@ bool AnsiEditor::load(std::string filename) {
       col_at = 0;
     } else if (contents[i] == '\x1b') {
       i++;
+      if (i >= len) break;
       if (contents[i] != '[') {
         i--;
         continue;
       } else {
-        param_count = 0;
-        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", contents[i]) == NULL) {
-          if (contents[i] == ';') {
-            param_count++;
-          } else if (contents[i] >= '0' && contents[i] <= '9') {
-            if (param_count == 0) {
-              param_count = 1;
-              for (int j = 0; j < 9; j++) {
-                params[j] = 0;
-              }
-            }
-            params[param_count - 1] = params[param_count - 1] * 10 + (contents[i] - '0');
-          }
-          i++;
-        }
+        if (!AnsiColor::csi(contents, len, i, params)) continue;
+        param_count = static_cast<int>(params.size());
         switch (contents[i]) {
         case 'A':
           if (param_count > 0) {
-            line_at -= params[0];
+            line_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             line_at--;
           }
@@ -139,7 +122,7 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'B':
           if (param_count > 0) {
-            line_at += params[0];
+            line_at += (params[0] > 0 ? params[0] : 1);
           } else {
             line_at++;
           }
@@ -149,7 +132,7 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'C':
           if (param_count > 0) {
-            col_at += params[0];
+            col_at += (params[0] > 0 ? params[0] : 1);
           } else {
             col_at++;
           }
@@ -159,7 +142,7 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'D':
           if (param_count > 0) {
-            col_at -= params[0];
+            col_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             col_at--;
           }
@@ -168,12 +151,8 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'H':
         case 'f':
-          if (param_count > 1) {
-            params[0]--;
-            params[1]--;
-          }
-          line_at = params[0];
-          col_at = params[1];
+          line_at = (params[0] > 0 ? params[0] : 1) - 1;
+          col_at = (param_count > 1 && params[1] > 0 ? params[1] : 1) - 1;
 
           if (line_at > lines) {
             lines = line_at;
@@ -248,29 +227,17 @@ bool AnsiEditor::load(std::string filename) {
       col_at = 0;
     } else if (contents[i] == '\x1b') {
       i++;
+      if (i >= len) break;
       if (contents[i] != '[') {
         i--;
         continue;
       } else {
-        param_count = 0;
-        while (i < len && strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", contents[i]) == NULL) {
-          if (contents[i] == ';') {
-            param_count++;
-          } else if (contents[i] >= '0' && contents[i] <= '9') {
-            if (param_count == 0) {
-              param_count = 1;
-              for (int j = 0; j < 9; j++) {
-                params[j] = 0;
-              }
-            }
-            params[param_count - 1] = params[param_count - 1] * 10 + (contents[i] - '0');
-          }
-          i++;
-        }
+        if (!AnsiColor::csi(contents, len, i, params)) continue;
+        param_count = static_cast<int>(params.size());
         switch (contents[i]) {
         case 'A':
           if (param_count > 0) {
-            line_at -= params[0];
+            line_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             line_at--;
           }
@@ -279,14 +246,14 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'B':
           if (param_count > 0) {
-            line_at += params[0];
+            line_at += (params[0] > 0 ? params[0] : 1);
           } else {
             line_at++;
           }
           break;
         case 'C':
           if (param_count > 0) {
-            col_at += params[0];
+            col_at += (params[0] > 0 ? params[0] : 1);
           } else {
             col_at++;
           }
@@ -296,7 +263,7 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'D':
           if (param_count > 0) {
-            col_at -= params[0];
+            col_at -= (params[0] > 0 ? params[0] : 1);
           } else {
             col_at--;
           }
@@ -305,12 +272,8 @@ bool AnsiEditor::load(std::string filename) {
           break;
         case 'H':
         case 'f':
-          if (param_count > 1) {
-            params[0]--;
-            params[1]--;
-          }
-          line_at = params[0];
-          col_at = params[1];
+          line_at = (params[0] > 0 ? params[0] : 1) - 1;
+          col_at = (param_count > 1 && params[1] > 0 ? params[1] : 1) - 1;
           if (line_at < 0)
             line_at = 0;
           if (col_at < 0)
@@ -319,23 +282,7 @@ bool AnsiEditor::load(std::string filename) {
             col_at = width - 1;
           break;
         case 'm':
-          for (int z = 0; z < param_count; z++) {
-            if (params[z] == 0) {
-              bold = false;
-              fg_colour = 7;
-              bg_colour = 0;
-            } else if (params[z] == 1) {
-              bold = true;
-            } else if (params[z] == 2) {
-              bold = false;
-            }
-
-            else if (params[z] >= 30 && params[z] <= 37) {
-              fg_colour = params[z] - 30;
-            } else if (params[z] >= 40 && params[z] <= 47) {
-              bg_colour = params[z] - 40;
-            }
-          }
+          AnsiColor::apply(params, fg_colour, bg_colour, bold);
           break;
         case 'u':
           col_at = save_col;
@@ -378,7 +325,7 @@ bool AnsiEditor::save(std::string filename) {
     std::stringstream ss;
     for (int x = 0; x < width; x++) {
       if (screen[y][x].fg_colour != fg || screen[y][x].bg_colour != bg || screen[y][x].bold != bold) {
-        ss << "\x1b[" << (screen[y][x].bold ? 1 : 0) << ";3" << screen[y][x].fg_colour << ";4" << screen[y][x].bg_colour << "m";
+        ss << AnsiColor::sgr(screen[y][x].fg_colour, screen[y][x].bg_colour, screen[y][x].bold);
         fg = screen[y][x].fg_colour;
         bg = screen[y][x].bg_colour;
         bold = screen[y][x].bold;
@@ -740,8 +687,8 @@ void AnsiEditor::edit(std::string filename) {
           refresh_screen();
           draw_pallet();
         }
-        n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)\x1b[%d;3%d;4%dm", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
-                      off_y + loc_y + 1, off_x + loc_x + 1, (cur_bold ? 1 : 0), cur_fg, cur_bg);
+        n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)%s", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
+                      off_y + loc_y + 1, off_x + loc_x + 1, AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str());
 
         n->print_f_nc("\x1b[%d;%dH", loc_y + 1, loc_x + 1);
       }
@@ -756,7 +703,9 @@ void AnsiEditor::edit(std::string filename) {
         n->print_f_nc("\x1b[%d;3H| (S) Save Artwork      |", (n->get_term_height() / 2 - 4) + 5);
         n->print_f_nc("\x1b[%d;3H| (R) Return to Editor  |", (n->get_term_height() / 2 - 4) + 6);
         n->print_f_nc("\x1b[%d;3H| (Q) Quit Editor       |", (n->get_term_height() / 2 - 4) + 7);
-        n->print_f_nc("\x1b[%d;3H+-----------------------+\x1b[0m", (n->get_term_height() / 2 - 4) + 8);
+        n->print_f_nc("\x1b[%d;3H+-----------------------+\x1b[0m", (n->get_term_height() / 2 - 4) + 9);
+
+        n->print_f_nc("\x1b[%d;3H\x1b[0;30;47m| (C) Extended Colours  |", (n->get_term_height() / 2 - 4) + 8);
 
         bool done = false;
 
@@ -764,6 +713,20 @@ void AnsiEditor::edit(std::string filename) {
 
           ch = tolower(n->getch());
           switch (ch) {
+          case 'c': {
+            n->print_f_nc("\x1b[2J\x1b[HForeground or background (F/B)? ");
+            char channel = static_cast<char>(tolower(n->getch()));
+            if (channel == 'f' || channel == 'b') {
+              n->print_f_nc("\r\nColour: 0-255 or #RRGGBB (blank cancels): ");
+              int color;
+              if (AnsiColor::parse(n->get_string(7, false), color)) {
+                if (channel == 'f') { cur_fg = color; cur_bold = false; }
+                else cur_bg = color;
+              }
+            }
+            done = true;
+            break;
+          }
           case 'p': {
             const char *choices = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             n->print_f_nc("\x1b[%d;28H\x1b[0;30;47m+----[SELECT Pallet]-----+", 1);
@@ -962,7 +925,7 @@ void AnsiEditor::edit(std::string filename) {
           screen[loc_y + off_y][loc_x + off_x].fg_colour = cur_fg;
           screen[loc_y + off_y][loc_x + off_x].bg_colour = cur_bg;
 
-          n->print_f_nc("\x1b[%d;3%d;4%dm%c", (cur_bold ? 1 : 0), cur_fg, cur_bg, ch);
+          n->print_f_nc("%s%c", AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str(), ch);
 
           loc_x++;
           if (loc_x + off_x >= width) {
@@ -979,8 +942,8 @@ void AnsiEditor::edit(std::string filename) {
               draw_pallet();
             }
           }
-          n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)\x1b[%d;3%d;4%dm", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
-                        off_y + loc_y + 1, off_x + loc_x + 1, (cur_bold ? 1 : 0), cur_fg, cur_bg);
+          n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)%s", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
+                        off_y + loc_y + 1, off_x + loc_x + 1, AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str());
           n->print_f_nc("\x1b[%d;%dH", loc_y + 1, loc_x + 1);
         } else {
           // place pallet character
@@ -992,7 +955,7 @@ void AnsiEditor::edit(std::string filename) {
           screen[loc_y + off_y][loc_x + off_x].fg_colour = cur_fg;
           screen[loc_y + off_y][loc_x + off_x].bg_colour = cur_bg;
 
-          n->print_f_nc("\x1b[%d;3%d;4%dm%c", (cur_bold ? 1 : 0), cur_fg, cur_bg, ch);
+          n->print_f_nc("%s%c", AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str(), ch);
           loc_x++;
           if (loc_x + off_x >= width) {
             loc_x--;
@@ -1009,8 +972,8 @@ void AnsiEditor::edit(std::string filename) {
               draw_pallet();
             }
           }
-          n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)\x1b[%d;3%d;4%dm", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
-                        off_y + loc_y + 1, off_x + loc_x + 1, (cur_bold ? 1 : 0), cur_fg, cur_bg);
+          n->print_f_nc("\x1b[%d;%dH%s(%3d,%3d)%s", n->get_term_height(), n->get_term_width() - 9, n->get_config()->get_prompt_colour(),
+                        off_y + loc_y + 1, off_x + loc_x + 1, AnsiColor::sgr(cur_fg, cur_bg, cur_bold).c_str());
 
           n->print_f_nc("\x1b[%d;%dH", loc_y + 1, loc_x + 1);
         }

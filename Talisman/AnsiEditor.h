@@ -18,6 +18,7 @@ struct ansi_line {
 };
 
 class AnsiEditor {
+  friend struct AnsiEditorTestAccess;
 public:
   AnsiEditor(Node *n, int width, int height);
   void edit(std::string filename);

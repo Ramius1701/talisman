@@ -1,0 +1,28 @@
+{
+  "source_revision": "ec7161ef66ad62a089ad6d555ca54074b56aaac3",
+  "date": "2026-10-07",
+  "method": "Unmodified preserved Talisman source built x86 with local dependency libraries; direct inherited loopback socket bypasses Servo.",
+  "pe_machines": {
+    "talisman.exe": "0x14c",
+    "door-x86.exe": "0x14c",
+    "door-x64.exe": "0x8664"
+  },
+  "tests": [
+    {
+      "door_bits": 32,
+      "dropfile": "pass",
+      "bidirectional_socket": "pass",
+      "return_to_menu": "pass",
+      "report": "pointer_bits=32\nusername=DoorTester\nsocket=368\ndropfile_lines=11\nduplex=pass\n"
+    },
+    {
+      "door_bits": 64,
+      "dropfile": "pass",
+      "bidirectional_socket": "pass",
+      "return_to_menu": "pass",
+      "report": "pointer_bits=64\nusername=DoorTester\nsocket=368\ndropfile_lines=11\nduplex=pass\n"
+    }
+  ],
+  "session_exit_code": 4294967295,
+  "pass": true
+}

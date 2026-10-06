@@ -1,3 +1,4 @@
+#include "AnsiColor.h"
 
 #ifdef _MSC_VER
 #define _WIN32_LEAN_AND_MEAN 1
@@ -1228,6 +1229,15 @@ void Node::print_f(const char *fmt, ...) {
         }
         if (i >= strlen(buffer))
           break;
+      }
+    }
+    if (buffer[i] == '|' && (strncmp(buffer + i, "|FG:", 4) == 0 || strncmp(buffer + i, "|BG:", 4) == 0)) {
+      const char *end = strchr(buffer + i + 4, '|');
+      int color;
+      if (end && AnsiColor::parse(std::string(buffer + i + 4, static_cast<size_t>(end - (buffer + i + 4))), color)) {
+        if (hasANSI) send_str(("\x1b[" + AnsiColor::parameter(color, buffer[i + 1] == 'B') + "m").c_str());
+        i = static_cast<size_t>(end - buffer);
+        continue;
       }
     }
     if (i + 2 < strlen(buffer) && buffer[i] == '|' && buffer[i + 1] >= '0' && buffer[i + 1] <= '9' && buffer[i + 2] >= '0' && buffer[i + 2] <= '9') {

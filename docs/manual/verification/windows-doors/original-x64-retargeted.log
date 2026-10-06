@@ -1,0 +1,234 @@
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+Build started 10/7/2026 3:31:15 AM.
+
+Project "S:\Github\talisman\Talisman\Talisman.vcxproj" on node 1 (Build target(s)).
+PrepareForBuild:
+  Creating directory "C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\".
+  Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
+  Creating directory "C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\bin\".
+  Creating directory "C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\Talisman.tlog\".
+InitializeBuildStatus:
+  Creating "C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\Talisman.tlog\unsuccessfulbuild" because "AlwaysCreate" was specified.
+  Touching "C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\Talisman.tlog\unsuccessfulbuild".
+ClCompile:
+  C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\bin\HostX86\x64\CL.exe /c /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /GL /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fo"C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\\" /Fd"C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\original-x64\obj\vc145.pdb" /external:W3 /Gd /TP /FC /errorReport:queue ..\Common\Logger.cpp ..\Common\Squish.cpp AnsiEditor.cpp Archiver.cpp Bulletins.cpp CallLog.cpp Config.cpp Door.cpp Editor.cpp Email.cpp FileArea.cpp FileConf.cpp FullScreenEditor.cpp IndexReader.cpp main.cpp Menu.cpp MessageReader.cpp MsgArea.cpp MsgConf.cpp Node.cpp Nodelist.cpp Phlog.cpp Protocol.cpp Rlogin.cpp Script.cpp Settings.cpp SshClient.cpp Strings.cpp Telnet.cpp User.cpp
+  Logger.cpp
+S:\Github\talisman\Common\Logger.cpp(68,15): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  Squish.cpp
+S:\Github\talisman\Common\Squish.cpp(166,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(172,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(178,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(187,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(192,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(198,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(204,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(210,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(216,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(278,17): error C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(290,10): error C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(305,19): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(309,21): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(317,18): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(337,20): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(906,29): warning C4267: 'argument': conversion from 'size_t' to 'sq_dword', possible loss of data [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(878,10): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(885,10): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(888,5): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(968,3): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(969,3): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  AnsiEditor.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'AnsiEditor.cpp')
+  
+  Archiver.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Archiver.cpp')
+  
+  Bulletins.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\filesystem(12): warning STL4038: The contents of <filesystem> are available only with C++17 or later. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Bulletins.cpp')
+  
+  CallLog.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'CallLog.cpp')
+  
+  Config.cpp
+S:\Github\talisman\Common\INIReader.h(163,5): error C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Config.cpp')
+  
+S:\Github\talisman\Common\INIReader.h(292,12): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Config.cpp')
+  
+S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Config.cpp')
+  
+  Door.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Door.cpp')
+  
+  Editor.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Editor.cpp')
+  
+  Email.cpp
+S:\Github\talisman\Talisman\Email.h(4,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Email.cpp')
+  
+  FileArea.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'FileArea.cpp')
+  
+  FileConf.cpp
+S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'FileConf.cpp')
+  
+  FullScreenEditor.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'FullScreenEditor.cpp')
+  
+  IndexReader.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'IndexReader.cpp')
+  
+  main.cpp
+S:\Github\talisman\Common\INIReader.h(163,5): error C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'main.cpp')
+  
+S:\Github\talisman\Common\INIReader.h(292,12): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'main.cpp')
+  
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'main.cpp')
+  
+  Menu.cpp
+S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Menu.cpp')
+  
+  MessageReader.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'MessageReader.cpp')
+  
+  MsgArea.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'MsgArea.cpp')
+  
+  MsgConf.cpp
+S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'MsgConf.cpp')
+  
+  Node.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Node.cpp')
+  
+  Compiling...
+  Nodelist.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Nodelist.cpp')
+  
+  Phlog.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Phlog.cpp')
+  
+  Protocol.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Protocol.cpp')
+  
+  Rlogin.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Rlogin.cpp')
+  
+  Script.cpp
+S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Script.cpp')
+  
+  Settings.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Settings.cpp')
+  
+  SshClient.cpp
+S:\Github\talisman\Talisman\SshClient.h(3,10): error C1083: Cannot open include file: 'libssh/callbacks.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'SshClient.cpp')
+  
+  Strings.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Strings.cpp')
+  
+  Telnet.cpp
+S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  (compiling source file 'Telnet.cpp')
+  
+  User.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\filesystem(12): warning STL4038: The contents of <filesystem> are available only with C++17 or later. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+S:\Github\talisman\Talisman\User.cpp(6,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+Done Building Project "S:\Github\talisman\Talisman\Talisman.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+"S:\Github\talisman\Talisman\Talisman.vcxproj" (Build target) (1) ->
+(ClCompile target) -> 
+  S:\Github\talisman\Common\Squish.cpp(906,29): warning C4267: 'argument': conversion from 'size_t' to 'sq_dword', possible loss of data [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\filesystem(12): warning STL4038: The contents of <filesystem> are available only with C++17 or later. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.51.36231\include\filesystem(12): warning STL4038: The contents of <filesystem> are available only with C++17 or later. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+
+
+"S:\Github\talisman\Talisman\Talisman.vcxproj" (Build target) (1) ->
+(ClCompile target) -> 
+  S:\Github\talisman\Common\Logger.cpp(68,15): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(166,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(172,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(178,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(187,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(192,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(198,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(204,17): error C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(210,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(216,3): error C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(278,17): error C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(290,10): error C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(305,19): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(309,21): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(317,18): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(337,20): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(878,10): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(885,10): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(888,5): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(968,3): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\Squish.cpp(969,3): error C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\INIReader.h(163,5): error C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\INIReader.h(292,12): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\Email.h(4,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\INIReader.h(163,5): error C4996: 'strncpy': This function or variable may be unsafe. Consider using strncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\INIReader.h(292,12): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Common\toml.hpp(440,2): error C1189: #error:  toml++ requires C++17 or higher. For a TOML library supporting C++11 see https: [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\CallLog.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\SshClient.h(3,10): error C1083: Cannot open include file: 'libssh/callbacks.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\FileArea.h(2,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+  S:\Github\talisman\Talisman\User.cpp(6,10): error C1083: Cannot open include file: 'sqlite3.h': No such file or directory [S:\Github\talisman\Talisman\Talisman.vcxproj]
+
+    3 Warning(s)
+    53 Error(s)
+
+Time Elapsed 00:00:21.98

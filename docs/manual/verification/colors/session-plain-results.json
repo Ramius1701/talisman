@@ -1,0 +1,9 @@
+{
+  "utc": "2026-10-06T19:34:06.944877+00:00",
+  "method": "Modified x86 Talisman; loopback inherited socket, bypasses Servo; byte capture, not visual terminal emulation.",
+  "checks": [
+    "Non-ANSI callers: color tokens stripped and ASCII asset fallback selected"
+  ],
+  "session_exit_code": 4294967295,
+  "pass": true
+}

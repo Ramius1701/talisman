@@ -187,6 +187,7 @@
     <ClInclude Include="..\Common\INIReader.h" />
     <ClInclude Include="..\Common\Logger.h" />
     <ClInclude Include="..\Common\Squish.h" />
+    <ClInclude Include="AnsiColor.h" />
     <ClInclude Include="AnsiEditor.h" />
     <ClInclude Include="Archiver.h" />
     <ClInclude Include="bluewave.h" />

@@ -1,0 +1,12 @@
+{
+  "source_revision": "ec7161ef66ad62a089ad6d555ca54074b56aaac3",
+  "working_tree": "Includes the new uncommitted ANSI color implementation; hashes identify tested source content.",
+  "sha256": {
+    "Talisman/AnsiColor.h": "13df935eae2f24c757359fb4040c2954d1b899581b03e06f1e93de3fd3b88efb",
+    "Talisman/AnsiEditor.h": "a9b24ff4bd6f095774240d465c9f399316300e01f8a9b6bcb2d772c61c05dd17",
+    "Talisman/AnsiEditor.cpp": "a0f26792b609fb2e2105070b0bba16eff13ad6e21d9610d6394d460a3ea73bb8",
+    "Talisman/MsgArea.cpp": "2f5ccad6287afd413a5b1486601b3d9c4744812930224bdae15a042f3bf70b50",
+    "Talisman/Node.cpp": "7f7e13863c0cfff4beaf0b1c657b19da8f7544ceac39744d118623a3991765ad",
+    "Talisman/Config.cpp": "584c23c62b3ab63f72d5fba97aa6926535345c3e026196dfe293f27b54d7b9a7"
+  }
+}

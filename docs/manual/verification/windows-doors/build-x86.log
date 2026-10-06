@@ -1,0 +1,103 @@
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- Configuring done (0.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/build-x86-clean
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/CMakeLists.txt
+  main.cpp
+  Node.cpp
+S:\Github\talisman\Talisman\Node.cpp(1118,32): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1559,29): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1561,33): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1898,20): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1904,22): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1941,21): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Node.cpp(1947,23): warning C4018: '>=': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Config.cpp
+  User.cpp
+  Menu.cpp
+S:\Github\talisman\Talisman\Menu.cpp(210,30): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  MsgArea.cpp
+S:\Github\talisman\Talisman\MsgArea.cpp(1629,27): warning C4018: '<': signed/unsigned mismatch [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  MsgConf.cpp
+  MessageReader.cpp
+  Squish.cpp
+S:\Github\talisman\Common\Squish.cpp(166,17): warning C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(172,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(178,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(187,17): warning C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(192,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(198,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(204,17): warning C4996: 'tell': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _tell. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(210,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(216,3): warning C4996: 'lseek': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _lseek. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(278,17): warning C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(290,10): warning C4996: 'fileno': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _fileno. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(888,5): warning C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(968,3): warning C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Common\Squish.cpp(969,3): warning C4996: 'unlink': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _unlink. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  CallLog.cpp
+S:\Github\talisman\Talisman\CallLog.cpp(575,22): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Door.cpp
+S:\Github\talisman\Talisman\Door.cpp(257,15): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Settings.cpp
+  Logger.cpp
+  Editor.cpp
+  Email.cpp
+S:\Github\talisman\Talisman\Email.cpp(531,12): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Protocol.cpp
+S:\Github\talisman\Talisman\Protocol.cpp(51,3): warning C4996: 'getcwd': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _getcwd. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Protocol.cpp(52,3): warning C4996: 'chdir': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _chdir. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Protocol.cpp(80,3): warning C4996: 'chdir': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _chdir. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Bulletins.cpp
+  FileConf.cpp
+  FileArea.cpp
+  Archiver.cpp
+S:\Github\talisman\Talisman\Archiver.cpp(120,20): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Generating Code...
+  Compiling...
+  Script.cpp
+S:\Github\talisman\Talisman\Script.cpp(385,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(394,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(428,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(436,11): warning C4244: 'initializing': conversion from 'uint64_t' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(509,9): warning C4244: 'initializing': conversion from 'lua_Integer' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(518,25): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(519,25): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(549,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(550,14): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(620,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(632,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(644,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(659,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(681,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(689,21): warning C4244: 'argument': conversion from 'uint64_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(706,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'time_t', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(716,39): warning C4244: 'argument': conversion from 'time_t' to 'lua_Number', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(721,12): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Script.cpp(722,13): warning C4244: 'initializing': conversion from 'lua_Number' to 'int', possible loss of data [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  SshClient.cpp
+S:\Github\talisman\Talisman\SshClient.cpp(110,15): warning C4101: 'msg': unreferenced local variable [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\SshClient.cpp(185,18): warning C4996: 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _strdup. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Nodelist.cpp
+  FullScreenEditor.cpp
+  AnsiEditor.cpp
+  Phlog.cpp
+  IndexReader.cpp
+S:\Github\talisman\Talisman\IndexReader.cpp(335,33): warning C4996: 'stricmp': The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _stricmp. See online help for details. [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Strings.cpp
+  Rlogin.cpp
+S:\Github\talisman\Talisman\Rlogin.cpp(38,7): warning C4996: 'WSAStringToAddressA': Use WSAStringToAddressW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Rlogin.cpp(69,11): warning C4996: 'WSAAddressToStringA': Use WSAAddressToStringW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Telnet.cpp
+S:\Github\talisman\Talisman\Telnet.cpp(38,7): warning C4996: 'WSAStringToAddressA': Use WSAStringToAddressW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+S:\Github\talisman\Talisman\Telnet.cpp(69,11): warning C4996: 'WSAAddressToStringA': Use WSAAddressToStringW() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings [C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\talisman.vcxproj]
+  Generating Code...
+  talisman.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\bin\Release\talisman.exe
+MSBuild version 18.9.1+a81b43525 for .NET Framework
+
+  Building Custom Rule C:/Users/Allen/OneDrive/Documents/ChatGPT/BBS/verification/windows-door/CMakeLists.txt
+  door-probe.cpp
+  door-probe.vcxproj -> C:\Users\Allen\OneDrive\Documents\ChatGPT\BBS\verification\windows-door\build-x86-clean\bin\Release\door-probe.exe

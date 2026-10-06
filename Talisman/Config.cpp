@@ -1,3 +1,4 @@
+#include "AnsiColor.h"
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -840,7 +841,11 @@ int Config::select_archiver(Node *n) {
 const char *Config::get_prompt_colour() {
   std::stringstream ss;
 
+  int extended_fg, extended_bg;
+  bool has_fg = AnsiColor::parse(_fg_colour, extended_fg);
+  bool has_bg = AnsiColor::parse(_bg_colour, extended_bg);
   ss << "\x1b[";
+  if (has_fg) ss << "22;37;";
 
   if (prompt_background_ansi != "")
     return prompt_background_ansi.c_str();
@@ -920,6 +925,11 @@ const char *Config::get_prompt_colour() {
     ss << "47m";
   }
 
+  if (has_bg) ss << "40m";
+
+  // Separate SGRs override only the requested channel after named-color setup.
+  if (has_fg) ss << "\x1b[22;" << AnsiColor::parameter(extended_fg, false) << "m";
+  if (has_bg) ss << "\x1b[" << AnsiColor::parameter(extended_bg, true) << "m";
   prompt_background_ansi = ss.str();
 
   return prompt_background_ansi.c_str();

@@ -1,0 +1,13 @@
+{
+  "checked_at_utc": "2026-10-06T19:47:12.443383+00:00",
+  "scope": "Static documentation checks only; this checker does not execute the BBS or a build.",
+  "markdown_pages": 16,
+  "local_links_checked": 879,
+  "broken_links": [],
+  "core_sample_toml_files": 18,
+  "sample_syntax_errors": [],
+  "menu_commands": 53,
+  "menu_commands_missing_from_guide": [],
+  "reference_freshness_exit_code": 0,
+  "reference_freshness_output": "{\"mode\": \"check\", \"counts\": {\"ini_reads\": 119, \"toml_statements\": 434, \"menu_commands\": 53, \"login_commands\": 11, \"lua_functions\": 51}, \"differences\": []}"
+}
