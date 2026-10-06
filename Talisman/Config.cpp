@@ -250,7 +250,7 @@ bool Config::load(Node *n, std::string filename, Logger **log) {
   _tmppath = inir.Get("Paths", "Temp Path", "temp");
   _scriptpath = inir.Get("Paths", "Script Path", "scripts");
   _opname = convert_cp437(inir.Get("Main", "Sysop Name", "Sysop"));
-  _sysname = convert_cp437(inir.Get("Main", "System Name", "Talisman"));
+  _sysname = convert_cp437(inir.Get("Main", "System Name", "Waystone BBS"));
   _netmailsem = inir.Get("Paths", "Netmail Semaphore", "netmail.sem");
   _echomailsem = inir.Get("Paths", "Echomail Semaphore", "echomail.sem");
   _externaleditor = inir.Get("Paths", "External Editor", "");

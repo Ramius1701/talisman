@@ -1,6 +1,12 @@
- Written by Andrew Pamment (apam), Talisman is a telnet-style bulletin board system for Linux & Windows. It is a system that mixes the best bits of his previous BBS systems (Magicka BBS / Titan BBS). Talisman is open source and licensed under the GNU GPLv3.
+# Waystone BBS
 
-Development of the software was passed to Lawrence Stockman in 2024. The project's current website is now defunct.
+Waystone BBS is a continuation of Talisman BBS for Windows and Linux, maintained in Ramius1701's development fork. It carries forward Talisman's terminal BBS, message and file areas, doors, scripting and networking components, with reconstructed documentation and new extended-color ANSI support.
+
+Talisman was originally written by Andrew Pamment (apam), drawing on his earlier Magicka BBS and Titan BBS projects. Development passed to Lawrence Stockman in 2024. Waystone preserves that lineage and the existing copyright notices. The project remains licensed under the GNU GPLv3; see [LICENSE](LICENSE).
+
+The new name identifies this continuing project. Configuration remains `talisman.ini`, and existing executable names, source directories, message formats and door interfaces remain compatible. Network identifiers such as QWK ID are installation settings and are not automatically renamed. See [the naming and compatibility notes](docs/manual/waystone-name.md).
+
+Inherited features (implementation presence does not mean every path has been runtime-verified):
 
 Features:
 
@@ -21,4 +27,4 @@ Features:
 
 ## Documentation
 
-The [reconstructed manual](docs/manual/README.md) documents this preserved revision from its source and shipped configurations, including development entry points, configuration, menus, Lua, storage and companion utilities. It distinguishes source evidence from runtime validation and includes reproducible reference inventories.
+The [reconstructed manual](docs/manual/README.md) covers the preserved Talisman baseline and subsequent Waystone changes using source evidence and shipped configurations, including development entry points, configuration, menus, Lua, storage and companion utilities. It distinguishes source evidence from runtime validation and includes reproducible reference inventories.

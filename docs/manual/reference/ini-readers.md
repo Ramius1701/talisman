@@ -79,7 +79,7 @@ Generated from the checkout by `generate_reference.py`. Every matched literal se
 | Paths | Temp Path | Get | `"temp"` | inir | [Talisman/Config.cpp:250](../../../Talisman/Config.cpp#L250) |
 | Paths | Script Path | Get | `"scripts"` | inir | [Talisman/Config.cpp:251](../../../Talisman/Config.cpp#L251) |
 | Main | Sysop Name | Get | `"Sysop"` | inir | [Talisman/Config.cpp:252](../../../Talisman/Config.cpp#L252) |
-| Main | System Name | Get | `"Talisman"` | inir | [Talisman/Config.cpp:253](../../../Talisman/Config.cpp#L253) |
+| Main | System Name | Get | `"Waystone BBS"` | inir | [Talisman/Config.cpp:253](../../../Talisman/Config.cpp#L253) |
 | Paths | Netmail Semaphore | Get | `"netmail.sem"` | inir | [Talisman/Config.cpp:254](../../../Talisman/Config.cpp#L254) |
 | Paths | Echomail Semaphore | Get | `"echomail.sem"` | inir | [Talisman/Config.cpp:255](../../../Talisman/Config.cpp#L255) |
 | Paths | External Editor | Get | `""` | inir | [Talisman/Config.cpp:256](../../../Talisman/Config.cpp#L256) |
